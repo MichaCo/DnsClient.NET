@@ -5,7 +5,7 @@ using DnsClient.Records;
 
 namespace DnsClient
 {
-    public struct RecordReader
+    public class RecordReader
     {
         private byte[] _data;
 
