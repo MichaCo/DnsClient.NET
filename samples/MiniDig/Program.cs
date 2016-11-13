@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
-using System.Threading.Tasks;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using DnsClient;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
@@ -17,7 +16,7 @@ namespace ConsoleApp4
         {
             get
             {
-                return System.Runtime.InteropServices.RuntimeInformation.OSDescription.Trim();
+                return RuntimeInformation.OSDescription.Trim();
             }
         }
 
@@ -25,7 +24,7 @@ namespace ConsoleApp4
         {
             get
             {
-                return System.Reflection.Assembly.GetEntryAssembly().GetName().Version.ToString();
+                return typeof(Resolver).GetTypeInfo().Assembly.GetName().Version.ToString();
             }
         }
 
@@ -72,8 +71,6 @@ namespace ConsoleApp4
             commandLineApplication.HelpOption("-? | -h | --help");
             commandLineApplication.OnExecute(() =>
             {
-                Console.WriteLine();
-
                 var usePort = port.HasValue() ? int.Parse(port.Value()) : 53;
                 var useServers = server.HasValue() ?
                     new[] { new IPEndPoint(IPAddress.Parse(server.Value()), usePort) } :
@@ -126,7 +123,7 @@ namespace ConsoleApp4
                 resolver.TransportType = TransportType.Udp;
                 resolver.Recursion = !noRecure.HasValue();
                 resolver.Retries = tries.HasValue() ? int.Parse(tries.Value()) : 3;
-                resolver.TimeOut = timeout.HasValue() ? int.Parse(timeout.Value()) : 1;
+                resolver.Timeout = timeout.HasValue() ? int.Parse(timeout.Value()) : 1000;
 
                 if (useTcp.HasValue())
                 {
@@ -142,6 +139,7 @@ namespace ConsoleApp4
                 var elapsed = swatch.ElapsedMilliseconds;
 
                 // Printing infomrational stuff
+                Console.WriteLine();
                 Console.WriteLine($"; <<>> MiniDiG {Version} {OS} <<>> {string.Join(" ", args)}");
                 Console.WriteLine($"; ({useServers.Length} server found)");
 

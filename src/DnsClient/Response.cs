@@ -134,23 +134,19 @@ namespace DnsClient
             Additionals = additionals.ToArray();
         }
 
+        public IReadOnlyCollection<TRecord> GetRecords<TRecord>() where TRecord : Record
+        {
+            return Answers.Select(p => p.Record).OfType<TRecord>().ToArray();
+        }
+
         /// <summary>
         /// List of RecordMX in Response.Answers
         /// </summary>
-        public RecordMX[] RecordsMX
+        public IReadOnlyCollection<RecordMX> RecordsMX
         {
             get
             {
-                var list = Answers.OfType<RecordMX>().ToList();
-                //foreach (ResourceRecord answerRR in this.Answers)
-                //{
-                //    RecordMX record = answerRR.Record as RecordMX;
-                //    if (record != null)
-                //    {
-                //        list.Add(record);
-                //    }
-                //}
-
+                var list = GetRecords<RecordMX>().ToList();
                 list.Sort();
                 return list.ToArray();
             }
@@ -159,184 +155,116 @@ namespace DnsClient
         /// <summary>
         /// List of RecordTXT in Response.Answers
         /// </summary>
-        public RecordTXT[] RecordsTXT
+        public IReadOnlyCollection<RecordTXT> RecordsTXT
         {
             get
             {
-                List<RecordTXT> list = new List<RecordTXT>();
-                foreach (ResourceRecord answerRR in Answers)
-                {
-                    RecordTXT record = answerRR.Record as RecordTXT;
-                    if (record != null)
-                        list.Add(record);
-                }
-                return list.ToArray();
+                return GetRecords<RecordTXT>();
             }
         }
 
         /// <summary>
         /// List of RecordA in Response.Answers
         /// </summary>
-        public RecordA[] RecordsA
+        public IReadOnlyCollection<RecordA> RecordsA
         {
             get
             {
-                List<RecordA> list = new List<RecordA>();
-                foreach (ResourceRecord answerRR in Answers)
-                {
-                    RecordA record = answerRR.Record as RecordA;
-                    if (record != null)
-                        list.Add(record);
-                }
-                return list.ToArray();
+                return GetRecords<RecordA>();
             }
         }
 
         /// <summary>
         /// List of RecordPTR in Response.Answers
         /// </summary>
-        public RecordPTR[] RecordsPTR
+        public IReadOnlyCollection<RecordPTR> RecordsPTR
         {
             get
             {
-                List<RecordPTR> list = new List<RecordPTR>();
-                foreach (ResourceRecord answerRR in Answers)
-                {
-                    RecordPTR record = answerRR.Record as RecordPTR;
-                    if (record != null)
-                        list.Add(record);
-                }
-                return list.ToArray();
+                return GetRecords<RecordPTR>();
             }
         }
 
         /// <summary>
         /// List of RecordCNAME in Response.Answers
         /// </summary>
-        public RecordCNAME[] RecordsCNAME
+        public IReadOnlyCollection<RecordCNAME> RecordsCNAME
         {
             get
             {
-                List<RecordCNAME> list = new List<RecordCNAME>();
-                foreach (ResourceRecord answerRR in Answers)
-                {
-                    RecordCNAME record = answerRR.Record as RecordCNAME;
-                    if (record != null)
-                        list.Add(record);
-                }
-                return list.ToArray();
+                return GetRecords<RecordCNAME>();
             }
         }
 
         /// <summary>
         /// List of RecordAAAA in Response.Answers
         /// </summary>
-        public RecordAAAA[] RecordsAAAA
+        public IReadOnlyCollection<RecordAAAA> RecordsAAAA
         {
             get
             {
-                List<RecordAAAA> list = new List<RecordAAAA>();
-                foreach (ResourceRecord answerRR in Answers)
-                {
-                    RecordAAAA record = answerRR.Record as RecordAAAA;
-                    if (record != null)
-                        list.Add(record);
-                }
-                return list.ToArray();
+                return GetRecords<RecordAAAA>();
             }
         }
 
         /// <summary>
         /// List of RecordNS in Response.Answers
         /// </summary>
-        public RecordNS[] RecordsNS
+        public IReadOnlyCollection<RecordNS> RecordsNS
         {
             get
             {
-                List<RecordNS> list = new List<RecordNS>();
-                foreach (ResourceRecord answerRR in Answers)
-                {
-                    RecordNS record = answerRR.Record as RecordNS;
-                    if (record != null)
-                        list.Add(record);
-                }
-                return list.ToArray();
+                return GetRecords<RecordNS>();
             }
         }
 
         /// <summary>
         /// List of RecordSOA in Response.Answers
         /// </summary>
-        public RecordSOA[] RecordsSOA
+        public IReadOnlyCollection<RecordSOA> RecordsSOA
         {
             get
             {
-                List<RecordSOA> list = new List<RecordSOA>();
-                foreach (ResourceRecord answerRR in Answers)
-                {
-                    RecordSOA record = answerRR.Record as RecordSOA;
-                    if (record != null)
-                        list.Add(record);
-                }
-                return list.ToArray();
+                return GetRecords<RecordSOA>();
             }
         }
 
         /// <summary>
         /// List of RecordCERT in Response.Answers
         /// </summary>
-        public RecordCERT[] RecordsCERT
+        public IReadOnlyCollection<RecordCERT> RecordsCERT
         {
             get
             {
-                List<RecordCERT> list = new List<RecordCERT>();
-                foreach (ResourceRecord answerRR in Answers)
-                {
-                    RecordCERT record = answerRR.Record as RecordCERT;
-                    if (record != null)
-                        list.Add(record);
-                }
-                return list.ToArray();
+                return GetRecords<RecordCERT>();
             }
         }
 
-        public RecordSRV[] RecordsSRV
+        public IReadOnlyCollection<RecordSRV> RecordsSRV
         {
             get
             {
-                List<RecordSRV> list = new List<RecordSRV>();
-                foreach (ResourceRecord answerRR in Answers)
-                {
-                    RecordSRV record = answerRR.Record as RecordSRV;
-                    if (record != null)
-                        list.Add(record);
-                }
-                return list.ToArray();
+                return GetRecords<RecordSRV>();
             }
         }
 
-        public ResourceRecord[] ResourceRecords
+        public IEnumerable<ResourceRecord> ResourceRecords
         {
             get
             {
-                List<ResourceRecord> list = new List<ResourceRecord>();
-                foreach (ResourceRecord rr in Answers)
+                foreach (ResourceRecord resourceRecord in Answers)
                 {
-                    list.Add(rr);
+                    yield return resourceRecord;
                 }
-                foreach (ResourceRecord rr in Authorities)
+                foreach (ResourceRecord resourceRecord in Authorities)
                 {
-                    list.Add(rr);
+                    yield return resourceRecord;
                 }
-                foreach (ResourceRecord rr in Additionals)
+                foreach (ResourceRecord resourceRecord in Additionals)
                 {
-                    list.Add(rr);
+                    yield return resourceRecord;
                 }
-
-                return list.ToArray();
             }
         }
-
-
     }
 }

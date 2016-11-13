@@ -2,7 +2,7 @@
   "profiles": {
     "ConsoleApp4": {
       "commandName": "Project",
-      "commandLineArgs": "-s 8.8.8.8 cachemanager.net AXFR  --tcp"
+      "commandLineArgs": "-s 8.8.8.8 google.com MX "
     },
     "MiniDig": {
       "commandName": "Project"

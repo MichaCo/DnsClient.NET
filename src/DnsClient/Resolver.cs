@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Net.NetworkInformation;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 /*
  * Network Working Group                                     P. Mockapetris
@@ -114,7 +115,7 @@ namespace DnsClient
         /// <summary>
         /// Gets or sets timeout in milliseconds
         /// </summary>
-        public int TimeOut { get; set; } = 1000;
+        public int Timeout { get; set; } = 1000;
 
         /// <summary>
         /// Gets or sets number of retries before giving up
@@ -242,25 +243,39 @@ namespace DnsClient
             return question.QClass + "-" + question.QType + "-" + question.QName;
         }
 
-        private Response UdpRequest(Request request)
+#if XPLAT
+        private async Task<Response> UdpRequest(Request request)
         {
+            var sw = Stopwatch.StartNew();
+
             // RFC1035 max. size of a UDP datagram is 512 bytes
-            byte[] responseMessage = new byte[512];
+            var responseMessage = new ArraySegment<byte>(new byte[512]);
 
             for (int intAttempts = 0; intAttempts < _retries; intAttempts++)
             {
                 for (int intDnsServer = 0; intDnsServer < _dnsServers.Count; intDnsServer++)
                 {
                     Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                    socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, TimeOut * 1000);
+                    socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, Timeout);
 
                     try
                     {
-                        socket.SendTo(request.Data, _dnsServers[intDnsServer]);
-                        int intReceived = socket.Receive(responseMessage);
-                        byte[] data = new byte[intReceived];
-                        Array.Copy(responseMessage, data, intReceived);
-                        Response response = new Response(_dnsServers[intDnsServer], data);
+                        var sendData = new ArraySegment<byte>(request.Data, 0, request.Data.Length);
+                        await socket.SendToAsync(sendData, SocketFlags.None, _dnsServers[intDnsServer]);
+                        if (IsLogging)
+                        {
+                            this._logger.LogDebug($"Sending ({request.Data.Length}) bytes in {sw.ElapsedMilliseconds} ms.");
+                            sw.Restart();
+                        }
+
+                        int intReceived = await socket.ReceiveAsync(responseMessage, SocketFlags.None);
+                        if (IsLogging)
+                        {
+                            this._logger.LogDebug($"Received ({intReceived}) bytes in {sw.ElapsedMilliseconds} ms.");
+                            sw.Restart();
+                        }
+
+                        Response response = new Response(_dnsServers[intDnsServer], responseMessage.ToArray());
                         AddToCache(response);
                         return response;
                     }
@@ -286,10 +301,69 @@ namespace DnsClient
             return TimeoutResponse;
         }
 
+#else
+        private Response UdpRequest(Request request)
+        {
+            var sw = Stopwatch.StartNew();
+
+            // RFC1035 max. size of a UDP datagram is 512 bytes
+            byte[] responseMessage = new byte[512];
+
+            for (int intAttempts = 0; intAttempts < _retries; intAttempts++)
+            {
+                for (int intDnsServer = 0; intDnsServer < _dnsServers.Count; intDnsServer++)
+                {
+                    Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+                    socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, Timeout);
+
+                    try
+                    {
+                        socket.SendTo(request.Data, _dnsServers[intDnsServer]);
+                        if (IsLogging)
+                        {
+                            this._logger.LogDebug($"Sending ({request.Data.Length}) bytes in {sw.ElapsedMilliseconds} ms.");
+                            sw.Restart();
+                        }
+
+                        int intReceived = socket.Receive(responseMessage);
+                        if (IsLogging)
+                        {
+                            this._logger.LogDebug($"Received ({intReceived}) bytes in {sw.ElapsedMilliseconds} ms.");
+                            sw.Restart();
+                        }
+
+                        byte[] data = new byte[intReceived];
+                        Array.Copy(responseMessage, data, intReceived);
+                        Response response = new Response(_dnsServers[intDnsServer], data);
+                        AddToCache(response);
+                        return response;
+                    }
+                    catch (SocketException)
+                    {
+                        if (IsLogging)
+                        {
+                            _logger.LogWarning("Connection to nameserver {0} failed.", _dnsServers[intDnsServer]);
+                        }
+
+                        continue;
+                    }
+                    finally
+                    {
+                        _uniqueId++;
+
+                        // close the socket
+                        socket.Dispose();
+                    }
+                }
+            }
+
+            return TimeoutResponse;
+        }
+#endif
+
         private async Task<Response> TcpRequest(Request request)
         {
-            //System.Diagnostics.Stopwatch sw = new System.Diagnostics.Stopwatch();
-            //sw.Start();
+            var sw = Stopwatch.StartNew();
 
             byte[] responseMessage = new byte[512];
 
@@ -298,16 +372,13 @@ namespace DnsClient
                 for (int intDnsServer = 0; intDnsServer < _dnsServers.Count; intDnsServer++)
                 {
                     TcpClient tcpClient = new TcpClient();
-                    tcpClient.ReceiveTimeout = TimeOut * 1000;
+                    tcpClient.ReceiveTimeout = Timeout;
 
                     try
                     {
                         await tcpClient.ConnectAsync(_dnsServers[intDnsServer].Address, _dnsServers[intDnsServer].Port);
 
-                        //TODO: what?
-                        //bool success = result.AsyncWaitHandle.WaitOne(m_Timeout*1000, true);
-
-                        if (/*!success || */!tcpClient.Connected)
+                        if (!tcpClient.Connected)
                         {
 #if XPLAT
                             tcpClient.Dispose();
@@ -322,19 +393,23 @@ namespace DnsClient
                             continue;
                         }
 
-                        BufferedStream bs = new BufferedStream(tcpClient.GetStream());
+                        var bs = new BufferedStream(tcpClient.GetStream());
 
-                        byte[] data = request.Data;
+                        var data = request.Data;
                         bs.WriteByte((byte)((data.Length >> 8) & 0xff));
                         bs.WriteByte((byte)(data.Length & 0xff));
-                        bs.Write(data, 0, data.Length);
-                        bs.Flush();
+                        await bs.WriteAsync(data, 0, data.Length);
+                        await bs.FlushAsync();
 
                         Response transferResponse = new Response();
                         int intSoa = 0;
                         int intMessageSize = 0;
 
-                        //Debug.WriteLine("Sending "+ (request.Length+2) + " bytes in "+ sw.ElapsedMilliseconds+" mS");
+                        if (IsLogging)
+                        {
+                            this._logger.LogDebug($"Sending ({request.Data.Length + 2}) bytes in {sw.ElapsedMilliseconds} ms.");
+                            sw.Restart();
+                        }
 
                         while (true)
                         {
@@ -360,7 +435,11 @@ namespace DnsClient
                             bs.Read(data, 0, intLength);
                             Response response = new Response(_dnsServers[intDnsServer], data);
 
-                            //Debug.WriteLine("Received "+ (intLength+2)+" bytes in "+sw.ElapsedMilliseconds +" mS");
+                            if (IsLogging)
+                            {
+                                this._logger.LogDebug($"Received ({intLength + 2}) bytes in {sw.ElapsedMilliseconds} ms.");
+                                sw.Restart();
+                            }
 
                             if (response.Header.ResponseCode != RCode.NoError)
                             {
@@ -374,20 +453,14 @@ namespace DnsClient
                             }
 
                             // Zone transfer!!
-
                             if (transferResponse.Questions.Count == 0)
                             {
                                 transferResponse = new Response(response);
-                                //transferResponse.Questions.AddRange(response.Questions);
                             }
                             else
                             {
                                 transferResponse = Response.Concat(transferResponse, response);
                             }
-
-                            //transferResponse.Answers.AddRange(response.Answers);
-                            //transferResponse.Authorities.AddRange(response.Authorities);
-                            //transferResponse.Additionals.AddRange(response.Additionals);
 
                             if (response.Answers.First().Type == TypeValue.SOA)
                             {
@@ -404,9 +477,13 @@ namespace DnsClient
                                 return transferResponse;
                             }
                         }
-                    } // try
-                    catch (SocketException)
+                    }
+                    catch (SocketException ex)
                     {
+                        if (IsLogging)
+                        {
+                            _logger.LogWarning(0, ex, "Connection to nameserver {0} failed", _dnsServers[intDnsServer]);
+                        }
                         continue; // next try
                     }
                     finally
@@ -471,11 +548,25 @@ namespace DnsClient
         {
             if (TransportType == TransportType.Udp)
             {
+                if (IsLogging)
+                {
+                    _logger.LogDebug("Sending Udp request.");
+                }
+
+#if XPLAT
+                return await UdpRequest(request);
+#else
                 return UdpRequest(request);
+#endif
             }
 
             if (TransportType == TransportType.Tcp)
             {
+                if (IsLogging)
+                {
+                    _logger.LogDebug("Sending Tcp request.");
+                }
+
                 return await TcpRequest(request);
             }
 
@@ -483,7 +574,7 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Gets a list of default DNS servers used on the Windows machine.
+        /// Gets a list of default DNS servers used on the machine.
         /// </summary>
         /// <returns></returns>
         public static IPEndPoint[] GetDnsServers()
@@ -507,82 +598,6 @@ namespace DnsClient
                 }
             }
             return list.ToArray();
-        }
-
-        private async Task<IPHostEntry> MakeEntryAsync(string HostName)
-        {
-            IPHostEntry entry = new IPHostEntry();
-
-            entry.HostName = HostName;
-
-            Response response = await QueryAsync(HostName, QType.A, QClass.IN);
-
-            // fill AddressList and aliases
-            List<IPAddress> AddressList = new List<IPAddress>();
-            List<string> Aliases = new List<string>();
-            foreach (ResourceRecord answer in response.Answers)
-            {
-                if (answer.Type == TypeValue.A)
-                {
-                    // answerRR.RECORD.ToString() == (answerRR.RECORD as RecordA).Address
-                    AddressList.Add(IPAddress.Parse((answer.Record.ToString())));
-                    entry.HostName = answer.Name;
-                }
-                else
-                {
-                    if (answer.Type == TypeValue.CNAME)
-                    {
-                        Aliases.Add(answer.Name);
-                    }
-                }
-            }
-            entry.AddressList = AddressList.ToArray();
-            entry.Aliases = Aliases.ToArray();
-
-            return entry;
-        }
-
-        /// <summary>
-        /// Translates the IPV4 or IPV6 address into an arpa address
-        /// </summary>
-        /// <param name="ip">IP address to get the arpa address form</param>
-        /// <returns>The 'mirrored' IPV4 or IPV6 arpa address</returns>
-        public static string GetArpaFromIp(IPAddress ip)
-        {
-            if (ip.AddressFamily == AddressFamily.InterNetwork)
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.Append("in-addr.arpa.");
-                foreach (byte b in ip.GetAddressBytes())
-                {
-                    sb.Insert(0, string.Format("{0}.", b));
-                }
-                return sb.ToString();
-            }
-            if (ip.AddressFamily == AddressFamily.InterNetworkV6)
-            {
-                StringBuilder sb = new StringBuilder();
-                sb.Append("ip6.arpa.");
-                foreach (byte b in ip.GetAddressBytes())
-                {
-                    sb.Insert(0, string.Format("{0:x}.", (b >> 4) & 0xf));
-                    sb.Insert(0, string.Format("{0:x}.", (b >> 0) & 0xf));
-                }
-                return sb.ToString();
-            }
-            return "?";
-        }
-
-        public static string GetArpaFromEnum(string strEnum)
-        {
-            StringBuilder sb = new StringBuilder();
-            string Number = System.Text.RegularExpressions.Regex.Replace(strEnum, "[^0-9]", "");
-            sb.Append("e164.arpa.");
-            foreach (char c in Number)
-            {
-                sb.Insert(0, string.Format("{0}.", c));
-            }
-            return sb.ToString();
         }
 
         public async Task<IPAddress[]> GetHostAddresses(string hostNameOrAddress)
@@ -618,7 +633,7 @@ namespace DnsClient
         /// <returns>An System.Net.IPHostEntry object that contains host information for the address specified in hostName.</returns>
         public async Task<IPHostEntry> GetHostByNameAsync(string hostName)
         {
-            return await MakeEntryAsync(hostName);
+            return await GetHostEntryAsync(hostName);
         }
 
         /// <summary>
@@ -629,10 +644,8 @@ namespace DnsClient
         //[Obsolete("no problem",false)]
         public async Task<IPHostEntry> ResolveAsync(string hostName)
         {
-            return await MakeEntryAsync(hostName);
+            return await GetHostEntryAsync(hostName);
         }
-
-        private delegate IPHostEntry ResolveDelegate(string hostName);
 
         /// <summary>
         ///		Resolves an IP address to an System.Net.IPHostEntry instance.
@@ -645,9 +658,9 @@ namespace DnsClient
         public async Task<IPHostEntry> GetHostEntryAsync(IPAddress ip)
         {
             Response response = await QueryAsync(GetArpaFromIp(ip), QType.PTR, QClass.IN);
-            if (response.RecordsPTR.Length > 0)
+            if (response.RecordsPTR.Count > 0)
             {
-                return await MakeEntryAsync(response.RecordsPTR[0].PTRDName);
+                return await GetHostEntryAsync(response.RecordsPTR.First().PTRDName);
             }
             else
             {
@@ -672,8 +685,92 @@ namespace DnsClient
             }
             else
             {
-                return await MakeEntryAsync(hostNameOrAddress);
+                return await GetHostEntryByNameAsync(hostNameOrAddress);
             }
+        }
+
+        private async Task<IPHostEntry> GetHostEntryByNameAsync(string hostName)
+        {
+            if (string.IsNullOrWhiteSpace(hostName))
+            {
+                throw new ArgumentNullException(nameof(hostName));
+            }
+
+            var entry = new IPHostEntry();
+            entry.HostName = hostName;
+
+            var response = await QueryAsync(hostName, QType.A, QClass.IN);
+
+            // fill AddressList and aliases
+            var addressList = new List<IPAddress>();
+            var aliases = new List<string>();
+            foreach (ResourceRecord answer in response.Answers)
+            {
+                if (answer.Type == TypeValue.A)
+                {
+                    addressList.Add(IPAddress.Parse((answer.Record.ToString())));
+                    entry.HostName = answer.Name;
+                }
+                else
+                {
+                    if (answer.Type == TypeValue.CNAME)
+                    {
+                        aliases.Add(answer.Name);
+                    }
+                }
+            }
+
+            entry.AddressList = addressList.ToArray();
+            entry.Aliases = aliases.ToArray();
+
+            return entry;
+        }
+
+        /// <summary>
+        /// Translates the IPV4 or IPV6 address into an arpa address
+        /// </summary>
+        /// <param name="ip">IP address to get the arpa address form</param>
+        /// <returns>The 'mirrored' IPV4 or IPV6 arpa address</returns>
+        public static string GetArpaFromIp(IPAddress ip)
+        {
+            if (ip.AddressFamily == AddressFamily.InterNetwork)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append("in-addr.arpa.");
+                foreach (byte b in ip.GetAddressBytes())
+                {
+                    sb.Insert(0, string.Format("{0}.", b));
+                }
+
+                return sb.ToString();
+            }
+            if (ip.AddressFamily == AddressFamily.InterNetworkV6)
+            {
+                StringBuilder sb = new StringBuilder();
+                sb.Append("ip6.arpa.");
+                foreach (byte b in ip.GetAddressBytes())
+                {
+                    sb.Insert(0, string.Format("{0:x}.", (b >> 4) & 0xf));
+                    sb.Insert(0, string.Format("{0:x}.", (b >> 0) & 0xf));
+                }
+
+                return sb.ToString();
+            }
+
+            return "?";
+        }
+
+        public static string GetArpaFromEnum(string strEnum)
+        {
+            StringBuilder sb = new StringBuilder();
+            string Number = System.Text.RegularExpressions.Regex.Replace(strEnum, "[^0-9]", "");
+            sb.Append("e164.arpa.");
+            foreach (char c in Number)
+            {
+                sb.Insert(0, string.Format("{0}.", c));
+            }
+
+            return sb.ToString();
         }
     }
 }

@@ -11,13 +11,13 @@ namespace DnsClient
 
         private int _position;
 
-        public RecordReader(byte[] data)
+        internal RecordReader(byte[] data)
         {
             _data = data;
             _position = 0;
         }
 
-        public RecordReader(byte[] data, int Position)
+        internal RecordReader(byte[] data, int Position)
         {
             _data = data;
             _position = Position;

@@ -70,14 +70,14 @@ namespace DnsClient
 
         public QClass QClass { get; }
 
-        public Question(string QName, QType QType, QClass QClass)
+        internal Question(string QName, QType QType, QClass QClass)
         {
             this.QName = QName;
             this.QType = QType;
             this.QClass = QClass;
         }
 
-        public Question(RecordReader rr)
+        internal Question(RecordReader rr)
         {
             QName = rr.ReadDomainName();
             QType = (QType)rr.ReadUInt16();
