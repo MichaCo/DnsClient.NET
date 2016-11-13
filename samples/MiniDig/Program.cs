@@ -30,8 +30,6 @@ namespace ConsoleApp4
 
         public static void Main(string[] args)
         {
-            var loggerFactory = new LoggerFactory().AddConsole(LogLevel.Trace);
-
             CommandLineApplication commandLineApplication = new CommandLineApplication(throwOnUnexpectedArg: false);
 
             CommandOption server = commandLineApplication.Option(
@@ -51,17 +49,22 @@ namespace ConsoleApp4
 
             CommandOption useTcp = commandLineApplication.Option(
                 "--tcp",
-                "Use TCP connection.",
+                "Use TCP connection (default=false/udp).",
                 CommandOptionType.NoValue);
 
             CommandOption tries = commandLineApplication.Option(
                 "--tries",
-                "Number of tries.",
+                "Number of tries (default=3).",
                 CommandOptionType.SingleValue);
 
             CommandOption timeout = commandLineApplication.Option(
                 "--time",
-                "Query timeout.",
+                "Query timeout (default=1000).",
+                CommandOptionType.SingleValue);
+
+            CommandOption logLevel = commandLineApplication.Option(
+                "--log-level",
+                "Sets the log level (default=Warning).",
                 CommandOptionType.SingleValue);
 
             CommandArgument domain = commandLineApplication.Argument("domain", "domain name", false);
@@ -71,6 +74,10 @@ namespace ConsoleApp4
             commandLineApplication.HelpOption("-? | -h | --help");
             commandLineApplication.OnExecute(() =>
             {
+                LogLevel logginglevel = LogLevel.Warning;
+                logginglevel = logLevel.HasValue() && Enum.TryParse(logLevel.Value(), true, out logginglevel) ? logginglevel : LogLevel.Warning;
+                var loggerFactory = new LoggerFactory().AddConsole(logginglevel);
+
                 var usePort = port.HasValue() ? int.Parse(port.Value()) : 53;
                 var useServers = server.HasValue() ?
                     new[] { new IPEndPoint(IPAddress.Parse(server.Value()), usePort) } :
@@ -128,13 +135,13 @@ namespace ConsoleApp4
                 };
 
                 var lookup = new DnsLookup(loggerFactory, options);
-                
+
                 var swatch = Stopwatch.StartNew();
 
                 var result = useQClass == 0 ?
                     lookup.QueryAsync(useDomain, useQType).Result :
                     lookup.QueryAsync(useDomain, useQType, useQClass).Result;
-                
+
                 var elapsed = swatch.ElapsedMilliseconds;
 
                 // Printing infomrational stuff
