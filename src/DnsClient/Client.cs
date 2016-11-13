@@ -17,6 +17,11 @@ namespace DnsClient
 {
     public class DnsClientOptions
     {
+        public DnsClientOptions()
+            : this(Client.GetDnsServers())
+        {
+        }
+
         public DnsClientOptions(params IPEndPoint[] dnsServerEndpoints)
         {
             if (dnsServerEndpoints == null || dnsServerEndpoints.Length == 0)
@@ -627,7 +632,7 @@ namespace DnsClient
             return list.ToArray();
         }
 
-        public async Task<IPAddress[]> GetHostAddresses(string hostNameOrAddress)
+        public async Task<IPAddress[]> GetHostAddressesAsync(string hostNameOrAddress)
         {
             IPHostEntry entry = await GetHostEntryAsync(hostNameOrAddress);
             return entry.AddressList;
@@ -638,50 +643,6 @@ namespace DnsClient
         /// </summary>
         /// <param name="ip">An System.Net.IPAddress.</param>
         /// <returns>An System.Net.IPHostEntry.</returns>
-        public async Task<IPHostEntry> GetHostByAddress(IPAddress ip)
-        {
-            return await GetHostEntryAsync(ip);
-        }
-
-        /// <summary>
-        ///		Creates an System.Net.IPHostEntry instance from an IP address.
-        /// </summary>
-        /// <param name="address">An IP address.</param>
-        /// <returns>An System.Net.IPHostEntry instance.</returns>
-        public async Task<IPHostEntry> GetHostByAddress(string address)
-        {
-            return await GetHostEntryAsync(address);
-        }
-
-        /// <summary>
-        ///		Gets the DNS information for the specified DNS host name.
-        /// </summary>
-        /// <param name="hostName">The DNS name of the host</param>
-        /// <returns>An System.Net.IPHostEntry object that contains host information for the address specified in hostName.</returns>
-        public async Task<IPHostEntry> GetHostByNameAsync(string hostName)
-        {
-            return await GetHostEntryAsync(hostName);
-        }
-
-        /// <summary>
-        ///		Resolves a host name or IP address to an System.Net.IPHostEntry instance.
-        /// </summary>
-        /// <param name="hostName">A DNS-style host name or IP address.</param>
-        /// <returns></returns>
-        //[Obsolete("no problem",false)]
-        public async Task<IPHostEntry> ResolveAsync(string hostName)
-        {
-            return await GetHostEntryAsync(hostName);
-        }
-
-        /// <summary>
-        ///		Resolves an IP address to an System.Net.IPHostEntry instance.
-        /// </summary>
-        /// <param name="ip">An IP address.</param>
-        /// <returns>
-        ///		An System.Net.IPHostEntry instance that contains address information about
-        ///		the host specified in address.
-        ///</returns>
         public async Task<IPHostEntry> GetHostEntryAsync(IPAddress ip)
         {
             Response response = await QueryAsync(GetArpaFromIp(ip), QType.PTR, QClass.IN);
@@ -698,11 +659,8 @@ namespace DnsClient
         /// <summary>
         ///		Resolves a host name or IP address to an System.Net.IPHostEntry instance.
         /// </summary>
-        /// <param name="hostNameOrAddress">The host name or IP address to resolve.</param>
-        /// <returns>
-        ///		An System.Net.IPHostEntry instance that contains address information about
-        ///		the host specified in hostNameOrAddress. 
-        ///</returns>
+        /// <param name="hostNameOrAddress">A DNS-style host name or IP address.</param>
+        /// <returns></returns>
         public async Task<IPHostEntry> GetHostEntryAsync(string hostNameOrAddress)
         {
             IPAddress iPAddress;
@@ -749,6 +707,11 @@ namespace DnsClient
 
             entry.AddressList = addressList.ToArray();
             entry.Aliases = aliases.ToArray();
+
+            if (entry.HostName.EndsWith("."))
+            {
+                entry.HostName = entry.HostName.Substring(0, entry.HostName.Length - 1);
+            }
 
             return entry;
         }

@@ -1,14 +1,30 @@
 ﻿{
   "version": "1.0.0-*",
-
   "dependencies": {
     "DnsClient": "1.0.0-beta-*",
-    "NETStandard.Library": "1.6.0"
+    "NETStandard.Library": "1.6.0",
+    "xunit": "2.2.0-beta4-build3444",
+    "dotnet-test-xunit": "2.2.0-preview2-build1029"
   },
-
+  "testRunner": "xunit",
+  "buildOptions": {
+    "copyToOutput": [
+      "xunit.runner.json"
+    ]
+  },
   "frameworks": {
-    "netstandard1.6": {
-      "imports": "dnxcore50"
+    "netcoreapp1.0": {
+      "dependencies": {
+        "Microsoft.NETCore.App": {
+          "version": "1.0.0",
+          "type": "platform"
+        }
+      }
+    },
+    "net46": {
+      "dependencies": {
+        
+      }
     }
   }
 }
