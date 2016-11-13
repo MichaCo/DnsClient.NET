@@ -82,6 +82,7 @@ namespace DnsClient.Tests
             var result = await client.QueryAsync("google.com", QType.A);
 
             Assert.True(result.Answers.Count > 0);
+            Assert.True(result.RecordsA.Count > 0);
         }
 
         [Fact]
@@ -91,6 +92,7 @@ namespace DnsClient.Tests
             var result = await client.QueryAsync("google.com", QType.AAAA);
 
             Assert.True(result.Answers.Count > 0);
+            Assert.True(result.RecordsAAAA.Count > 0);
         }
 
         [Fact]
@@ -100,6 +102,9 @@ namespace DnsClient.Tests
             var result = await client.QueryAsync("google.com", QType.ANY);
 
             Assert.True(result.Answers.Count > 5);
+            Assert.True(result.RecordsA.Count > 0);
+            Assert.True(result.RecordsAAAA.Count > 0);
+            Assert.True(result.RecordsMX.Count > 0);
         }
 
         [Fact]
@@ -108,7 +113,8 @@ namespace DnsClient.Tests
             var client = new Client(LoggerFactory, new DnsClientOptions());
             var result = await client.QueryAsync("google.com", QType.MX);
 
-            Assert.True(result.Answers.Count > 1);
+            Assert.True(result.Answers.Count > 0);
+            Assert.True(result.RecordsMX.Count > 0);
         }
 
         [Fact]
@@ -117,7 +123,38 @@ namespace DnsClient.Tests
             var client = new Client(LoggerFactory, new DnsClientOptions());
             var result = await client.QueryAsync("google.com", QType.NS);
 
-            Assert.True(result.Answers.Count > 1);
+            Assert.True(result.Answers.Count > 0);
+            Assert.True(result.RecordsNS.Count > 0);
+        }
+
+        [Fact]
+        public async Task Client_Query_TXT()
+        {
+            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var result = await client.QueryAsync("google.com", QType.TXT);
+
+            Assert.True(result.Answers.Count > 0);
+            Assert.True(result.RecordsTXT.Count > 0);
+        }
+
+        [Fact]
+        public async Task Client_Query_SOA()
+        {
+            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var result = await client.QueryAsync("google.com", QType.SOA);
+
+            Assert.True(result.Answers.Count > 0);
+            Assert.True(result.RecordsSOA.Count > 0);
+        }
+
+        [Fact]
+        public async Task Client_Query_ForceTimeout()
+        {
+            // basically testing we don't throw an error but return information
+            var client = new Client(LoggerFactory, new DnsClientOptions() { Timeout = 0});
+            var result = await client.QueryAsync("google.com", QType.ANY);
+            Assert.True(!string.IsNullOrWhiteSpace(result.Error));
+            Assert.True(result.Answers.Count == 0);
         }
     }
 }
