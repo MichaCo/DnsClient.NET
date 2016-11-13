@@ -256,19 +256,34 @@ namespace DnsClient
                 for (int intDnsServer = 0; intDnsServer < _dnsServers.Count; intDnsServer++)
                 {
                     Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                    socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, Timeout);
 
                     try
                     {
                         var sendData = new ArraySegment<byte>(request.Data, 0, request.Data.Length);
-                        await socket.SendToAsync(sendData, SocketFlags.None, _dnsServers[intDnsServer]);
+                        var timerTask = Task.Delay(Timeout);
+                        var sendTask = socket.SendToAsync(sendData, SocketFlags.None, _dnsServers[intDnsServer]);
+                        await Task.WhenAny(sendTask, timerTask);
+                        if (!sendTask.IsCompleted)
+                        {
+                            throw new SocketException();
+                        }
+
                         if (IsLogging)
                         {
                             this._logger.LogDebug($"Sending ({request.Data.Length}) bytes in {sw.ElapsedMilliseconds} ms.");
                             sw.Restart();
                         }
 
-                        int intReceived = await socket.ReceiveAsync(responseMessage, SocketFlags.None);
+                        var receiveTimer = Task.Delay(Timeout);
+                        var receiveTask = socket.ReceiveAsync(responseMessage, SocketFlags.None);
+                        await Task.WhenAny(receiveTask, receiveTimer);
+                        if (!receiveTask.IsCompleted)
+                        {
+                            throw new SocketException();
+                        }
+
+                        int intReceived = receiveTask.Result;
+
                         if (IsLogging)
                         {
                             this._logger.LogDebug($"Received ({intReceived}) bytes in {sw.ElapsedMilliseconds} ms.");
@@ -376,9 +391,10 @@ namespace DnsClient
 
                     try
                     {
-                        await tcpClient.ConnectAsync(_dnsServers[intDnsServer].Address, _dnsServers[intDnsServer].Port);
-
-                        if (!tcpClient.Connected)
+                        var connectTimer = Task.Delay(Timeout);
+                        var connectTask = tcpClient.ConnectAsync(_dnsServers[intDnsServer].Address, _dnsServers[intDnsServer].Port);
+                        await Task.WhenAny(connectTask, connectTimer);
+                        if (!connectTask.IsCompleted || !tcpClient.Connected)
                         {
 #if XPLAT
                             tcpClient.Dispose();

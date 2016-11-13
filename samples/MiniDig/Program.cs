@@ -62,7 +62,7 @@ namespace ConsoleApp4
             CommandOption timeout = commandLineApplication.Option(
                 "--time",
                 "Query timeout.",
-                CommandOptionType.NoValue);
+                CommandOptionType.SingleValue);
 
             CommandArgument domain = commandLineApplication.Argument("domain", "domain name", false);
             CommandArgument qType = commandLineApplication.Argument("q-type", "QType", false);
