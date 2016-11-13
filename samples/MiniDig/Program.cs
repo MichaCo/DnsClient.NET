@@ -74,7 +74,7 @@ namespace ConsoleApp4
             commandLineApplication.HelpOption("-? | -h | --help");
             commandLineApplication.OnExecute(() =>
             {
-                LogLevel logginglevel = LogLevel.Warning;
+                LogLevel logginglevel;
                 logginglevel = logLevel.HasValue() && Enum.TryParse(logLevel.Value(), true, out logginglevel) ? logginglevel : LogLevel.Warning;
                 var loggerFactory = new LoggerFactory().AddConsole(logginglevel);
 
