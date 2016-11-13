@@ -5,27 +5,27 @@ using DnsClient;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
 
-namespace ConsoleApp4
+namespace DigApp
 {
     internal abstract class DnsCommand
     {
-        protected CommandLineApplication App { get; }
+        public CommandOption ConnectTimeoutArg { get; private set; }
 
         public CommandOption LogLevelArg { get; private set; }
-
-        public CommandOption ServerArg { get; private set; }
-
-        public CommandOption PortArg { get; private set; }
-
-        public CommandOption UseTcpArg { get; private set; }
-
-        public CommandOption TriesArg { get; private set; }
-
-        public CommandOption ConnectTimeoutArg { get; private set; }
 
         public CommandOption NoRecurseArg { get; private set; }
 
         public string[] OriginalArgs { get; }
+
+        public CommandOption PortArg { get; private set; }
+
+        public CommandOption ServerArg { get; private set; }
+
+        public CommandOption TriesArg { get; private set; }
+
+        public CommandOption UseTcpArg { get; private set; }
+
+        protected CommandLineApplication App { get; }
 
         public DnsCommand(CommandLineApplication app, string[] originalArgs)
         {
@@ -57,19 +57,17 @@ namespace ConsoleApp4
             return LogLevelArg.HasValue() && Enum.TryParse(LogLevelArg.Value(), true, out logginglevel) ? logginglevel : LogLevel.Warning;
         }
 
-        public bool GetUseTcpValue() => UseTcpArg.HasValue();
+        public int GetPortValue() => PortArg.HasValue() ? int.Parse(PortArg.Value()) : 53;
+
+        public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 1000;
 
         public TransportType GetTransportTypeValue() => UseTcpArg.HasValue() ? TransportType.Tcp : TransportType.Udp;
-
-        public int GetPortValue() => PortArg.HasValue() ? int.Parse(PortArg.Value()) : 53;
 
         public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value()) : 3;
 
         public bool GetUseRecursionValue() => !NoRecurseArg.HasValue();
 
-        public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 1000;
-
-        protected abstract Task<int> Execute();
+        public bool GetUseTcpValue() => UseTcpArg.HasValue();
 
         protected virtual void Configure()
         {
@@ -110,5 +108,7 @@ namespace ConsoleApp4
 
             App.HelpOption("-? | -h | --help");
         }
+
+        protected abstract Task<int> Execute();
     }
 }

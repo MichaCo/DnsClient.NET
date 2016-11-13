@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "ConsoleApp4": {
+    "DigApp": {
       "commandName": "Project",
       "commandLineArgs": "perf --tries 10 --tcp -s 8.8.8.8"
     },
