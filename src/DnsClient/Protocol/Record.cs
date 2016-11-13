@@ -9,7 +9,7 @@ namespace DnsClient.Protocol
         /// </summary>
         public ResourceRecord ResourceRecord { get; }
 
-        public Record(ResourceRecord resource)
+        internal Record(ResourceRecord resource)
         {
             if (resource == null)
             {

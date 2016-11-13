@@ -45,7 +45,7 @@ namespace DnsClient.Protocol
 
         public string PublicKey { get; }
 
-        public RecordKEY(ResourceRecord resource, RecordReader recordReader)
+        internal RecordKEY(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             Flags = recordReader.ReadUInt16();

@@ -31,9 +31,10 @@ namespace DnsClient.Protocol
     public class RecordAFSDB : Record
     {
         public ushort SubType { get; }
+
         public string Hostname { get; }
 
-        public RecordAFSDB(ResourceRecord resource, RecordReader recordReader)
+        internal RecordAFSDB(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             SubType = recordReader.ReadUInt16();

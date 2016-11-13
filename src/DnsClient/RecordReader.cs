@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DnsClient
 {
-    public class RecordReader
+    internal class RecordReader
     {
         private readonly byte[] _data;
         private readonly ILogger<RecordReader> _logger;

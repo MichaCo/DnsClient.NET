@@ -27,7 +27,7 @@ namespace DnsClient.Protocol
 
         public byte[] RawKey { get; }
 
-        public RecordCERT(ResourceRecord resource, RecordReader recordReader)
+        internal RecordCERT(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             // re-read length

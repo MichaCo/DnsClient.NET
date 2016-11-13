@@ -19,16 +19,19 @@ namespace DnsClient.Protocol
 {
     public class RecordA : Record
     {
-        public IPAddress Address;
+        public IPAddress Address { get; }
 
-        public RecordA(ResourceRecord resource, RecordReader recordReader)
+        internal RecordA(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
+            IPAddress address;
             IPAddress.TryParse(string.Format("{0}.{1}.{2}.{3}",
                 recordReader.ReadByte(),
                 recordReader.ReadByte(),
                 recordReader.ReadByte(),
-                recordReader.ReadByte()), out Address);
+                recordReader.ReadByte()), out address);
+
+            Address = address;
         }
 
         public override string ToString()

@@ -39,7 +39,7 @@ namespace DnsClient.Protocol
 
         public byte[] NSAPAddress { get; }
 
-        public RecordNSAP(ResourceRecord resource, RecordReader recordReader)
+        internal RecordNSAP(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             Length = recordReader.ReadUInt16();

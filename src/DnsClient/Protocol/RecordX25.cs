@@ -35,7 +35,7 @@ namespace DnsClient.Protocol
     {
         public string PSDNAddress { get; }
 
-        public RecordX25(ResourceRecord resource, RecordReader recordReader)
+        internal RecordX25(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             PSDNAddress = recordReader.ReadString();

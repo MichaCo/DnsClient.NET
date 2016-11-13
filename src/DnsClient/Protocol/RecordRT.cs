@@ -59,7 +59,7 @@ namespace DnsClient.Protocol
 
         public string IntermediateHost { get; }
 
-        public RecordRT(ResourceRecord resource, RecordReader recordReader)
+        internal RecordRT(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             Preference = recordReader.ReadUInt16();

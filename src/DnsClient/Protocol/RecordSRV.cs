@@ -74,7 +74,7 @@ namespace DnsClient.Protocol
 
         public string Target { get; }
 
-        public RecordSRV(ResourceRecord resource, RecordReader recordReader)
+        internal RecordSRV(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             Priority = recordReader.ReadUInt16();

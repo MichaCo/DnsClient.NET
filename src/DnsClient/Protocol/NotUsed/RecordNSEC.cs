@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordNSEC : RDataRecord
     {
-        public RecordNSEC(ResourceRecord resource, RecordReader recordReader)
+        internal RecordNSEC(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

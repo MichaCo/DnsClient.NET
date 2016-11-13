@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordIPSECKEY : RDataRecord
     {
-        public RecordIPSECKEY(ResourceRecord resource, RecordReader recordReader)
+        internal RecordIPSECKEY(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

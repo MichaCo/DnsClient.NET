@@ -45,7 +45,7 @@ namespace DnsClient.Protocol
 
         public byte[] Bitmap { get; }
 
-        public RecordNXT(ResourceRecord resource, RecordReader recordReader)
+        internal RecordNXT(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             ushort length = recordReader.ReadUInt16(-2);

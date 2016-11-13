@@ -49,7 +49,7 @@ namespace DnsClient.Protocol
 
         public string Altitude { get; }
 
-        public RecordGPOS(ResourceRecord resource, RecordReader recordReader)
+        internal RecordGPOS(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             Longitude = recordReader.ReadString();

@@ -19,7 +19,7 @@ namespace DnsClient.Protocol
     {
         public string Target { get; }
 
-        public RecordDNAME(ResourceRecord resource, RecordReader recordReader)
+        internal RecordDNAME(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             Target = recordReader.ReadDomainName();

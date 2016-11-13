@@ -28,7 +28,7 @@ namespace DnsClient.Protocol
     {
         public string NSDName { get; }
 
-        public RecordNS(ResourceRecord resource, RecordReader recordReader)
+        internal RecordNS(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             NSDName = recordReader.ReadDomainName();

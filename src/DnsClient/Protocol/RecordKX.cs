@@ -34,10 +34,11 @@ namespace DnsClient.Protocol
 {
     public class RecordKX : Record, IComparable
     {
-        public ushort Preference;
-        public string Exchanger;
+        public ushort Preference { get; }
 
-        public RecordKX(ResourceRecord resource, RecordReader recordReader)
+        public string Exchanger { get; }
+
+        internal RecordKX(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             Preference = recordReader.ReadUInt16();

@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordUnknown : RDataRecord
     {
-        public RecordUnknown(ResourceRecord resource, RecordReader recordReader)
+        internal RecordUnknown(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

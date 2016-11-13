@@ -21,7 +21,7 @@ namespace DnsClient.Protocol
     {
         public string NewName { get; }
 
-        public RecordMR(ResourceRecord resource, RecordReader recordReader)
+        internal RecordMR(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             NewName = recordReader.ReadDomainName();

@@ -40,7 +40,7 @@ namespace DnsClient.Protocol
 
         public byte[] Digest { get; }
 
-        public RecordDS(ResourceRecord resource, RecordReader recordReader)
+        internal RecordDS(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             ushort length = recordReader.ReadUInt16(-2);

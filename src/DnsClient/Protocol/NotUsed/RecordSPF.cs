@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordSPF : RDataRecord
     {
-        public RecordSPF(ResourceRecord resource, RecordReader recordReader)
+        internal RecordSPF(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

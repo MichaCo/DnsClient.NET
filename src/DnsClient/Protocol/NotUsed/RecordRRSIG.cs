@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordRRSIG : RDataRecord
     {
-        public RecordRRSIG(ResourceRecord resource, RecordReader recordReader)
+        internal RecordRRSIG(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

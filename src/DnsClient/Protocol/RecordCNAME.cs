@@ -24,7 +24,7 @@ namespace DnsClient.Protocol
     {
         public string CName { get; }
 
-        public RecordCNAME(ResourceRecord resource, RecordReader recordReader)
+        internal RecordCNAME(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             CName = recordReader.ReadDomainName();

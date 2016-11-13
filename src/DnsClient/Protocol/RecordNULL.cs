@@ -20,7 +20,7 @@ namespace DnsClient.Protocol
     {
         public byte[] Anything { get; }
 
-        public RecordNULL(ResourceRecord resource, RecordReader recordReader)
+        internal RecordNULL(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             recordReader.Position -= 2;

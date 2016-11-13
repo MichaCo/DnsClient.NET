@@ -56,7 +56,7 @@ namespace DnsClient.Protocol
 
         public string Replacement { get; }
 
-        public RecordNAPTR(ResourceRecord resource, RecordReader recordReader)
+        internal RecordNAPTR(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             Order = recordReader.ReadUInt16();

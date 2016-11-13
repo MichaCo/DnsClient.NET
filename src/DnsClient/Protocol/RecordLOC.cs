@@ -113,7 +113,7 @@ namespace DnsClient.Protocol
 
         public uint Altitude { get; }
 
-        public RecordLOC(ResourceRecord resource, RecordReader recordReader)
+        internal RecordLOC(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             Version = recordReader.ReadByte(); // must be 0!

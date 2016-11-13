@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class  RecordNSEC3PARAM : RDataRecord
     {
-        public RecordNSEC3PARAM(ResourceRecord resource, RecordReader recordReader)
+        internal RecordNSEC3PARAM(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

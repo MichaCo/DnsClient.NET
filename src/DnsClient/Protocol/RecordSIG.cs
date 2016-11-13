@@ -52,7 +52,7 @@ namespace DnsClient.Protocol
 
         public string Signature { get; }
 
-        public RecordSIG(ResourceRecord resource, RecordReader recordReader)
+        internal RecordSIG(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             TypeCovered = recordReader.ReadUInt16();

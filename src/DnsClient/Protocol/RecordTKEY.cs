@@ -42,7 +42,7 @@ namespace DnsClient.Protocol
 
         public byte[] OtherData { get; }
 
-        public RecordTKEY(ResourceRecord resource, RecordReader recordReader)
+        internal RecordTKEY(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
 			Algorithm = recordReader.ReadDomainName();

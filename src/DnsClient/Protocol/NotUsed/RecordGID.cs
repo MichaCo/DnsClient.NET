@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
     public class RecordGID : RDataRecord
     {
-        public RecordGID(ResourceRecord resource, RecordReader recordReader)
+        internal RecordGID(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

@@ -79,7 +79,7 @@ namespace DnsClient.Protocol
 
         public string MAPX400 { get; }
 
-        public RecordPX(ResourceRecord resource, RecordReader recordReader)
+        internal RecordPX(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             Preference = recordReader.ReadUInt16();

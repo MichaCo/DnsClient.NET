@@ -32,7 +32,7 @@ namespace DnsClient.Protocol
 
         public string Exchange { get; }
 
-        public RecordMX(ResourceRecord resource, RecordReader recordReader)
+        internal RecordMX(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             Preference = recordReader.ReadUInt16();

@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordDNSKEY : RDataRecord
     {
-        public RecordDNSKEY(ResourceRecord resource, RecordReader recordReader)
+        internal RecordDNSKEY(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

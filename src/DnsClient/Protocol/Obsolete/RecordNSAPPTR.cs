@@ -45,7 +45,7 @@ namespace DnsClient.Protocol
 	{
 		public string Owner { get; }
 
-		public RecordNSAPPTR(ResourceRecord resource, RecordReader recordReader)
+		internal RecordNSAPPTR(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
 			Owner = recordReader.ReadString();

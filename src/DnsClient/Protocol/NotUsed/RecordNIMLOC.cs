@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordNIMLOC : RDataRecord
     {
-        public RecordNIMLOC(ResourceRecord resource, RecordReader recordReader)
+        internal RecordNIMLOC(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

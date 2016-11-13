@@ -1,3 +1,5 @@
+using System.Net;
+
 #region Rfc info
 /*
 2.2 AAAA data format
@@ -11,12 +13,13 @@ namespace DnsClient.Protocol
 {
     public class RecordAAAA : Record
     {
-        public System.Net.IPAddress Address;
+        public IPAddress Address { get; }
 
-        public RecordAAAA(ResourceRecord resource, RecordReader recordReader)
+        internal RecordAAAA(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
-            System.Net.IPAddress.TryParse(
+            IPAddress address;
+            IPAddress.TryParse(
                 string.Format("{0:x}:{1:x}:{2:x}:{3:x}:{4:x}:{5:x}:{6:x}:{7:x}",
                 recordReader.ReadUInt16(),
                 recordReader.ReadUInt16(),
@@ -25,7 +28,9 @@ namespace DnsClient.Protocol
                 recordReader.ReadUInt16(),
                 recordReader.ReadUInt16(),
                 recordReader.ReadUInt16(),
-                recordReader.ReadUInt16()), out Address);
+                recordReader.ReadUInt16()), out address);
+
+            Address = address;
         }
 
         public override string ToString()

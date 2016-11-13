@@ -83,7 +83,7 @@ namespace DnsClient.Protocol
 
         public uint Minimum { get; }
 
-        public RecordSOA(ResourceRecord resource, RecordReader recordReader)
+        internal RecordSOA(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             MName = recordReader.ReadDomainName();

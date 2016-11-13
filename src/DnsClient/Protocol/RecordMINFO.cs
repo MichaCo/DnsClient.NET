@@ -37,7 +37,7 @@ namespace DnsClient.Protocol
 
         public string EMailBX { get; }
 
-        public RecordMINFO(ResourceRecord resource, RecordReader recordReader)
+        internal RecordMINFO(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             RMailBX = recordReader.ReadDomainName();

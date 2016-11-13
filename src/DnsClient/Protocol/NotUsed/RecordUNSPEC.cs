@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordUNSPEC : RDataRecord
     {
-        public RecordUNSPEC(ResourceRecord resource, RecordReader recordReader)
+        internal RecordUNSPEC(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

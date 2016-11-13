@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordSSHFP : RDataRecord
     {
-        public RecordSSHFP(ResourceRecord resource, RecordReader recordReader)
+        internal RecordSSHFP(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

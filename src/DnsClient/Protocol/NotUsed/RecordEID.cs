@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordEID : RDataRecord
     {
-        public RecordEID(ResourceRecord resource, RecordReader recordReader)
+        internal RecordEID(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

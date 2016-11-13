@@ -53,7 +53,7 @@ namespace DnsClient.Protocol
 
         public byte[] Bitmap { get; }
 
-        public RecordWKS(ResourceRecord resource, RecordReader recordReader)
+        internal RecordWKS(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             ushort length = recordReader.ReadUInt16(-2);

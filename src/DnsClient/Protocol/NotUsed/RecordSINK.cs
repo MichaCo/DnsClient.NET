@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordSINK : RDataRecord
     {
-        public RecordSINK(ResourceRecord resource, RecordReader recordReader)
+        internal RecordSINK(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

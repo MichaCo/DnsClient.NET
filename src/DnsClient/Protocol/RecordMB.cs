@@ -18,17 +18,17 @@ namespace DnsClient.Protocol
 {
     public class RecordMB : Record
     {
-        public string DomainName { get; }
+        public string MadName { get; }
 
-        public RecordMB(ResourceRecord resource, RecordReader recordReader)
+        internal RecordMB(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
-            DomainName = recordReader.ReadDomainName();
+            MadName = recordReader.ReadDomainName();
         }
 
         public override string ToString()
         {
-            return DomainName;
+            return MadName;
         }
     }
 }

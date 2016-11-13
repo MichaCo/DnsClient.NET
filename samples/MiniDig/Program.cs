@@ -84,26 +84,26 @@ namespace ConsoleApp4
                 if (!string.IsNullOrWhiteSpace(qClass.Value))
                 {
                     // q class != null => 3 params (domain already set above).
-                    Enum.TryParse(qClass.Value, out useQClass);
-                    Enum.TryParse(qType.Value, out useQType);
+                    Enum.TryParse(qClass.Value, true, out useQClass);
+                    Enum.TryParse(qType.Value, true, out useQType);
                 }
                 else
                 {
                     // q class is null => 2 params only
                     // test if no domain is specified and first param is either qtype or qclass
-                    if (Enum.TryParse(domain.Value, out useQType))
+                    if (Enum.TryParse(domain.Value, true, out useQType))
                     {
                         useDomain = ".";
-                        Enum.TryParse(qType.Value, out useQClass);
+                        Enum.TryParse(qType.Value, true, out useQClass);
                     }
-                    else if (Enum.TryParse(domain.Value, out useQClass))
+                    else if (Enum.TryParse(domain.Value, true, out useQClass))
                     {
                         useDomain = ".";
                     }
-                    else if (!Enum.TryParse(qType.Value, out useQType))
+                    else if (!Enum.TryParse(qType.Value, true, out useQType))
                     {
                         // could be q class as second and no QType
-                        Enum.TryParse(qType.Value, out useQClass);
+                        Enum.TryParse(qType.Value, true, out useQClass);
                     }
                 }
 
@@ -134,7 +134,7 @@ namespace ConsoleApp4
                 var result = useQClass == 0 ?
                     dnsClient.QueryAsync(useDomain, useQType).Result :
                     dnsClient.QueryAsync(useDomain, useQType, useQClass).Result;
-
+                
                 var elapsed = swatch.ElapsedMilliseconds;
 
                 // Printing infomrational stuff

@@ -26,9 +26,10 @@ namespace DnsClient.Protocol
     public class RecordHINFO : Record
     {
         public string CPU { get; }
+
         public string OS { get; }
 
-        public RecordHINFO(ResourceRecord resource, RecordReader recordReader)
+        internal RecordHINFO(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             CPU = recordReader.ReadString();

@@ -4,7 +4,7 @@ namespace DnsClient.Protocol
 	{
 		public byte[] RData { get; }
 
-		public RDataRecord(ResourceRecord resource, RecordReader recordReader)
+        internal RDataRecord(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
 			// re-read length

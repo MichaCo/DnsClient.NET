@@ -33,41 +33,33 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Gets or sets timeout in milliseconds
+        /// Gets or sets timeout in milliseconds.
         /// </summary>
         public int Timeout { get; set; } = 1000;
 
         /// <summary>
-        /// Gets or sets number of retries before giving up
+        /// Gets or sets number of retries before giving up.
         /// </summary>
         public int Retries { get; set; } = 3;
 
         /// <summary>
-        /// Gets or set recursion for doing queries
+        /// Gets or set recursion for doing queries.
         /// </summary>
         public bool Recursion { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets protocol to use
+        /// Gets or sets protocol to use.
         /// </summary>
         public TransportType TransportType { get; set; } = TransportType.Udp;
 
         /// <summary>
-        /// Gets or sets list of DNS servers to use
+        /// Gets list of DNS servers to use.
         /// </summary>
         public IReadOnlyCollection<IPEndPoint> DnsServers { get; }
 
         /// <summary>
-        /// Gets first DNS server address.
+        /// Gets or sets a flag indicating if the <see cref="Client"/> should use caching or not.
         /// </summary>
-        public string DnsServer
-        {
-            get
-            {
-                return DnsServers?.FirstOrDefault()?.Address?.ToString();
-            }
-        }
-
         public bool UseCache { get; set; } = true;
     }
 

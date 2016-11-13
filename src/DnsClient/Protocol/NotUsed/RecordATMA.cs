@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordATMA : RDataRecord
 	{
-        public RecordATMA(ResourceRecord resource, RecordReader recordReader)
+        internal RecordATMA(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

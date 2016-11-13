@@ -23,7 +23,7 @@ namespace DnsClient.Protocol
     {
         public string PTRDName { get; }
 
-        public RecordPTR(ResourceRecord resource, RecordReader recordReader)
+        internal RecordPTR(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             PTRDName = recordReader.ReadDomainName();

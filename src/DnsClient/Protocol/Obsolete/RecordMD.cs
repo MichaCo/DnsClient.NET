@@ -26,17 +26,17 @@ namespace DnsClient.Protocol
     [Obsolete("by RFC 973")]
     public class RecordMD : Record
     {
-        public string DomainName { get; }
+        public string MadName { get; }
 
-        public RecordMD(ResourceRecord resource, RecordReader recordReader)
+        internal RecordMD(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
-            DomainName = recordReader.ReadDomainName();
+            MadName = recordReader.ReadDomainName();
         }
 
         public override string ToString()
         {
-            return DomainName;
+            return MadName;
         }
     }
 }

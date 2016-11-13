@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordHIP : RDataRecord
     {
-        public RecordHIP(ResourceRecord resource, RecordReader recordReader)
+        internal RecordHIP(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

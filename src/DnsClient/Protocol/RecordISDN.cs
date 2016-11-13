@@ -74,7 +74,7 @@ namespace DnsClient.Protocol
 
         public string SA { get; }
 
-        public RecordISDN(ResourceRecord resource, RecordReader recordReader)
+        internal RecordISDN(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             ISDN = recordReader.ReadString();

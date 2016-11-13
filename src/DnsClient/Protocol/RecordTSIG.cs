@@ -42,7 +42,7 @@ namespace DnsClient.Protocol
 
         public byte[] OtherData { get; }
 
-        public RecordTSIG(ResourceRecord resource, RecordReader recordReader)
+        internal RecordTSIG(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             AlgorithmName = recordReader.ReadDomainName();

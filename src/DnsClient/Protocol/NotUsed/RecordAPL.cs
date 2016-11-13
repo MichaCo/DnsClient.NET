@@ -2,7 +2,7 @@ namespace DnsClient.Protocol
 {
 	public class RecordAPL : RDataRecord
 	{
-        public RecordAPL(ResourceRecord resource, RecordReader recordReader)
+        internal RecordAPL(ResourceRecord resource, RecordReader recordReader)
             : base(resource, recordReader)
         {
         }

@@ -25,7 +25,7 @@ namespace DnsClient.Protocol
     {
         public List<string> Text { get; }
 
-        public RecordTXT(ResourceRecord resource, RecordReader recordReader, int length)
+        internal RecordTXT(ResourceRecord resource, RecordReader recordReader, int length)
             : base(resource)
         {
             int pos = recordReader.Position;

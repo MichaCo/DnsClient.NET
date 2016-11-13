@@ -36,7 +36,7 @@ namespace DnsClient.Protocol
 
         public string TXTDName { get; }
 
-        public RecordRP(ResourceRecord resource, RecordReader recordReader)
+        internal RecordRP(ResourceRecord resource, RecordReader recordReader)
             : base(resource)
         {
             MBOXDName = recordReader.ReadDomainName();
