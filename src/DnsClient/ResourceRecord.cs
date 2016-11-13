@@ -1,5 +1,5 @@
 using System;
-using DnsClient.Records;
+using DnsClient.Protocol;
 
 namespace DnsClient
 {

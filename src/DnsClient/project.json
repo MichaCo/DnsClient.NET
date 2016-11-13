@@ -1,6 +1,6 @@
 ﻿{
   "version": "1.0.0-beta-*",
-  "authors": [ "MichaConrad" ],
+  "authors": [ "MichaCo" ],
   "dependencies": {
     "Microsoft.Extensions.Logging.Abstractions": "1.0.0"
   },

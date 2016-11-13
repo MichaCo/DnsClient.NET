@@ -1,25 +1,38 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
-using DnsClient.Records;
+using DnsClient.Protocol;
+using Microsoft.Extensions.Logging;
 
 namespace DnsClient
 {
     public class RecordReader
     {
-        private byte[] _data;
-
+        private readonly byte[] _data;
+        private readonly ILogger<RecordReader> _logger;
+        private readonly ILoggerFactory _loggerFactory;
         private int _position;
 
-        internal RecordReader(byte[] data)
+        internal RecordReader(ILoggerFactory loggerFactory, byte[] data)
         {
+            if (data == null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
+            if (loggerFactory != null)
+            {
+                _loggerFactory = loggerFactory;
+                _logger = loggerFactory.CreateLogger<RecordReader>();
+            }
+
             _data = data;
             _position = 0;
         }
 
-        internal RecordReader(byte[] data, int Position)
+        internal RecordReader(ILoggerFactory loggerFactory, byte[] data, int Position)
+            : this(loggerFactory, data)
         {
-            _data = data;
             _position = Position;
         }
 
@@ -68,6 +81,8 @@ namespace DnsClient
             return (uint)(ReadUInt16() << 16 | ReadUInt16());
         }
 
+        private bool IsLogging => _logger != null;
+
         public string ReadDomainName()
         {
             StringBuilder name = new StringBuilder();
@@ -80,7 +95,7 @@ namespace DnsClient
                 if ((length & 0xc0) == 0xc0)
                 {
                     // work out the existing domain name, copy this pointer
-                    RecordReader newRecordReader = new RecordReader(_data, (length & 0x3f) << 8 | ReadByte());
+                    RecordReader newRecordReader = new RecordReader(_loggerFactory, _data, (length & 0x3f) << 8 | ReadByte());
 
                     name.Append(newRecordReader.ReadDomainName());
                     return name.ToString();
@@ -128,18 +143,19 @@ namespace DnsClient
             return list.ToArray();
         }
 
-        public Record ReadRecord(ResourceRecord resource, TypeValue type, int Length)
+        public Record ReadRecord(ResourceRecord resource, TypeValue type, int length)
         {
+            if (IsLogging)
+            {
+                _logger.LogTrace("Reading record of type '{0}'.", type);
+            }
+
             switch (type)
             {
                 case TypeValue.A:
                     return new RecordA(resource, this);
                 case TypeValue.NS:
                     return new RecordNS(resource, this);
-                case TypeValue.MD:
-                    return new RecordMD(resource, this);
-                case TypeValue.MF:
-                    return new RecordMF(resource, this);
                 case TypeValue.CNAME:
                     return new RecordCNAME(resource, this);
                 case TypeValue.SOA:
@@ -163,7 +179,7 @@ namespace DnsClient
                 case TypeValue.MX:
                     return new RecordMX(resource, this);
                 case TypeValue.TXT:
-                    return new RecordTXT(resource, this, Length);
+                    return new RecordTXT(resource, this, length);
                 case TypeValue.RP:
                     return new RecordRP(resource, this);
                 case TypeValue.AFSDB:
@@ -176,22 +192,16 @@ namespace DnsClient
                     return new RecordRT(resource, this);
                 case TypeValue.NSAP:
                     return new RecordNSAP(resource, this);
-                case TypeValue.NSAPPTR:
-                    return new RecordNSAPPTR(resource, this);
                 case TypeValue.SIG:
                     return new RecordSIG(resource, this);
                 case TypeValue.KEY:
                     return new RecordKEY(resource, this);
                 case TypeValue.PX:
                     return new RecordPX(resource, this);
-                case TypeValue.GPOS:
-                    return new RecordGPOS(resource, this);
                 case TypeValue.AAAA:
                     return new RecordAAAA(resource, this);
                 case TypeValue.LOC:
                     return new RecordLOC(resource, this);
-                case TypeValue.NXT:
-                    return new RecordNXT(resource, this);
                 case TypeValue.EID:
                     return new RecordEID(resource, this);
                 case TypeValue.NIMLOC:
@@ -250,7 +260,33 @@ namespace DnsClient
                     return new RecordTKEY(resource, this);
                 case TypeValue.TSIG:
                     return new RecordTSIG(resource, this);
+                //case TypeValue.MD:
+                //    return new RecordMD(resource, this);
+                //case TypeValue.MF:
+                //    return new RecordMF(resource, this);
+                //case TypeValue.GPOS:
+                //    return new RecordGPOS(resource, this);
+                //case TypeValue.NSAPPTR:
+                //    return new RecordNSAPPTR(resource, this);
+                //case TypeValue.NXT:
+                //    return new RecordNXT(resource, this);
+                case TypeValue.MD:
+                case TypeValue.MF:
+                case TypeValue.GPOS:
+                case TypeValue.NSAPPTR:
+                case TypeValue.NXT:
+                    if (IsLogging)
+                    {
+                        _logger.LogWarning("Received obsolete record with type '{0}'.", type);
+                    }
+
+                    return new RecordUnknown(resource, this);
                 default:
+                    if (IsLogging)
+                    {
+                        _logger.LogWarning("Received unknown record with type '{0}'.", type);
+                    }
+
                     return new RecordUnknown(resource, this);
             }
         }

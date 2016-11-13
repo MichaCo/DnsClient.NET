@@ -12,14 +12,8 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 
 /*
- * Network Working Group                                     P. Mockapetris
- * Request for Comments: 1035                                           ISI
- *                                                            November 1987
- *
- *           DOMAIN NAMES - IMPLEMENTATION AND SPECIFICATION
- *
- */
 
+ */
 namespace DnsClient
 {
     /// <summary>
@@ -38,6 +32,7 @@ namespace DnsClient
         private readonly List<IPEndPoint> _dnsServers = new List<IPEndPoint>();
         private readonly ConcurrentDictionary<string, Response> _responseCache = new ConcurrentDictionary<string, Response>();
         private readonly ILogger<Resolver> _logger = null;
+        private readonly ILoggerFactory _loggerFactory = null;
 
         private bool IsLogging
         {
@@ -55,6 +50,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(loggerFactory));
             }
 
+            _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<Resolver>();
         }
 
@@ -290,7 +286,7 @@ namespace DnsClient
                             sw.Restart();
                         }
 
-                        Response response = new Response(_dnsServers[intDnsServer], responseMessage.ToArray());
+                        Response response = new Response(_loggerFactory, _dnsServers[intDnsServer], responseMessage.ToArray());
                         AddToCache(response);
                         return response;
                     }
@@ -349,7 +345,7 @@ namespace DnsClient
 
                         byte[] data = new byte[intReceived];
                         Array.Copy(responseMessage, data, intReceived);
-                        Response response = new Response(_dnsServers[intDnsServer], data);
+                        Response response = new Response(_loggerFactory, _dnsServers[intDnsServer], data);
                         AddToCache(response);
                         return response;
                     }
@@ -449,7 +445,7 @@ namespace DnsClient
 
                             data = new byte[intLength];
                             bs.Read(data, 0, intLength);
-                            Response response = new Response(_dnsServers[intDnsServer], data);
+                            Response response = new Response(_loggerFactory, _dnsServers[intDnsServer], data);
 
                             if (IsLogging)
                             {

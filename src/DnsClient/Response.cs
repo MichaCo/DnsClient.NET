@@ -5,12 +5,15 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
-using DnsClient.Records;
+using DnsClient.Protocol;
+using Microsoft.Extensions.Logging;
 
 namespace DnsClient
 {
     public class Response
     {
+        private readonly ILogger _logger;
+
         /// <summary>
         /// List of Question records
         /// </summary>
@@ -57,7 +60,7 @@ namespace DnsClient
         {
         }
 
-        public Response(string error)
+        internal Response(string error)
         {
             if (string.IsNullOrWhiteSpace(error))
             {
@@ -67,7 +70,7 @@ namespace DnsClient
             Error = error;
         }
 
-        public Response(Response fromResponse)
+        internal Response(Response fromResponse)
         {
             Server = fromResponse.Server;
             TimeStamp = fromResponse.TimeStamp;
@@ -78,7 +81,7 @@ namespace DnsClient
             Additionals = fromResponse.Additionals;
         }
 
-        public static Response Concat(Response responseA, Response responseB)
+        internal static Response Concat(Response responseA, Response responseB)
         {
             var result = new Response(responseA);
             result.Answers = responseA.Answers.Concat(responseB.Answers).ToArray();
@@ -87,7 +90,7 @@ namespace DnsClient
             return result;
         }
 
-        public Response(IPEndPoint iPEndPoint, byte[] data)
+        internal Response(ILoggerFactory loggerFactory, IPEndPoint iPEndPoint, byte[] data)
         {
             if (iPEndPoint == null)
             {
@@ -97,8 +100,12 @@ namespace DnsClient
             {
                 throw new ArgumentNullException(nameof(data));
             }
+            if(loggerFactory != null)
+            {
+                _logger = loggerFactory.CreateLogger(this.GetType());
+            }
 
-            RecordReader recordReader = new RecordReader(data);
+            RecordReader recordReader = new RecordReader(loggerFactory, data);
             Server = iPEndPoint;
             TimeStamp = DateTime.Now;
             MessageSize = data.Length;
@@ -240,6 +247,9 @@ namespace DnsClient
             }
         }
 
+        /// <summary>
+        /// List of RecordSRV in Response.Answers
+        /// </summary>
         public IReadOnlyCollection<RecordSRV> RecordsSRV
         {
             get
