@@ -24,7 +24,7 @@ namespace ConsoleApp4
         {
             get
             {
-                return typeof(Client).GetTypeInfo().Assembly.GetName().Version.ToString();
+                return typeof(DnsLookup).GetTypeInfo().Assembly.GetName().Version.ToString();
             }
         }
 
@@ -74,7 +74,7 @@ namespace ConsoleApp4
                 var usePort = port.HasValue() ? int.Parse(port.Value()) : 53;
                 var useServers = server.HasValue() ?
                     new[] { new IPEndPoint(IPAddress.Parse(server.Value()), usePort) } :
-                    Client.GetDnsServers();
+                    DnsLookup.GetDnsServers();
 
                 string useDomain = string.IsNullOrWhiteSpace(domain.Value) ? "." : domain.Value;
 
@@ -119,7 +119,7 @@ namespace ConsoleApp4
                     }
                 }
 
-                var options = new DnsClientOptions(useServers)
+                var options = new DnsLookupOptions(useServers)
                 {
                     TransportType = useTcp.HasValue() ? TransportType.Tcp : TransportType.Udp,
                     Recursion = !noRecure.HasValue(),
@@ -127,13 +127,13 @@ namespace ConsoleApp4
                     Timeout = timeout.HasValue() ? int.Parse(timeout.Value()) : 1000
                 };
 
-                var dnsClient = new Client(loggerFactory, options);
+                var lookup = new DnsLookup(loggerFactory, options);
                 
                 var swatch = Stopwatch.StartNew();
 
                 var result = useQClass == 0 ?
-                    dnsClient.QueryAsync(useDomain, useQType).Result :
-                    dnsClient.QueryAsync(useDomain, useQType, useQClass).Result;
+                    lookup.QueryAsync(useDomain, useQType).Result :
+                    lookup.QueryAsync(useDomain, useQType, useQClass).Result;
                 
                 var elapsed = swatch.ElapsedMilliseconds;
 

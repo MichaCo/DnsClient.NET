@@ -8,13 +8,13 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
-    public class ClientTest
+    public class LookupTest
     {
         static ILoggerFactory LoggerFactory = new LoggerFactory()
             .AddConsole(LogLevel.Debug)
             .AddDebug(LogLevel.Debug);
 
-        private ILogger Logger { get; } = LoggerFactory.CreateLogger<ClientTest>();
+        private ILogger Logger { get; } = LoggerFactory.CreateLogger<LookupTest>();
 
         private async Task<IPHostEntry> GetDnsEntryAsync()
         {
@@ -34,30 +34,30 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Client_GetHostAddresses_Local()
+        public async Task Lookup_GetHostAddresses_Local()
         {
-            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var client = new DnsLookup(LoggerFactory, new DnsLookupOptions());
             var result = await client.GetHostAddressesAsync("localhost");
 
             Assert.Equal("127.0.0.1", result.First().ToString());
         }
 
         [Fact]
-        public async Task Client_GetHostAddresses_ActualHost()
+        public async Task Lookup_GetHostAddresses_ActualHost()
         {
             var entry = await GetDnsEntryAsync();
 
-            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var client = new DnsLookup(LoggerFactory, new DnsLookupOptions());
             var result = await client.GetHostAddressesAsync(entry.HostName);
 
             Assert.True(entry.AddressList.Contains(result.First()));
         }
 
         [Fact]
-        public async Task Client_GetHostEntryAsync_ByIp()
+        public async Task Lookup_GetHostEntryAsync_ByIp()
         {
             var entry = await GetDnsEntryAsync();
-            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var client = new DnsLookup(LoggerFactory, new DnsLookupOptions());
             var result = await client.GetHostEntryAsync(entry.AddressList.First());
 
             Assert.True(entry.AddressList.Contains(result.AddressList.First()));
@@ -65,10 +65,10 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Client_GetHostEntryAsync_ByName()
+        public async Task Lookup_GetHostEntryAsync_ByName()
         {
             var entry = await GetDnsEntryAsync();
-            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var client = new DnsLookup(LoggerFactory, new DnsLookupOptions());
             var result = await client.GetHostEntryAsync(entry.HostName);
 
             Assert.True(entry.AddressList.Contains(result.AddressList.First()));
@@ -76,9 +76,9 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Client_Query_A()
+        public async Task Lookup_Query_A()
         {
-            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var client = new DnsLookup(LoggerFactory, new DnsLookupOptions());
             var result = await client.QueryAsync("google.com", QType.A);
 
             Assert.True(result.Answers.Count > 0);
@@ -86,9 +86,9 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Client_Query_AAAA()
+        public async Task Lookup_Query_AAAA()
         {
-            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var client = new DnsLookup(LoggerFactory, new DnsLookupOptions());
             var result = await client.QueryAsync("google.com", QType.AAAA);
 
             Assert.True(result.Answers.Count > 0);
@@ -96,9 +96,9 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Client_Query_Any()
+        public async Task Lookup_Query_Any()
         {
-            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var client = new DnsLookup(LoggerFactory, new DnsLookupOptions());
             var result = await client.QueryAsync("google.com", QType.ANY);
 
             Assert.True(result.Answers.Count > 5);
@@ -108,9 +108,9 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Client_Query_Mx()
+        public async Task Lookup_Query_Mx()
         {
-            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var client = new DnsLookup(LoggerFactory, new DnsLookupOptions());
             var result = await client.QueryAsync("google.com", QType.MX);
 
             Assert.True(result.Answers.Count > 0);
@@ -118,9 +118,9 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Client_Query_NS()
+        public async Task Lookup_Query_NS()
         {
-            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var client = new DnsLookup(LoggerFactory, new DnsLookupOptions());
             var result = await client.QueryAsync("google.com", QType.NS);
 
             Assert.True(result.Answers.Count > 0);
@@ -128,9 +128,9 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Client_Query_TXT()
+        public async Task Lookup_Query_TXT()
         {
-            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var client = new DnsLookup(LoggerFactory, new DnsLookupOptions());
             var result = await client.QueryAsync("google.com", QType.TXT);
 
             Assert.True(result.Answers.Count > 0);
@@ -138,9 +138,9 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Client_Query_SOA()
+        public async Task Lookup_Query_SOA()
         {
-            var client = new Client(LoggerFactory, new DnsClientOptions());
+            var client = new DnsLookup(LoggerFactory, new DnsLookupOptions());
             var result = await client.QueryAsync("google.com", QType.SOA);
 
             Assert.True(result.Answers.Count > 0);
@@ -148,10 +148,10 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Client_Query_ForceTimeout()
+        public async Task Lookup_Query_ForceTimeout()
         {
             // basically testing we don't throw an error but return information
-            var client = new Client(LoggerFactory, new DnsClientOptions() { Timeout = 0});
+            var client = new DnsLookup(LoggerFactory, new DnsLookupOptions() { Timeout = 0});
             var result = await client.QueryAsync("google.com", QType.ANY);
             Assert.True(!string.IsNullOrWhiteSpace(result.Error));
             Assert.True(result.Answers.Count == 0);

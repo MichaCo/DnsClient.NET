@@ -4,38 +4,38 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
-    public class ClientOptionsTest
+    public class LookupOptionsTest
     {
         [Fact]
-        public void ClientOptionsTest_EmptyCtor()
+        public void LookupOptions_EmptyCtor()
         {
-            var options = new DnsClientOptions();
+            var options = new DnsLookupOptions();
 
             Assert.True(options.DnsServers.Count > 0);
         }
 
         [Fact]
-        public void ClientOptionsTest_InvalidList()
+        public void LookupOptions_InvalidList()
         {
-            Action act = () => new DnsClientOptions(null);
+            Action act = () => new DnsLookupOptions(null);
 
             var err = Assert.Throws<ArgumentException>(act);
             Assert.Contains("dnsServerEndpoints", err.ParamName);
         }
 
         [Fact]
-        public void ClientOptionsTest_EmptyList()
+        public void LookupOptions_EmptyList()
         {
-            Action act = () => new DnsClientOptions(new IPEndPoint[] { });
+            Action act = () => new DnsLookupOptions(new IPEndPoint[] { });
 
             var err = Assert.Throws<ArgumentException>(act);
             Assert.Contains("dnsServerEndpoints", err.ParamName);
         }
 
         [Fact]
-        public void ClientOptionsTest_TestDefaults()
+        public void LookupOptions_TestDefaults()
         {
-            var options = new DnsClientOptions();
+            var options = new DnsLookupOptions();
 
             Assert.True(options.Recursion);
             Assert.True(options.Retries == 3);

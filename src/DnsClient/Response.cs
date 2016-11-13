@@ -57,7 +57,7 @@ namespace DnsClient
         /// <summary>
         /// Gets a flag indicating if the response was successful.
         /// </summary>
-        public bool Success => !string.IsNullOrWhiteSpace(Error);
+        public bool Successful => !string.IsNullOrWhiteSpace(Error);
 
         /// <summary>
         /// Gets a list of all <see cref="RecordMX"/> records in this response's answers.

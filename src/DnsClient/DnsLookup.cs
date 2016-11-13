@@ -15,14 +15,14 @@ using System.Diagnostics;
  */
 namespace DnsClient
 {
-    public class DnsClientOptions
+    public class DnsLookupOptions
     {
-        public DnsClientOptions()
-            : this(Client.GetDnsServers())
+        public DnsLookupOptions()
+            : this(DnsLookup.GetDnsServers())
         {
         }
 
-        public DnsClientOptions(params IPEndPoint[] dnsServerEndpoints)
+        public DnsLookupOptions(params IPEndPoint[] dnsServerEndpoints)
         {
             if (dnsServerEndpoints == null || dnsServerEndpoints.Length == 0)
             {
@@ -58,7 +58,7 @@ namespace DnsClient
         public IReadOnlyCollection<IPEndPoint> DnsServers { get; }
 
         /// <summary>
-        /// Gets or sets a flag indicating if the <see cref="Client"/> should use caching or not.
+        /// Gets or sets a flag indicating if the <see cref="DnsLookup"/> should use caching or not.
         /// </summary>
         public bool UseCache { get; set; } = true;
     }
@@ -66,7 +66,7 @@ namespace DnsClient
     /// <summary>
     /// Resolver is the main class to do DNS query lookups
     /// </summary>
-    public class Client
+    public class DnsLookup
     {
         /// <summary>
         /// Default DNS port
@@ -76,16 +76,16 @@ namespace DnsClient
         private static readonly Response TimeoutResponse = new Response("Connection timed out, no servers could be reached.");
         private ushort _uniqueId = (ushort)(new Random()).Next();
         private readonly ConcurrentDictionary<string, Response> _responseCache = new ConcurrentDictionary<string, Response>();
-        private readonly ILogger<Client> _logger = null;
+        private readonly ILogger<DnsLookup> _logger = null;
         private readonly ILoggerFactory _loggerFactory = null;
-        private readonly DnsClientOptions _options;
+        private readonly DnsLookupOptions _options;
 
         /// <summary>
-        /// Creates a new instance of <see cref="Client"/>.
+        /// Creates a new instance of <see cref="DnsLookup"/>.
         /// </summary>
         /// <param name="loggerFactory">A logger factory.</param>
         /// <param name="options">The configuration options.</param>
-        public Client(ILoggerFactory loggerFactory, DnsClientOptions options)
+        public DnsLookup(ILoggerFactory loggerFactory, DnsLookupOptions options)
             : this(options)
         {
             if (loggerFactory == null)
@@ -94,14 +94,14 @@ namespace DnsClient
             }
 
             _loggerFactory = loggerFactory;
-            _logger = loggerFactory.CreateLogger<Client>();
+            _logger = loggerFactory.CreateLogger<DnsLookup>();
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="Client"/>.
+        /// Creates a new instance of <see cref="DnsLookup"/>.
         /// </summary>
         /// <param name="options">The configuration options.</param>
-        public Client(DnsClientOptions options)
+        public DnsLookup(DnsLookupOptions options)
         {
             if (options == null)
             {
@@ -109,6 +109,11 @@ namespace DnsClient
             }
 
             _options = options;
+        }
+
+        public DnsLookup()
+            : this(new DnsLookupOptions())
+        {
         }
 
         private bool IsLogging
