@@ -610,22 +610,25 @@ namespace DnsClient
         {
             List<IPEndPoint> list = new List<IPEndPoint>();
 
+            // TODO: check filter loopback adapters and such? Getting unsupported exceptions when running a query against those ip6 DNS addresses.
             NetworkInterface[] adapters = NetworkInterface.GetAllNetworkInterfaces();
             foreach (NetworkInterface n in adapters)
             {
                 if (n.OperationalStatus == OperationalStatus.Up)
                 {
                     IPInterfaceProperties ipProps = n.GetIPProperties();
-                    // thanks to Jon Webster on May 20, 2008
                     foreach (IPAddress ipAddr in ipProps.DnsAddresses)
                     {
                         IPEndPoint entry = new IPEndPoint(ipAddr, DefaultPort);
                         if (!list.Contains(entry))
+                        {
                             list.Add(entry);
+                        }
                     }
 
                 }
             }
+
             return list.ToArray();
         }
 

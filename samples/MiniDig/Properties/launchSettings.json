@@ -2,7 +2,7 @@
   "profiles": {
     "ConsoleApp4": {
       "commandName": "Project",
-      "commandLineArgs": "-s 8.8.8.1 google.com MX  --time 1"
+      "commandLineArgs": "google.com MX  --time 1"
     },
     "MiniDig": {
       "commandName": "Project"
