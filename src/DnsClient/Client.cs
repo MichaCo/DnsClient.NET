@@ -645,14 +645,31 @@ namespace DnsClient
         /// <returns>An System.Net.IPHostEntry.</returns>
         public async Task<IPHostEntry> GetHostEntryAsync(IPAddress ip)
         {
-            Response response = await QueryAsync(GetArpaFromIp(ip), QType.PTR, QClass.IN);
+            var arpa = GetArpaFromIp(ip);
+            if (IsLogging)
+            {
+                _logger.LogDebug("Query GetHostEntryAsync for ip '{0}' => '{1}'.", ip.ToString(), arpa);
+            }
+
+            Response response = await QueryAsync(arpa, QType.PTR, QClass.IN);
             if (response.RecordsPTR.Count > 0)
             {
                 return await GetHostEntryAsync(response.RecordsPTR.First().PTRDName);
             }
             else
             {
-                return new IPHostEntry();
+                if (IsLogging)
+                {
+                    _logger.LogDebug("Query GetHostEntryAsync for ip '{0}' did not return any result.", ip.ToString());
+                }
+
+                // on linux, reverse /PTR query might not return any value
+                // the dotnet Dns util then returns a host entry with the IP address as host name. We'll do the same.
+                return new IPHostEntry()
+                {
+                    AddressList = new IPAddress[] { ip },
+                    HostName = ip.ToString()
+                };
             }
         }
 
@@ -680,6 +697,10 @@ namespace DnsClient
             {
                 throw new ArgumentNullException(nameof(hostName));
             }
+            if (IsLogging)
+            {
+                _logger.LogDebug("Query GetHostEntryByNameAsync for host name '{0}'.", hostName);
+            }
 
             var entry = new IPHostEntry();
             entry.HostName = hostName;
@@ -689,6 +710,12 @@ namespace DnsClient
             // fill AddressList and aliases
             var addressList = new List<IPAddress>();
             var aliases = new List<string>();
+
+            if (IsLogging)
+            {
+                _logger.LogDebug("Query GetHostEntryByNameAsync for host name '{0}' found {1} answers.", hostName, response.Answers.Count);
+            }
+
             foreach (ResourceRecord answer in response.Answers)
             {
                 if (answer.Type == TypeValue.A)
