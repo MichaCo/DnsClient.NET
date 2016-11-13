@@ -24,7 +24,7 @@ namespace ConsoleApp4
         {
             get
             {
-                return typeof(Resolver).GetTypeInfo().Assembly.GetName().Version.ToString();
+                return typeof(Client).GetTypeInfo().Assembly.GetName().Version.ToString();
             }
         }
 
@@ -57,7 +57,7 @@ namespace ConsoleApp4
             CommandOption tries = commandLineApplication.Option(
                 "--tries",
                 "Number of tries.",
-                CommandOptionType.NoValue);
+                CommandOptionType.SingleValue);
 
             CommandOption timeout = commandLineApplication.Option(
                 "--time",
@@ -74,7 +74,7 @@ namespace ConsoleApp4
                 var usePort = port.HasValue() ? int.Parse(port.Value()) : 53;
                 var useServers = server.HasValue() ?
                     new[] { new IPEndPoint(IPAddress.Parse(server.Value()), usePort) } :
-                    Resolver.GetDnsServers();
+                    Client.GetDnsServers();
 
                 string useDomain = string.IsNullOrWhiteSpace(domain.Value) ? "." : domain.Value;
 
@@ -119,22 +119,21 @@ namespace ConsoleApp4
                     }
                 }
 
-                var resolver = new Resolver(loggerFactory, useServers);
-                resolver.TransportType = TransportType.Udp;
-                resolver.Recursion = !noRecure.HasValue();
-                resolver.Retries = tries.HasValue() ? int.Parse(tries.Value()) : 3;
-                resolver.Timeout = timeout.HasValue() ? int.Parse(timeout.Value()) : 1000;
-
-                if (useTcp.HasValue())
+                var options = new DnsClientOptions(useServers)
                 {
-                    resolver.TransportType = TransportType.Tcp;
-                }
+                    TransportType = useTcp.HasValue() ? TransportType.Tcp : TransportType.Udp,
+                    Recursion = !noRecure.HasValue(),
+                    Retries = tries.HasValue() ? int.Parse(tries.Value()) : 3,
+                    Timeout = timeout.HasValue() ? int.Parse(timeout.Value()) : 1000
+                };
 
+                var dnsClient = new Client(loggerFactory, options);
+                
                 var swatch = Stopwatch.StartNew();
 
                 var result = useQClass == 0 ?
-                    resolver.QueryAsync(useDomain, useQType).Result :
-                    resolver.QueryAsync(useDomain, useQType, useQClass).Result;
+                    dnsClient.QueryAsync(useDomain, useQType).Result :
+                    dnsClient.QueryAsync(useDomain, useQType, useQClass).Result;
 
                 var elapsed = swatch.ElapsedMilliseconds;
 

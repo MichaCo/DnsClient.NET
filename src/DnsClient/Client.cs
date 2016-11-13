@@ -12,100 +12,19 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 
 /*
-
  */
 namespace DnsClient
 {
-    /// <summary>
-    /// Resolver is the main class to do DNS query lookups
-    /// </summary>
-    public class Resolver
+    public class DnsClientOptions
     {
-        /// <summary>
-        /// Default DNS port
-        /// </summary>
-        public const int DefaultPort = 53;
-
-        private static readonly Response TimeoutResponse = new Response("Connection timed out, no servers could be reached.");
-        private ushort _uniqueId;
-        private int _retries;
-        private readonly List<IPEndPoint> _dnsServers = new List<IPEndPoint>();
-        private readonly ConcurrentDictionary<string, Response> _responseCache = new ConcurrentDictionary<string, Response>();
-        private readonly ILogger<Resolver> _logger = null;
-        private readonly ILoggerFactory _loggerFactory = null;
-
-        private bool IsLogging
+        public DnsClientOptions(params IPEndPoint[] dnsServerEndpoints)
         {
-            get
+            if (dnsServerEndpoints == null || dnsServerEndpoints.Length == 0)
             {
-                return _logger != null;
-            }
-        }
-
-        public Resolver(ILoggerFactory loggerFactory, params IPEndPoint[] dnsServers)
-            : this(dnsServers)
-        {
-            if (loggerFactory == null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
+                throw new ArgumentException("No DNS Server endpoint specified.", nameof(dnsServerEndpoints));
             }
 
-            _loggerFactory = loggerFactory;
-            _logger = loggerFactory.CreateLogger<Resolver>();
-        }
-
-        /// <summary>
-        /// Constructor of Resolver using DNS servers specified.
-        /// </summary>
-        /// <param name="dnsServers">Set of DNS servers</param>
-        public Resolver(params IPEndPoint[] dnsServers)
-        {
-            if (dnsServers == null || dnsServers.Length == 0)
-            {
-                throw new ArgumentException("At least one dns server must be specified.", nameof(dnsServers));
-            }
-
-            _dnsServers.AddRange(dnsServers);
-            _uniqueId = (ushort)(new Random()).Next();
-            Retries = 3;
-            UseCache = true;
-        }
-
-        /// <summary>
-        /// Constructor of Resolver using DNS server and port specified.
-        /// </summary>
-        /// <param name="ServerIpAddress">DNS server to use</param>
-        /// <param name="ServerPortNumber">DNS port to use</param>
-        public Resolver(IPAddress ServerIpAddress, int ServerPortNumber)
-            : this(new IPEndPoint(ServerIpAddress, ServerPortNumber))
-        {
-        }
-
-        /// <summary>
-        /// Constructor of Resolver using DNS address and port specified.
-        /// </summary>
-        /// <param name="ServerIpAddress">DNS server address to use</param>
-        /// <param name="ServerPortNumber">DNS port to use</param>
-        public Resolver(string ServerIpAddress, int ServerPortNumber)
-            : this(IPAddress.Parse(ServerIpAddress), ServerPortNumber)
-        {
-        }
-
-        /// <summary>
-        /// Constructor of Resolver using DNS address.
-        /// </summary>
-        /// <param name="ServerIpAddress">DNS server address to use</param>
-        public Resolver(string ServerIpAddress)
-            : this(IPAddress.Parse(ServerIpAddress), DefaultPort)
-        {
-        }
-
-        /// <summary>
-        /// Resolver constructor, using DNS servers specified by Windows
-        /// </summary>
-        public Resolver()
-            : this(GetDnsServers())
-        {
+            DnsServers = dnsServerEndpoints;
         }
 
         /// <summary>
@@ -116,20 +35,7 @@ namespace DnsClient
         /// <summary>
         /// Gets or sets number of retries before giving up
         /// </summary>
-        public int Retries
-        {
-            get
-            {
-                return _retries;
-            }
-            set
-            {
-                if (value >= 1)
-                {
-                    _retries = value;
-                }
-            }
-        }
+        public int Retries { get; set; } = 3;
 
         /// <summary>
         /// Gets or set recursion for doing queries
@@ -139,31 +45,82 @@ namespace DnsClient
         /// <summary>
         /// Gets or sets protocol to use
         /// </summary>
-        public TransportType TransportType { get; set; } = TransportType.Tcp;
+        public TransportType TransportType { get; set; } = TransportType.Udp;
 
         /// <summary>
         /// Gets or sets list of DNS servers to use
         /// </summary>
-        public IPEndPoint[] DnsServers
-        {
-            get
-            {
-                return _dnsServers.ToArray();
-            }
-        }
+        public IReadOnlyCollection<IPEndPoint> DnsServers { get; }
 
         /// <summary>
-        /// Gets first DNS server address or sets single DNS server to use
+        /// Gets first DNS server address.
         /// </summary>
         public string DnsServer
         {
             get
             {
-                return _dnsServers.FirstOrDefault()?.Address?.ToString();
+                return DnsServers?.FirstOrDefault()?.Address?.ToString();
             }
         }
 
         public bool UseCache { get; set; } = true;
+    }
+
+    /// <summary>
+    /// Resolver is the main class to do DNS query lookups
+    /// </summary>
+    public class Client
+    {
+        /// <summary>
+        /// Default DNS port
+        /// </summary>
+        public const int DefaultPort = 53;
+
+        private static readonly Response TimeoutResponse = new Response("Connection timed out, no servers could be reached.");
+        private ushort _uniqueId = (ushort)(new Random()).Next();
+        private readonly ConcurrentDictionary<string, Response> _responseCache = new ConcurrentDictionary<string, Response>();
+        private readonly ILogger<Client> _logger = null;
+        private readonly ILoggerFactory _loggerFactory = null;
+        private readonly DnsClientOptions _options;
+
+        /// <summary>
+        /// Creates a new instance of <see cref="Client"/>.
+        /// </summary>
+        /// <param name="loggerFactory">A logger factory.</param>
+        /// <param name="options">The configuration options.</param>
+        public Client(ILoggerFactory loggerFactory, DnsClientOptions options)
+            : this(options)
+        {
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
+
+            _loggerFactory = loggerFactory;
+            _logger = loggerFactory.CreateLogger<Client>();
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="Client"/>.
+        /// </summary>
+        /// <param name="options">The configuration options.</param>
+        public Client(DnsClientOptions options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            _options = options;
+        }
+
+        private bool IsLogging
+        {
+            get
+            {
+                return _logger != null;
+            }
+        }
 
         /// <summary>
         /// Clear the resolver cache
@@ -178,7 +135,7 @@ namespace DnsClient
 
         private Response SearchInCache(Question question)
         {
-            if (!UseCache)
+            if (!_options.UseCache)
             {
                 return null;
             }
@@ -205,7 +162,7 @@ namespace DnsClient
 
         private void AddToCache(Response response)
         {
-            if (!UseCache)
+            if (!_options.UseCache)
             {
                 return;
             }
@@ -247,66 +204,99 @@ namespace DnsClient
             // RFC1035 max. size of a UDP datagram is 512 bytes
             var responseMessage = new ArraySegment<byte>(new byte[512]);
 
-            for (int intAttempts = 0; intAttempts < _retries; intAttempts++)
+            for (int attempts = 0; attempts < _options.Retries; attempts++)
             {
-                for (int intDnsServer = 0; intDnsServer < _dnsServers.Count; intDnsServer++)
+                for (int indexServer = 0; indexServer < _options.DnsServers.Count; indexServer++)
                 {
-                    Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-
-                    try
+                    using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
                     {
-                        var sendData = new ArraySegment<byte>(request.Data, 0, request.Data.Length);
-                        var timerTask = Task.Delay(Timeout);
-                        var sendTask = socket.SendToAsync(sendData, SocketFlags.None, _dnsServers[intDnsServer]);
-                        await Task.WhenAny(sendTask, timerTask);
-                        if (!sendTask.IsCompleted)
+                        var dnsServer = _options.DnsServers.ElementAt(indexServer);
+
+                        try
                         {
-                            throw new SocketException();
-                        }
+                            var sendData = new ArraySegment<byte>(request.Data, 0, request.Data.Length);
+                            var sendTimer = Task.Delay(_options.Timeout);
+                            var sendTask = socket.SendToAsync(sendData, SocketFlags.None, dnsServer);
+                            await Task.WhenAny(sendTask, sendTimer);
 
-                        if (IsLogging)
+                            if (!sendTask.IsCompleted)
+                            {
+                                if (IsLogging)
+                                {
+                                    _logger.LogWarning("Exceeded timeout of {0}ms connecting to nameserver '{1}'.", _options.Timeout, dnsServer);
+                                }
+
+                                continue;
+                            }
+
+                            if (IsLogging)
+                            {
+                                this._logger.LogDebug($"Sending ({request.Data.Length}) bytes in {sw.ElapsedMilliseconds} ms.");
+                                sw.Restart();
+                            }
+
+                            var receiveTimer = Task.Delay(_options.Timeout);
+                            var receiveTask = socket.ReceiveAsync(responseMessage, SocketFlags.None);
+                            await Task.WhenAny(receiveTask, receiveTimer);
+
+                            if (!receiveTask.IsCompleted)
+                            {
+                                if (IsLogging)
+                                {
+                                    _logger.LogWarning("Exceeded timeout of {0}ms receiving a message from nameserver '{1}'.", _options.Timeout, dnsServer);
+                                }
+
+                                continue;
+                            }
+
+                            int intReceived = receiveTask.Result;
+
+                            if (IsLogging)
+                            {
+                                this._logger.LogDebug($"Received ({intReceived}) bytes in {sw.ElapsedMilliseconds} ms.");
+                                sw.Restart();
+                            }
+
+                            Response response = new Response(_loggerFactory, dnsServer, responseMessage.ToArray());
+                            AddToCache(response);
+                            return response;
+                        }
+                        catch (SocketException ex)
                         {
-                            this._logger.LogDebug($"Sending ({request.Data.Length}) bytes in {sw.ElapsedMilliseconds} ms.");
-                            sw.Restart();
+                            //TODO remove servers which throw not supported protocol exceptions
+                            if (IsLogging)
+                            {
+                                _logger.LogWarning(0, ex, "Socket error occurred with nameserver {0}.", dnsServer);
+                            }
                         }
-
-                        var receiveTimer = Task.Delay(Timeout);
-                        var receiveTask = socket.ReceiveAsync(responseMessage, SocketFlags.None);
-                        await Task.WhenAny(receiveTask, receiveTimer);
-                        if (!receiveTask.IsCompleted)
+                        catch (AggregateException aggEx)
                         {
-                            throw new SocketException();
+                            aggEx.Handle(ex =>
+                            {
+                                if (ex.GetType() == typeof(SocketException))
+                                {
+                                    if (IsLogging)
+                                    {
+                                        _logger.LogWarning(0, ex, "Connection to nameserver {0} failed.", dnsServer);
+                                    }
+
+                                    return true;
+                                }
+
+                                return false;
+                            });
                         }
-
-                        int intReceived = receiveTask.Result;
-
-                        if (IsLogging)
+                        finally
                         {
-                            this._logger.LogDebug($"Received ({intReceived}) bytes in {sw.ElapsedMilliseconds} ms.");
-                            sw.Restart();
+                            _uniqueId++;
                         }
-
-                        Response response = new Response(_loggerFactory, _dnsServers[intDnsServer], responseMessage.ToArray());
-                        AddToCache(response);
-                        return response;
-                    }
-                    catch (SocketException)
-                    {
-                        if (IsLogging)
-                        {
-                            _logger.LogWarning("Connection to nameserver {0} failed", _dnsServers[intDnsServer]);
-                        }
-
-                        continue;
-                    }
-                    finally
-                    {
-                        _uniqueId++;
-
-                        // close the socket
-                        socket.Dispose();
                     }
                 }
+            }
+
+            if (IsLogging)
+            {
+                _logger.LogError("Could not send or receive message from any configured nameserver.");
             }
 
             return TimeoutResponse;
@@ -320,52 +310,56 @@ namespace DnsClient
             // RFC1035 max. size of a UDP datagram is 512 bytes
             byte[] responseMessage = new byte[512];
 
-            for (int intAttempts = 0; intAttempts < _retries; intAttempts++)
+            for (int attempt = 0; attempt < _options.Retries; attempt++)
             {
-                for (int intDnsServer = 0; intDnsServer < _dnsServers.Count; intDnsServer++)
+                for (int indexServer = 0; indexServer < _options.DnsServers.Count; indexServer++)
                 {
-                    Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-                    socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, Timeout);
-
-                    try
+                    using (var socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp))
                     {
-                        socket.SendTo(request.Data, _dnsServers[intDnsServer]);
-                        if (IsLogging)
+                        socket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReceiveTimeout, _options.Timeout);
+                        var dnsServer = _options.DnsServers.ElementAt(indexServer);
+
+                        try
                         {
-                            this._logger.LogDebug($"Sending ({request.Data.Length}) bytes in {sw.ElapsedMilliseconds} ms.");
-                            sw.Restart();
-                        }
+                            socket.SendTo(request.Data, dnsServer);
+                            if (IsLogging)
+                            {
+                                this._logger.LogDebug($"Sending ({request.Data.Length}) bytes in {sw.ElapsedMilliseconds} ms.");
+                                sw.Restart();
+                            }
 
-                        int intReceived = socket.Receive(responseMessage);
-                        if (IsLogging)
+                            int intReceived = socket.Receive(responseMessage);
+                            if (IsLogging)
+                            {
+                                this._logger.LogDebug($"Received ({intReceived}) bytes in {sw.ElapsedMilliseconds} ms.");
+                                sw.Restart();
+                            }
+
+                            byte[] data = new byte[intReceived];
+                            Array.Copy(responseMessage, data, intReceived);
+                            Response response = new Response(_loggerFactory, dnsServer, data);
+                            AddToCache(response);
+                            return response;
+                        }
+                        catch (SocketException)
                         {
-                            this._logger.LogDebug($"Received ({intReceived}) bytes in {sw.ElapsedMilliseconds} ms.");
-                            sw.Restart();
+                            //TODO remove servers which throw not supported protocol exceptions
+                            if (IsLogging)
+                            {
+                                _logger.LogWarning("Connection to nameserver {0} failed.", dnsServer);
+                            }
                         }
-
-                        byte[] data = new byte[intReceived];
-                        Array.Copy(responseMessage, data, intReceived);
-                        Response response = new Response(_loggerFactory, _dnsServers[intDnsServer], data);
-                        AddToCache(response);
-                        return response;
-                    }
-                    catch (SocketException)
-                    {
-                        if (IsLogging)
+                        finally
                         {
-                            _logger.LogWarning("Connection to nameserver {0} failed.", _dnsServers[intDnsServer]);
+                            _uniqueId++;
                         }
-
-                        continue;
-                    }
-                    finally
-                    {
-                        _uniqueId++;
-
-                        // close the socket
-                        socket.Dispose();
                     }
                 }
+            }
+
+            if (IsLogging)
+            {
+                _logger.LogError("Could not send or receive message from any configured nameserver.");
             }
 
             return TimeoutResponse;
@@ -378,28 +372,24 @@ namespace DnsClient
 
             byte[] responseMessage = new byte[512];
 
-            for (int intAttempts = 0; intAttempts < _retries; intAttempts++)
+            for (int attempt = 0; attempt < _options.Retries; attempt++)
             {
-                for (int intDnsServer = 0; intDnsServer < _dnsServers.Count; intDnsServer++)
+                for (int indexServer = 0; indexServer < _options.DnsServers.Count; indexServer++)
                 {
                     TcpClient tcpClient = new TcpClient();
-                    tcpClient.ReceiveTimeout = Timeout;
+                    tcpClient.ReceiveTimeout = _options.Timeout;
+                    var dnsServer = _options.DnsServers.ElementAt(indexServer);
 
                     try
                     {
-                        var connectTimer = Task.Delay(Timeout);
-                        var connectTask = tcpClient.ConnectAsync(_dnsServers[intDnsServer].Address, _dnsServers[intDnsServer].Port);
+                        var connectTimer = Task.Delay(_options.Timeout);
+                        var connectTask = tcpClient.ConnectAsync(dnsServer.Address, dnsServer.Port);
                         await Task.WhenAny(connectTask, connectTimer);
                         if (!connectTask.IsCompleted || !tcpClient.Connected)
                         {
-#if XPLAT
-                            tcpClient.Dispose();
-#else
-                            tcpClient.Close();
-#endif
                             if (IsLogging)
                             {
-                                _logger.LogWarning("Connection to nameserver {0} failed", _dnsServers[intDnsServer]);
+                                _logger.LogWarning("Connection to nameserver {0} failed.", dnsServer);
                             }
 
                             continue;
@@ -428,24 +418,19 @@ namespace DnsClient
                             int intLength = bs.ReadByte() << 8 | bs.ReadByte();
                             if (intLength <= 0)
                             {
-#if XPLAT
-                                tcpClient.Dispose();
-#else
-                                tcpClient.Close();
-#endif
                                 if (IsLogging)
                                 {
-                                    _logger.LogWarning("Connection to nameserver {0} failed", _dnsServers[intDnsServer]);
+                                    _logger.LogWarning("Connection to nameserver {0} failed.", dnsServer);
                                 }
 
-                                throw new SocketException(); // next try
+                                break;
                             }
 
                             intMessageSize += intLength;
 
                             data = new byte[intLength];
                             bs.Read(data, 0, intLength);
-                            Response response = new Response(_loggerFactory, _dnsServers[intDnsServer], data);
+                            Response response = new Response(_loggerFactory, dnsServer, data);
 
                             if (IsLogging)
                             {
@@ -494,9 +479,34 @@ namespace DnsClient
                     {
                         if (IsLogging)
                         {
-                            _logger.LogWarning(0, ex, "Connection to nameserver {0} failed", _dnsServers[intDnsServer]);
+                            _logger.LogWarning(0, ex, "Connection to nameserver {0} failed.", dnsServer);
                         }
-                        continue; // next try
+                    }
+                    catch (NotSupportedException ex)
+                    {
+                        //TODO remove servers which throw not supported protocol exceptions
+                        if (IsLogging)
+                        {
+                            _logger.LogWarning(0, ex, "Connection to nameserver {0} failed.", dnsServer);
+                        }
+                    }
+                    catch (AggregateException aggEx)
+                    {
+                        aggEx.Handle(ex =>
+                        {
+                            if (ex.GetType() == typeof(SocketException) || ex.GetType() == typeof(NotSupportedException))
+                            {
+                                //TODO remove servers which throw not supported protocol exceptions
+                                if (IsLogging)
+                                {
+                                    _logger.LogWarning(0, ex, "Connection to nameserver {0} failed.", dnsServer);
+                                }
+
+                                return true;
+                            }
+
+                            return false;
+                        });
                     }
                     finally
                     {
@@ -510,6 +520,11 @@ namespace DnsClient
 #endif
                     }
                 }
+            }
+
+            if (IsLogging)
+            {
+                _logger.LogError("Could not send or receive message from any configured nameserver.");
             }
 
             return TimeoutResponse;
@@ -531,7 +546,7 @@ namespace DnsClient
                 return response;
             }
 
-            var header = new Header(_uniqueId, OPCode.Query, 1, Recursion);
+            var header = new Header(_uniqueId, OPCode.Query, 1, _options.Recursion);
             Request request = new Request(header, question);
             return await GetResponseAsync(request);
         }
@@ -551,14 +566,14 @@ namespace DnsClient
                 return response;
             }
 
-            var header = new Header(_uniqueId, OPCode.Query, 1, Recursion);
+            var header = new Header(_uniqueId, OPCode.Query, 1, _options.Recursion);
             Request request = new Request(header, question);
             return await GetResponseAsync(request);
         }
 
         private async Task<Response> GetResponseAsync(Request request)
         {
-            if (TransportType == TransportType.Udp)
+            if (_options.TransportType == TransportType.Udp)
             {
                 if (IsLogging)
                 {
@@ -572,7 +587,7 @@ namespace DnsClient
 #endif
             }
 
-            if (TransportType == TransportType.Tcp)
+            if (_options.TransportType == TransportType.Tcp)
             {
                 if (IsLogging)
                 {
