@@ -56,7 +56,7 @@ namespace DnsClient
         /// </summary>
         public IPEndPoint Server { get; } = new IPEndPoint(0, 0);
 
-        public Response()
+        internal Response()
         {
         }
 

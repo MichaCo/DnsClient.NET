@@ -95,7 +95,7 @@ namespace DnsClient
         /// </summary>
         public uint TimeToLive { get; private set; }
 
-        public ResourceRecord(RecordReader recordReader)
+        internal ResourceRecord(RecordReader recordReader)
         {
             _timeLived = 0;
             Name = recordReader.ReadDomainName();
