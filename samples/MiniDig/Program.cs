@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.CommandLineUtils;
+﻿using System;
+using Microsoft.Extensions.CommandLineUtils;
 
 namespace DigApp
 {
@@ -6,13 +7,20 @@ namespace DigApp
     {
         public static void Main(string[] args)
         {
-            var app = new CommandLineApplication(throwOnUnexpectedArg: false);
+            try
+            {
+                var app = new CommandLineApplication(throwOnUnexpectedArg: false);
 
-            var perfApplication = app.Command("perf", (perfApp) => new PerfCommand(perfApp, args), false);
+                var perfApplication = app.Command("perf", (perfApp) => new PerfCommand(perfApp, args), false);
 
-            var defaultCommand = new DigCommand(app, args);
+                var defaultCommand = new DigCommand(app, args);
 
-            app.Execute(args);
+                app.Execute(args);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
     }
 }

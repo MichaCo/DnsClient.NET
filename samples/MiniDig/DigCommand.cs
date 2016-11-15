@@ -24,7 +24,7 @@ namespace DigApp
         {
             get
             {
-                return typeof(DnsLookup).GetTypeInfo().Assembly.GetName().Version.ToString();
+                return typeof(DigCommand).GetTypeInfo().Assembly.GetName().Version.ToString();
             }
         }
 

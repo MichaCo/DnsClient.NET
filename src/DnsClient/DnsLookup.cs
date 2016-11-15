@@ -1,15 +1,15 @@
 using System;
-using System.Linq;
-using System.IO;
-using System.Collections.Generic;
-using System.Net;
-using System.Text;
-using System.Net.Sockets;
-using System.Threading.Tasks;
-using System.Net.NetworkInformation;
-using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 /*
  */
@@ -217,19 +217,10 @@ namespace DnsClient
                         try
                         {
                             var sendData = new ArraySegment<byte>(request.Data, 0, request.Data.Length);
-                            var sendTimer = Task.Delay(_options.Timeout);
-                            var sendTask = socket.SendToAsync(sendData, SocketFlags.None, dnsServer);
-                            await Task.WhenAny(sendTask, sendTimer);
 
-                            if (!sendTask.IsCompleted)
-                            {
-                                if (IsLogging)
-                                {
-                                    _logger.LogWarning("Exceeded timeout of {0}ms connecting to nameserver '{1}'.", _options.Timeout, dnsServer);
-                                }
-
-                                continue;
-                            }
+                            var sendTask = await socket
+                                .SendToAsync(sendData, SocketFlags.None, dnsServer)
+                                .TimeoutAfter(_options.Timeout);
 
                             if (IsLogging)
                             {
@@ -237,21 +228,9 @@ namespace DnsClient
                                 sw.Restart();
                             }
 
-                            var receiveTimer = Task.Delay(_options.Timeout);
-                            var receiveTask = socket.ReceiveAsync(responseMessage, SocketFlags.None);
-                            await Task.WhenAny(receiveTask, receiveTimer);
-
-                            if (!receiveTask.IsCompleted)
-                            {
-                                if (IsLogging)
-                                {
-                                    _logger.LogWarning("Exceeded timeout of {0}ms receiving a message from nameserver '{1}'.", _options.Timeout, dnsServer);
-                                }
-
-                                continue;
-                            }
-
-                            int intReceived = receiveTask.Result;
+                            var intReceived = await socket
+                                .ReceiveAsync(responseMessage, SocketFlags.None)
+                                .TimeoutAfter(_options.Timeout);
 
                             if (IsLogging)
                             {
@@ -262,6 +241,13 @@ namespace DnsClient
                             Response response = new Response(_loggerFactory, dnsServer, responseMessage.ToArray());
                             AddToCache(response);
                             return response;
+                        }
+                        catch (TimeoutException ex)
+                        {
+                            if (IsLogging)
+                            {
+                                _logger.LogWarning(0, ex, "Connection to nameserver '{0}' timed out.", dnsServer);
+                            }
                         }
                         catch (SocketException ex)
                         {
@@ -280,6 +266,15 @@ namespace DnsClient
                                     if (IsLogging)
                                     {
                                         _logger.LogWarning(0, ex, "Connection to nameserver {0} failed.", dnsServer);
+                                    }
+
+                                    return true;
+                                }
+                                if (ex.GetType() == typeof(TimeoutException))
+                                {
+                                    if (IsLogging)
+                                    {
+                                        _logger.LogWarning(0, ex, "Connection to nameserver '{0}' timed out.", dnsServer);
                                     }
 
                                     return true;
@@ -368,6 +363,101 @@ namespace DnsClient
         }
 #endif
 
+        private async Task<Response> UdpRequest2(Request request)
+        {
+            var sw = Stopwatch.StartNew();
+
+            for (int attempt = 0; attempt < _options.Retries; attempt++)
+            {
+                for (int indexServer = 0; indexServer < _options.DnsServers.Count; indexServer++)
+                {
+                    using (var udpClient = new UdpClient())
+                    {
+                        var dnsServer = _options.DnsServers.ElementAt(indexServer);
+
+                        try
+                        {
+                            var sendTask = await udpClient
+                                .SendAsync(request.Data, request.Data.Length, dnsServer)
+                                .TimeoutAfter(_options.Timeout);
+
+                            if (IsLogging)
+                            {
+                                this._logger.LogDebug($"Sending ({request.Data.Length}) bytes in {sw.ElapsedMilliseconds} ms.");
+                                sw.Restart();
+                            }
+
+                            var result = await udpClient
+                                .ReceiveAsync()
+                                .TimeoutAfter(_options.Timeout);
+
+                            if (IsLogging)
+                            {
+                                this._logger.LogDebug($"Received ({result.Buffer.Length}) bytes in {sw.ElapsedMilliseconds} ms.");
+                                sw.Restart();
+                            }
+
+                            Response response = new Response(_loggerFactory, dnsServer, result.Buffer);
+                            AddToCache(response);
+                            return response;
+                        }
+                        catch (TimeoutException ex)
+                        {
+                            if (IsLogging)
+                            {
+                                _logger.LogWarning(0, ex, "Connection to nameserver '{0}' timed out.", dnsServer);
+                            }
+                        }
+                        catch (SocketException ex)
+                        {
+                            //TODO remove servers which throw not supported protocol exceptions
+                            if (IsLogging)
+                            {
+                                _logger.LogWarning(0, ex, "Socket error occurred with nameserver {0}.", dnsServer);
+                            }
+                        }
+                        catch (AggregateException aggEx)
+                        {
+                            aggEx.Handle(ex =>
+                            {
+                                if (ex.GetType() == typeof(SocketException))
+                                {
+                                    if (IsLogging)
+                                    {
+                                        _logger.LogWarning(0, ex, "Connection to nameserver {0} failed.", dnsServer);
+                                    }
+
+                                    return true;
+                                }
+                                if (ex.GetType() == typeof(TimeoutException))
+                                {
+                                    if (IsLogging)
+                                    {
+                                        _logger.LogWarning(0, ex, "Connection to nameserver '{0}' timed out.", dnsServer);
+                                    }
+
+                                    return true;
+                                }
+
+                                return false;
+                            });
+                        }
+                        finally
+                        {
+                            _uniqueId++;
+                        }
+                    }
+                }
+            }
+
+            if (IsLogging)
+            {
+                _logger.LogError("Could not send or receive message from any configured nameserver.");
+            }
+
+            return TimeoutResponse;
+        }
+
         private async Task<Response> TcpRequest(Request request)
         {
             var sw = Stopwatch.StartNew();
@@ -378,148 +468,164 @@ namespace DnsClient
             {
                 for (int indexServer = 0; indexServer < _options.DnsServers.Count; indexServer++)
                 {
-                    TcpClient tcpClient = new TcpClient();
-                    tcpClient.ReceiveTimeout = _options.Timeout;
-                    var dnsServer = _options.DnsServers.ElementAt(indexServer);
-
-                    try
+                    using (var tcpClient = new TcpClient())
                     {
-                        var connectTimer = Task.Delay(_options.Timeout);
-                        var connectTask = tcpClient.ConnectAsync(dnsServer.Address, dnsServer.Port);
-                        await Task.WhenAny(connectTask, connectTimer);
-                        if (!connectTask.IsCompleted || !tcpClient.Connected)
+                        tcpClient.ReceiveTimeout = _options.Timeout;                        
+                        var dnsServer = _options.DnsServers.ElementAt(indexServer);
+
+                        try
                         {
-                            if (IsLogging)
-                            {
-                                _logger.LogWarning("Connection to nameserver {0} failed.", dnsServer);
-                            }
+                            var connectTimer = Task.Delay(_options.Timeout);
+                            await tcpClient
+                                .ConnectAsync(dnsServer.Address, dnsServer.Port)
+                                .TimeoutAfter(_options.Timeout);
 
-                            continue;
-                        }
+                            var bs = new BufferedStream(tcpClient.GetStream());
 
-                        var bs = new BufferedStream(tcpClient.GetStream());
+                            var data = request.Data;
+                            bs.WriteByte((byte)((data.Length >> 8) & 0xff));
+                            bs.WriteByte((byte)(data.Length & 0xff));
+                            await bs
+                                .WriteAsync(data, 0, data.Length)
+                                .TimeoutAfter(_options.Timeout);
 
-                        var data = request.Data;
-                        bs.WriteByte((byte)((data.Length >> 8) & 0xff));
-                        bs.WriteByte((byte)(data.Length & 0xff));
-                        await bs.WriteAsync(data, 0, data.Length);
-                        await bs.FlushAsync();
+                            await bs
+                                .FlushAsync()
+                                .TimeoutAfter(_options.Timeout);
 
-                        Response transferResponse = new Response();
-                        int intSoa = 0;
-                        int intMessageSize = 0;
-
-                        if (IsLogging)
-                        {
-                            this._logger.LogDebug($"Sending ({request.Data.Length + 2}) bytes in {sw.ElapsedMilliseconds} ms.");
-                            sw.Restart();
-                        }
-
-                        while (true)
-                        {
-                            int intLength = bs.ReadByte() << 8 | bs.ReadByte();
-                            if (intLength <= 0)
-                            {
-                                if (IsLogging)
-                                {
-                                    _logger.LogWarning("Connection to nameserver {0} failed.", dnsServer);
-                                }
-
-                                break;
-                            }
-
-                            intMessageSize += intLength;
-
-                            data = new byte[intLength];
-                            bs.Read(data, 0, intLength);
-                            Response response = new Response(_loggerFactory, dnsServer, data);
+                            Response transferResponse = new Response();
+                            int intSoa = 0;
+                            int intMessageSize = 0;
 
                             if (IsLogging)
                             {
-                                this._logger.LogDebug($"Received ({intLength + 2}) bytes in {sw.ElapsedMilliseconds} ms.");
+                                this._logger.LogDebug($"Sending ({request.Data.Length + 2}) bytes in {sw.ElapsedMilliseconds} ms.");
                                 sw.Restart();
                             }
 
-                            if (response.Header.ResponseCode != RCode.NoError)
+                            while (true)
                             {
-                                return response;
-                            }
-
-                            if (response.Questions.First().QType != QType.AXFR)
-                            {
-                                AddToCache(response);
-                                return response;
-                            }
-
-                            // Zone transfer!!
-                            if (transferResponse.Questions.Count == 0)
-                            {
-                                transferResponse = new Response(response);
-                            }
-                            else
-                            {
-                                transferResponse = Response.Concat(transferResponse, response);
-                            }
-
-                            if (response.Answers.First().Type == TypeValue.SOA)
-                            {
-                                intSoa++;
-                            }
-
-                            if (intSoa == 2)
-                            {
-                                transferResponse.Header.QuestionCount = (ushort)transferResponse.Questions.Count;
-                                transferResponse.Header.AnswerCount = (ushort)transferResponse.Answers.Count;
-                                transferResponse.Header.NameServerCount = (ushort)transferResponse.Authorities.Count;
-                                transferResponse.Header.AdditionalCount = (ushort)transferResponse.Additionals.Count;
-                                transferResponse.MessageSize = intMessageSize;
-                                return transferResponse;
-                            }
-                        }
-                    }
-                    catch (SocketException ex)
-                    {
-                        if (IsLogging)
-                        {
-                            _logger.LogWarning(0, ex, "Connection to nameserver {0} failed.", dnsServer);
-                        }
-                    }
-                    catch (NotSupportedException ex)
-                    {
-                        //TODO remove servers which throw not supported protocol exceptions
-                        if (IsLogging)
-                        {
-                            _logger.LogWarning(0, ex, "Connection to nameserver {0} failed.", dnsServer);
-                        }
-                    }
-                    catch (AggregateException aggEx)
-                    {
-                        aggEx.Handle(ex =>
-                        {
-                            if (ex.GetType() == typeof(SocketException) || ex.GetType() == typeof(NotSupportedException))
-                            {
-                                //TODO remove servers which throw not supported protocol exceptions
-                                if (IsLogging)
+                                int intLength = bs.ReadByte() << 8 | bs.ReadByte();
+                                if (intLength <= 0)
                                 {
-                                    _logger.LogWarning(0, ex, "Connection to nameserver {0} failed.", dnsServer);
+                                    if (IsLogging)
+                                    {
+                                        _logger.LogWarning("Connection to nameserver {0} failed.", dnsServer);
+                                    }
+
+                                    break;
                                 }
 
-                                return true;
+                                intMessageSize += intLength;
+
+                                data = new byte[intLength];
+                                await bs
+                                    .ReadAsync(data, 0, intLength)
+                                    .TimeoutAfter(_options.Timeout);
+
+                                Response response = new Response(_loggerFactory, dnsServer, data);
+
+                                if (IsLogging)
+                                {
+                                    this._logger.LogDebug($"Received ({intLength + 2}) bytes in {sw.ElapsedMilliseconds} ms.");
+                                    sw.Restart();
+                                }
+
+                                if (response.Header.ResponseCode != RCode.NoError)
+                                {
+                                    return response;
+                                }
+
+                                if (response.Questions.First().QType != QType.AXFR)
+                                {
+                                    AddToCache(response);
+                                    return response;
+                                }
+
+                                // Zone transfer!!
+                                if (transferResponse.Questions.Count == 0)
+                                {
+                                    transferResponse = new Response(response);
+                                }
+                                else
+                                {
+                                    transferResponse = Response.Concat(transferResponse, response);
+                                }
+
+                                if (response.Answers.First().Type == TypeValue.SOA)
+                                {
+                                    intSoa++;
+                                }
+
+                                if (intSoa == 2)
+                                {
+                                    transferResponse.Header.QuestionCount = (ushort)transferResponse.Questions.Count;
+                                    transferResponse.Header.AnswerCount = (ushort)transferResponse.Answers.Count;
+                                    transferResponse.Header.NameServerCount = (ushort)transferResponse.Authorities.Count;
+                                    transferResponse.Header.AdditionalCount = (ushort)transferResponse.Additionals.Count;
+                                    transferResponse.MessageSize = intMessageSize;
+                                    return transferResponse;
+                                }
                             }
+                        }
+                        catch(Exception ex)
+                        {
+                            if (IsLogging)
+                            {
+                                _logger.LogWarning(0, ex, "Connection to nameserver '{0}' failed.", dnsServer);
+                            }
+                        }
+                        //catch (TimeoutException ex)
+                        //{
+                        //    if (IsLogging)
+                        //    {
+                        //        _logger.LogWarning(0, ex, "Connection to nameserver '{0}' timed out.", dnsServer);
+                        //    }
+                        //}
+                        //catch (SocketException ex)
+                        //{
+                        //    if (IsLogging)
+                        //    {
+                        //        _logger.LogWarning(0, ex, "Connection to nameserver {0} failed.", dnsServer);
+                        //    }
+                        //}
+                        //catch (NotSupportedException ex)
+                        //{
+                        //    if (IsLogging)
+                        //    {
+                        //        _logger.LogWarning(0, ex, "Connection to nameserver {0} failed (not supported).", dnsServer);
+                        //    }
+                        //}
+                        //catch (AggregateException aggEx)
+                        //{
+                        //    aggEx.Handle(ex =>
+                        //    {
+                        //        if (ex.GetType() == typeof(SocketException) || ex.GetType() == typeof(NotSupportedException))
+                        //        {
+                        //            if (IsLogging)
+                        //            {
+                        //                _logger.LogWarning(0, ex, "Connection to nameserver {0} failed.", dnsServer);
+                        //            }
 
-                            return false;
-                        });
-                    }
-                    finally
-                    {
-                        _uniqueId++;
+                        //            return true;
+                        //        }
+                        //        if (ex.GetType() == typeof(TimeoutException))
+                        //        {
+                        //            if (IsLogging)
+                        //            {
+                        //                _logger.LogWarning(0, ex, "Connection to nameserver '{0}' timed out.", dnsServer);
+                        //            }
 
-                        // close the socket
-#if XPLAT
-                        tcpClient.Dispose();
-#else
-                        tcpClient.Close();
-#endif
+                        //            return true;
+                        //        }
+
+                        //        return false;
+                        //    });
+                        //}
+                        finally
+                        {
+                            _uniqueId++;
+                        }
                     }
                 }
             }
@@ -582,11 +688,11 @@ namespace DnsClient
                     _logger.LogDebug("Sending Udp request.");
                 }
 
-#if XPLAT
-                return await UdpRequest(request);
-#else
-                return UdpRequest(request);
-#endif
+//#if XPLAT
+                return await UdpRequest2(request);
+//#else
+//                return UdpRequest(request);
+//#endif
             }
 
             if (_options.TransportType == TransportType.Tcp)
@@ -625,7 +731,6 @@ namespace DnsClient
                             list.Add(entry);
                         }
                     }
-
                 }
             }
 

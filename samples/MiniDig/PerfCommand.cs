@@ -18,7 +18,7 @@ namespace DigApp
 
         public PerfClient(int clientId, ILoggerFactory loggerFactory, DnsLookupOptions options, int runs, string query)
         {
-            options.UseCache = true;
+            options.UseCache = false;
 
             _query = query;
             _id = clientId;
