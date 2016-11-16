@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace DnsClient2
 {
-    public class NsRequest
+    public class DnsResponseMessage
     {
     }
 }

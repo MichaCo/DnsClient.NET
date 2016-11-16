@@ -12,7 +12,8 @@
     "Microsoft.Extensions.CommandLineUtils": "1.0.0",
     "DnsClient": { "target": "project" },
     "Microsoft.Extensions.Logging.Console": "1.0.0",
-    "Microsoft.Extensions.Logging": "1.0.0"
+    "Microsoft.Extensions.Logging": "1.0.0",
+    "DnsClient2": "1.0.0-beta-1000"
   },
   "frameworks": {
     "netcoreapp1.0": {}

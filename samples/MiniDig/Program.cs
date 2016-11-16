@@ -7,20 +7,17 @@ namespace DigApp
     {
         public static void Main(string[] args)
         {
-            try
-            {
-                var app = new CommandLineApplication(throwOnUnexpectedArg: false);
+            var client = new DnsClient2.DnsLookupClient(new DnsClient2.DnsUdpMessageInvoker(), DnsClient2.NameServer.ResolveNameServers());
 
-                var perfApplication = app.Command("perf", (perfApp) => new PerfCommand(perfApp, args), false);
+            client.QueryAsync(new DnsClient2.DnsRequestMessage())
 
-                var defaultCommand = new DigCommand(app, args);
+            var app = new CommandLineApplication(throwOnUnexpectedArg: false);
 
-                app.Execute(args);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.ToString());
-            }
+            var perfApplication = app.Command("perf", (perfApp) => new PerfCommand(perfApp, args), false);
+
+            var defaultCommand = new DigCommand(app, args);
+
+            app.Execute(args);
         }
     }
 }
