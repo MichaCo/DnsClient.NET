@@ -73,6 +73,28 @@ namespace DnsClient2
             _messageInvoker = messageInvoker;
         }
 
+        public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype)
+        {
+            var head = new DnsRequestHeader()
+            {
+            };
+
+            var request = new DnsRequestMessage(head, new DnsQuestion());
+
+            return QueryAsync(request);
+        }
+
+        public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype, ushort qclass)
+        {
+            var head = new DnsRequestHeader()
+            {
+            };
+
+            var request = new DnsRequestMessage(head, new DnsQuestion());
+
+            return QueryAsync(request);
+        }
+
         public Task<DnsResponseMessage> QueryAsync(DnsRequestMessage request)
         {
             return QueryAsync(request, CancellationToken.None);
@@ -101,7 +123,7 @@ namespace DnsClient2
 
                         return resultTask;
                     }
-                    catch(TimeoutException)
+                    catch (TimeoutException)
                     {
                     }
                     finally

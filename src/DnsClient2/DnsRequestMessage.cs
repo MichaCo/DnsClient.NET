@@ -9,6 +9,7 @@ namespace DnsClient2
     {
         private static ushort _uniqueId = 0;
 
+        // TODO: move to header?
         public static ushort GetNextUniqueId()
         {
             if (_uniqueId == ushort.MaxValue || _uniqueId == 0)
