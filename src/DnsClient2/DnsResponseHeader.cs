@@ -18,5 +18,9 @@ namespace DnsClient2
         public ushort NameServerCount { get; private set; }
 
         public ushort QuestionCount { get; private set; }
+
+
+        // 0 indicating query, 1 indicating response
+        public ushort QRFlag { get; } = 0;
     }
 }

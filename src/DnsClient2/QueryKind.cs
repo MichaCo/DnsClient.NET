@@ -15,7 +15,7 @@ namespace DnsClient2
         5	    Update	                            [RFC2136]
         6-15	Unassigned	
      * */
-    public enum DnsOpCodes
+    public enum QueryKind
     {
         Query,
         IQuery,

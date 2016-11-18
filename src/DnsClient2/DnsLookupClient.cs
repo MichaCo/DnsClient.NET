@@ -100,7 +100,7 @@ namespace DnsClient2
             return QueryAsync(request, CancellationToken.None);
         }
 
-        public Task<DnsResponseMessage> QueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
+        public async Task<DnsResponseMessage> QueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
         {
             if (request == null)
             {
@@ -118,10 +118,10 @@ namespace DnsClient2
                         var resultTask = _messageInvoker.QueryAsync(server, request, cancellationToken);
                         if (Timeout != s_infiniteTimeout)
                         {
-                            return resultTask.TimeoutAfter(Timeout);
+                            return await resultTask.TimeoutAfter(Timeout);
                         }
 
-                        return resultTask;
+                        return await resultTask;
                     }
                     catch (TimeoutException)
                     {
