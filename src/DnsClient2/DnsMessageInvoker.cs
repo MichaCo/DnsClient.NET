@@ -11,7 +11,7 @@ namespace DnsClient2
     {
         public abstract Task<DnsResponseMessage> QueryAsync(DnsEndPoint server, DnsRequestMessage request, CancellationToken cancellationToken);
 
-        public virtual byte[] GetRequestData(DnsRequestMessage request)
+        protected virtual byte[] GetRequestData(DnsRequestMessage request)
         {
             List<byte> data = new List<byte>();
             data.AddRange(GetBytesInNetworkOrder(request.Header.Id));
@@ -30,7 +30,7 @@ namespace DnsClient2
             return data.ToArray();
         }
 
-        public virtual DnsResponseHeader ParseHeader(byte[] responseData)
+        protected virtual DnsResponseHeader ParseHeader(byte[] responseData)
         {
             var header = new DnsResponseHeader();
             var id = ToUInt16(responseData, 0);
@@ -70,7 +70,8 @@ namespace DnsClient2
 
         protected byte[] GetBytesInNetworkOrder(ushort value)
         {
-            return BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)value));
+            return BitConverter.GetBytes(
+                IPAddress.HostToNetworkOrder((short)value));
         }
 
         private byte[] Slice(byte[] data, int start, int length)
