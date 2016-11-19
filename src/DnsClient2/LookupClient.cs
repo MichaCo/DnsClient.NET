@@ -101,13 +101,7 @@ namespace DnsClient2
             => QueryAsync(query, qtype, CancellationToken.None);
 
         public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype, CancellationToken cancellationToken)
-        {
-            var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, QueryKind.Query);
-            var question = new DnsQuestion();
-            var request = new DnsRequestMessage(head, question);
-
-            return QueryAsync(request, CancellationToken.None);
-        }
+            => QueryAsync(query, qtype, 1, cancellationToken);
 
         public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype, ushort qclass)
             => QueryAsync(query, qtype, qclass, CancellationToken.None);
@@ -115,7 +109,7 @@ namespace DnsClient2
         public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype, ushort qclass, CancellationToken cancellationToken)
         {
             var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, QueryKind.Query);
-            var question = new DnsQuestion();
+            var question = new DnsQuestion(query, qtype, qclass);
 
             var request = new DnsRequestMessage(head, question);
 

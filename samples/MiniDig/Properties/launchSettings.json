@@ -2,7 +2,7 @@
   "profiles": {
     "DigApp": {
       "commandName": "Project",
-      "commandLineArgs": "-s 8.8.8.8 google.com ANY"
+      "commandLineArgs": "google.com ANY"
     },
     "MiniDig": {
       "commandName": "Project"

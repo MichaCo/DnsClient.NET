@@ -11,7 +11,7 @@ namespace ApiDesign
     {
         public static void Main(string[] args)
         {
-            var lookup = new LookupClient(IPAddress.Parse("8.8.8.8"));
+            var lookup = new LookupClient();
             lookup.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
 
             var result = lookup.QueryAsync("google.com", 255).GetAwaiter().GetResult();

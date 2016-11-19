@@ -22,9 +22,9 @@ namespace DnsClient2
             data.AddRange(GetBytesInNetworkOrder(0));
             foreach (var question in request.Questions)
             {
-                data.AddRange(Encoding.ASCII.GetBytes("\u0006google\u0003com\0"));
-                data.AddRange(GetBytesInNetworkOrder((ushort)255));
-                data.AddRange(GetBytesInNetworkOrder((ushort)1));
+                data.AddRange(question.QueryName.ToBytes());
+                data.AddRange(GetBytesInNetworkOrder(question.QuestionType));
+                data.AddRange(GetBytesInNetworkOrder(question.QuestionClass));
             }
             
             return data.ToArray();
