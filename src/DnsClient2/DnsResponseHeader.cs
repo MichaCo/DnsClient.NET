@@ -7,20 +7,19 @@ namespace DnsClient2
 {
     public class DnsResponseHeader
     {
-        private readonly object _flags;
+        private readonly ushort _flags;
+        
+        public ushort AdditionalCount { get; }
 
-        public ushort AdditionalCount { get; private set; }
+        public ushort AnswerCount { get; }
 
-        public ushort AnswerCount { get; private set; }
+        public ushort Id { get; }
 
-        public ushort Id { get; private set; }
+        public ushort NameServerCount { get; }
 
-        public ushort NameServerCount { get; private set; }
-
-        public ushort QuestionCount { get; private set; }
-
-
+        public ushort QuestionCount { get; }
+        
         // 0 indicating query, 1 indicating response
-        public ushort QRFlag { get; } = 0;
+        public ushort QRFlag { get; } = 1;
     }
 }

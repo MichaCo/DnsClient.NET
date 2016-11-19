@@ -8,7 +8,7 @@ namespace DnsClient
 {
     internal class RecordReader
     {
-        private readonly byte[] _data;
+        public byte[] Data { get; }
         private readonly ILogger<RecordReader> _logger;
         private readonly ILoggerFactory _loggerFactory;
         private int _position;
@@ -26,7 +26,7 @@ namespace DnsClient
                 _logger = loggerFactory.CreateLogger<RecordReader>();
             }
 
-            _data = data;
+            Data = data;
             _position = 0;
         }
 
@@ -50,13 +50,13 @@ namespace DnsClient
 
         public byte ReadByte()
         {
-            if (_position >= _data.Length)
+            if (_position >= Data.Length)
             {
                 return 0;
             }
             else
             {
-                return _data[_position++];
+                return Data[_position++];
             }
         }
 
@@ -95,7 +95,7 @@ namespace DnsClient
                 if ((length & 0xc0) == 0xc0)
                 {
                     // work out the existing domain name, copy this pointer
-                    RecordReader newRecordReader = new RecordReader(_loggerFactory, _data, (length & 0x3f) << 8 | ReadByte());
+                    RecordReader newRecordReader = new RecordReader(_loggerFactory, Data, (length & 0x3f) << 8 | ReadByte());
 
                     name.Append(newRecordReader.ReadDomainName());
                     return name.ToString();

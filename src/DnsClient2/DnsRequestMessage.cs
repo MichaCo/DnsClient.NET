@@ -7,19 +7,6 @@ namespace DnsClient2
 {
     public class DnsRequestMessage
     {
-        private static ushort _uniqueId = 0;
-
-        // TODO: move to header?
-        public static ushort GetNextUniqueId()
-        {
-            if (_uniqueId == ushort.MaxValue || _uniqueId == 0)
-            {
-                _uniqueId = (ushort)(new Random()).Next(ushort.MaxValue / 2);
-            }
-
-            return _uniqueId++;
-        }
-
         public DnsRequestMessage(DnsRequestHeader header, params DnsQuestion[] questions)
         {
             if (header == null)

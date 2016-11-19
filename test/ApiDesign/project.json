@@ -1,0 +1,20 @@
+{
+  "version": "1.0.0-*",
+  "buildOptions": {
+    "emitEntryPoint": true
+  },
+
+  "dependencies": {
+    "DnsClient2": "1.0.0-beta-1000",
+    "Microsoft.NETCore.App": {
+      "type": "platform",
+      "version": "1.0.1"
+    }
+  },
+
+  "frameworks": {
+    "netcoreapp1.0": {
+      "imports": "dnxcore50"
+    }
+  }
+}

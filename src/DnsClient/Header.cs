@@ -127,22 +127,47 @@ namespace DnsClient
         private ushort _flags;
 
         internal Header(ushort id, OPCode queryCode, ushort questionCount, bool recursionEnabled)
-		{
+        {
             Id = id;
             QuestionCount = questionCount;
             OPCode = queryCode;
             RecursionEnabled = recursionEnabled;
-		}
+        }
 
         internal Header(RecordReader rr)
-		{
-			Id = rr.ReadUInt16();
-			_flags = rr.ReadUInt16();
-			QuestionCount = rr.ReadUInt16();
-			AnswerCount = rr.ReadUInt16();
-			NameServerCount = rr.ReadUInt16();
-			AdditionalCount = rr.ReadUInt16();
-		}
+        {
+
+            Id = rr.ReadUInt16();
+            _flags = rr.ReadUInt16();
+            QuestionCount = rr.ReadUInt16();
+            AnswerCount = rr.ReadUInt16();
+            NameServerCount = rr.ReadUInt16();
+            AdditionalCount = rr.ReadUInt16();
+        }
+
+        protected ushort GetUInt16(byte[] twoBytes)
+        {
+            if (twoBytes.Length != 2)
+            {
+                throw new ArgumentOutOfRangeException(nameof(twoBytes));
+            }
+
+            Array.Reverse(twoBytes);
+            
+            return BitConverter.ToUInt16(twoBytes, 0);
+        }
+
+        protected byte[] GetBytesInNetworkOrder(ushort value)
+        {
+            return BitConverter.GetBytes(IPAddress.HostToNetworkOrder((short)value));
+        }
+
+        private byte[] Slice(byte[] data, int start, int length)
+        {
+            var result = new byte[length];
+            Array.ConstrainedCopy(data, start, result, 0, length);
+            return result;
+        }
 
         /// <summary>
         /// An identifier assigned by the program
@@ -173,114 +198,114 @@ namespace DnsClient
         /// Represents the header as a byte array
         /// </summary>
         public byte[] Data
-		{
-			get
-			{
-				List<byte> data = new List<byte>();
-				data.AddRange(WriteShort(Id));
-				data.AddRange(WriteShort(_flags));
-				data.AddRange(WriteShort(QuestionCount));
-				data.AddRange(WriteShort(AnswerCount));
-				data.AddRange(WriteShort(NameServerCount));
-				data.AddRange(WriteShort(AdditionalCount));
-				return data.ToArray();
-			}
-		}
+        {
+            get
+            {
+                List<byte> data = new List<byte>();
+                data.AddRange(WriteShort(Id));
+                data.AddRange(WriteShort(_flags));
+                data.AddRange(WriteShort(QuestionCount));
+                data.AddRange(WriteShort(AnswerCount));
+                data.AddRange(WriteShort(NameServerCount));
+                data.AddRange(WriteShort(AdditionalCount));
+                return data.ToArray();
+            }
+        }
 
-		/// <summary>
-		/// query (false), or a response (true)
-		/// </summary>
-		public bool HasQuery
-		{
-			get
-			{
-				return GetBits(_flags, 15, 1) == 1;
-			}
-		}
+        /// <summary>
+        /// query (false), or a response (true)
+        /// </summary>
+        public bool HasQuery
+        {
+            get
+            {
+                return GetBits(_flags, 15, 1) == 1;
+            }
+        }
 
-		/// <summary>
-		/// Specifies kind of query
-		/// </summary>
-		public OPCode OPCode
-		{
-			get
-			{
-				return (OPCode)GetBits(_flags, 11, 4);
-			}
-			private set
-			{
-				_flags = SetBits(_flags, 11, 4, (ushort)value);
-			}
-		}
-
-		/// <summary>
-		/// Authoritative Answer
-		/// </summary>
-		public bool HasAuthoritativeAnswer
-		{
-			get
-			{
-				return GetBits(_flags, 10, 1) == 1;
-			}
-		}
-
-		/// <summary>
-		/// TrunCation
-		/// </summary>
-		public bool TruncationEnabled
-		{
-			get
-			{
-				return GetBits(_flags, 9, 1) == 1;
-			}
-		}
-
-		/// <summary>
-		/// Recursion Desired
-		/// </summary>
-		public bool RecursionEnabled
-		{
-			get
-			{
-				return GetBits(_flags, 8, 1) == 1;
-			}
+        /// <summary>
+        /// Specifies kind of query
+        /// </summary>
+        public OPCode OPCode
+        {
+            get
+            {
+                return (OPCode)GetBits(_flags, 11, 4);
+            }
             private set
             {
-				_flags = SetBits(_flags, 8, 1, value);
-			}
-		}
+                _flags = SetBits(_flags, 11, 4, (ushort)value);
+            }
+        }
 
-		/// <summary>
-		/// Recursion Available
-		/// </summary>
-		public bool RecursionAvailable
-		{
-			get
-			{
-				return GetBits(_flags, 7, 1) == 1;
-			}
-		}
+        /// <summary>
+        /// Authoritative Answer
+        /// </summary>
+        public bool HasAuthoritativeAnswer
+        {
+            get
+            {
+                return GetBits(_flags, 10, 1) == 1;
+            }
+        }
 
-		/// <summary>
-		/// Reserved for future use
-		/// </summary>
-		public ushort ZFutureFlag
-		{
-			get
-			{
-				return GetBits(_flags, 4, 3);
-			}
-		}
+        /// <summary>
+        /// TrunCation
+        /// </summary>
+        public bool TruncationEnabled
+        {
+            get
+            {
+                return GetBits(_flags, 9, 1) == 1;
+            }
+        }
 
-		/// <summary>
-		/// Response code
-		/// </summary>
-		public RCode ResponseCode
-		{
-			get
-			{
-				return (RCode)GetBits(_flags, 0, 4);
-			}
+        /// <summary>
+        /// Recursion Desired
+        /// </summary>
+        public bool RecursionEnabled
+        {
+            get
+            {
+                return GetBits(_flags, 8, 1) == 1;
+            }
+            private set
+            {
+                _flags = SetBits(_flags, 8, 1, value);
+            }
+        }
+
+        /// <summary>
+        /// Recursion Available
+        /// </summary>
+        public bool RecursionAvailable
+        {
+            get
+            {
+                return GetBits(_flags, 7, 1) == 1;
+            }
+        }
+
+        /// <summary>
+        /// Reserved for future use
+        /// </summary>
+        public ushort ZFutureFlag
+        {
+            get
+            {
+                return GetBits(_flags, 4, 3);
+            }
+        }
+
+        /// <summary>
+        /// Response code
+        /// </summary>
+        public RCode ResponseCode
+        {
+            get
+            {
+                return (RCode)GetBits(_flags, 0, 4);
+            }
         }
 
         private byte[] WriteShort(ushort sValue)

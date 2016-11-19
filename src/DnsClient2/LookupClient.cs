@@ -7,18 +7,19 @@ using System.Threading.Tasks;
 
 namespace DnsClient2
 {
-    public class DnsLookupClient
+    public class LookupClient
     {
         private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
+        private static ushort _uniqueId = 0;
         private readonly DnsMessageInvoker _messageInvoker;
         private TimeSpan _timeout;
 
         /// <summary>
         /// Gets the list of configured name servers.
         /// </summary>
-        public IReadOnlyCollection<IPEndPoint> NameServers { get; }
+        public IReadOnlyCollection<DnsEndPoint> NameServers { get; }
 
         /// <summary>
         /// Gets or set a flag indicating if recursion should be enabled for DNS queries.
@@ -49,16 +50,29 @@ namespace DnsClient2
         }
 
         /// <summary>
-        /// Gets or sets protocol to use.
-        /// </summary>
-        public TransportProtocol TransportType { get; set; } = TransportProtocol.Udp;
-
-        /// <summary>
-        /// Gets or sets a flag indicating if the <see cref="DnsLookupClient"/> should use caching or not.
+        /// Gets or sets a flag indicating if the <see cref="LookupClient"/> should use caching or not.
+        /// The TTL of cached results is defined by the name server's response.
         /// </summary>
         public bool UseCache { get; set; } = true;
 
-        public DnsLookupClient(DnsMessageInvoker messageInvoker, ICollection<IPEndPoint> nameServers)
+        public LookupClient()
+            : this(NameServer.ResolveNameServers().ToArray())
+        {
+        }
+
+        public LookupClient(params DnsEndPoint[] nameServers)
+            : this(new DnsUdpMessageInvoker(), nameServers)
+        {
+        }
+
+        public LookupClient(params IPAddress[] nameServers)
+            : this(
+                  new DnsUdpMessageInvoker(),
+                  nameServers.Select(p => new DnsEndPoint(p.ToString(), NameServer.DefaultPort)).ToArray())
+        {
+        }
+
+        public LookupClient(DnsMessageInvoker messageInvoker, ICollection<DnsEndPoint> nameServers)
         {
             if (messageInvoker == null)
             {
@@ -73,34 +87,42 @@ namespace DnsClient2
             _messageInvoker = messageInvoker;
         }
 
+        public static ushort GetNextUniqueId()
+        {
+            if (_uniqueId == ushort.MaxValue || _uniqueId == 0)
+            {
+                _uniqueId = (ushort)(new Random()).Next(ushort.MaxValue / 2);
+            }
+
+            return _uniqueId++;
+        }
+
         public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype)
+            => QueryAsync(query, qtype, CancellationToken.None);
+
+        public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype, CancellationToken cancellationToken)
         {
-            var head = new DnsRequestHeader()
-            {
-            };
+            var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, QueryKind.Query);
+            var question = new DnsQuestion();
+            var request = new DnsRequestMessage(head, question);
 
-            var request = new DnsRequestMessage(head, new DnsQuestion());
-
-            return QueryAsync(request);
-        }
-
-        public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype, ushort qclass)
-        {
-            var head = new DnsRequestHeader()
-            {
-            };
-
-            var request = new DnsRequestMessage(head, new DnsQuestion());
-
-            return QueryAsync(request);
-        }
-
-        public Task<DnsResponseMessage> QueryAsync(DnsRequestMessage request)
-        {
             return QueryAsync(request, CancellationToken.None);
         }
 
-        public async Task<DnsResponseMessage> QueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
+        public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype, ushort qclass)
+            => QueryAsync(query, qtype, qclass, CancellationToken.None);
+
+        public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype, ushort qclass, CancellationToken cancellationToken)
+        {
+            var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, QueryKind.Query);
+            var question = new DnsQuestion();
+
+            var request = new DnsRequestMessage(head, question);
+
+            return QueryAsync(request, CancellationToken.None);
+        }
+
+        private async Task<DnsResponseMessage> QueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
         {
             if (request == null)
             {
