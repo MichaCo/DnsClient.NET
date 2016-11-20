@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,27 +11,36 @@ namespace DnsClient2
 
         protected virtual byte[] GetRequestData(DnsRequestMessage request)
         {
-            List<byte> data = new List<byte>();
-            data.AddRange(GetBytesInNetworkOrder(request.Header.Id));
-            data.AddRange(GetBytesInNetworkOrder(256));
-            data.AddRange(GetBytesInNetworkOrder(request.Header.QuestionCount));
-            data.AddRange(GetBytesInNetworkOrder(0));
-            data.AddRange(GetBytesInNetworkOrder(0));
-            data.AddRange(GetBytesInNetworkOrder(0));
+            var writer = new DnsDatagramWriter(DnsRequestHeader.HeaderLength);
+
+            writer.SetShortNetwork((short)request.Header.Id);
+            writer.SetUShortNetwork(request.Header.RawFlags);
+            writer.SetShortNetwork((short)request.Header.QuestionCount);
+
+            // jump to end of header, we didn't write all fields
+            writer.Offset = DnsRequestHeader.HeaderLength;
+
             foreach (var question in request.Questions)
             {
-                data.AddRange(question.QueryName.ToBytes());
-                data.AddRange(GetBytesInNetworkOrder(question.QuestionType));
-                data.AddRange(GetBytesInNetworkOrder(question.QuestionClass));
+                var questionData = question.QueryName.ToBytes();
+
+                // 4 more bytes for the type and class
+                writer = writer.Extend(questionData.Length + 4);
+                writer.SetBytes(questionData, questionData.Length);
+                writer.SetUShortNetwork(question.QuestionType);
+                writer.SetUShortNetwork(question.QuestionClass);
             }
-            
-            return data.ToArray();
+
+            return writer.Data;
         }
 
         protected virtual DnsResponseHeader ParseHeader(byte[] responseData)
         {
-            var header = new DnsResponseHeader();
+            
             var id = ToUInt16(responseData, 0);
+            var flags = ToUInt16(responseData, 2);
+
+            var header = new DnsResponseHeader(id, flags, 1, 1, 0, 1);
 
             //Id = rr.ReadUInt16();
             //_flags = rr.ReadUInt16();
@@ -42,8 +49,7 @@ namespace DnsClient2
             //NameServerCount = rr.ReadUInt16();
             //AdditionalCount = rr.ReadUInt16();
 
-
-            return new DnsResponseHeader();
+            return header;
         }
 
         protected ushort ToUInt16(byte[] data, int startIndex)
@@ -66,19 +72,6 @@ namespace DnsClient2
 
             Array.Reverse(twoBytes);
             return BitConverter.ToUInt16(twoBytes, 0);
-        }
-
-        protected byte[] GetBytesInNetworkOrder(ushort value)
-        {
-            return BitConverter.GetBytes(
-                IPAddress.HostToNetworkOrder((short)value));
-        }
-
-        private byte[] Slice(byte[] data, int start, int length)
-        {
-            var result = new byte[length];
-            Array.ConstrainedCopy(data, start, result, 0, length);
-            return result;
         }
     }
 }

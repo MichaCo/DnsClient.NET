@@ -20,10 +20,12 @@ namespace DnsClient2
 
             using (var udpClient = new UdpClient())
             {
-                var headerData = GetRequestData(request);
-                await udpClient.SendAsync(headerData, headerData.Length, server.Host, server.Port);
+                var data = GetRequestData(request);
+                await udpClient.SendAsync(data, data.Length, server.Host, server.Port);
 
                 var result = await udpClient.ReceiveAsync();
+
+                var responseHeader = ParseHeader(result.Buffer);
 
                 var response = new DnsResponseMessage();
 

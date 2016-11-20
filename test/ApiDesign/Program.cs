@@ -11,10 +11,10 @@ namespace ApiDesign
     {
         public static void Main(string[] args)
         {
-            var lookup = new LookupClient();
+            var lookup = new LookupClient(IPAddress.Parse("8.8.8.8"));
             lookup.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
 
-            var result = lookup.QueryAsync("google.com", 255).GetAwaiter().GetResult();
+            var result = lookup.QueryAsync("google.com", 1).GetAwaiter().GetResult();
         }
     }
 }

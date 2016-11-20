@@ -1,32 +1,70 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace DnsClient2
+﻿namespace DnsClient2
 {
     public class DnsRequestHeader
     {
-        public DnsRequestHeader(ushort id, ushort questionCount, bool useRecursion, QueryKind queryKind)
+        public const int HeaderLength = 12;
+
+        private ushort _flags = 0;
+
+        public ushort RawFlags => _flags;
+
+        public DnsHeaderFlag HeaderFlags
+        {
+            get
+            {
+                return (DnsHeaderFlag)_flags;
+            }
+            set
+            {
+                _flags &= (ushort)~(DnsHeaderFlag.IsCheckingDisabled);
+                _flags &= (ushort)~(DnsHeaderFlag.IsAuthenticData);
+                _flags &= (ushort)~(DnsHeaderFlag.FutureUse);
+                _flags &= (ushort)~(DnsHeaderFlag.IsQuery);
+                _flags &= (ushort)~(DnsHeaderFlag.HasAuthorityAnswer);
+                _flags &= (ushort)~(DnsHeaderFlag.ResultTruncated);
+                _flags &= (ushort)~(DnsHeaderFlag.RecursionDesired);
+                _flags &= (ushort)~(DnsHeaderFlag.RecursionAvailable);
+                _flags |= (ushort)value;
+            }
+        }
+
+        public int Id { get; set; }
+
+        public DnsOpCode OpCode
+        {
+            get
+            {
+                return (DnsOpCode)((DnsHeader.OPCODE_MASK & _flags) >> DnsHeader.OPCODE_SHIFT);
+            }
+            set
+            {
+                _flags &= (ushort)~(DnsHeader.OPCODE_MASK);
+                _flags |= (ushort)(((ushort)value << DnsHeader.OPCODE_SHIFT) & DnsHeader.OPCODE_MASK);
+            }
+        }
+
+        public int QuestionCount { get; set; }
+
+        public bool UseRecursion
+        {
+            get { return (HeaderFlags | DnsHeaderFlag.RecursionDesired) != 0; }
+            set
+            {
+                HeaderFlags |= DnsHeaderFlag.RecursionDesired;
+            }
+        }
+
+        public DnsRequestHeader(int id, int questionCount, DnsOpCode queryKind)
+            : this(id, questionCount, true, queryKind)
+        {
+        }
+
+        public DnsRequestHeader(int id, int questionCount, bool useRecursion, DnsOpCode queryKind)
         {
             Id = id;
             QuestionCount = questionCount;
-            RecursionDesired = useRecursion;
             OpCode = queryKind;
+            UseRecursion = useRecursion;
         }
-
-        public ushort Id { get; set; }
-
-        public ushort QuestionCount { get; set; }
-
-        public bool RecursionDesired { get; } = true;
-
-        // 0 indicating query, 1 indicating response
-        public byte QRFlag { get; } = 0;
-
-        public QueryKind OpCode { get; } = QueryKind.Query;
-
-        // reservced for future use, must be zero.
-        private ushort ZFlag { get; } = 0;
     }
 }

@@ -108,7 +108,7 @@ namespace DnsClient2
 
         public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype, ushort qclass, CancellationToken cancellationToken)
         {
-            var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, QueryKind.Query);
+            var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, DnsOpCode.Query);
             var question = new DnsQuestion(query, qtype, qclass);
 
             var request = new DnsRequestMessage(head, question);
