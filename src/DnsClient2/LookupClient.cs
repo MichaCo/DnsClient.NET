@@ -65,6 +65,11 @@ namespace DnsClient2
         {
         }
 
+        public LookupClient(params IPEndPoint[] nameServers)
+            : this(new DnsUdpMessageInvoker(), nameServers.Select(p => new DnsEndPoint(p.Address.ToString(), p.Port)).ToArray())
+        {
+        }
+
         public LookupClient(params IPAddress[] nameServers)
             : this(
                   new DnsUdpMessageInvoker(),

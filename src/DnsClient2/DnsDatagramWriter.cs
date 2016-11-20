@@ -26,6 +26,7 @@ namespace DnsClient2
             _buffer = new byte[newLength];
             Array.Copy(data, _buffer, data.Length);
         }
+
         /// <summary>
         /// Creates a new writer instance with a new length.
         /// </summary>
