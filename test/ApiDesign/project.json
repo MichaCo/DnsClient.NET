@@ -5,6 +5,9 @@
   },
 
   "dependencies": {
+    "Microsoft.Extensions.Logging.Console": "1.0.0",
+    "Microsoft.Extensions.Logging.Debug": "1.0.0",
+    "Microsoft.Extensions.Logging": "1.0.0",
     "DnsClient2": "1.0.0-beta-1000",
     "Microsoft.NETCore.App": {
       "type": "platform",

@@ -66,5 +66,10 @@
             OpCode = queryKind;
             UseRecursion = useRecursion;
         }
+
+        public override string ToString()
+        {
+            return $"{Id} - Qs: {QuestionCount} Recursion: {UseRecursion} OpCode: {OpCode}";
+        }
     }
 }

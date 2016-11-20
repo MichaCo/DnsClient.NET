@@ -5,18 +5,18 @@ namespace DnsClient2
 {
     public class DnsDatagramWriter
     {
-        private readonly byte[] _buffer;
+        private byte[] _buffer;
 
         public byte[] Data => _buffer;
 
-        public int Offset { get; set; }
+        public int Index { get; set; }
 
         public DnsDatagramWriter(int length)
         {
             _buffer = new byte[length];
         }
 
-        public DnsDatagramWriter(byte[] data, int newLength)
+        private DnsDatagramWriter(byte[] data, int newLength)
         {
             if (data.Length > newLength)
             {
@@ -32,7 +32,7 @@ namespace DnsClient2
         /// </summary>
         /// <param name="byLength">The amount of bytes the current buffer should be extended by.</param>
         /// <returns>A new writer.</returns>
-        public DnsDatagramWriter Extend(int byLength)
+        public void Extend(int byLength)
         {
             if (byLength <= 0)
             {
@@ -42,17 +42,30 @@ namespace DnsClient2
             var fullLength = byLength + _buffer.Length;
             var newBuffer = new byte[fullLength];
             Array.Copy(_buffer, 0, newBuffer, 0, _buffer.Length);
-            return new DnsDatagramWriter(newBuffer, fullLength) { Offset = Offset };
+            //return new DnsDatagramWriter(newBuffer, fullLength) { Offset = Offset };
+            _buffer = newBuffer;
         }
 
-        public void SetBytes(byte[] data, int length) => SetBytes(data, Offset, length);
+        public void SetBytes(byte[] data, int length) => SetBytes(data, 0, Index, length);
 
-        public void SetBytes(byte[] data, int destOffset, int length)
+        public void SetInt(int value) => SetInt(value, Index);
+
+        public void SetInt16(short value) => SetInt16(value, Index);
+
+        public void SetInt16Network(short value) => SetInt16Network(value, Index);
+
+        public void SetIntNetwork(int value) => SetIntNetwork(value, Index);
+
+        public void SetUInt16(ushort value) => SetInt16((short)value, Index);
+
+        public void SetUInt16Network(ushort value) => SetInt16Network((short)value, Index);
+
+        private void SetBytes(byte[] data, int destOffset, int length)
         {
             SetBytes(data, 0, destOffset, length);
         }
 
-        public void SetBytes(byte[] data, int dataOffset, int destOffset, int length)
+        private void SetBytes(byte[] data, int dataOffset, int destOffset, int length)
         {
             if (length + dataOffset > data.Length || length + dataOffset > _buffer.Length)
             {
@@ -64,47 +77,31 @@ namespace DnsClient2
             }
 
             Array.ConstrainedCopy(data, dataOffset, _buffer, destOffset, length);
-            Offset = destOffset + length;
+            Index = destOffset + length;
         }
 
-        public void SetInt(int value) => SetInt(value, Offset);
-
-        public void SetInt(int value, int offset)
+        private void SetInt(int value, int offset)
         {
             var bytes = BitConverter.GetBytes(value);
             SetBytes(bytes, offset, bytes.Length);
         }
 
-        public void SetIntNetwork(int value) => SetIntNetwork(value, Offset);
-
-        public void SetIntNetwork(int value, int offset)
-        {
-            var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(value));
-            SetBytes(bytes, offset, bytes.Length);
-        }
-
-        public void SetShort(short value) => SetShort(value, Offset);
-
-        public void SetShort(short value, int offset)
+        private void SetInt16(short value, int offset)
         {
             var bytes = BitConverter.GetBytes(value);
             SetBytes(bytes, offset, bytes.Length);
         }
 
-        public void SetShortNetwork(short value) => SetShortNetwork(value, Offset);
-
-        public void SetShortNetwork(short value, int offset)
+        private void SetInt16Network(short value, int offset)
         {
             var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(value));
             SetBytes(bytes, offset, bytes.Length);
         }
 
-        public void SetUShort(ushort value) => SetUShort(value, Offset);
-
-        public void SetUShort(ushort value, int offset) => SetShort((short)value, offset);
-
-        public void SetUShortNetwork(ushort value) => SetUShortNetwork(value, Offset);
-
-        public void SetUShortNetwork(ushort value, int offset) => SetShortNetwork((short)value, offset);
+        private void SetIntNetwork(int value, int offset)
+        {
+            var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(value));
+            SetBytes(bytes, offset, bytes.Length);
+        }
     }
 }

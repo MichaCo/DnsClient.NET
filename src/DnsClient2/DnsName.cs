@@ -52,6 +52,7 @@ namespace DnsClient2
 
     public class DnsName : IComparable
     {
+        private const byte ReferenceByte = 0xc0;
         private List<string> _labels = new List<string>();
         private short _octets = 1;
 
@@ -62,6 +63,8 @@ namespace DnsClient2
         public bool IsHostName => !_labels.Any(p => !IsHostNameLabel(p));
 
         public int Size => _labels.Where(p => p != "").Count();
+
+        public int Octets => _octets;
 
         /// <summary>
         /// Creates an empty <see cref="DnsName"/> instance.
@@ -105,19 +108,27 @@ namespace DnsClient2
 
             // read the length byte for the label, then get the content from offset+1 to length
             // proceed till we reach zero length byte.
-            byte bLength;
-            while ((bLength = data[offset++]) != 0)
+            byte length;
+            while ((length = data[offset++]) != 0)
             {
-                if (offset + bLength > data.Length - 1)
+                // respect the reference bit and lookup the name at the given position
+                // the reader will advance only for the 2 bytes read.
+                if ((length & ReferenceByte) != 0)
+                {
+                    var subset = (length & 0x3f) << 8 | data[offset++];
+                    return FromBytes(data, ref subset);
+                }
+
+                if (offset + length > data.Length - 1)
                 {
                     throw new ArgumentOutOfRangeException(
                         nameof(data),
-                        $"Found invalid label position {offset - 1} or length {bLength} in the source data.");
+                        $"Found invalid label position {offset - 1} or length {length} in the source data.");
                 }
 
-                var label = Encoding.ASCII.GetString(data, offset, bLength);
+                var label = Encoding.ASCII.GetString(data, offset, length);
                 result.Add(1, label);
-                offset += bLength;
+                offset += length;
             }
 
             return result;
@@ -197,7 +208,7 @@ namespace DnsClient2
             return ToString().GetHashCode();
         }
 
-        public byte[] ToBytes()
+        public byte[] AsBytes()
         {
             var bytes = new byte[_octets];
             var offset = 0;
@@ -302,7 +313,7 @@ namespace DnsClient2
                 // assert (name.charAt(pos) == '\\');
                 char c1 = domainName.ElementAt(++pos);
                 if (IsDigit(c1))
-                {          
+                {
                     // sequence is `\DDD'
                     char c2 = domainName.ElementAt(++pos);
                     char c3 = domainName.ElementAt(++pos);

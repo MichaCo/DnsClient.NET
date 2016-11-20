@@ -26,5 +26,15 @@ namespace DnsClient2
             QuestionType = questionType;
             QuestionClass = questionClass;
         }
+
+        public override string ToString()
+        {
+            return ToString(0);
+        }
+
+        public string ToString(int offset = -32)
+        {
+            return string.Format("{0,"+offset+"} \t{1} \t{2}", QueryName, QuestionClass, QuestionType);
+        }
     }
 }

@@ -25,10 +25,8 @@ namespace DnsClient2
 
                 var result = await udpClient.ReceiveAsync();
 
-                var responseHeader = ParseHeader(result.Buffer);
-
-                var response = new DnsResponseMessage();
-
+                var response = GetResponseMessage(result.Buffer);
+                
                 return response;
             }
         }

@@ -68,7 +68,7 @@ namespace DigApp
             for (var index = 0; index < _runs; index++)
             {
                 var result = await _lookup.QueryAsync(_query, 255);
-                _logger.LogInformation("[{0}] Query to {1} {2}/{3} => {4} answers.", _id, _query, index + 1, _runs, 0);
+                _logger.LogInformation("[{0}] Query to {1} {2}/{3} => {4} answers.", _id, _query, index + 1, _runs, result.Answers.Count);
             }
         }
     }
