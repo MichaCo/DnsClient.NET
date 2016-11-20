@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DnsClient2
 {
     /* Reference: https://tools.ietf.org/html/rfc6895#section-2
      * Response header fields
-     * 
+     *
                                             1  1  1  1  1  1
               0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
              +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
@@ -25,6 +22,7 @@ namespace DnsClient2
              +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 
      * */
+
     /// <summary>
     /// The flags of the header's second 16bit value
     /// </summary>
