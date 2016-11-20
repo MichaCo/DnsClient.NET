@@ -12,7 +12,7 @@ namespace DnsClient2
     {
         public abstract Task<DnsResponseMessage> QueryAsync(DnsEndPoint server, DnsRequestMessage request, CancellationToken cancellationToken);
 
-        protected virtual byte[] GetRequestData(DnsRequestMessage request)
+        public virtual byte[] GetRequestData(DnsRequestMessage request)
         {
             var writer = new DnsDatagramWriter(DnsRequestHeader.HeaderLength);
 
@@ -37,7 +37,7 @@ namespace DnsClient2
             return writer.Data;
         }
 
-        protected virtual DnsResponseMessage GetResponseMessage(byte[] responseData)
+        public virtual DnsResponseMessage GetResponseMessage(byte[] responseData)
         {
             var reader = new DnsDatagramReader(responseData);
             var factory = new DnsRecordFactory(reader);
@@ -60,61 +60,26 @@ namespace DnsClient2
 
             for (int answerIndex = 0; answerIndex < answerCount; answerIndex++)
             {
-                ResourceRecordInfo info = ReadRecordInfo(reader);
-
+                var info = factory.ReadRecordInfo();
                 var record = factory.GetRecord(info);
                 response.AddAnswer(record);
             }
 
             for (int serverIndex = 0; serverIndex < nameServerCount; serverIndex++)
             {
-                ResourceRecordInfo info = ReadRecordInfo(reader);
-
+                var info = factory.ReadRecordInfo();
                 var record = factory.GetRecord(info);
                 response.AddServer(record);
             }
 
             for (int additionalIndex = 0; additionalIndex < additionalCount; additionalIndex++)
             {
-                ResourceRecordInfo info = ReadRecordInfo(reader);
-
+                var info = factory.ReadRecordInfo();
                 var record = factory.GetRecord(info);
                 response.AddAdditional(record);
             }
 
             return response;
-        }
-
-        /*
-        0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
-        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-        |                                               |
-        /                                               /
-        /                      NAME                     /
-        |                                               |
-        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-        |                      TYPE                     |
-        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-        |                     CLASS                     |
-        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-        |                      TTL                      |
-        |                                               |
-        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-        |                   RDLENGTH                    |
-        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--|
-        /                     RDATA                     /
-        /                                               /
-        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-         * */
-        private ResourceRecordInfo ReadRecordInfo(DnsDatagramReader reader)
-        {
-            return new ResourceRecordInfo(
-                reader.ReadName().ToString(),                   // name
-                reader.ReadUInt16Reverse(),                     // type
-                reader.ReadUInt16Reverse(),                     // class
-                reader.ReadUInt32Reverse(),                     // ttl - 32bit!!
-                reader.ReadUInt16Reverse());                    // RDLength
-                                                                 //reader.ReadBytes(reader.ReadUInt16Reverse()));  // rdata
         }
     }
 }

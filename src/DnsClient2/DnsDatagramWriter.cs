@@ -54,6 +54,12 @@ namespace DnsClient2
 
         public void SetInt16Network(short value) => SetInt16Network(value, Index);
 
+        public void SetUInt32Network(uint value)
+        {
+            var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder((int)value));
+            SetBytes(bytes, Index, bytes.Length);
+        }
+
         public void SetIntNetwork(int value) => SetIntNetwork(value, Index);
 
         public void SetUInt16(ushort value) => SetInt16((short)value, Index);

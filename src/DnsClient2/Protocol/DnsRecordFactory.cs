@@ -21,6 +21,38 @@ namespace DnsClient2.Protocol
             _reader = reader;
         }
 
+        /*
+        0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
+        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+        |                                               |
+        /                                               /
+        /                      NAME                     /
+        |                                               |
+        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+        |                      TYPE                     |
+        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+        |                     CLASS                     |
+        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+        |                      TTL                      |
+        |                                               |
+        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+        |                   RDLENGTH                    |
+        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--|
+        /                     RDATA                     /
+        /                                               /
+        +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+         * */
+        public ResourceRecordInfo ReadRecordInfo()
+        {
+            return new ResourceRecordInfo(
+                _reader.ReadName().ToString(),                   // name
+                _reader.ReadUInt16Reverse(),                     // type
+                _reader.ReadUInt16Reverse(),                     // class
+                _reader.ReadUInt32Reverse(),                     // ttl - 32bit!!
+                _reader.ReadUInt16Reverse());                    // RDLength
+                                                                //reader.ReadBytes(reader.ReadUInt16Reverse()));  // rdata
+        }
+
         public DnsResourceRecord GetRecord(ResourceRecordInfo info)
         {
             if (info == null)
