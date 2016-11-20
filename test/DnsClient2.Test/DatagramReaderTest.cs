@@ -12,9 +12,19 @@ namespace DnsClient2.Tests
         [Fact]
         public void DatagramReader_IndexOutOfRange()
         {
-            Action act = () => new DnsDatagramReader(new byte[10], 10);
+            Action act = () => new DnsDatagramReader(new byte[10], 11);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
+        }
+
+        [Fact]
+        public void DatagramReader_ReadByte_IndexOutOfRange()
+        {
+            var reader = new DnsDatagramReader(new byte[10], 9);
+
+            reader.ReadByte();
+            Action act = () => reader.ReadByte();
+            Assert.ThrowsAny<IndexOutOfRangeException>(act);
         }
 
         [Fact]

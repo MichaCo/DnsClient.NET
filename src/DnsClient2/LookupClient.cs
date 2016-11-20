@@ -13,7 +13,7 @@ namespace DnsClient2
         private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
         private static ushort _uniqueId = 0;
-        private readonly DnsMessageInvoker _messageInvoker;
+        private readonly DnsMessageHandler _messageInvoker;
         private TimeSpan _timeout = s_defaultTimeout;
 
         /// <summary>
@@ -61,23 +61,23 @@ namespace DnsClient2
         }
 
         public LookupClient(params DnsEndPoint[] nameServers)
-            : this(new DnsUdpMessageInvoker(), nameServers)
+            : this(new DnsUdpMessageHandler(), nameServers)
         {
         }
 
         public LookupClient(params IPEndPoint[] nameServers)
-            : this(new DnsUdpMessageInvoker(), nameServers.Select(p => new DnsEndPoint(p.Address.ToString(), p.Port)).ToArray())
+            : this(new DnsUdpMessageHandler(), nameServers.Select(p => new DnsEndPoint(p.Address.ToString(), p.Port)).ToArray())
         {
         }
 
         public LookupClient(params IPAddress[] nameServers)
             : this(
-                  new DnsUdpMessageInvoker(),
+                  new DnsUdpMessageHandler(),
                   nameServers.Select(p => new DnsEndPoint(p.ToString(), NameServer.DefaultPort)).ToArray())
         {
         }
 
-        public LookupClient(DnsMessageInvoker messageInvoker, ICollection<DnsEndPoint> nameServers)
+        public LookupClient(DnsMessageHandler messageInvoker, ICollection<DnsEndPoint> nameServers)
         {
             if (messageInvoker == null)
             {

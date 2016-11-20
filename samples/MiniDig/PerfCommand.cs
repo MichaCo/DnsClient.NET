@@ -138,7 +138,7 @@ namespace DigApp
 
         public async Task Run()
         {
-            Console.WriteLine($";;Starting perf run with {_clients} clients and {_runs} queries per client.");
+            Console.WriteLine($";;Starting perf run with {_clients} clients and {_runs} queries per client. Using impl {_useImpl}.");
             var sw = Stopwatch.StartNew();
 
             var tasks = new List<Task>();

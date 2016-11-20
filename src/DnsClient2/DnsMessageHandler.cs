@@ -8,14 +8,8 @@ using DnsClient2.Protocol.Record;
 
 namespace DnsClient2
 {
-    public abstract class DnsMessageInvoker
+    public abstract class DnsMessageHandler
     {
-        public static IDictionary<int, Func<ResourceRecordInfo, ResourceRecord>> s_recordFactory =
-            new Dictionary<int, Func<ResourceRecordInfo, ResourceRecord>>()
-        {
-            { 1, (info)=>  new ARecord(info, new IPAddress(info.Data)) }
-        };
-
         public abstract Task<DnsResponseMessage> QueryAsync(DnsEndPoint server, DnsRequestMessage request, CancellationToken cancellationToken);
 
         protected virtual byte[] GetRequestData(DnsRequestMessage request)
@@ -46,6 +40,7 @@ namespace DnsClient2
         protected virtual DnsResponseMessage GetResponseMessage(byte[] responseData)
         {
             var reader = new DnsDatagramReader(responseData);
+            var factory = new DnsRecordFactory(reader);
 
             var id = reader.ReadUInt16Reverse();
             var flags = reader.ReadUInt16Reverse();
@@ -57,7 +52,6 @@ namespace DnsClient2
             var header = new DnsResponseHeader(id, flags, questionCount, answerCount, additionalCount, nameServerCount);
             var response = new DnsResponseMessage(header);
 
-            // each question has Name, short type, short class
             for (int questionIndex = 0; questionIndex < questionCount; questionIndex++)
             {
                 var question = new DnsQuestion(reader.ReadName(), reader.ReadUInt16Reverse(), reader.ReadUInt16Reverse());
@@ -68,7 +62,7 @@ namespace DnsClient2
             {
                 ResourceRecordInfo info = ReadRecordInfo(reader);
 
-                var record = GetRecord(info);
+                var record = factory.GetRecord(info);
                 response.AddAnswer(record);
             }
 
@@ -76,7 +70,7 @@ namespace DnsClient2
             {
                 ResourceRecordInfo info = ReadRecordInfo(reader);
 
-                var record = GetRecord(info);
+                var record = factory.GetRecord(info);
                 response.AddServer(record);
             }
 
@@ -84,29 +78,11 @@ namespace DnsClient2
             {
                 ResourceRecordInfo info = ReadRecordInfo(reader);
 
-                var record = GetRecord(info);
+                var record = factory.GetRecord(info);
                 response.AddAdditional(record);
             }
 
-
             return response;
-        }
-
-        private ResourceRecord GetRecord(ResourceRecordInfo info)
-        {
-            ResourceRecord record;
-
-            if (s_recordFactory.ContainsKey(info.RecordType))
-            {
-                record = s_recordFactory[info.RecordType](info);
-            }
-            else
-            {
-                // unknown or base record
-                record = new EmptyRecord(info);
-            }
-
-            return record;
         }
 
         /*
@@ -133,98 +109,12 @@ namespace DnsClient2
         private ResourceRecordInfo ReadRecordInfo(DnsDatagramReader reader)
         {
             return new ResourceRecordInfo(
-                reader.ReadName(),
-                reader.ReadUInt16Reverse(),
-                reader.ReadUInt16Reverse(),
-                reader.ReadUInt32Reverse(),
-                reader.ReadBytes(reader.ReadUInt16Reverse()));
-        }
-    }
-
-    public class DnsDatagramReader
-    {
-        private int _index;
-        private readonly byte[] _data;
-
-        public bool HasData => (_data.Length - _index) > 0;
-
-        public int Index
-        {
-            get
-            {
-                return _index;
-            }
-            set
-            {
-                if (value < 0 || value >= _data.Length)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(value));
-                }
-
-                _index = value;
-            }
-        }
-
-        public DnsDatagramReader(byte[] data, int startIndex = 0)
-        {
-            _data = data;
-            Index = startIndex;
-        }
-
-        public IPAddress ReadIPAddress(byte[] data)
-        {
-            if (data.Length != 4)
-            {
-                throw new ArgumentOutOfRangeException(nameof(data), "IPAddress expected exactly 4 bytes.");
-            }
-
-            return new IPAddress(data);
-        }
-
-        public ushort ReadUInt16()
-        {
-            if (_data.Length < Index + 2)
-            {
-                throw new IndexOutOfRangeException("Cannot read more data.");
-            }
-
-            var result = BitConverter.ToUInt16(_data, _index);
-            _index += 2;
-            return result;
-        }
-
-        public ushort ReadUInt16Reverse()
-        {
-            if (_data.Length < Index + 2)
-            {
-                throw new IndexOutOfRangeException("Cannot read more data.");
-            }
-
-            byte a = _data[_index++], b = _data[_index++];
-            return (ushort)(a << 8 | b);
-        }
-
-        public uint ReadUInt32Reverse()
-        {
-            return (uint)(ReadUInt16() << 16 | ReadUInt16());
-        }
-
-        public DnsName ReadName()
-        {
-            return DnsName.FromBytes(_data, ref _index);
-        }
-
-        public byte[] ReadBytes(int length)
-        {
-            if (_data.Length < _index + length)
-            {
-                throw new IndexOutOfRangeException($"Cannot read that many bytes: '{length}'.");
-            }
-
-            var result = new byte[length];
-            Array.Copy(_data, _index, result, 0, length);
-            _index += length;
-            return result;
+                reader.ReadName().ToString(),                   // name
+                reader.ReadUInt16Reverse(),                     // type
+                reader.ReadUInt16Reverse(),                     // class
+                reader.ReadUInt32Reverse(),                     // ttl - 32bit!!
+                reader.ReadUInt16Reverse());                    // RDLength
+                                                                 //reader.ReadBytes(reader.ReadUInt16Reverse()));  // rdata
         }
     }
 }

@@ -7,25 +7,25 @@ namespace DnsClient2
 {
     public class DnsResponseMessage
     {
-        private IList<ResourceRecord> _additionals = new List<ResourceRecord>();
-        private IList<ResourceRecord> _answers = new List<ResourceRecord>();
+        private IList<DnsResourceRecord> _additionals = new List<DnsResourceRecord>();
+        private IList<DnsResourceRecord> _answers = new List<DnsResourceRecord>();
         private IList<DnsQuestion> _questions = new List<DnsQuestion>();
-        private IList<ResourceRecord> _servers = new List<ResourceRecord>();
+        private IList<DnsResourceRecord> _servers = new List<DnsResourceRecord>();
 
         /// <summary>
         /// Gets a list of additional records.
         /// </summary>
-        public IReadOnlyCollection<ResourceRecord> Additionals => _additionals.ToArray();
+        public IReadOnlyCollection<DnsResourceRecord> Additionals => _additionals.ToArray();
 
         /// <summary>
         /// Gets a list of answer records.
         /// </summary>
-        public IReadOnlyCollection<ResourceRecord> Answers => _answers.ToArray();
+        public IReadOnlyCollection<DnsResourceRecord> Answers => _answers.ToArray();
 
         /// <summary>
         /// Gets a list of authority records.
         /// </summary>
-        public IReadOnlyCollection<ResourceRecord> Authorities => _servers.ToArray();
+        public IReadOnlyCollection<DnsResourceRecord> Authorities => _servers.ToArray();
 
         /// <summary>
         /// Gets the header of the response.
@@ -42,12 +42,12 @@ namespace DnsClient2
             this.Header = header;
         }
 
-        public void AddAdditional(ResourceRecord record)
+        public void AddAdditional(DnsResourceRecord record)
         {
             _additionals.Add(record);
         }
 
-        public void AddAnswer(ResourceRecord record)
+        public void AddAnswer(DnsResourceRecord record)
         {
             _answers.Add(record);
         }
@@ -57,7 +57,7 @@ namespace DnsClient2
             _questions.Add(question);
         }
 
-        public void AddServer(ResourceRecord record)
+        public void AddServer(DnsResourceRecord record)
         {
             _servers.Add(record);
         }

@@ -1,6 +1,6 @@
 ﻿namespace DnsClient2.Protocol.Record
 {
-    public class EmptyRecord : ResourceRecord
+    public class EmptyRecord : DnsResourceRecord
     {
         public EmptyRecord(ResourceRecordInfo info) : base(info)
         {

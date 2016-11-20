@@ -62,9 +62,9 @@ namespace DnsClient2
 
         public bool IsHostName => !_labels.Any(p => !IsHostNameLabel(p));
 
-        public int Size => _labels.Where(p => p != "").Count();
-
         public int Octets => _octets;
+
+        public int Size => _labels.Where(p => p != "").Count();
 
         /// <summary>
         /// Creates an empty <see cref="DnsName"/> instance.
@@ -116,7 +116,9 @@ namespace DnsClient2
                 if ((length & ReferenceByte) != 0)
                 {
                     var subset = (length & 0x3f) << 8 | data[offset++];
-                    return FromBytes(data, ref subset);
+                    var subName = FromBytes(data, ref subset);
+                    result.Concat(subName);
+                    return result;
                 }
 
                 if (offset + length > data.Length - 1)
@@ -167,6 +169,30 @@ namespace DnsClient2
             _labels.Insert(i, label);
         }
 
+        public byte[] AsBytes()
+        {
+            var bytes = new byte[_octets];
+            var offset = 0;
+            for (int i = _labels.Count - 1; i >= 0; i--)
+            {
+                var label = Get(i);
+
+                // should never cause issues as each label's length is limited to 64 chars.
+                var len = checked((byte)label.Length);
+
+                // set the label length byte
+                bytes[offset++] = len;
+
+                // set the label's content
+                var labelBytes = Encoding.ASCII.GetBytes(label);
+                Array.ConstrainedCopy(labelBytes, 0, bytes, offset, len);
+
+                offset += len;
+            }
+
+            return bytes;
+        }
+
         public int CompareTo(object obj)
         {
             if (obj == null)
@@ -175,6 +201,19 @@ namespace DnsClient2
             }
 
             return ToString().CompareTo(obj.ToString());
+        }
+
+        public void Concat(DnsName other)
+        {
+            if (other == null)
+            {
+                throw new ArgumentNullException(nameof(other));
+            }
+
+            foreach (var label in other._labels.Where(p => !string.IsNullOrWhiteSpace(p)))
+            {
+                Add(1, label);
+            }
         }
 
         public override bool Equals(object obj)
@@ -206,30 +245,6 @@ namespace DnsClient2
         public override int GetHashCode()
         {
             return ToString().GetHashCode();
-        }
-
-        public byte[] AsBytes()
-        {
-            var bytes = new byte[_octets];
-            var offset = 0;
-            for (int i = _labels.Count - 1; i >= 0; i--)
-            {
-                var label = Get(i);
-
-                // should never cause issues as each label's length is limited to 64 chars.
-                var len = checked((byte)label.Length);
-
-                // set the label length byte
-                bytes[offset++] = len;
-
-                // set the label's content
-                var labelBytes = Encoding.ASCII.GetBytes(label);
-                Array.ConstrainedCopy(labelBytes, 0, bytes, offset, len);
-
-                offset += len;
-            }
-
-            return bytes;
         }
 
         public override string ToString()

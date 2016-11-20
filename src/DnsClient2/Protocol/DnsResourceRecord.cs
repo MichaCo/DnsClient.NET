@@ -2,10 +2,10 @@
 
 namespace DnsClient2.Protocol
 {
-    public abstract class ResourceRecord : ResourceRecordInfo
+    public abstract class DnsResourceRecord : ResourceRecordInfo
     {
-        public ResourceRecord(ResourceRecordInfo info)
-            : base(info.QueryName, info.RecordType, info.RecordClass, info.TimeToLive, info.Data)
+        public DnsResourceRecord(ResourceRecordInfo info)
+            : base(info.QueryName, info.RecordType, info.RecordClass, info.TimeToLive, info.RawDataLength)
         {
         }
 
@@ -33,7 +33,7 @@ namespace DnsClient2.Protocol
         /// <summary>
         /// The query name.
         /// </summary>
-        public DnsName QueryName { get; }
+        public string QueryName { get; }
 
         /// <summary>
         /// Specifies type of resource record.
@@ -46,31 +46,27 @@ namespace DnsClient2.Protocol
         public ushort RecordClass { get; }
 
         /// <summary>
-        /// Raw record rdata.
-        /// </summary>
-        public byte[] Data { get; }
-
-        /// <summary>
         /// The TTL value for the record set by the server.
         /// </summary>
         public uint TimeToLive { get; }
 
-        public ResourceRecordInfo(DnsName queryName, ushort recordType, ushort recordClass, uint ttl, byte[] data)
+        /// <summary>
+        /// Gets the number of bytes for this resource record stored in RDATA
+        /// </summary>
+        public int RawDataLength { get; }
+
+        public ResourceRecordInfo(string queryName, ushort recordType, ushort recordClass, uint ttl, int length)
         {
             if (queryName == null)
             {
                 throw new ArgumentNullException(nameof(queryName));
-            }
-            if (data == null)
-            {
-                throw new ArgumentNullException(nameof(data));
             }
 
             QueryName = queryName;
             RecordType = recordType;
             RecordClass = recordClass;
             TimeToLive = ttl;
-            Data = data;
+            RawDataLength = length;
         }
     }
 }
