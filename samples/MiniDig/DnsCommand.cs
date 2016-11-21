@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using DnsClient;
+using DnsClient.Protocol.Record;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
 
@@ -64,8 +65,8 @@ namespace DigApp
                     try
                     {
                         var lookup = new LookupClient();
-                        var result = lookup.QueryAsync(server, QType.A).Result;
-                        ip = result.RecordsA.FirstOrDefault()?.Address;
+                        var result = lookup.QueryAsync(server, QueryType.A).Result;
+                        ip = result.Answers.OfType<ARecord>().FirstOrDefault()?.Address;
                     }
                     catch
                     {

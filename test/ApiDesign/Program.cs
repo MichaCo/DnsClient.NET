@@ -22,11 +22,11 @@ namespace ApiDesign
                 if (answer != null)
                 {
                     //var result = lookup.QueryAsync("google.com", 255).GetAwaiter().GetResult();
-                    var mResult = lookup.QueryAsync(answer.PtrDomainName, 1, 1).Result;
+                    var mResult = lookup.QueryAsync(answer.PtrDomainName, QueryType.A, QueryClass.IN).Result;
                     Console.WriteLine(mResult.Answers.FirstOrDefault()?.ToString(-32));
                 }
 
-                var gResult = lookup.QueryAsync("google.com", 257).GetAwaiter().GetResult();
+                var gResult = lookup.QueryAsync("google.com", QueryType.CAA).GetAwaiter().GetResult();
                 Console.WriteLine(gResult.Answers.FirstOrDefault()?.ToString(-32));
             }
             catch (DnsResponseException ex)

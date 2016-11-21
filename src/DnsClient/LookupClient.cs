@@ -130,17 +130,17 @@ namespace DnsClient
             throw new InvalidOperationException("Not a valid IP4 or IP6 address.");
         }
 
-        public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype)
-            => QueryAsync(query, qtype, CancellationToken.None);
+        public Task<DnsResponseMessage> QueryAsync(string query, QueryType queryType)
+            => QueryAsync(query, queryType, CancellationToken.None);
 
-        public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype, CancellationToken cancellationToken)
-            => QueryAsync(query, qtype, 1, cancellationToken);
+        public Task<DnsResponseMessage> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken)
+            => QueryAsync(query, queryType, QueryClass.IN, cancellationToken);
 
-        public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype, ushort qclass)
-            => QueryAsync(query, qtype, qclass, CancellationToken.None);
+        public Task<DnsResponseMessage> QueryAsync(string query, QueryType queryType, QueryClass queryClass)
+            => QueryAsync(query, queryType, queryClass, CancellationToken.None);
 
-        public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype, ushort qclass, CancellationToken cancellationToken)
-            => QueryAsync(cancellationToken, new DnsQuestion(query, qtype, qclass));
+        public Task<DnsResponseMessage> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
+            => QueryAsync(cancellationToken, new DnsQuestion(query, queryType, queryClass));
 
         public Task<DnsResponseMessage> QueryAsync(params DnsQuestion[] questions)
             => QueryAsync(CancellationToken.None, questions);
@@ -170,7 +170,7 @@ namespace DnsClient
 
             var arpa = GetArpaName(ipAddress);
             var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, new DnsQuestion(arpa, 12 /*PTR*/, 1));
+            var request = new DnsRequestMessage(head, new DnsQuestion(arpa, QueryType.PTR /*PTR*/, QueryClass.IN));
 
             return QueryAsync(request, cancellationToken);
         }

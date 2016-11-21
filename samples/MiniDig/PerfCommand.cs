@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using DnsClient;
-using DnsClient;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
 
@@ -14,50 +13,17 @@ namespace DigApp
     {
         private readonly int _id;
         private readonly ILogger<PerfClient> _logger;
-        private readonly DnsLookup _lookup;
-        private readonly string _query;
-        private readonly int _runs;
-
-        public PerfClient(int clientId, ILoggerFactory loggerFactory, DnsLookupOptions options, int runs, string query)
-        {
-            options.UseCache = false;
-
-            _query = query;
-            _id = clientId;
-            _lookup = new DnsLookup(loggerFactory, options);
-            _runs = runs;
-            _logger = loggerFactory.CreateLogger<PerfClient>();
-        }
-
-        public async Task Run()
-        {
-            for (var index = 0; index < _runs; index++)
-            {
-                var result = await _lookup.QueryAsync(_query, QType.ANY);
-                _logger.LogInformation("[{0}] Query to {1} {2}/{3} => {4} answers.", _id, _query, index + 1, _runs, result.Answers.Count);
-            }
-        }
-    }
-
-    internal class PerfClient2
-    {
-        private readonly int _id;
-        private readonly ILogger<PerfClient> _logger;
         private readonly LookupClient _lookup;
         private readonly string _query;
         private readonly int _runs;
 
-        public PerfClient2(int clientId, ILoggerFactory loggerFactory, DnsLookupOptions options, int runs, string query)
+        public PerfClient(int clientId, ILoggerFactory loggerFactory, LookupClient lookup, int runs, string query)
         {
-            options.UseCache = false;
+            lookup.UseCache = false;
 
             _query = query;
             _id = clientId;
-            _lookup = new LookupClient(options.DnsServers.ToArray());
-            _lookup.Recursion = options.Recursion;
-            _lookup.Retries = options.Retries;
-            _lookup.Timeout = TimeSpan.FromMilliseconds(options.Timeout);
-            _lookup.UseCache = options.UseCache;
+            _lookup = lookup;
             _runs = runs;
             _logger = loggerFactory.CreateLogger<PerfClient>();
             _logger.LogInformation("PerfClient2 started...");
@@ -67,7 +33,7 @@ namespace DigApp
         {
             for (var index = 0; index < _runs; index++)
             {
-                var result = await _lookup.QueryAsync(_query, 255);
+                var result = await _lookup.QueryAsync(_query, QueryType.ANY);
                 _logger.LogInformation("[{0}] Query to {1} {2}/{3} => {4} answers.", _id, _query, index + 1, _runs, result.Answers.Count);
             }
         }
@@ -104,13 +70,13 @@ namespace DigApp
             var useClients = ClientsArg.HasValue() ? int.Parse(ClientsArg.Value()) : 10;
             var useRuns = RunsArg.HasValue() ? int.Parse(RunsArg.Value()) : 100;
             var useQuery = string.IsNullOrWhiteSpace(QueryArg.Value) ? "google.com" : QueryArg.Value;
-            var options = GetDnsLookupOptions();
+            var lookup = GetDnsLookup();
             var useImpl = ClientsTypeAArg.HasValue() ? 0 : ClientsTypeBArg.HasValue() ? 1 : 0;
 
             var loggerFactory = new LoggerFactory().AddConsole(GetLoglevelValue());
             var logger = loggerFactory.CreateLogger("Dig_Perf");
 
-            var runner = new PerfRunner(loggerFactory, options, useClients, useRuns, useQuery, useImpl);
+            var runner = new PerfRunner(loggerFactory, lookup, useClients, useRuns, useQuery, useImpl);
             await runner.Run();
 
             return 0;
@@ -121,17 +87,17 @@ namespace DigApp
     {
         private readonly int _clients;
         private readonly ILoggerFactory _loggerFactory;
-        private readonly DnsLookupOptions _options;
+        private readonly LookupClient _lookup;
         private readonly string _query;
         private readonly int _runs;
         private readonly int _useImpl;
 
-        public PerfRunner(ILoggerFactory loggerFactory, DnsLookupOptions options, int clients, int runs, string query, int useImpl)
+        public PerfRunner(ILoggerFactory loggerFactory, LookupClient lookup, int clients, int runs, string query, int useImpl)
         {
             _useImpl = useImpl;
             _query = query;
             _loggerFactory = loggerFactory;
-            _options = options;
+            _lookup = lookup;
             _clients = clients;
             _runs = runs;
         }
@@ -147,12 +113,12 @@ namespace DigApp
             {
                 if (_useImpl == 0)
                 {
-                    var client = new PerfClient(i + 1, _loggerFactory, _options, _runs, _query);
+                    var client = new PerfClient(i + 1, _loggerFactory, _lookup, _runs, _query);
                     tasks.Add(client.Run());
                 }
                 else
                 {
-                    var client = new PerfClient2(i + 1, _loggerFactory, _options, _runs, _query);
+                    var client = new PerfClient(i + 1, _loggerFactory, _lookup, _runs, _query);
                     tasks.Add(client.Run());
                 }
             }

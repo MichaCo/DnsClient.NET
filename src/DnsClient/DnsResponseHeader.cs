@@ -20,7 +20,7 @@
 
         public bool IsCheckingDisabled => HasFlag(DnsHeaderFlag.IsCheckingDisabled);
 
-        public bool IsResponse => !HasFlag(DnsHeaderFlag.IsQuery);
+        public bool HasQuery => HasFlag(DnsHeaderFlag.HasQuery);
 
         public int NameServerCount { get; }
 
@@ -40,7 +40,7 @@
 
         public bool ResultTruncated => HasFlag(DnsHeaderFlag.ResultTruncated);
 
-        public bool UseRecursion => HasFlag(DnsHeaderFlag.RecursionDesired);
+        public bool RecursionDesired => HasFlag(DnsHeaderFlag.RecursionDesired);
 
         public DnsResponseHeader(int id, ushort flags, int questionCount, int answerCount, int additionalCount, int serverCount)
         {

@@ -90,7 +90,7 @@ namespace DnsClient
                 Parse(name);
             }
 
-            Add(0, "");
+            if (!HasRootLabel) Add(0, "");
         }
 
         public static DnsName FromBytes(byte[] data, ref int offset)

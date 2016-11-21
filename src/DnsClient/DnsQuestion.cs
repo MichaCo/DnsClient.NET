@@ -6,16 +6,16 @@ namespace DnsClient
     {
         public DnsName QueryName { get; }
 
-        public ushort QuestionClass { get; }
+        public QueryClass QuestionClass { get; }
 
-        public ushort QuestionType { get; }
+        public QueryType QuestionType { get; }
 
-        public DnsQuestion(string queryName, ushort questionType, ushort questionClass)
+        public DnsQuestion(string queryName, QueryType questionType, QueryClass questionClass)
             : this(new DnsName(queryName), questionType, questionClass)
         {
         }
 
-        public DnsQuestion(DnsName queryName, ushort questionType, ushort questionClass)
+        public DnsQuestion(DnsName queryName, QueryType questionType, QueryClass questionClass)
         {
             if (queryName == null)
             {

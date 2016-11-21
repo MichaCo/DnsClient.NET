@@ -19,7 +19,7 @@
                 _flags &= (ushort)~(DnsHeaderFlag.IsCheckingDisabled);
                 _flags &= (ushort)~(DnsHeaderFlag.IsAuthenticData);
                 _flags &= (ushort)~(DnsHeaderFlag.FutureUse);
-                _flags &= (ushort)~(DnsHeaderFlag.IsQuery);
+                _flags &= (ushort)~(DnsHeaderFlag.HasQuery);
                 _flags &= (ushort)~(DnsHeaderFlag.HasAuthorityAnswer);
                 _flags &= (ushort)~(DnsHeaderFlag.ResultTruncated);
                 _flags &= (ushort)~(DnsHeaderFlag.RecursionDesired);

@@ -26,12 +26,12 @@ namespace DnsClient.Tests
         public async Task Lookup_GetHostAddresses_Local()
         {
             var client = new LookupClient();
-            var result = await client.QueryAsync("localhost", 1);
+            var result = await client.QueryAsync("localhost", QueryType.A);
 
             var answer = result.Answers.OfType<ARecord>().First();
             Assert.Equal("127.0.0.1", answer.Address.ToString());
-            Assert.Equal(1, result.Questions.First().QuestionClass);
-            Assert.Equal(1, result.Questions.First().QuestionType);
+            Assert.Equal(QueryClass.IN, result.Questions.First().QuestionClass);
+            Assert.Equal(QueryType.A, result.Questions.First().QuestionType);
             Assert.True(result.Header.AnswerCount > 0);
         }
 
@@ -40,10 +40,10 @@ namespace DnsClient.Tests
         {
             // expecting no result as reverse lookup must be explicit
             var client = new LookupClient();
-            var result = await client.QueryAsync("127.0.0.1", 1);
+            var result = await client.QueryAsync("127.0.0.1", QueryType.A);
 
-            Assert.Equal(1, result.Questions.First().QuestionClass);
-            Assert.Equal(1, result.Questions.First().QuestionType);
+            Assert.Equal(QueryClass.IN, result.Questions.First().QuestionClass);
+            Assert.Equal(QueryType.A, result.Questions.First().QuestionType);
             Assert.True(result.Header.AnswerCount == 0);
         }
 

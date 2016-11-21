@@ -33,6 +33,16 @@ namespace DnsClient
         public DnsResponseHeader Header { get; }
 
         /// <summary>
+        /// A flag indicating if the header contains a response codde other than <see cref="DnsResponseCode.NoError"/>.
+        /// </summary>
+        public bool HasError => Header?.ResponseCode != DnsResponseCode.NoError;
+
+        /// <summary>
+        /// Returns a string value representing the error response code in case an error occured, otherwise empty.
+        /// </summary>
+        public string ErrorMessage => HasError ? DnsResponseCodeText.GetErrorText(Header.ResponseCode) : string.Empty;
+
+        /// <summary>
         /// Gets the list of questions.
         /// </summary>
         public IReadOnlyCollection<DnsQuestion> Questions => _questions.ToArray();

@@ -13,6 +13,8 @@ namespace DigApp
 {
     internal class DigCommand : DnsCommand
     {
+        private static readonly int s_printOffset = -32;
+
         public static string OS
         {
             get
@@ -50,8 +52,8 @@ namespace DigApp
             var loggerFactory = new LoggerFactory().AddConsole(GetLoglevelValue());
 
             string useDomain = string.IsNullOrWhiteSpace(DomainArg.Value) ? "." : DomainArg.Value;
-            QType useQType = 0;
-            QClass useQClass = 0;
+            QueryType useQType = 0;
+            QueryClass useQClass = 0;
 
             if (!string.IsNullOrWhiteSpace(QClassArg.Value))
             {
@@ -81,8 +83,8 @@ namespace DigApp
 
             if (ReversArg.HasValue())
             {
-                useQType = QType.PTR;
-                useQClass = QClass.IN;
+                useQType = QueryType.PTR;
+                useQClass = QueryClass.IN;
                 IPAddress ip;
                 if (!IPAddress.TryParse(useDomain, out ip))
                 {
@@ -97,16 +99,16 @@ namespace DigApp
             {
                 if (string.IsNullOrWhiteSpace(useDomain) || useDomain == ".")
                 {
-                    useQType = QType.NS;
+                    useQType = QueryType.NS;
                 }
                 else
                 {
-                    useQType = QType.A;
+                    useQType = QueryType.A;
                 }
             }
 
             // finally running the command
-            var lookup = GetDnsLookup(); 
+            var lookup = GetDnsLookup();
 
             var swatch = Stopwatch.StartNew();
 
@@ -115,7 +117,7 @@ namespace DigApp
                 await lookup.QueryAsync(useDomain, useQType, useQClass);
 
             var elapsed = swatch.ElapsedMilliseconds;
-            
+
             // Printing infomrational stuff
             var useServers = GetEndpointsValue();
 
@@ -123,9 +125,9 @@ namespace DigApp
             Console.WriteLine($"; <<>> MiniDiG {Version} {OS} <<>> {string.Join(" ", OriginalArgs)}");
             Console.WriteLine($"; ({useServers.Length} server found)");
 
-            if (!string.IsNullOrWhiteSpace(result.Error))
+            if (result.HasError)
             {
-                Console.WriteLine($";; {result.Error}");
+                Console.WriteLine($";; {result.ErrorMessage}");
             }
             else
             {
@@ -134,9 +136,10 @@ namespace DigApp
                 var flags = new string[] {
                         result.Header.HasQuery ? "qr" : "",
                         result.Header.RecursionAvailable ? "ra" : "",
-                        result.Header.RecursionEnabled ? "rd" : "",
-                        result.Header.TruncationEnabled ? "tc" : ""
+                        result.Header.RecursionDesired ? "rd" : "",
+                        result.Header.ResultTruncated ? "tc" : ""
                     };
+
                 var flagsString = string.Join(" ", flags.Where(p => p != ""));
 
                 Console.WriteLine($";; flags: {flagsString}; QUERY: {result.Header.QuestionCount}, " +
@@ -149,7 +152,7 @@ namespace DigApp
                     Console.WriteLine(";; QUESTION SECTION:");
                     foreach (var question in result.Questions)
                     {
-                        Console.WriteLine(question);
+                        Console.WriteLine(question.ToString(s_printOffset));
                     }
 
                     Console.WriteLine();
@@ -160,7 +163,7 @@ namespace DigApp
                     Console.WriteLine(";; ANSWER SECTION:");
                     foreach (var answer in result.Answers)
                     {
-                        Console.WriteLine(answer);
+                        Console.WriteLine(answer.ToString(s_printOffset));
                     }
 
                     Console.WriteLine();
@@ -171,7 +174,7 @@ namespace DigApp
                     Console.WriteLine(";; ADDITIONALS SECTION:");
                     foreach (var additional in result.Additionals)
                     {
-                        Console.WriteLine(additional);
+                        Console.WriteLine(additional.ToString(s_printOffset));
                     }
 
                     Console.WriteLine();
@@ -182,7 +185,7 @@ namespace DigApp
                     Console.WriteLine(";; AUTHORITIES SECTION:");
                     foreach (var auth in result.Authorities)
                     {
-                        Console.WriteLine(auth);
+                        Console.WriteLine(auth.ToString(s_printOffset));
                     }
 
                     Console.WriteLine();

@@ -32,8 +32,8 @@ namespace DnsClient
                 // 4 more bytes for the type and class
                 writer.Extend(questionData.Length + 4);
                 writer.SetBytes(questionData, questionData.Length);
-                writer.SetUInt16Network(question.QuestionType);
-                writer.SetUInt16Network(question.QuestionClass);
+                writer.SetUInt16Network((ushort)question.QuestionType);
+                writer.SetUInt16Network((ushort)question.QuestionClass);
             }
 
             return writer.Data;
@@ -56,7 +56,7 @@ namespace DnsClient
 
             for (int questionIndex = 0; questionIndex < questionCount; questionIndex++)
             {
-                var question = new DnsQuestion(reader.ReadName(), reader.ReadUInt16Reverse(), reader.ReadUInt16Reverse());
+                var question = new DnsQuestion(reader.ReadName(), (QueryType)reader.ReadUInt16Reverse(), (QueryClass)reader.ReadUInt16Reverse());
                 response.AddQuestion(question);
             }
 

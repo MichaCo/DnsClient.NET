@@ -37,7 +37,7 @@ namespace DnsClient
         RecursionDesired        = 0x0100,
         ResultTruncated         = 0x0200,
         HasAuthorityAnswer      = 0x0400,
-        IsQuery                 = 0x8000,
+        HasQuery                 = 0x8000,
     }
 
     [CLSCompliant(false)]
