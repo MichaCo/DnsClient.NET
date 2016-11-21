@@ -90,7 +90,7 @@ namespace DigApp
                     return 1;
                 }
 
-                useDomain = DnsLookup.GetArpaFromIp(ip);
+                useDomain = LookupClient.GetArpaName(ip);
             }
 
             if (useQType == 0)
@@ -106,8 +106,7 @@ namespace DigApp
             }
 
             // finally running the command
-            DnsLookupOptions options = GetDnsLookupOptions();
-            var lookup = new DnsLookup(loggerFactory, options);
+            var lookup = GetDnsLookup(); 
 
             var swatch = Stopwatch.StartNew();
 
@@ -116,7 +115,7 @@ namespace DigApp
                 await lookup.QueryAsync(useDomain, useQType, useQClass);
 
             var elapsed = swatch.ElapsedMilliseconds;
-
+            
             // Printing infomrational stuff
             var useServers = GetEndpointsValue();
 

@@ -1,11 +1,42 @@
 ﻿{
-  "version": "1.0.0-beta-*",
+  "version": "1.0.0-*",
   "authors": [ "MichaCo" ],
+  "packOptions": {
+    "licenseUrl": "https://github.com/MichaCo/DnsClient.NET/blob/master/LICENSE",
+    "projectUrl": "https://github.com/MichaCo/DnsClient.NET",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/MichaCo/DnsClient.NET"
+    },
+    "summary": "A simple DNS client written in C#.",
+    "tags": [ "DNS", "Name Server", "CSharp", ".NET", ".NET Core" ]
+  },
+  "buildOptions": {
+    "allowUnsafe": false,
+    "languageVersion": "csharp6",
+    "warningsAsErrors": false,
+    "xmlDoc": true,
+    "keyFile": "../../Tools/key.snk"
+  },
+  "copyright": "Copyright (c) 2016 MichaConrad",
+  "configurations": {
+    "Debug": {
+      "buildOptions": {
+        "define": [ "DEBUG" ]
+      }
+    },
+    "Release": {
+      "buildOptions": {
+        "define": [ "RELEASE" ],
+        "optimize": true
+      }
+    }
+  },
   "dependencies": {
     "Microsoft.Extensions.Logging.Abstractions": "1.0.0"
   },
   "frameworks": {
-    "netstandard1.5": {
+    "netstandard1.3": {
       "dependencies": {
         "NETStandard.Library": "1.6.0",
         "System.Net.NameResolution": "4.0.0",
@@ -14,9 +45,8 @@
       },
       "buildOptions": { "define": [ "XPLAT" ] }
     },
-    "net46": {
+    "net45": {
       "frameworkAssemblies": {
-        "System.Runtime": ""
       }
     }
   }

@@ -36,18 +36,24 @@ namespace DigApp
             Configure();
         }
 
-        public DnsLookupOptions GetDnsLookupOptions()
+        public LookupClient GetDnsLookup()
         {
-            return new DnsLookupOptions(GetEndpointsValue())
+            if (UseTcp())
             {
-                TransportType = GetTransportTypeValue(),
-                Recursion = GetUseRecursionValue(),
-                Retries = GetTriesValue(),
-                Timeout = GetTimeoutValue()
-            };
+                throw new NotImplementedException();
+            }
+            else
+            {
+                return new LookupClient(GetEndpointsValue())
+                {
+                    Recursion = GetUseRecursionValue(),
+                    Retries = GetTriesValue(),
+                    Timeout = TimeSpan.FromMilliseconds(GetTimeoutValue())
+                };
+            }
         }
 
-        public IPEndPoint[] GetEndpointsValue()
+        public DnsEndPoint[] GetEndpointsValue()
         {
             if (ServerArg.HasValue())
             {
@@ -57,7 +63,7 @@ namespace DigApp
                 {
                     try
                     {
-                        var lookup = new DnsLookup();
+                        var lookup = new LookupClient();
                         var result = lookup.QueryAsync(server, QType.A).Result;
                         ip = result.RecordsA.FirstOrDefault()?.Address;
                     }
@@ -67,11 +73,11 @@ namespace DigApp
                     }
                 }
 
-                return new[] { new IPEndPoint(ip, GetPortValue()) };
+                return new[] { new DnsEndPoint(ip.ToString(), GetPortValue()) };
             }
             else
             {
-                return DnsLookup.GetDnsServers();
+                return NameServer.ResolveNameServers().ToArray();
             }
         }
 
@@ -85,7 +91,7 @@ namespace DigApp
 
         public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 1000;
 
-        public TransportType GetTransportTypeValue() => UseTcpArg.HasValue() ? TransportType.Tcp : TransportType.Udp;
+        public bool UseTcp() => UseTcpArg.HasValue() ? true : false;
 
         public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value()) : 3;
 
@@ -102,7 +108,7 @@ namespace DigApp
 
             PortArg = App.Option(
                 "-p | --port",
-                $"The port to use to connect to the DNS server [{DnsLookup.DefaultPort}].",
+                $"The port to use to connect to the DNS server [{NameServer.DefaultPort}].",
                 CommandOptionType.SingleValue);
 
             NoRecurseArg = App.Option(

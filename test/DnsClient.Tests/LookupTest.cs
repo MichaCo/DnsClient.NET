@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.Tracing;
-using System.IO;
+﻿using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -12,27 +10,16 @@ namespace DnsClient.Tests
 {
     public class LookupTest
     {
-        private readonly ILoggerFactory loggerFactory;
         private readonly ILogger logger;
+        private readonly ILoggerFactory loggerFactory;
 
         public LookupTest()
         {
             loggerFactory = new LoggerFactory()
                 .AddConsole(LogLevel.Trace)
                 .AddDebug(LogLevel.Trace);
-            
+
             logger = loggerFactory.CreateLogger("testing");
-        }
-
-        private async Task<IPAddress> GetDnsEntryAsync()
-        {
-            // retries the normal host name (without domain)
-            var hostname = Dns.GetHostName();
-            var hostIp = await Dns.GetHostAddressesAsync(hostname);
-
-            // find the actual IP of the adapter used for inter networking
-            var ip = hostIp.Where(p => p.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).First();
-            return ip;
         }
 
         [Fact]
@@ -54,10 +41,21 @@ namespace DnsClient.Tests
             // expecting no result as reverse lookup must be explicit
             var client = new LookupClient();
             var result = await client.QueryAsync("127.0.0.1", 1);
-            
+
             Assert.Equal(1, result.Questions.First().QuestionClass);
             Assert.Equal(1, result.Questions.First().QuestionType);
             Assert.True(result.Header.AnswerCount == 0);
+        }
+
+        private async Task<IPAddress> GetDnsEntryAsync()
+        {
+            // retries the normal host name (without domain)
+            var hostname = Dns.GetHostName();
+            var hostIp = await Dns.GetHostAddressesAsync(hostname);
+
+            // find the actual IP of the adapter used for inter networking
+            var ip = hostIp.Where(p => p.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).First();
+            return ip;
         }
 
         //[Theory]
