@@ -38,12 +38,12 @@ namespace DnsClient.Protocol
         /// <summary>
         /// Specifies type of resource record.
         /// </summary>
-        public ushort RecordType { get; }
+        public ResourceRecordType RecordType { get; }
 
         /// <summary>
         /// Specifies type class of resource record, mostly IN but can be CS, CH or HS .
         /// </summary>
-        public ushort RecordClass { get; }
+        public QueryClass RecordClass { get; }
 
         /// <summary>
         /// The TTL value for the record set by the server.
@@ -55,7 +55,7 @@ namespace DnsClient.Protocol
         /// </summary>
         public int RawDataLength { get; }
 
-        public ResourceRecordInfo(string queryName, ushort recordType, ushort recordClass, uint ttl, int length)
+        public ResourceRecordInfo(string queryName, ResourceRecordType recordType, QueryClass recordClass, uint ttl, int length)
         {
             if (queryName == null)
             {

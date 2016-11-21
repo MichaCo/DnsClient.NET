@@ -6,8 +6,8 @@ namespace DnsClient.Protocol
 {
     public class DnsRecordFactory
     {
-        public static IDictionary<int, Func<DnsDatagramReader, ResourceRecordInfo, DnsResourceRecord>> s_recordFactory =
-               new Dictionary<int, Func<DnsDatagramReader, ResourceRecordInfo, DnsResourceRecord>>();
+        public static IDictionary<ResourceRecordType, Func<DnsDatagramReader, ResourceRecordInfo, DnsResourceRecord>> s_recordFactory =
+               new Dictionary<ResourceRecordType, Func<DnsDatagramReader, ResourceRecordInfo, DnsResourceRecord>>();
 
         private readonly DnsDatagramReader _reader;
 
@@ -45,11 +45,11 @@ namespace DnsClient.Protocol
         public ResourceRecordInfo ReadRecordInfo()
         {
             return new ResourceRecordInfo(
-                _reader.ReadName().ToString(),                   // name
-                _reader.ReadUInt16Reverse(),                     // type
-                _reader.ReadUInt16Reverse(),                     // class
-                _reader.ReadUInt32Reverse(),                     // ttl - 32bit!!
-                _reader.ReadUInt16Reverse());                    // RDLength
+                _reader.ReadName().ToString(),                  // name
+                (ResourceRecordType)_reader.ReadUInt16Reverse(),// type
+                (QueryClass)_reader.ReadUInt16Reverse(),        // class
+                _reader.ReadUInt32Reverse(),                    // ttl - 32bit!!
+                _reader.ReadUInt16Reverse());                   // RDLength
                                                                 //reader.ReadBytes(reader.ReadUInt16Reverse()));  // rdata
         }
 
@@ -71,35 +71,35 @@ namespace DnsClient.Protocol
             {
                 switch (info.RecordType)
                 {
-                    case 1:
+                    case ResourceRecordType.A:
                         result = ResolveARecord(info);
                         break;
 
-                    case 2:
+                    case ResourceRecordType.NS:
                         result = ResolveNsRecord(info);
                         break;
 
-                    case 6:
+                    case ResourceRecordType.SOA:
                         result = ResolveSoaRecord(info);
                         break;
 
-                    case 12:
+                    case ResourceRecordType.PTR:
                         result = ResolvePtrRecord(info);
                         break;
 
-                    case 15:
+                    case ResourceRecordType.MX:
                         result = ResolveMXRecord(info);
                         break;
 
-                    case 16:
+                    case ResourceRecordType.TXT:
                         result = ResolveTXTRecord(info);
                         break;
 
-                    case 28:
+                    case ResourceRecordType.AAAA:
                         result = ResolveAAAARecord(info);
                         break;
 
-                    case 33:
+                    case ResourceRecordType.SRV:
                         result = ResolveSrvRecord(info);
                         break;
 

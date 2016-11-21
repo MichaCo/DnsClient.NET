@@ -18,7 +18,7 @@ namespace DnsClient
         }
 
         public override async Task<DnsResponseMessage> QueryAsync(
-            DnsEndPoint server,
+            IPEndPoint server,
             DnsRequestMessage request,
             CancellationToken cancellationToken)
         {
@@ -27,7 +27,7 @@ namespace DnsClient
             using (var udpClient = new UdpClient())
             {
                 var data = GetRequestData(request);
-                await udpClient.SendAsync(data, data.Length, server.Host, server.Port);
+                await udpClient.SendAsync(data, data.Length, server);
 
                 var result = await udpClient.ReceiveAsync();
 

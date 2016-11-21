@@ -10,7 +10,7 @@ namespace DnsClient
 {
     public abstract class DnsMessageHandler
     {
-        public abstract Task<DnsResponseMessage> QueryAsync(DnsEndPoint server, DnsRequestMessage request, CancellationToken cancellationToken);
+        public abstract Task<DnsResponseMessage> QueryAsync(IPEndPoint server, DnsRequestMessage request, CancellationToken cancellationToken);
 
         public abstract bool IsTransientException<T>(T exception) where T : Exception;
 

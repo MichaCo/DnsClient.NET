@@ -14,7 +14,7 @@ namespace DnsClient.Test
             var header = new DnsResponseHeader(42, 256, 0, 1, 0, 0);
             var response = new DnsResponseMessage(header);
 
-            var info = new ResourceRecordInfo("query", 1, 1, 100, 4);
+            var info = new ResourceRecordInfo("query", ResourceRecordType.A,  QueryClass.IN, 100, 4);
             var ip = IPAddress.Parse("123.45.67.9");
             var answer = new ARecord(info, ip);
             response.AddAnswer(answer);
@@ -31,8 +31,8 @@ namespace DnsClient.Test
             Assert.Equal(resultAnswer.Address.ToString(), ip.ToString());
             Assert.Equal(resultAnswer.QueryName, "query.");
             Assert.Equal(resultAnswer.RawDataLength, 4);
-            Assert.Equal(resultAnswer.RecordClass, 1);
-            Assert.Equal(resultAnswer.RecordType, 1);
+            Assert.Equal(resultAnswer.RecordClass, QueryClass.IN);
+            Assert.Equal(resultAnswer.RecordType, ResourceRecordType.A);
             Assert.True(resultAnswer.TimeToLive == 100);
             Assert.True(result.Header.Id == 42);
             Assert.True(result.Header.AnswerCount == 1);
@@ -57,8 +57,8 @@ namespace DnsClient.Test
             writer.Extend(q.Length);    // the following query->length
             writer.SetBytes(q, q.Length);
             writer.Extend(10);  // the following 4x ushort
-            writer.SetUInt16Network(answer.RecordType);
-            writer.SetUInt16Network(answer.RecordClass);
+            writer.SetUInt16Network((ushort)answer.RecordType);
+            writer.SetUInt16Network((ushort)answer.RecordClass);
             writer.SetUInt32Network(answer.TimeToLive);
             writer.SetUInt16Network((ushort)answerData.Length);
 

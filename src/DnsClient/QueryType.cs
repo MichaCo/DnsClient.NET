@@ -42,27 +42,27 @@ namespace DnsClient
         SOA = 6,
 
         /// <summary>
-        /// A mailbox domain name (EXPERIMENTAL)	[RFC1035].
+        /// A mailbox domain name (EXPERIMENTAL)	[RFC1035].  TODO:impl
         /// </summary>
         MB = 7,
 
         /// <summary>
-        /// A mail group member (EXPERIMENTAL)	[RFC1035].
+        /// A mail group member (EXPERIMENTAL)	[RFC1035].  TODO:impl
         /// </summary>
         MG = 8,
 
         /// <summary>
-        /// A mail rename domain name (EXPERIMENTAL)	[RFC1035].
+        /// A mail rename domain name (EXPERIMENTAL)	[RFC1035].  TODO:impl
         /// </summary>
         MR = 9,
 
         /// <summary>
-        /// A null RR (EXPERIMENTAL)	[RFC1035].
+        /// A null RR (EXPERIMENTAL)	[RFC1035].  TODO:impl
         /// </summary>
         NULL = 10,
 
         /// <summary>
-        /// A well known service description    [RFC1035]
+        /// A well known service description    [RFC1035]   TODO:impl
         /// </summary>
         WKS = 11,
 
@@ -72,12 +72,12 @@ namespace DnsClient
         PTR = 12,
 
         /// <summary>
-        /// Host information    [RFC1035]
+        /// Host information    [RFC1035]   TODO:impl
         /// </summary>
         HINFO = 13,
 
         /// <summary>
-        /// Mailbox or mail list information    [RFC1035]
+        /// Mailbox or mail list information    [RFC1035]   TODO:impl
         /// </summary>
         MINFO = 14,
 
@@ -90,6 +90,21 @@ namespace DnsClient
         /// Text strings    [RFC1035]
         /// </summary>
         TXT = 16,
+
+        /// <summary>
+        /// A IPV6 host address, [RFC3596]
+        /// </summary>
+        AAAA = 28,
+
+        /// <summary>
+        /// Location of services [RFC2782]
+        /// </summary>
+        SRV = 33,
+
+        /// <summary>
+        /// RRSIG rfc3755.  TODO:impl
+        /// </summary>
+        RRSIG = 46,
 
         /// <summary>
         /// Generic any query *.

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -22,6 +23,8 @@ namespace DigApp
         public CommandOption PortArg { get; private set; }
 
         public CommandOption ServerArg { get; private set; }
+
+        public CommandOption ServersArg { get; private set; }
 
         public CommandOption TriesArg { get; private set; }
 
@@ -54,7 +57,7 @@ namespace DigApp
             }
         }
 
-        public DnsEndPoint[] GetEndpointsValue()
+        public IPEndPoint[] GetEndpointsValue()
         {
             if (ServerArg.HasValue())
             {
@@ -74,7 +77,37 @@ namespace DigApp
                     }
                 }
 
-                return new[] { new DnsEndPoint(ip.ToString(), GetPortValue()) };
+                return new[] { new IPEndPoint(ip, GetPortValue()) };
+            }
+            else if (ServersArg.HasValue())
+            {
+                var values = ServersArg.Values.Select(p => p.Split('#').ToArray());
+                var result = new List<IPEndPoint>();
+                foreach (var serverPair in values)
+                {
+                    var server = serverPair[0];
+                    var port = serverPair.Length > 1 ? int.Parse(serverPair[1]) : 53;
+
+                    IPAddress ip;
+                    if (!IPAddress.TryParse(server, out ip))
+                    {
+                        try
+                        {
+                            var lookup = new LookupClient();
+                            lookup.Timeout = TimeSpan.FromMinutes(10);
+                            var lResult = lookup.QueryAsync(server, QueryType.A).Result;
+                            ip = lResult.Answers.OfType<ARecord>().FirstOrDefault()?.Address;
+                        }
+                        catch
+                        {
+                            throw new Exception("Cannot resolve server.");
+                        }
+                    }
+
+                    result.Add(new IPEndPoint(ip, port));
+                }
+
+                return result.ToArray();
             }
             else
             {
@@ -90,22 +123,27 @@ namespace DigApp
 
         public int GetPortValue() => PortArg.HasValue() ? int.Parse(PortArg.Value()) : 53;
 
-        public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 1000;
+        public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 5000;
 
-        public bool UseTcp() => UseTcpArg.HasValue() ? true : false;
-
-        public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value()) : 3;
+        public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value()) : 10;
 
         public bool GetUseRecursionValue() => !NoRecurseArg.HasValue();
 
         public bool GetUseTcpValue() => UseTcpArg.HasValue();
 
+        public bool UseTcp() => UseTcpArg.HasValue() ? true : false;
+
         protected virtual void Configure()
         {
             ServerArg = App.Option(
                 "-s | --server",
-                "The DNS server [local network].",
+                "The DNS server.",
                 CommandOptionType.SingleValue);
+
+            ServersArg = App.Option(
+                "-servers | --servers",
+                "The DNS servers to use <name1>#<port1> <nameN>#<portN>.",
+                CommandOptionType.MultipleValue);
 
             PortArg = App.Option(
                 "-p | --port",

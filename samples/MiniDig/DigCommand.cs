@@ -119,11 +119,11 @@ namespace DigApp
             var elapsed = swatch.ElapsedMilliseconds;
 
             // Printing infomrational stuff
-            var useServers = GetEndpointsValue();
+            var useServers = lookup.NameServers;
 
             Console.WriteLine();
             Console.WriteLine($"; <<>> MiniDiG {Version} {OS} <<>> {string.Join(" ", OriginalArgs)}");
-            Console.WriteLine($"; ({useServers.Length} server found)");
+            Console.WriteLine($"; ({useServers.Count} server found)");
 
             if (result.HasError)
             {

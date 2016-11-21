@@ -13,7 +13,14 @@ namespace DigApp
 
             var defaultCommand = new DigCommand(app, args);
 
-            app.Execute(args);
+            try
+            {
+                app.Execute(args);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
         }
     }
 }

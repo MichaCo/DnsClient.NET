@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -17,11 +18,13 @@ namespace DnsClient
         private static ushort _uniqueId = 0;
         private readonly DnsMessageHandler _messageHandler;
         private TimeSpan _timeout = s_defaultTimeout;
+        private Queue<EndPointInfo> _endpoints;
+        private readonly object _endpointLock = new object();
 
         /// <summary>
         /// Gets the list of configured name servers.
         /// </summary>
-        public IReadOnlyCollection<DnsEndPoint> NameServers { get; }
+        public IReadOnlyCollection<IPEndPoint> NameServers { get; }
 
         /// <summary>
         /// Gets or set a flag indicating if recursion should be enabled for DNS queries.
@@ -69,24 +72,19 @@ namespace DnsClient
         {
         }
 
-        public LookupClient(params DnsEndPoint[] nameServers)
-            : this(new DnsUdpMessageHandler(), nameServers)
-        {
-        }
-
         public LookupClient(params IPEndPoint[] nameServers)
-            : this(new DnsUdpMessageHandler(), nameServers.Select(p => new DnsEndPoint(p.Address.ToString(), p.Port)).ToArray())
+            : this(new DnsUdpMessageHandler(), nameServers)
         {
         }
 
         public LookupClient(params IPAddress[] nameServers)
             : this(
                   new DnsUdpMessageHandler(),
-                  nameServers.Select(p => new DnsEndPoint(p.ToString(), NameServer.DefaultPort)).ToArray())
+                  nameServers.Select(p => new IPEndPoint(p, NameServer.DefaultPort)).ToArray())
         {
         }
 
-        public LookupClient(DnsMessageHandler messageInvoker, ICollection<DnsEndPoint> nameServers)
+        public LookupClient(DnsMessageHandler messageInvoker, ICollection<IPEndPoint> nameServers)
         {
             if (messageInvoker == null)
             {
@@ -98,6 +96,11 @@ namespace DnsClient
             }
 
             NameServers = nameServers.ToArray();
+            _endpoints = new Queue<EndPointInfo>();
+            foreach (var server in NameServers)
+            {
+                _endpoints.Enqueue(new EndPointInfo(server));
+            }
             _messageHandler = messageInvoker;
         }
 
@@ -170,7 +173,7 @@ namespace DnsClient
 
             var arpa = GetArpaName(ipAddress);
             var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, new DnsQuestion(arpa, QueryType.PTR /*PTR*/, QueryClass.IN));
+            var request = new DnsRequestMessage(head, new DnsQuestion(arpa, QueryType.PTR, QueryClass.IN));
 
             return QueryAsync(request, cancellationToken);
         }
@@ -192,8 +195,35 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(request));
             }
 
-            foreach (var server in NameServers)
+            for (int index = 0; index < NameServers.Count; index++)
             {
+                EndPointInfo serverInfo = null;
+                lock (_endpointLock)
+                {
+                    while (_endpoints.Count > 0 && serverInfo == null)
+                    {
+                        serverInfo = _endpoints.Dequeue();
+
+                        if (serverInfo.IsDisabled)
+                        {
+                            serverInfo = null;
+                        }
+                        else
+                        {
+                            // put it back and then use it..
+                            _endpoints.Enqueue(serverInfo);
+                        }
+                    }
+
+                    if (serverInfo == null)
+                    {
+                        // let's be optimistic and eable them again, maybe they wher offline one for a while
+                        _endpoints.ToList().ForEach(p => p.IsDisabled = false);
+
+                        continue;
+                    }
+                }
+
                 var tries = 0;
                 do
                 {
@@ -201,7 +231,7 @@ namespace DnsClient
                     try
                     {
                         DnsResponseMessage response;
-                        var resultTask = _messageHandler.QueryAsync(server, request, cancellationToken);
+                        var resultTask = _messageHandler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
                         if (Timeout != s_infiniteTimeout)
                         {
                             response = await resultTask.TimeoutAfter(Timeout);
@@ -219,6 +249,13 @@ namespace DnsClient
                     catch (TimeoutException)
                     {
                         // do nothing... transient if timeoutAfter timed out
+                    }
+                    catch (SocketException ex) when (ex.SocketErrorCode == SocketError.AddressFamilyNotSupported)
+                    {
+                        // this socket error might indicate the server endpoint is actually bad and should be ignored in future queries.
+                        serverInfo.IsDisabled = true;
+                        Debug.WriteLine($"Disabling name server {serverInfo.Endpoint}.");
+                        break;
                     }
                     catch (Exception ex) when (_messageHandler.IsTransientException(ex))
                     {
@@ -248,6 +285,19 @@ namespace DnsClient
             }
 
             throw new DnsResponseException($"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.");
+        }
+
+        private class EndPointInfo
+        {
+            public IPEndPoint Endpoint { get; }
+
+            public bool IsDisabled { get; set; }
+
+            public EndPointInfo(IPEndPoint endpoint)
+            {
+                Endpoint = endpoint;
+                IsDisabled = false;
+            }
         }
     }
 

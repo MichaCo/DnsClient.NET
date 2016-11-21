@@ -90,5 +90,25 @@ namespace DnsClient.Protocol
         /// Text strings    [RFC1035]
         /// </summary>
         TXT = 16,
+
+        /// <summary>
+        /// A IPV6 host address, [RFC3596]
+        /// </summary>
+        AAAA = 28,
+
+        /// <summary>
+        /// Location of services [RFC2782]
+        /// </summary>
+        SRV = 33,
+
+        /// <summary>
+        /// RRSIG rfc3755.  TODO:impl
+        /// </summary>
+        RRSIG = 46,
+
+        /// <summary>
+        /// TODO:impl
+        /// </summary>
+        CAA = 257,
     }
 }
