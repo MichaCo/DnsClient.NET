@@ -1,5 +1,0 @@
-﻿{
-  "parallelizeTestCollections": true,
-  "methodDisplay": "method",
-  "preEnumerateTheories": true
-}

@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-using DnsClient2;
-using DnsClient2.Protocol.Record;
+using DnsClient;
+using DnsClient.Protocol.Record;
 
 namespace ApiDesign
 {
