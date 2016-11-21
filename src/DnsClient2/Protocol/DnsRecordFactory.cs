@@ -83,6 +83,10 @@ namespace DnsClient2.Protocol
                         result = ResolveSoaRecord(info);
                         break;
 
+                    case 12:
+                        result = ResolvePtrRecord(info);
+                        break;
+
                     case 15:
                         result = ResolveMXRecord(info);
                         break;
@@ -114,6 +118,11 @@ namespace DnsClient2.Protocol
             }
 
             return result;
+        }
+
+        private PtrRecord ResolvePtrRecord(ResourceRecordInfo info)
+        {
+            return new PtrRecord(info, _reader.ReadName().ToString());
         }
 
         private AAAARecord ResolveAAAARecord(ResourceRecordInfo info)

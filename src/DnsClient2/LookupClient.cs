@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,7 +15,7 @@ namespace DnsClient2
         private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
         private static ushort _uniqueId = 0;
-        private readonly DnsMessageHandler _messageInvoker;
+        private readonly DnsMessageHandler _messageHandler;
         private TimeSpan _timeout = s_defaultTimeout;
 
         /// <summary>
@@ -30,6 +32,13 @@ namespace DnsClient2
         /// Gets or sets number of tries to connect to one name server before trying the next one or throwing an exception.
         /// </summary>
         public int Retries { get; set; } = 5;
+
+        /// <summary>
+        /// Gets or sets a flag indicating if the <see cref="LookupClient"/> should throw an <see cref="DnsResponseException"/>
+        /// if the returned result contains an error flag other than <see cref="DnsResponseCode.NoError"/>.
+        /// (The default behavior is <c>False</c>).
+        /// </summary>
+        public bool ThrowDnsErrors { get; set; } = false;
 
         /// <summary>
         /// Gets or sets timeout in milliseconds.
@@ -89,7 +98,36 @@ namespace DnsClient2
             }
 
             NameServers = nameServers.ToArray();
-            _messageInvoker = messageInvoker;
+            _messageHandler = messageInvoker;
+        }
+
+        /// <summary>
+        /// Translates the IPV4 or IPV6 address into an arpa address.
+        /// </summary>
+        /// <param name="ip">IP address to get the arpa address form</param>
+        /// <returns>The mirrored IPV4 or IPV6 arpa address</returns>
+        public static string GetArpaName(IPAddress ip)
+        {
+            var bytes = ip.GetAddressBytes();
+            Array.Reverse(bytes);
+
+            // check IP6
+            if (ip.AddressFamily == AddressFamily.InterNetworkV6)
+            {
+                // reveresed bytes need to be split into 4 bit parts and separated by '.'
+                var newBytes = bytes
+                    .SelectMany(b => new[] { (b >> 0) & 0xf, (b >> 4) & 0xf })
+                    .Aggregate(new StringBuilder(), (s, b) => s.Append(b.ToString("x")).Append(".")) + "ip6.arpa.";
+
+                return newBytes;
+            }
+            else if (ip.AddressFamily == AddressFamily.InterNetwork)
+            {
+                // else IP4
+                return string.Join(".", bytes) + ".in-addr.arpa.";
+            }
+
+            throw new InvalidOperationException("Not a valid IP4 or IP6 address.");
         }
 
         public Task<DnsResponseMessage> QueryAsync(string query, ushort qtype)
@@ -120,6 +158,23 @@ namespace DnsClient2
             return QueryAsync(request, CancellationToken.None);
         }
 
+        public Task<DnsResponseMessage> QueryReverseAsync(IPAddress ipAddress)
+            => QueryReverseAsync(ipAddress, CancellationToken.None);
+
+        public Task<DnsResponseMessage> QueryReverseAsync(IPAddress ipAddress, CancellationToken cancellationToken)
+        {
+            if (ipAddress == null)
+            {
+                throw new ArgumentNullException(nameof(ipAddress));
+            }
+
+            var arpa = GetArpaName(ipAddress);
+            var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, DnsOpCode.Query);
+            var request = new DnsRequestMessage(head, new DnsQuestion(arpa, 12 /*PTR*/, 1));
+
+            return QueryAsync(request, cancellationToken);
+        }
+
         private static ushort GetNextUniqueId()
         {
             if (_uniqueId == ushort.MaxValue || _uniqueId == 0)
@@ -145,24 +200,54 @@ namespace DnsClient2
                     tries++;
                     try
                     {
-                        var resultTask = _messageInvoker.QueryAsync(server, request, cancellationToken);                        
+                        DnsResponseMessage response;
+                        var resultTask = _messageHandler.QueryAsync(server, request, cancellationToken);
                         if (Timeout != s_infiniteTimeout)
                         {
-                            return await resultTask.TimeoutAfter(Timeout);
+                            response = await resultTask.TimeoutAfter(Timeout);
                         }
 
-                        return await resultTask;
+                        response = await resultTask;
+
+                        if (ThrowDnsErrors && response.Header.ResponseCode != DnsResponseCode.NoError)
+                        {
+                            throw new DnsResponseException(response.Header.ResponseCode);
+                        }
+
+                        return response;
                     }
                     catch (TimeoutException)
                     {
+                        // do nothing... transient if timeoutAfter timed out
+                    }
+                    catch (Exception ex) when (_messageHandler.IsTransientException(ex))
+                    {
+                    }
+                    catch (Exception ex)
+                    {
+                        var agg = ex as AggregateException;
+                        if (agg != null)
+                        {
+                            agg.Handle(e =>
+                            {
+                                if (e is TimeoutException) return true;
+                                if (_messageHandler.IsTransientException(e)) return true;
+                                return false;
+                            });
+
+                            throw new DnsResponseException("Unhandled exception", agg.InnerException);
+                        }
+
+                        throw new DnsResponseException("Unhandled exception", ex);
                     }
                     finally
                     {
+                        // do cleanup stuff or logging?
                     }
                 } while (tries <= Retries && !cancellationToken.IsCancellationRequested);
             }
 
-            throw new InvalidOperationException("No connection could be established.");
+            throw new DnsResponseException($"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.");
         }
     }
 
@@ -188,7 +273,7 @@ namespace DnsClient2
     ////    private const int CriticalFailureEventId = 6;
     ////    private const int DumpArrayEventId = 7;
     ////    public static readonly DnsEventSource Log = new DnsEventSource();
-        
+
     ////    public static new bool IsEnabled => Log.IsEnabled();
 
     ////    [NonEvent]
@@ -196,7 +281,7 @@ namespace DnsClient2
     ////    {
     ////        if (IsEnabled) Log.Info(IdOf(thisOrContextObject), memberName, formattableString != null ? Format(formattableString) : NoParameters);
     ////    }
-        
+
     ////    public static void Info(object thisOrContextObject, object message, [CallerMemberName] string memberName = null)
     ////    {
     ////        if (IsEnabled) Log.Info(IdOf(thisOrContextObject), memberName, Format(message).ToString());
@@ -208,7 +293,6 @@ namespace DnsClient2
 
     ////    [NonEvent]
     ////    public static string IdOf(object value) => value != null ? value.GetType().Name + "#" + GetHashCode(value) : NullInstance;
-
 
     ////    [NonEvent]
     ////    public static int GetHashCode(object value) => value?.GetHashCode() ?? 0;

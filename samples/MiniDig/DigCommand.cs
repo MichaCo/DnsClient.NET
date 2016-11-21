@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
@@ -34,11 +35,14 @@ namespace DigApp
 
         public CommandArgument QTypeArg { get; }
 
+        public CommandOption ReversArg { get; }
+
         public DigCommand(CommandLineApplication app, string[] originalArgs) : base(app, originalArgs)
         {
             DomainArg = app.Argument("domain", "domain name", false);
             QTypeArg = app.Argument("q-type", "QType", false);
             QClassArg = app.Argument("q-class", "QClass", false);
+            ReversArg = app.Option("-x", "Reverse lookup shortcut", CommandOptionType.NoValue);
         }
 
         protected override async Task<int> Execute()
@@ -73,6 +77,20 @@ namespace DigApp
                     // could be q class as second and no QType
                     Enum.TryParse(QTypeArg.Value, true, out useQClass);
                 }
+            }
+
+            if (ReversArg.HasValue())
+            {
+                useQType = QType.PTR;
+                useQClass = QClass.IN;
+                IPAddress ip;
+                if (!IPAddress.TryParse(useDomain, out ip))
+                {
+                    Console.WriteLine(";; WARNING: recursion requested but not available");
+                    return 1;
+                }
+
+                useDomain = DnsLookup.GetArpaFromIp(ip);
             }
 
             if (useQType == 0)

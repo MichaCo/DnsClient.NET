@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using DnsClient2.Protocol;
-using DnsClient2.Protocol.Record;
 
 namespace DnsClient2
 {

@@ -49,8 +49,9 @@ namespace DnsClient2.Tests
         }
 
         [Fact]
-        public async Task Lookup_GetHostAddresses_LocalReverse()
+        public async Task Lookup_GetHostAddresses_LocalReverse_NoResult()
         {
+            // expecting no result as reverse lookup must be explicit
             var client = new LookupClient();
             var result = await client.QueryAsync("127.0.0.1", 1);
             

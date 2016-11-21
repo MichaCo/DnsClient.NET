@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using DnsClient;
@@ -46,10 +47,33 @@ namespace DigApp
             };
         }
 
-        public IPEndPoint[] GetEndpointsValue() =>
-            ServerArg.HasValue() ?
-                new[] { new IPEndPoint(IPAddress.Parse(ServerArg.Value()), GetPortValue()) } :
-                DnsLookup.GetDnsServers();
+        public IPEndPoint[] GetEndpointsValue()
+        {
+            if (ServerArg.HasValue())
+            {
+                string server = ServerArg.Value();
+                IPAddress ip;
+                if (!IPAddress.TryParse(server, out ip))
+                {
+                    try
+                    {
+                        var lookup = new DnsLookup();
+                        var result = lookup.QueryAsync(server, QType.A).Result;
+                        ip = result.RecordsA.FirstOrDefault()?.Address;
+                    }
+                    catch
+                    {
+                        throw new Exception("Cannot resolve server.");
+                    }
+                }
+
+                return new[] { new IPEndPoint(ip, GetPortValue()) };
+            }
+            else
+            {
+                return DnsLookup.GetDnsServers();
+            }
+        }
 
         public LogLevel GetLoglevelValue()
         {

@@ -12,6 +12,8 @@ namespace DnsClient2
     {
         public abstract Task<DnsResponseMessage> QueryAsync(DnsEndPoint server, DnsRequestMessage request, CancellationToken cancellationToken);
 
+        public abstract bool IsTransientException<T>(T exception) where T : Exception;
+
         public virtual byte[] GetRequestData(DnsRequestMessage request)
         {
             var writer = new DnsDatagramWriter(DnsRequestHeader.HeaderLength);

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
@@ -11,9 +10,16 @@ namespace DnsClient2
 {
     public class DnsUdpMessageHandler : DnsMessageHandler
     {
+        public override bool IsTransientException<T>(T exception)
+        {
+            Debug.WriteLine("Check transient {0}.", exception);
+            if (exception is SocketException) return true;
+            return false;
+        }
+
         public override async Task<DnsResponseMessage> QueryAsync(
             DnsEndPoint server,
-            DnsRequestMessage request, 
+            DnsRequestMessage request,
             CancellationToken cancellationToken)
         {
             var sw = Stopwatch.StartNew();
@@ -26,7 +32,7 @@ namespace DnsClient2
                 var result = await udpClient.ReceiveAsync();
 
                 var response = GetResponseMessage(result.Buffer);
-                
+
                 return response;
             }
         }
