@@ -19,10 +19,10 @@ namespace DnsClient.Tests
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0));
             response.AddAnswer(record);
 
-            var item = await cache.GetOrAdd("key", async () => response);
+            var item = await cache.GetOrAdd("key", async () => response.AsReadonly);
             var item2 = await cache.GetOrAdd("key", async () => null);
 
-            Assert.Equal(item, response);
+            Assert.Equal(item, response.AsReadonly);
 
             // should not be null although TTL is zero, mimimum timeout is set to 100ms
             Assert.NotNull(item2);
@@ -36,10 +36,10 @@ namespace DnsClient.Tests
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0));
             response.AddAnswer(record);
 
-            var item = await cache.GetOrAdd("key", async () => response);
+            var item = await cache.GetOrAdd("key", async () => response.AsReadonly);
             var item2 = await cache.GetOrAdd("key", async () => null);
 
-            Assert.Equal(item, response);
+            Assert.Equal(item, response.AsReadonly);
 
             // should be null because cache is disabled and we create null in the second call of GetOrAdd
             Assert.Null(item2);
@@ -53,10 +53,10 @@ namespace DnsClient.Tests
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0));
             response.AddAnswer(record);
 
-            var item = await cache.GetOrAdd("key", async () => response);
+            var item = await cache.GetOrAdd("key", async () => response.AsReadonly);
             var item2 = await cache.GetOrAdd("key", async () => null);
 
-            Assert.Equal(item, response);
+            Assert.Equal(item, response.AsReadonly);
 
             // should be null because ttl of the record is 0 which disables caching for this record
             Assert.Null(item2);
@@ -72,12 +72,12 @@ namespace DnsClient.Tests
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0));
             response.AddAnswer(record);
             response.AddAdditional(recordB);
-            response.AddServer(recordC);
+            response.AddAuthority(recordC);
 
-            var item = await cache.GetOrAdd("key", async () => response);
+            var item = await cache.GetOrAdd("key", async () => response.AsReadonly);
             var item2 = await cache.GetOrAdd("key", async () => null);
 
-            Assert.Equal(item, response);
+            Assert.Equal(item, response.AsReadonly);
             Assert.NotNull(item2);
 
             await Task.Delay(1010);
@@ -97,12 +97,12 @@ namespace DnsClient.Tests
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0));
             response.AddAnswer(record);
             response.AddAdditional(recordB);
-            response.AddServer(recordC);
+            response.AddAuthority(recordC);
 
-            var item = await cache.GetOrAdd("key", async () => response);
+            var item = await cache.GetOrAdd("key", async () => response.AsReadonly);
             var item2 = await cache.GetOrAdd("key", async () => null);
 
-            Assert.Equal(item, response);
+            Assert.Equal(item, response.AsReadonly);
 
             // should be null because recordC has zero TTL which wins
             Assert.Null(item2);
@@ -116,9 +116,9 @@ namespace DnsClient.Tests
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0));
             response.AddAnswer(record);
 
-            var item = await cache.GetOrAdd("key", async () => response);
+            var item = await cache.GetOrAdd("key", async () => response.AsReadonly);
 
-            Assert.Equal(item, response);
+            Assert.Equal(item, response.AsReadonly);
         }
 
         [Fact]
@@ -129,10 +129,10 @@ namespace DnsClient.Tests
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0));
             response.AddAnswer(record);
 
-            var item = await cache.GetOrAdd("key", async () => response);
+            var item = await cache.GetOrAdd("key", async () => response.AsReadonly);
             var item2 = await cache.GetOrAdd("key", async () => null);
 
-            Assert.Equal(item, response);
+            Assert.Equal(item, response.AsReadonly);
             Assert.NotNull(item2);
         }
     }

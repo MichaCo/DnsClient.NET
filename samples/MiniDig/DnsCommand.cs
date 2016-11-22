@@ -10,25 +10,44 @@ using Microsoft.Extensions.Logging;
 
 namespace DigApp
 {
+    public class LookupSettings
+    {
+        public IPEndPoint[] Endpoints { get; set; }
+
+        public TimeSpan MinTTL { get; set; }
+
+        public bool Recursion { get; set; }
+
+        public int Retries { get; set; }
+
+        public TimeSpan Timeout { get; set; }
+
+        public bool UseCache { get; set; }
+    }
+
     internal abstract class DnsCommand
     {
-        public CommandOption ConnectTimeoutArg { get; private set; }
+        public CommandOption ConnectTimeoutArg { get; set; }
 
-        public CommandOption LogLevelArg { get; private set; }
+        public CommandOption LogLevelArg { get; set; }
 
-        public CommandOption NoRecurseArg { get; private set; }
+        public CommandOption MinimumTTLArg { get; set; }
+
+        public CommandOption NoRecurseArg { get; set; }
 
         public string[] OriginalArgs { get; }
 
-        public CommandOption PortArg { get; private set; }
+        public CommandOption PortArg { get; set; }
 
-        public CommandOption ServerArg { get; private set; }
+        public CommandOption ServerArg { get; set; }
 
-        public CommandOption ServersArg { get; private set; }
+        public CommandOption ServersArg { get; set; }
 
-        public CommandOption TriesArg { get; private set; }
+        public CommandOption TriesArg { get; set; }
 
-        public CommandOption UseTcpArg { get; private set; }
+        public CommandOption UseCacheArg { get; set; }
+
+        public CommandOption UseTcpArg { get; set; }
 
         protected CommandLineApplication App { get; }
 
@@ -40,7 +59,7 @@ namespace DigApp
             Configure();
         }
 
-        public LookupClient GetDnsLookup()
+        public LookupClient GetDnsLookup(LookupSettings props = null)
         {
             if (UseTcp())
             {
@@ -48,11 +67,14 @@ namespace DigApp
             }
             else
             {
-                return new LookupClient(GetEndpointsValue())
+                var settings = props ?? GetLookupSettings();
+                return new LookupClient(settings.Endpoints)
                 {
-                    Recursion = GetUseRecursionValue(),
-                    Retries = GetTriesValue(),
-                    Timeout = TimeSpan.FromMilliseconds(GetTimeoutValue())
+                    Recursion = settings.Recursion,
+                    Retries = settings.Retries,
+                    Timeout = settings.Timeout,
+                    MimimumCacheTimeout = settings.MinTTL,
+                    UseCache = settings.UseCache
                 };
             }
         }
@@ -120,11 +142,39 @@ namespace DigApp
             return LogLevelArg.HasValue() && Enum.TryParse(LogLevelArg.Value(), true, out logginglevel) ? logginglevel : LogLevel.Warning;
         }
 
+        public LookupSettings GetLookupSettings()
+        {
+            return new LookupSettings()
+            {
+                Endpoints = GetEndpointsValue(),
+                Recursion = GetUseRecursionValue(),
+                Retries = GetTriesValue(),
+                Timeout = TimeSpan.FromMilliseconds(GetTimeoutValue()),
+                MinTTL = GetMinimumTTL(),
+                UseCache = GetUseCache()
+            };
+        }
+
+        public TimeSpan GetMinimumTTL()
+        {
+            if (MinimumTTLArg.HasValue())
+            {
+                return TimeSpan.FromMilliseconds(int.Parse(MinimumTTLArg.Value()));
+            }
+
+            return TimeSpan.Zero;
+        }
+
         public int GetPortValue() => PortArg.HasValue() ? int.Parse(PortArg.Value()) : 53;
 
         public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 5000;
 
         public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value()) : 10;
+
+        public bool GetUseCache()
+        {
+            return UseCacheArg.HasValue();
+        }
 
         public bool GetUseRecursionValue() => !NoRecurseArg.HasValue();
 
@@ -167,6 +217,16 @@ namespace DigApp
             ConnectTimeoutArg = App.Option(
                 "--time",
                 "Query timeout [1000].",
+                CommandOptionType.SingleValue);
+
+            UseCacheArg = App.Option(
+                "--cache",
+                "Enable caching.",
+                CommandOptionType.NoValue);
+
+            MinimumTTLArg = App.Option(
+                "--minttl",
+                "Minimum cache ttl.",
                 CommandOptionType.SingleValue);
 
             LogLevelArg = App.Option(

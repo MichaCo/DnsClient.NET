@@ -12,19 +12,20 @@ namespace DnsClient.Test
         public void DnsRecordFactory_ResolveARecord()
         {
             var header = new DnsResponseHeader(42, 256, 0, 1, 0, 0);
-            var response = new DnsResponseMessage(header);
+            var responseMessage = new DnsResponseMessage(header);
 
             var info = new ResourceRecordInfo("query", ResourceRecordType.A,  QueryClass.IN, 100, 4);
             var ip = IPAddress.Parse("123.45.67.9");
             var answer = new ARecord(info, ip);
-            response.AddAnswer(answer);
+            responseMessage.AddAnswer(answer);
+            var response = responseMessage.AsReadonly;
 
             var answerBytes = ip.GetAddressBytes();
 
             var raw = GetResponseBytes(response, answerBytes);
 
             var handle = new DnsUdpMessageHandler();
-            var result = handle.GetResponseMessage(raw);
+            var result = handle.GetResponseMessage(raw).AsReadonly;
 
             Assert.Equal(result.Answers.Count, 1);
             var resultAnswer = result.Answers.OfType<ARecord>().First();
@@ -38,7 +39,7 @@ namespace DnsClient.Test
             Assert.True(result.Header.AnswerCount == 1);
         }
 
-        private static byte[] GetResponseBytes(DnsResponseMessage message, byte[] answerData)
+        private static byte[] GetResponseBytes(DnsQueryResponse message, byte[] answerData)
         {
             var writer = new DnsDatagramWriter(12);
             writer.SetUInt16Network((ushort)message.Header.Id);

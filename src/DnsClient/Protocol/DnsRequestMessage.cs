@@ -1,12 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
-namespace DnsClient
+namespace DnsClient.Protocol
 {
+    /// <summary>
+    /// Represents a simple request message which can be send through <see cref="DnsMessageHandler"/>.
+    /// </summary>
     public class DnsRequestMessage
     {
+        public DnsRequestHeader Header { get; }
+
+        public DnsQuestion[] Questions { get; }
+
         public DnsRequestMessage(DnsRequestHeader header, params DnsQuestion[] questions)
         {
             if (header == null)
@@ -25,9 +30,5 @@ namespace DnsClient
             Header = header;
             Questions = questions;
         }
-
-        public DnsQuestion[] Questions { get; }
-
-        public DnsRequestHeader Header { get; }
     }
 }

@@ -2,7 +2,7 @@
   "profiles": {
     "DigApp": {
       "commandName": "Project",
-      "commandLineArgs": "-x 104.47.151.115  -s 8.8.8.8"
+      "commandLineArgs": "perf google.com"
     },
     "MiniDig": {
       "commandName": "Project"

@@ -9,13 +9,20 @@ namespace DnsClient.Protocol
         {
         }
 
-        /// </inheritdocs>
+        /// <inheritdoc />
         public override string ToString()
         {
             return ToString(0);
         }
-
-        public virtual string ToString(int offset =0)
+        
+        /// <summary>
+        /// Same as <c>ToString</c> but offsets the <see cref="ResourceRecordInfo.QueryName"/> 
+        /// by <paramref name="offset"/>.
+        /// Set the offset to -32 for example to make it print nicely in consols.
+        /// </summary>
+        /// <param name="offset">The offset.</param>
+        /// <returns>A string representing this instance.</returns>
+        public virtual string ToString(int offset = 0)
         {
             return string.Format("{0," + offset + "} {1} \t{2} \t{3} \t{4}",
                 QueryName,
@@ -25,6 +32,11 @@ namespace DnsClient.Protocol
                 RecordToString());
         }
 
+        /// <summary>
+        /// Returns the actual record's value only and not the full object representation.
+        /// <see cref="ToString(int)"/> uses this to compose the full string value of this instance.
+        /// </summary>
+        /// <returns>A string representing this record.</returns>
         public abstract string RecordToString();
     }
 

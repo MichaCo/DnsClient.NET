@@ -7,6 +7,7 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DnsClient.Protocol;
 
 namespace DnsClient
 {
@@ -164,22 +165,22 @@ namespace DnsClient
             throw new InvalidOperationException("Not a valid IP4 or IP6 address.");
         }
 
-        public Task<DnsResponseMessage> QueryAsync(string query, QueryType queryType)
+        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType)
             => QueryAsync(query, queryType, CancellationToken.None);
 
-        public Task<DnsResponseMessage> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken)
+        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken)
             => QueryAsync(query, queryType, QueryClass.IN, cancellationToken);
 
-        public Task<DnsResponseMessage> QueryAsync(string query, QueryType queryType, QueryClass queryClass)
+        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass)
             => QueryAsync(query, queryType, queryClass, CancellationToken.None);
 
-        public Task<DnsResponseMessage> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
+        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
             => QueryAsync(cancellationToken, new DnsQuestion(query, queryType, queryClass));
 
-        ////public Task<DnsResponseMessage> QueryAsync(params DnsQuestion[] questions)
+        ////public Task<DnsQueryResponse> QueryAsync(params DnsQuestion[] questions)
         ////    => QueryAsync(CancellationToken.None, questions);
 
-        private Task<DnsResponseMessage> QueryAsync(CancellationToken cancellationToken, params DnsQuestion[] questions)
+        private Task<DnsQueryResponse> QueryAsync(CancellationToken cancellationToken, params DnsQuestion[] questions)
         {
             if (questions == null || questions.Length == 0)
             {
@@ -192,10 +193,10 @@ namespace DnsClient
             return QueryAsync(request, CancellationToken.None);
         }
 
-        public Task<DnsResponseMessage> QueryReverseAsync(IPAddress ipAddress)
+        public Task<DnsQueryResponse> QueryReverseAsync(IPAddress ipAddress)
             => QueryReverseAsync(ipAddress, CancellationToken.None);
 
-        public Task<DnsResponseMessage> QueryReverseAsync(IPAddress ipAddress, CancellationToken cancellationToken)
+        public Task<DnsQueryResponse> QueryReverseAsync(IPAddress ipAddress, CancellationToken cancellationToken)
         {
             if (ipAddress == null)
             {
@@ -219,7 +220,7 @@ namespace DnsClient
             return _uniqueId++;
         }
 
-        private async Task<DnsResponseMessage> QueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
+        private async Task<DnsQueryResponse> QueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
         {
             var cacheKey = string.Join("_", request.Questions.Select(p => ResponseCache.GetCacheKey(p)));
 
@@ -227,7 +228,7 @@ namespace DnsClient
             return result;
         }
 
-        private async Task<DnsResponseMessage> ResolveQueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
+        private async Task<DnsQueryResponse> ResolveQueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
         {
             if (request == null)
             {
@@ -278,12 +279,14 @@ namespace DnsClient
 
                         response = await resultTask;
 
-                        if (ThrowDnsErrors && response.Header.ResponseCode != DnsResponseCode.NoError)
+                        var result = response.AsReadonly;
+
+                        if (ThrowDnsErrors && result.Header.ResponseCode != DnsResponseCode.NoError)
                         {
-                            throw new DnsResponseException(response.Header.ResponseCode);
+                            throw new DnsResponseException(result.Header.ResponseCode);
                         }
 
-                        return response;
+                        return result;
                     }
                     catch (DnsResponseException)
                     {

@@ -71,7 +71,7 @@ namespace DnsClient
             {
                 var info = factory.ReadRecordInfo();
                 var record = factory.GetRecord(info);
-                response.AddServer(record);
+                response.AddAuthority(record);
             }
 
             for (int additionalIndex = 0; additionalIndex < additionalCount; additionalIndex++)

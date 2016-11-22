@@ -36,7 +36,7 @@ namespace DnsClient
             return question.QueryName + ":" + question.QuestionClass + ":" + question.QuestionType;
         }
 
-        public async Task<DnsResponseMessage> GetOrAdd(string key, Func<Task<DnsResponseMessage>> create)
+        public async Task<DnsQueryResponse> GetOrAdd(string key, Func<Task<DnsQueryResponse>> create)
         {
             if (create == null)
             {
@@ -96,7 +96,7 @@ namespace DnsClient
             cache._cleanupRunning = false;
         }
 
-        private ResponseEntry CreatedEntry(DnsResponseMessage response)
+        private ResponseEntry CreatedEntry(DnsQueryResponse response)
         {
             var entry = new ResponseEntry(response);
 
@@ -135,13 +135,13 @@ namespace DnsClient
         {
             public bool IsExpired => Environment.TickCount > TicksCreated + TTL;
 
-            public DnsResponseMessage Response { get; set; }
+            public DnsQueryResponse Response { get; set; }
 
             public int TicksCreated { get; }
 
             public long TTL { get; set; }
 
-            public ResponseEntry(DnsResponseMessage response)
+            public ResponseEntry(DnsQueryResponse response)
             {
                 var minTtl = response.AllRecords.Min(p => p?.TimeToLive);
 
