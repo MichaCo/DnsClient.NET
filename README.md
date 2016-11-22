@@ -5,6 +5,8 @@ DnsClient.NET is a simple to use, extensible .NET DNS client which targets netst
 
 [![Build status](https://ci.appveyor.com/api/projects/status/y1nlxim8tkv7w3f4?svg=true)](https://ci.appveyor.com/project/MichaCo/dnsclient-net)
 
+Get beta builds from [MyGet](https://www.myget.org/feed/dnsclient/package/nuget/DnsClient).
+
 ## Features
 TODO
 
