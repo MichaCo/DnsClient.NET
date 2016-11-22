@@ -28,6 +28,17 @@ namespace DnsClient
         public IReadOnlyCollection<DnsResourceRecord> Authorities => _servers.ToArray();
 
         /// <summary>
+        /// Gets a list of all answers, addtional and authority records.
+        /// </summary>
+        public IEnumerable<DnsResourceRecord> AllRecords
+        {
+            get
+            {
+                return Answers.Concat(Additionals).Concat(Authorities);
+            }
+        }
+
+        /// <summary>
         /// Gets the header of the response.
         /// </summary>
         public DnsResponseHeader Header { get; }

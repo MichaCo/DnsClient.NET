@@ -16,10 +16,11 @@ namespace DnsClient
         private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
         private static ushort _uniqueId = 0;
-        private readonly DnsMessageHandler _messageHandler;
-        private TimeSpan _timeout = s_defaultTimeout;
-        private Queue<EndPointInfo> _endpoints;
+        private readonly ResponseCache _cache = new ResponseCache(true);
         private readonly object _endpointLock = new object();
+        private readonly DnsMessageHandler _messageHandler;
+        private Queue<EndPointInfo> _endpoints;
+        private TimeSpan _timeout = s_defaultTimeout;
 
         /// <summary>
         /// Gets the list of configured name servers.
@@ -63,9 +64,39 @@ namespace DnsClient
 
         /// <summary>
         /// Gets or sets a flag indicating if the <see cref="LookupClient"/> should use caching or not.
-        /// The TTL of cached results is defined by the name server's response.
+        /// The TTL of cached results is defined by each resource record individually.
         /// </summary>
-        public bool UseCache { get; set; } = true;
+        public bool UseCache
+        {
+            get
+            {
+                return _cache.Enabled;
+            }
+            set
+            {
+                _cache.Enabled = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a <see cref="TimeSpan"/> which can override the TTL of a resource record in case the
+        /// TTL of the record is lower than this minimum value.
+        /// This is useful in cases where the server retruns a zero TTL and the record should be cached for a
+        /// very short duration anyways.
+        ///
+        /// This setting gets igonred in case <see cref="UseCache"/> is set to <c>False</c>.
+        /// </summary>
+        public TimeSpan? MimimumCacheTimeout
+        {
+            get
+            {
+                return _cache.MinimumTimout;
+            }
+            set
+            {
+                _cache.MinimumTimout = value;
+            }
+        }
 
         public LookupClient()
             : this(NameServer.ResolveNameServers().ToArray())
@@ -145,10 +176,10 @@ namespace DnsClient
         public Task<DnsResponseMessage> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
             => QueryAsync(cancellationToken, new DnsQuestion(query, queryType, queryClass));
 
-        public Task<DnsResponseMessage> QueryAsync(params DnsQuestion[] questions)
-            => QueryAsync(CancellationToken.None, questions);
+        ////public Task<DnsResponseMessage> QueryAsync(params DnsQuestion[] questions)
+        ////    => QueryAsync(CancellationToken.None, questions);
 
-        public Task<DnsResponseMessage> QueryAsync(CancellationToken cancellationToken, params DnsQuestion[] questions)
+        private Task<DnsResponseMessage> QueryAsync(CancellationToken cancellationToken, params DnsQuestion[] questions)
         {
             if (questions == null || questions.Length == 0)
             {
@@ -189,6 +220,14 @@ namespace DnsClient
         }
 
         private async Task<DnsResponseMessage> QueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
+        {
+            var cacheKey = string.Join("_", request.Questions.Select(p => ResponseCache.GetCacheKey(p)));
+
+            var result = await _cache.GetOrAdd(cacheKey, async () => await ResolveQueryAsync(request, cancellationToken));
+            return result;
+        }
+
+        private async Task<DnsResponseMessage> ResolveQueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
         {
             if (request == null)
             {
@@ -245,6 +284,12 @@ namespace DnsClient
                         }
 
                         return response;
+                    }
+                    catch (DnsResponseException)
+                    {
+                        // occurs only if the option to throw dns exceptions is enabled on the lookup client. (see above).
+                        // lets not mess with the stack
+                        throw;
                     }
                     catch (TimeoutException)
                     {

@@ -81,6 +81,7 @@ namespace DigApp
             }
             else if (ServersArg.HasValue())
             {
+                var lookup = new LookupClient();
                 var values = ServersArg.Values.Select(p => p.Split('#').ToArray());
                 var result = new List<IPEndPoint>();
                 foreach (var serverPair in values)
@@ -93,8 +94,6 @@ namespace DigApp
                     {
                         try
                         {
-                            var lookup = new LookupClient();
-                            lookup.Timeout = TimeSpan.FromMinutes(10);
                             var lResult = lookup.QueryAsync(server, QueryType.A).Result;
                             ip = lResult.Answers.OfType<ARecord>().FirstOrDefault()?.Address;
                         }

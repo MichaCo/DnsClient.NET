@@ -47,6 +47,20 @@ namespace DnsClient.Tests
             Assert.True(result.Header.AnswerCount == 0);
         }
 
+        [Fact]
+        public void Lookup_ThrowDnsErrors()
+        {
+            var lookup = new LookupClient();
+            lookup.ThrowDnsErrors = true;
+
+            Action act = () => lookup.QueryAsync("lalacom", (QueryType)12345).GetAwaiter().GetResult();
+
+            var ex = Record.Exception(act) as DnsResponseException;
+
+            // make sure the complex try catch in ResolveQuery doesn't re throw with a messed up message/stack.
+            Assert.Equal(ex.Code, DnsResponseCode.NotExistentDomain);
+        }
+
         private async Task<IPAddress> GetDnsEntryAsync()
         {
             // retries the normal host name (without domain)
