@@ -2,7 +2,7 @@
 using System.Net;
 using System.Text;
 
-namespace DnsClient
+namespace DnsClient.Protocol
 {
     public class DnsDatagramReader
     {

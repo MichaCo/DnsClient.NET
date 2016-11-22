@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace DnsClient
+namespace DnsClient.Protocol
 {
     public class DnsDatagramWriter
     {

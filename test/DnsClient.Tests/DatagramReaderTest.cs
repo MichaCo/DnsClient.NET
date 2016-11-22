@@ -1,4 +1,5 @@
 ﻿using System;
+using DnsClient.Protocol;
 using Xunit;
 
 namespace DnsClient.Tests
