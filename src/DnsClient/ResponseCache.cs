@@ -143,10 +143,10 @@ namespace DnsClient
 
             public ResponseEntry(DnsResponseMessage response)
             {
-                var minTtl = response.AllRecords.Min(p => p.TimeToLive);
+                var minTtl = response.AllRecords.Min(p => p?.TimeToLive);
 
                 Response = response;
-                TTL = (int)minTtl * 1000;    // ttl is in second, we calculate in millis
+                TTL = response.HasError || !minTtl.HasValue ? 0 : (int)minTtl.Value * 1000;    // ttl is in second, we calculate in millis
                 TicksCreated = Environment.TickCount;
             }
         }

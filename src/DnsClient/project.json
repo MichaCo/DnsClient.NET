@@ -33,7 +33,6 @@
     }
   },
   "dependencies": {
-    "Microsoft.Extensions.Logging.Abstractions": "1.0.0"
   },
   "frameworks": {
     "netstandard1.3": {
