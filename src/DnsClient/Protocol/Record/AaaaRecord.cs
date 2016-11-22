@@ -3,7 +3,7 @@ using System.Net;
 
 namespace DnsClient.Protocol.Record
 {
-    /*
+    /* https://tools.ietf.org/html/rfc3596#section-2.2
     2.2 AAAA data format
 
     A 128 bit IPv6 address is encoded in the data portion of an AAAA

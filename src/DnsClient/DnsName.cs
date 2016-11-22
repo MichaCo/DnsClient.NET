@@ -5,51 +5,6 @@ using System.Text;
 
 namespace DnsClient
 {
-    /* Todo: write tests
-            var offset = 0;
-
-            var txtName = new DnsName("afk;asddda");
-
-            var nullName = new DnsName();
-            var nullStr = nullName.ToString();
-            var nullbytes = nullName.ToBytes();
-
-            var dnsNameA = new DnsName("www.google.com");
-            var gName = dnsNameA.ToString();
-            var gBytes = dnsNameA.ToBytes();
-
-            var longName = new DnsName("12341234123412341234123412341234123412341234.123123123123123123123123123123123123123123123123.123123123123123123");
-            var longString = longName.ToString();
-            var longBytes = longName.ToBytes();
-
-            var longRevers = DnsName.FromBytes(longBytes, ref offset);
-
-            try
-            {
-                // invalid length attr
-                offset = 0;
-                DnsName.FromBytes(new byte[] { 22, 3, 1, 0 }, ref offset);
-            }
-            catch (Exception e) { }
-
-            try
-            {
-                // index oor
-                offset = 20;
-                DnsName.FromBytes(new byte[] { 22, 3, 1, 0 }, ref offset);
-            }
-            catch (Exception e) { }
-
-            var nameWithEnd = new DnsName("www.gooogle.com.");
-            var wName = nameWithEnd.ToString();
-
-            var nameB = new DnsName("lala\\u0\u106fun.fu.com.12344.fun");
-
-            var s = nameB.ToString();
-
-            var isName = nameB.IsHostName;
-     * */
-
     public class DnsName : IComparable
     {
         private const byte ReferenceByte = 0xc0;
