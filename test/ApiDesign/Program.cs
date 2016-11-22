@@ -10,15 +10,21 @@ namespace ApiDesign
     {
         public static void Main(string[] args)
         {
+            ////var lookup = new LookupClient();
+            ////var result = lookup.QueryAsync("google.com", QueryType.ANY).Result;
+
+            ////var record = result.Answers.ARecords().FirstOrDefault();
+            ////Console.WriteLine(record?.Address);
+
             var lookup = new LookupClient();
             lookup.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
 
             try
             {
-                var rResult = lookup.QueryReverseAsync(IPAddress.Parse("192.168.178.23")).Result;
+                var rResult = lookup.QueryReverseAsync(IPAddress.Parse("192.168.178.23")).Result;                
                 var answer = rResult.Answers.OfType<PtrRecord>().FirstOrDefault();
                 Console.WriteLine(answer?.ToString(-32));
-
+                
                 if (answer != null)
                 {
                     //var result = lookup.QueryAsync("google.com", 255).GetAwaiter().GetResult();
@@ -26,7 +32,7 @@ namespace ApiDesign
                     Console.WriteLine(mResult.Answers.FirstOrDefault()?.ToString(-32));
                 }
 
-                var gResult = lookup.QueryAsync("google.com", QueryType.CAA).GetAwaiter().GetResult();
+                var gResult = lookup.QueryAsync("google.com", QueryType.ANY).GetAwaiter().GetResult();
                 Console.WriteLine(gResult.Answers.FirstOrDefault()?.ToString(-32));
             }
             catch (DnsResponseException ex)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 
 namespace DnsClient.Protocol.Record
@@ -17,8 +16,9 @@ namespace DnsClient.Protocol.Record
 
     Hosts that have multiple Internet addresses will have multiple A
     records.
-    * 
+    *
     */
+
     /// <summary>
     /// A DNS resource record represending an IP address.
     /// Hosts that have multiple Internet addresses will have multiple A records.
@@ -40,21 +40,6 @@ namespace DnsClient.Protocol.Record
         public override string RecordToString()
         {
             return Address.ToString();
-        }
-    }
-}
-
-namespace DnsClient
-{
-    using System.Linq;
-    using Protocol.Record;
-    using Protocol;
-
-    public static partial class RecordCollectionExtension
-    {
-        public static IEnumerable<ARecord> ARecords(this IEnumerable<DnsResourceRecord> records)
-        {
-            return records.OfType<ARecord>();
         }
     }
 }
