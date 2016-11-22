@@ -7,10 +7,10 @@ Simple usage
 ```` csharp
 
 var lookup = new LookupClient();
-var result = await lookup.QueryAsync("google.com", QueryType.ANY)
+var result = await lookup.QueryAsync("google.com", QueryType.ANY);
 
 var record = result.Answers.ARecords().FirstOrDefault();
-Console.WriteLine(record?.Address);
+var address = record?.Address;
 
 ```` 
 TODO: more examples
