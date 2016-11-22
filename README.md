@@ -25,7 +25,8 @@ To run it, open a command line windows, navigate to \Samples\MiniDig and run `do
 
 `dotnet run google.com ANY` to query for google.com
 
-If not otherwise specified, it uses the DNS server configured for your local network adapter, to specify a different server, use the `-s` switch, e.g. 
+If nothing else is specified, it uses the DNS server configured for your local network adapter.
+To specify a different server, use the `-s` switch, for example:
 
 `dotnet run -s 8.8.8.8 google.com` to use the public google name server.
 
