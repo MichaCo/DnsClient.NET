@@ -1,10 +1,14 @@
 # DnsClient.NET
 DnsClient.NET is a simple to use, extensible .NET DNS client which targets netstandard1.3 or higher and .NET4.5.
 
-## How to use
-Simple usage
+## Features
+TODO
 
-```` csharp
+## Usage examples:
+### Simple usage
+The following example instantiates a new `LookupClient` using your network adapters to determine available DNS servers.
+
+``` csharp
 
 var lookup = new LookupClient();
 var result = await lookup.QueryAsync("google.com", QueryType.ANY);
@@ -12,7 +16,24 @@ var result = await lookup.QueryAsync("google.com", QueryType.ANY);
 var record = result.Answers.ARecords().FirstOrDefault();
 var address = record?.Address;
 
-```` 
+``` 
+
+### Specify other DNS servers
+To explicitly specify a DNS server, there are some overloads:
+
+Create a client using a DNS server on localhost with the default port (53)
+
+``` csharp
+var lookup = new LookupClient(IPAddress.Parse("127.0.0.1"));
+```
+
+Create a client using a DNS server on port 5000:
+
+``` csharp
+var endpoint = new IPEndPoint(IPAddress.Parse("192.168.178.23"), 5000);
+var lookup = new LookupClient(endpoint);
+```
+
 TODO: more examples
 
 ## Examples
