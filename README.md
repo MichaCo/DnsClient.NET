@@ -15,6 +15,20 @@ var address = record?.Address;
 ```` 
 TODO: more examples
 
+## Examples
+Under Samples in this repoistory there is a greate console application which kind of works like the well known "dig".
+It doesn't have all the features of course but quite many...
+
+To run it, open a command line windows, navigate to \Samples\MiniDig and run `dotnet run`.
+
+`dotnet run -?` gives you the list of options and commands.
+
+`dotnet run google.com ANY` to query for google.com
+
+If not otherwise specified, it uses the DNS server configured for your local network adapter, to specify a different server, use the `-s` switch, e.g. 
+
+`dotnet run -s 8.8.8.8 google.com` to use the public google name server.
+
 ## Milestones
 The package is currently available as a beta version and is not feature complete yet.
 
