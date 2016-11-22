@@ -1,5 +1,9 @@
 # DnsClient.NET
-DnsClient.NET is a simple to use, extensible .NET DNS client which targets netstandard1.3 or higher and .NET4.5.
+DnsClient.NET is a simple to use, extensible .NET DNS client which targets netstandard1.3 or higher and .Net 4.5.
+
+## Build
+
+[![Build status](https://ci.appveyor.com/api/projects/status/y1nlxim8tkv7w3f4?svg=true)](https://ci.appveyor.com/project/MichaCo/dnsclient-net)
 
 ## Features
 TODO
