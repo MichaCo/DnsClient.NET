@@ -1,0 +1,14 @@
+version: 1.0.0-beta-{build}
+skip_tags: true
+image: Visual Studio 2015
+clone_folder: C:\projects\DnsClient.NET
+build_script:
+- cmd: >-
+    SET DOTNET_BUILD_VERSION=beta-%APPVEYOR_BUILD_NUMBER%
+
+    SET CONFIGURATION=Release
+
+    C:\projects\DnsClient.NET\build.cmd --quiet verify
+artifacts:
+- path: artifacts\build\*.nupkg
+  name: nugets
