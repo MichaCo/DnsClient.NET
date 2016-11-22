@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using DnsClient.Protocol;
+using DnsClient.Protocol.Record;
 
 namespace DnsClient
 {
@@ -20,14 +21,14 @@ namespace DnsClient
         /// <summary>
         /// Gets a list of all answers, addtional and authority records.
         /// </summary>
-        public IEnumerable<DnsResourceRecord> AllRecords
+        public IReadOnlyCollection<DnsResourceRecord> AllRecords
         {
             get
             {
-                return Answers.Concat(Additionals).Concat(Authorities);
+                return Answers.Concat(Additionals).Concat(Authorities).ToArray();
             }
         }
-
+        
         /// <summary>
         /// Gets a list of answer records.
         /// </summary>

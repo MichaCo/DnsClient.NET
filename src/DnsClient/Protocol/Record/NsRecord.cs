@@ -49,3 +49,19 @@ namespace DnsClient.Protocol.Record
         }
     }
 }
+
+namespace DnsClient
+{
+    using System.Linq;
+    using Protocol.Record;
+    using Protocol;
+    using System.Collections.Generic;
+
+    public static partial class RecordCollectionExtension
+    {
+        public static IEnumerable<NsRecord> NsRecords(this IEnumerable<DnsResourceRecord> records)
+        {
+            return records.OfType<NsRecord>();
+        }
+    }
+}
