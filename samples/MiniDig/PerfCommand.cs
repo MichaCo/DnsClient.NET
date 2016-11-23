@@ -52,7 +52,7 @@ namespace DigApp
         {
             var result = new PerfResult();
             result.Times = new List<double>();
-            
+
             var swatchReq = Stopwatch.StartNew();
             for (var index = 0; index < _runs; index++)
             {
@@ -73,8 +73,48 @@ namespace DigApp
                 // delay each request a little
                 await Task.Delay(0);
             }
-            
+
             result.TimeTakenMs = (long)result.Times.Sum();
+            return result;
+        }
+    }
+
+    internal class PerfClientNative
+    {
+        private readonly LookupClient _lookup;
+        private readonly string _query;
+        private readonly int _runs;
+
+        public PerfClientNative(LookupSettings settings, int runs, string query)
+        {
+            _query = query;
+            _runs = runs;
+        }
+
+        public PerfResult Run()
+        {
+            var result = new PerfResult();
+            result.Times = new List<double>();
+            var swatchReq = Stopwatch.StartNew();
+            for (var index = 0; index < _runs; index++)
+            {
+                swatchReq.Restart();
+                try
+                {
+                    var queryResult = Interop.Dns.GetMxRecords(_query);
+                    result.SuccessResponses++;
+                }
+                catch (Exception)
+                {
+                    result.ErrorResponses++;
+                }
+                var responseElapsed = swatchReq.ElapsedTicks / 10000d;
+
+                result.Times.Add(responseElapsed);
+            }
+
+            result.TimeTakenMs = (long)result.Times.Sum();
+
             return result;
         }
     }
@@ -112,7 +152,7 @@ namespace DigApp
             var settings = GetLookupSettings();
             var runner = new PerfRunner(settings, useClients, useRuns, useQuery);
             await runner.Run();
-            
+
             return 0;
         }
     }
@@ -136,21 +176,29 @@ namespace DigApp
         {
             Console.WriteLine($"; <<>> Starting perf run with {_clients} clients and {_runs} queries per client <<>>");
             Console.WriteLine($"; ({_settings.Endpoints.Length} Servers, caching:{_settings.UseCache}, minttl:{_settings.MinTTL.TotalMilliseconds})");
+
+            // warmup
+            //var tasks = new List<Task<PerfResult>>();
+
+            //Console.Write(";; Warming up ");
+            //for (var i = 0; i < 10; i++)
+            //{
+            //    Console.Write(".");
+            //    var client = new PerfClient(_settings, 2, _query);
+            //    tasks.Add(client.Run());
+            //}
+            //Console.Write("\r");
+            //await Task.WhenAll(tasks);
+
+            //await ManagedTest();
+            await NativeTest();
+        }
+
+        private async Task ManagedTest()
+        {
+            // managed test
             var sw = Stopwatch.StartNew();
-
             var tasks = new List<Task<PerfResult>>();
-
-            Console.Write(";; Warming up ");
-            for (var i = 0; i < 10; i++)
-            {
-                Console.Write(".");
-                var client = new PerfClient(_settings, 2, _query);
-                tasks.Add(client.Run());
-            }
-            Console.Write("\r");
-            await Task.WhenAll(tasks);
-
-            tasks = new List<Task<PerfResult>>();
 
             for (var i = 0; i < _clients; i++)
             {
@@ -163,7 +211,37 @@ namespace DigApp
             var elapsed = sw.ElapsedMilliseconds;
             var results = tasks.Select(p => p.Result);
 
-            Console.WriteLine($";; Results per client:\t\t");
+            Console.WriteLine($";; Managed Results per client:\t\t");
+            Console.WriteLine($";; {"Overall(ms)",-15} {"OK",-10} {"Errors",-10} {"MIN(ms)",-10}{"MAX(ms)",-10}{"AVG(ms)",-10}{"Median",-10}");
+            foreach (var result in results)
+            {
+                Console.WriteLine(result);
+            }
+
+            var avgRuntime = (1000.0d / elapsed) * (_clients * _runs);
+            Console.WriteLine($";; Run finished after {elapsed}ms for {_clients} clients and {_runs} queries => {avgRuntime:N0}queries per second.");
+        }
+
+        private async Task NativeTest()
+        {
+            // native test
+            var sw = Stopwatch.StartNew();
+            var tasks = new List<Action>();
+            var results = new System.Collections.Concurrent.ConcurrentBag<PerfResult>();
+            for (var i = 0; i < _clients; i++)
+            {
+                var client = new PerfClientNative(_settings, _runs, _query);
+                tasks.Add(() =>
+                {
+                    results.Add(client.Run());
+                });
+            }
+
+            Parallel.Invoke(new ParallelOptions() { MaxDegreeOfParallelism = 8 }, tasks.ToArray());
+
+            var elapsed = sw.ElapsedMilliseconds;
+
+            Console.WriteLine($";; Native Results per client:\t\t");
             Console.WriteLine($";; {"Overall(ms)",-15} {"OK",-10} {"Errors",-10} {"MIN(ms)",-10}{"MAX(ms)",-10}{"AVG(ms)",-10}{"Median",-10}");
             foreach (var result in results)
             {

@@ -22,12 +22,17 @@ namespace DnsClient
             var result = new HashSet<IPEndPoint>();
 
             var adapters = NetworkInterface.GetAllNetworkInterfaces();
-            foreach (NetworkInterface networkInterface in adapters.Where(p=>p.OperationalStatus == OperationalStatus.Up))
+            foreach (NetworkInterface networkInterface in
+                adapters
+                    .Where(p => p.OperationalStatus == OperationalStatus.Up
+                    && p.NetworkInterfaceType != NetworkInterfaceType.Loopback))
             {
                 foreach (IPAddress dnsAddress in networkInterface
                     .GetIPProperties()
                     .DnsAddresses
-                    .Where(i => i.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork || i.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6))
+                    .Where(i =>
+                        i.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
+                        || i.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6))
                 {
                     result.Add(new IPEndPoint(dnsAddress, DefaultPort));
                 }
