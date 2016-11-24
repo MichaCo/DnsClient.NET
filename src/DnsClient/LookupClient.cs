@@ -11,7 +11,7 @@ using DnsClient.Protocol;
 
 namespace DnsClient
 {
-    public class LookupClient
+    public class LookupClient : IDisposable
     {
         private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
@@ -22,6 +22,7 @@ namespace DnsClient
         private readonly DnsMessageHandler _messageHandler;
         private Queue<EndPointInfo> _endpoints;
         private TimeSpan _timeout = s_defaultTimeout;
+        private bool _disposedValue = false;
 
         /// <summary>
         /// Gets the list of configured name servers.
@@ -116,11 +117,11 @@ namespace DnsClient
         {
         }
 
-        public LookupClient(DnsMessageHandler messageInvoker, ICollection<IPEndPoint> nameServers)
+        public LookupClient(DnsMessageHandler messageHandler, ICollection<IPEndPoint> nameServers)
         {
-            if (messageInvoker == null)
+            if (messageHandler == null)
             {
-                throw new ArgumentNullException(nameof(messageInvoker));
+                throw new ArgumentNullException(nameof(messageHandler));
             }
             if (nameServers == null || nameServers.Count == 0)
             {
@@ -133,7 +134,7 @@ namespace DnsClient
             {
                 _endpoints.Enqueue(new EndPointInfo(server));
             }
-            _messageHandler = messageInvoker;
+            _messageHandler = messageHandler;
         }
 
         /// <summary>
@@ -175,22 +176,24 @@ namespace DnsClient
             => QueryAsync(query, queryType, queryClass, CancellationToken.None);
 
         public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
-            => QueryAsync(cancellationToken, new DnsQuestion(query, queryType, queryClass));
+            => QueryAsync(new DnsQuestion(query, queryType, queryClass), cancellationToken);
 
         ////public Task<DnsQueryResponse> QueryAsync(params DnsQuestion[] questions)
         ////    => QueryAsync(CancellationToken.None, questions);
 
-        private Task<DnsQueryResponse> QueryAsync(CancellationToken cancellationToken, params DnsQuestion[] questions)
+        private async Task<DnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)
         {
-            if (questions == null || questions.Length == 0)
+            if (question == null)
             {
-                throw new ArgumentNullException(nameof(questions));
+                throw new ArgumentNullException(nameof(question));
             }
 
-            var head = new DnsRequestHeader(GetNextUniqueId(), questions.Length, Recursion, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, questions);
-
-            return QueryAsync(request, CancellationToken.None);
+            var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, DnsOpCode.Query);
+            var request = new DnsRequestMessage(head, question);
+            var cacheKey = ResponseCache.GetCacheKey(question);
+            var result = await _cache.GetOrAdd(cacheKey, async () => await ResolveQueryAsync(request, cancellationToken));
+            
+            return result;
         }
 
         public Task<DnsQueryResponse> QueryReverseAsync(IPAddress ipAddress)
@@ -203,11 +206,8 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(ipAddress));
             }
 
-            var arpa = GetArpaName(ipAddress);
-            var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, new DnsQuestion(arpa, QueryType.PTR, QueryClass.IN));
-
-            return QueryAsync(request, cancellationToken);
+            var arpa = GetArpaName(ipAddress);            
+            return QueryAsync(arpa, QueryType.PTR, QueryClass.IN, cancellationToken);
         }
 
         private static ushort GetNextUniqueId()
@@ -220,13 +220,12 @@ namespace DnsClient
             return _uniqueId++;
         }
 
-        private async Task<DnsQueryResponse> QueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
-        {
-            var cacheKey = string.Join("_", request.Questions.Select(p => ResponseCache.GetCacheKey(p)));
-
-            var result = await _cache.GetOrAdd(cacheKey, async () => await ResolveQueryAsync(request, cancellationToken));
-            return result;
-        }
+        // TODO: TCP fallback on truncates
+        // TODO: most popular DNS servers do not support mulitple queries in one packet, therefore, split it into multiple requests?
+        //private async Task<DnsQueryResponse> QueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
+        //{
+            
+        //}
 
         private async Task<DnsQueryResponse> ResolveQueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
         {
@@ -347,120 +346,23 @@ namespace DnsClient
                 IsDisabled = false;
             }
         }
+        
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _messageHandler.Dispose();
+                }
+
+                _disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
     }
-
-    ////[EventSource(Name = "MichaCo-DnsClient")]
-    ////public class DnsEventSource : EventSource
-    ////{
-    ////    public class Keywords
-    ////    {
-    ////        public const EventKeywords Default = (EventKeywords)0x0001;
-    ////        public const EventKeywords Debug = (EventKeywords)0x0002;
-    ////        public const EventKeywords EnterExit = (EventKeywords)0x0004;
-    ////    }
-
-    ////    private const string MissingMember = "(?)";
-    ////    private const string NullInstance = "(null)";
-    ////    private const string StaticMethodObject = "(static)";
-    ////    private const string NoParameters = "";
-    ////    private const int EnterEventId = 1;
-    ////    private const int ExitEventId = 2;
-    ////    private const int AssociateEventId = 3;
-    ////    private const int InfoEventId = 4;
-    ////    private const int ErrorEventId = 5;
-    ////    private const int CriticalFailureEventId = 6;
-    ////    private const int DumpArrayEventId = 7;
-    ////    public static readonly DnsEventSource Log = new DnsEventSource();
-
-    ////    public static new bool IsEnabled => Log.IsEnabled();
-
-    ////    [NonEvent]
-    ////    public static void Info(object thisOrContextObject, FormattableString formattableString = null, [CallerMemberName] string memberName = null)
-    ////    {
-    ////        if (IsEnabled) Log.Info(IdOf(thisOrContextObject), memberName, formattableString != null ? Format(formattableString) : NoParameters);
-    ////    }
-
-    ////    public static void Info(object thisOrContextObject, object message, [CallerMemberName] string memberName = null)
-    ////    {
-    ////        if (IsEnabled) Log.Info(IdOf(thisOrContextObject), memberName, Format(message).ToString());
-    ////    }
-
-    ////    [Event(InfoEventId, Level = EventLevel.Informational, Keywords = Keywords.Default)]
-    ////    private void Info(string thisOrContextObject, string memberName, string message) =>
-    ////        WriteEvent(InfoEventId, thisOrContextObject, memberName ?? MissingMember, message);
-
-    ////    [NonEvent]
-    ////    public static string IdOf(object value) => value != null ? value.GetType().Name + "#" + GetHashCode(value) : NullInstance;
-
-    ////    [NonEvent]
-    ////    public static int GetHashCode(object value) => value?.GetHashCode() ?? 0;
-
-    ////    [NonEvent]
-    ////    private static string Format(FormattableString s)
-    ////    {
-    ////        switch (s.ArgumentCount)
-    ////        {
-    ////            case 0: return s.Format;
-    ////            case 1: return string.Format(s.Format, Format(s.GetArgument(0)));
-    ////            case 2: return string.Format(s.Format, Format(s.GetArgument(0)), Format(s.GetArgument(1)));
-    ////            case 3: return string.Format(s.Format, Format(s.GetArgument(0)), Format(s.GetArgument(1)), Format(s.GetArgument(2)));
-    ////            default:
-    ////                object[] args = s.GetArguments();
-    ////                object[] formattedArgs = new object[args.Length];
-    ////                for (int i = 0; i < args.Length; i++)
-    ////                {
-    ////                    formattedArgs[i] = Format(args[i]);
-    ////                }
-    ////                return string.Format(s.Format, formattedArgs);
-    ////        }
-    ////    }
-
-    ////    [NonEvent]
-    ////    public static object Format(object value)
-    ////    {
-    ////        // If it's null, return a known string for null values
-    ////        if (value == null)
-    ////        {
-    ////            return NullInstance;
-    ////        }
-
-    ////        // Format arrays with their element type name and length
-    ////        Array arr = value as Array;
-    ////        if (arr != null)
-    ////        {
-    ////            return $"{arr.GetType().GetElementType()}[{((Array)value).Length}]";
-    ////        }
-
-    ////        // Format ICollections as the name and count
-    ////        ICollection c = value as ICollection;
-    ////        if (c != null)
-    ////        {
-    ////            return $"{c.GetType().Name}({c.Count})";
-    ////        }
-
-    ////        // Format SafeHandles as their type, hash code, and pointer value
-    ////        SafeHandle handle = value as SafeHandle;
-    ////        if (handle != null)
-    ////        {
-    ////            return $"{handle.GetType().Name}:{handle.GetHashCode()}(0x{handle.DangerousGetHandle():X})";
-    ////        }
-
-    ////        // Format IntPtrs as hex
-    ////        if (value is IntPtr)
-    ////        {
-    ////            return $"0x{value:X}";
-    ////        }
-
-    ////        // If the string representation of the instance would just be its type name,
-    ////        // use its id instead.
-    ////        string toString = value.ToString();
-    ////        if (toString == null || toString == value.GetType().FullName)
-    ////        {
-    ////            return IdOf(value);
-    ////        }
-
-    ////        // Otherwise, return the original object so that the caller does default formatting.
-    ////        return value;
-    ////    }
-    ////}
 }

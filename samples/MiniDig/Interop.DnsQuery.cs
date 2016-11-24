@@ -9,6 +9,12 @@ namespace DigApp
 {
     public partial class Interop
     {
+        [DllImport("dnsapi.dll", EntryPoint = "DnsFlushResolverCacheEntry_W", CharSet = CharSet.Unicode)]
+        public static extern int DnsFlushResolverCacheEntry(string hostName);
+
+        [DllImport("dnsapi.dll", EntryPoint = "DnsFlushResolverCache")]
+        public static extern int DnsFlushResolverCache();
+
         public const int DNS_ATMA_MAX_ADDR_LENGTH = 20;
         public const int DNS_ATMA_FORMAT_E164 = 1;
         public const int DNS_ATMA_FORMAT_AESA = 2;

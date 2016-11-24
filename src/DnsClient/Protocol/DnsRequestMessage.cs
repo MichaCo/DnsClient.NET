@@ -10,25 +10,25 @@ namespace DnsClient.Protocol
     {
         public DnsRequestHeader Header { get; }
 
-        public DnsQuestion[] Questions { get; }
+        public DnsQuestion Question { get; }
 
-        public DnsRequestMessage(DnsRequestHeader header, params DnsQuestion[] questions)
+        public DnsRequestMessage(DnsRequestHeader header, DnsQuestion question)
         {
             if (header == null)
             {
                 throw new ArgumentNullException(nameof(header));
             }
-            if (questions == null || questions.Length == 0)
+            if (question == null )
             {
-                throw new ArgumentException("At least one question must be specified for the request.", nameof(questions));
+                throw new ArgumentNullException(nameof(question));
             }
-            if (header.QuestionCount != questions.Length)
+            if (header.QuestionCount != 1)
             {
                 throw new InvalidOperationException("Header question count and number of questions do not match.");
             }
 
             Header = header;
-            Questions = questions;
+            Question = question;
         }
     }
 }

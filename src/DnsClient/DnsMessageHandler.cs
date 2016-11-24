@@ -1,22 +1,26 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
-using DnsClient.Protocol.Record;
 
 namespace DnsClient
 {
-    public abstract class DnsMessageHandler
+    public abstract class DnsMessageHandler : IDisposable
     {
+        private bool _disposedValue = false;
+
         public abstract Task<DnsResponseMessage> QueryAsync(IPEndPoint server, DnsRequestMessage request, CancellationToken cancellationToken);
 
         public abstract bool IsTransientException<T>(T exception) where T : Exception;
 
         public virtual byte[] GetRequestData(DnsRequestMessage request)
         {
-            var writer = new DnsDatagramWriter(DnsRequestHeader.HeaderLength);
+            var question = request.Question;
+            var questionData = question.QueryName.AsBytes();
+            
+            // 4 more bytes for the type and class
+            var writer = new DnsDatagramWriter(DnsRequestHeader.HeaderLength + questionData.Length + 4);
 
             writer.SetInt16Network((short)request.Header.Id);
             writer.SetUInt16Network(request.Header.RawFlags);
@@ -25,16 +29,9 @@ namespace DnsClient
             // jump to end of header, we didn't write all fields
             writer.Index = DnsRequestHeader.HeaderLength;
 
-            foreach (var question in request.Questions)
-            {
-                var questionData = question.QueryName.AsBytes();
-
-                // 4 more bytes for the type and class
-                writer.Extend(questionData.Length + 4);
-                writer.SetBytes(questionData, questionData.Length);
-                writer.SetUInt16Network((ushort)question.QuestionType);
-                writer.SetUInt16Network((ushort)question.QuestionClass);
-            }
+            writer.SetBytes(questionData, questionData.Length);
+            writer.SetUInt16Network((ushort)question.QuestionType);
+            writer.SetUInt16Network((ushort)question.QuestionClass);
 
             return writer.Data;
         }
@@ -82,6 +79,23 @@ namespace DnsClient
             }
 
             return response;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                }
+
+                _disposedValue = true;
+            }
+        }
+        
+        public void Dispose()
+        {
+            Dispose(true);
         }
     }
 }

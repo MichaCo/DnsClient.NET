@@ -76,20 +76,22 @@ namespace DigApp
                 }
                 else
                 {
-                    result.SuccessResponses++;
+                    result.SuccessResponses += queryResult.AllRecords.Count;
                 }
 
                 result.Times.Add(responseElapsed);
             }
 
             result.TimeTakenMs = (long)result.Times.Sum();
+
+            // cleanup
+            _lookup.Dispose();
             return result;
         }
     }
 
     internal class PerfClientNative
     {
-        private readonly LookupClient _lookup;
         private string _query;
         private readonly bool _useRandom;
         private readonly int _runs;
@@ -108,6 +110,7 @@ namespace DigApp
         {
             var result = new PerfResult();
             result.Times = new List<double>();
+            var swatch = Stopwatch.StartNew();
             var swatchReq = Stopwatch.StartNew();
 
             for (var index = 0; index < _runs; index++)
@@ -121,7 +124,12 @@ namespace DigApp
                 try
                 {
                     var queryResult = Interop.Dns.GetARecords(_query);
-                    result.SuccessResponses++;
+                    //Interop.DnsFlushResolverCacheEntry(_query);
+                    //if (Interop.DnsFlushResolverCacheEntry(_query) == 0)
+                    //{
+                    //    result.ErrorResponses++;
+                    //}
+                    result.SuccessResponses += queryResult.Count;
                 }
                 catch (Exception)
                 {
@@ -132,7 +140,69 @@ namespace DigApp
                 result.Times.Add(responseElapsed);
             }
 
-            result.TimeTakenMs = (long)result.Times.Sum();
+            result.TimeTakenMs = swatch.ElapsedMilliseconds;
+
+            return result;
+        }
+    }
+
+    internal class PerfClientNativeEx
+    {
+        private string _query;
+        private readonly bool _useRandom;
+        private readonly int _runs;
+        private readonly LookupSettings _settings;
+
+        public PerfClientNativeEx(LookupSettings settings, int runs, string query)
+        {
+            _query = query;
+            _settings = settings;
+            _runs = runs;
+            if (_query == string.Empty)
+            {
+                _useRandom = true;
+            }
+        }
+
+        public PerfResult Run()
+        {
+            var result = new PerfResult();
+            result.Times = new List<double>();
+            var swatch = Stopwatch.StartNew();
+            var swatchReq = Stopwatch.StartNew();
+
+            for (var index = 0; index < _runs; index++)
+            {
+                swatchReq.Restart();
+                if (_useRandom)
+                {
+                    _query = PerfCommand.NextDomainName();
+                }
+
+                try
+                {
+                    var queryResult = Interop.DNSQueryer.QueryDNSForRecordTypeSpecificNameServers(
+                        _query, _settings.Endpoints, Interop.DNSQueryer.DnsRecordTypes.DNS_TYPE_A);
+                    //Interop.DnsFlushResolverCacheEntry(_query);
+                    //if (Interop.DnsFlushResolverCacheEntry(_query) == 0)
+                    //{
+                    //    result.ErrorResponses++;
+                    //}
+                    if (queryResult.Length > 0)
+                    {
+                        result.SuccessResponses++;
+                    }
+                }
+                catch (Exception)
+                {
+                    result.ErrorResponses++;
+                }
+
+                var responseElapsed = swatchReq.ElapsedTicks / 10000d;
+                result.Times.Add(responseElapsed);
+            }
+
+            result.TimeTakenMs = swatch.ElapsedMilliseconds;
 
             return result;
         }
@@ -212,22 +282,10 @@ namespace DigApp
         {
             Console.WriteLine($"; <<>> Starting perf run with {_clients} clients and {_runs} queries per client <<>>");
             Console.WriteLine($"; ({_settings.Endpoints.Length} Servers, caching:{_settings.UseCache}, minttl:{_settings.MinTTL.TotalMilliseconds})");
-
-            // warmup
-            //var tasks = new List<Task<PerfResult>>();
-
-            //Console.Write(";; Warming up ");
-            //for (var i = 0; i < 10; i++)
-            //{
-            //    Console.Write(".");
-            //    var client = new PerfClient(_settings, 2, _query);
-            //    tasks.Add(client.Run());
-            //}
-            //Console.Write("\r");
-            //await Task.WhenAll(tasks);
-
+            
             await ManagedTest();
-            await NativeTest();
+            NativeTest();
+            NativeTestEx();
         }
 
         private async Task ManagedTest()
@@ -257,8 +315,8 @@ namespace DigApp
             var avgRuntime = (1000.0d / elapsed) * (_clients * _runs);
             Console.WriteLine($";; Run finished after {elapsed}ms for {_clients} clients and {_runs} queries => {avgRuntime:N0}queries per second.");
         }
-
-        private async Task NativeTest()
+        
+        private void NativeTest()
         {
             // native test
             var sw = Stopwatch.StartNew();
@@ -273,11 +331,41 @@ namespace DigApp
                 });
             }
 
-            Parallel.Invoke(new ParallelOptions() { MaxDegreeOfParallelism = 8 }, tasks.ToArray());
+            Parallel.Invoke(new ParallelOptions() { MaxDegreeOfParallelism = 32 }, tasks.ToArray());
 
             var elapsed = sw.ElapsedMilliseconds;
 
             Console.WriteLine($";; Native Results per client:\t\t");
+            Console.WriteLine($";; {"Overall(ms)",-15} {"OK",-10} {"Errors",-10} {"MIN(ms)",-10}{"MAX(ms)",-10}{"AVG(ms)",-10}{"Median",-10}");
+            foreach (var result in results)
+            {
+                Console.WriteLine(result);
+            }
+
+            var avgRuntime = (1000.0d / elapsed) * (_clients * _runs);
+            Console.WriteLine($";; Run finished after {elapsed}ms for {_clients} clients and {_runs} queries => {avgRuntime:N0}queries per second.");
+        }
+
+        private void NativeTestEx()
+        {
+            // native test
+            var sw = Stopwatch.StartNew();
+            var tasks = new List<Action>();
+            var results = new System.Collections.Concurrent.ConcurrentBag<PerfResult>();
+            for (var i = 0; i < _clients; i++)
+            {
+                var client = new PerfClientNativeEx(_settings, _runs, _query);
+                tasks.Add(() =>
+                {
+                    results.Add(client.Run());
+                });
+            }
+
+            Parallel.Invoke(new ParallelOptions() { MaxDegreeOfParallelism = 32 }, tasks.ToArray());
+
+            var elapsed = sw.ElapsedMilliseconds;
+
+            Console.WriteLine($";; NativeEx Results per client:\t\t");
             Console.WriteLine($";; {"Overall(ms)",-15} {"OK",-10} {"Errors",-10} {"MIN(ms)",-10}{"MAX(ms)",-10}{"AVG(ms)",-10}{"Median",-10}");
             foreach (var result in results)
             {

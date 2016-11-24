@@ -2,7 +2,7 @@
   "profiles": {
     "DigApp": {
       "commandName": "Project",
-      "commandLineArgs": "perf google.com"
+      "commandLineArgs": "-s 127.0.0.1 cachemanager.net a"
     },
     "MiniDig": {
       "commandName": "Project"

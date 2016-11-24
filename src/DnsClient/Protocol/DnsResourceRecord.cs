@@ -24,7 +24,7 @@ namespace DnsClient.Protocol
         /// <returns>A string representing this instance.</returns>
         public virtual string ToString(int offset = 0)
         {
-            return string.Format("{0," + offset + "} {1} \t{2} \t{3} \t{4}",
+            return string.Format("{0," + offset + "}{1} \t{2} \t{3} \t{4}",
                 QueryName,
                 TimeToLive,
                 RecordClass,

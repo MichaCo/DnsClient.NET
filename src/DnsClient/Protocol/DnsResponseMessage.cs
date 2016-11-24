@@ -21,6 +21,8 @@ namespace DnsClient.Protocol
         public DnsQueryResponse AsReadonly
             => new DnsQueryResponse(_header, _questions.ToArray(), _answers.ToArray(), _additionals.ToArray(), _authorities.ToArray());
 
+        public DnsResponseHeader Header => _header;
+
         public DnsResponseMessage(DnsResponseHeader header)
         {
             if (header == null)

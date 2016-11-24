@@ -17,9 +17,9 @@ namespace DigApp
             //Console.WriteLine(result.Length + "Results");
             //if (result.Length > 0)
             //{
-            //    foreach(var val in result)
+            //    foreach (var val in result)
             //    {
-            //        foreach(var kv in val)
+            //        foreach (var kv in val)
             //        {
             //            Console.WriteLine(kv.Key + "=" + kv.Value);
             //        }

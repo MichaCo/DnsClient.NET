@@ -85,7 +85,7 @@ namespace DigApp
                 QueryCompletionContext context = new QueryCompletionContext();
                 context.eventHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
                 context.requestType = recordType;
-                context.resultCode = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(int)));
+                context.resultCode = Marshal.AllocHGlobal(Marshal.SizeOf<int>());
 
                 List<IDictionary<string, object>> dnsRecords = new List<IDictionary<string, object>>();
 
@@ -298,10 +298,10 @@ namespace DigApp
                 request.Version = DnsQueryRequestVersion1;
                 request.QueryName = domainName;
                 request.QueryType = (ushort)context.requestType;
-                request.QueryOptions = (ulong)(DnsQueryOptions.DNS_QUERY_BYPASS_CACHE);
+                request.QueryOptions = (ulong)(DnsQueryOptions.DNS_QUERY_STANDARD);
                 request.DnsServerList = addrBuffer;
                 request.InterfaceIndex = 0;
-                //request.QueryCompletionCallback = Marshal.GetFunctionPointerForDelegate(new QueryCompletionRoutineFunctionPointer(QueryCompletionRoutine));
+                // request.QueryCompletionCallback = Marshal.GetFunctionPointerForDelegate(new QueryCompletionRoutineFunctionPointer(QueryCompletionRoutine));
 
                 contextBuffer = Marshal.AllocHGlobal(Marshal.SizeOf(context));
                 Marshal.StructureToPtr(context, contextBuffer, false);
