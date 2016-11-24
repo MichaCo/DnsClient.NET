@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DigApp
 {
-    internal class DigCommand : DnsCommand
+    public class DigCommand : DnsCommand
     {
         private static readonly int s_printOffset = -32;
 

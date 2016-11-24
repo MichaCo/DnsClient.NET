@@ -25,7 +25,7 @@ namespace DigApp
         public bool UseCache { get; set; }
     }
 
-    internal abstract class DnsCommand
+    public abstract class DnsCommand
     {
         public CommandOption ConnectTimeoutArg { get; set; }
 
