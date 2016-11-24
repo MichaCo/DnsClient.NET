@@ -73,7 +73,7 @@ namespace DigApp
                 DnsFreeParsedMessageFields = 2
             }
 
-            public static IDictionary<string, object>[] QueryDNSForRecordTypeSpecificNameServers(string domainName, IPAddress[] dnsServers, DnsRecordTypes recordType)
+            public static IDictionary<string, object>[] QueryDNSForRecordTypeSpecificNameServers(string domainName, IPEndPoint[] dnsServers, DnsRecordTypes recordType)
             {
                 if (dnsServers == null || dnsServers.Length == 0)
                 {
@@ -217,7 +217,7 @@ namespace DigApp
                 }
             }
 
-            private static void MakeDnsRequest(string domainName, IPAddress[] dnsServers, QueryCompletionContext context, out IntPtr requestBuffer, out IntPtr addrBuffer, out IntPtr contextBuffer)
+            private static void MakeDnsRequest(string domainName, IPEndPoint[] dnsServers, QueryCompletionContext context, out IntPtr requestBuffer, out IntPtr addrBuffer, out IntPtr contextBuffer)
             {
                 requestBuffer = IntPtr.Zero;
                 addrBuffer = IntPtr.Zero;
@@ -226,20 +226,20 @@ namespace DigApp
                 DNS_ADDR[] addrList = new DNS_ADDR[dnsServers.Length];
                 int curAddress = 0;
 
-                foreach (IPAddress addr in dnsServers)
+                foreach (var endpoint in dnsServers)
                 {
                     addrList[curAddress] = new DNS_ADDR();
-
-                    if (addr.AddressFamily == AddressFamily.InterNetwork)
+                    
+                    if (endpoint.AddressFamily == AddressFamily.InterNetwork)
                     {
-                        byte[] ipv4AddressBytes = addr.GetAddressBytes();
+                        byte[] ipv4AddressBytes = endpoint.Address.GetAddressBytes();
 
                         SockAddrIn sockAddrIn = new SockAddrIn();
 
                         Buffer.BlockCopy(ipv4AddressBytes, 0, sockAddrIn.SinAddr, 0, IpAddressV4LengthBytes);
 
                         sockAddrIn.SinFamily = AFInet;
-                        sockAddrIn.SinPort = (ushort)IPAddress.HostToNetworkOrder(DNSPort);
+                        sockAddrIn.SinPort = (ushort)IPAddress.HostToNetworkOrder(endpoint.Port);
 
                         IntPtr sockAddrInPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(SockAddrIn)));
                         Marshal.StructureToPtr(sockAddrIn, sockAddrInPtr, false);
@@ -248,15 +248,15 @@ namespace DigApp
 
                         Marshal.FreeHGlobal(sockAddrInPtr);
                     }
-                    else if (addr.AddressFamily == AddressFamily.InterNetworkV6)
+                    else if (endpoint.AddressFamily == AddressFamily.InterNetworkV6)
                     {
                         SockAddrIn6 sockAddrIn6 = new SockAddrIn6();
 
                         sockAddrIn6.Sin6Family = AFInet16;
-                        sockAddrIn6.Sin6Port = (ushort)IPAddress.HostToNetworkOrder(DNSPort);
+                        sockAddrIn6.Sin6Port = (ushort)IPAddress.HostToNetworkOrder(endpoint.Port);
                         sockAddrIn6.Sin6FlowInfo = 0;
 
-                        byte[] ipv6AddressBytes = addr.GetAddressBytes();
+                        byte[] ipv6AddressBytes = endpoint.Address.GetAddressBytes();
 
                         Buffer.BlockCopy(ipv6AddressBytes, 0, sockAddrIn6.Sin6Addr, 0, IpAddressV6LengthBytes);
 
@@ -271,7 +271,7 @@ namespace DigApp
                     }
                     else
                     {
-                        throw new Exception(string.Format("Address family {0} not supported", addr.AddressFamily.ToString()));
+                        throw new Exception(string.Format("Address family {0} not supported", endpoint.AddressFamily.ToString()));
                     }
 
                     curAddress++;
@@ -298,10 +298,10 @@ namespace DigApp
                 request.Version = DnsQueryRequestVersion1;
                 request.QueryName = domainName;
                 request.QueryType = (ushort)context.requestType;
-                request.QueryOptions = (ulong)DnsQueryOptions.DNS_QUERY_STANDARD;
+                request.QueryOptions = (ulong)(DnsQueryOptions.DNS_QUERY_BYPASS_CACHE);
                 request.DnsServerList = addrBuffer;
                 request.InterfaceIndex = 0;
-                request.QueryCompletionCallback = Marshal.GetFunctionPointerForDelegate(new QueryCompletionRoutineFunctionPointer(QueryCompletionRoutine));
+                //request.QueryCompletionCallback = Marshal.GetFunctionPointerForDelegate(new QueryCompletionRoutineFunctionPointer(QueryCompletionRoutine));
 
                 contextBuffer = Marshal.AllocHGlobal(Marshal.SizeOf(context));
                 Marshal.StructureToPtr(context, contextBuffer, false);

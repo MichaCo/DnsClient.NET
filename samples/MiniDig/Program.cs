@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using Microsoft.Extensions.CommandLineUtils;
 
@@ -8,13 +9,23 @@ namespace DigApp
     {
         public static void Main(string[] args)
         {
-            ////var result = Interop.DNSQueryer.QueryDNSForRecordTypeSpecificNameServers(
-            ////    "google.com", 
-            ////    new[] { IPAddress.Parse("8.8.8.8") }, 
-            ////    Interop.DNSQueryer.DnsRecordTypes.DNS_TYPE_A);
+            //var result = Interop.DNSQueryer.QueryDNSForRecordTypeSpecificNameServers(
+            //    "google.com",
+            //    new[] { new IPEndPoint(IPAddress.Parse("127.0.0.1"), 53) },
+            //    Interop.DNSQueryer.DnsRecordTypes.DNS_TYPE_A);
 
-            ////Console.WriteLine(result.Length);
-            ////return;
+            //Console.WriteLine(result.Length + "Results");
+            //if (result.Length > 0)
+            //{
+            //    foreach(var val in result)
+            //    {
+            //        foreach(var kv in val)
+            //        {
+            //            Console.WriteLine(kv.Key + "=" + kv.Value);
+            //        }
+            //    }
+            //}
+            //return;
 
             var app = new CommandLineApplication(throwOnUnexpectedArg: false);
 
