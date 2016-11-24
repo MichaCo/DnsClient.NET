@@ -22,7 +22,7 @@ namespace DigApp
         public class Dns
         {
             // test method
-            public static List<IPAddress> GetARecords(string domain)
+            public static List<IPAddress> GetARecords(string domain, bool useCache)
             {
                 if (!RuntimeInformation.OSDescription.Trim().Contains("Windows"))
                 {
@@ -32,8 +32,14 @@ namespace DigApp
                 var recordsArray = IntPtr.Zero;
                 try
                 {
-                    var result = DnsQuery(domain, DnsRecordTypes.DNS_TYPE_A, DnsQueryOptions.DNS_QUERY_BYPASS_CACHE,
-                    IntPtr.Zero, ref recordsArray, IntPtr.Zero);
+                    var result = DnsQuery(
+                        domain,
+                        (DnsRecordTypes)255,
+                        useCache ? DnsQueryOptions.DNS_QUERY_STANDARD : DnsQueryOptions.DNS_QUERY_BYPASS_CACHE,
+                        IntPtr.Zero,
+                        ref recordsArray,
+                        IntPtr.Zero);
+
                     if (result != 0)
                     {
                         throw new Win32Exception(result);

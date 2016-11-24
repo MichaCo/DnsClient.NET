@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using DnsClient;
 using Microsoft.Extensions.CommandLineUtils;
@@ -10,7 +11,7 @@ using Microsoft.Extensions.Logging;
 
 namespace DigApp
 {
-    internal struct PerfResult
+    internal struct PerformanceResult
     {
         public List<double> Times { get; set; }
 
@@ -28,14 +29,77 @@ namespace DigApp
         }
     }
 
-    internal class PerfClient
+    internal abstract class PerformanceTestClient
     {
-        private readonly LookupClient _lookup;
-        private string _query;
-        private readonly int _runs;
+        protected LookupSettings Settings { get; }
+
+        protected string Query { get; set; }
+
+        protected int Runs { get; }
+
         private readonly bool _useRandom;
 
-        public PerfClient(LookupSettings settings, int runs, string query)
+        public PerformanceTestClient(LookupSettings settings, int runs, string query)
+        {
+            Settings = settings;
+            Query = query;
+            Runs = runs;
+            if (Query == string.Empty)
+            {
+                _useRandom = true;
+            }
+        }
+
+        // return <= 0 for fail or >=1 for number of results
+        protected abstract Task<int> ExcecuteIterationAsync();
+
+        public async Task<PerformanceResult> Run()
+        {
+            var result = new PerformanceResult();
+            result.Times = new List<double>();
+
+            var swatchReq = Stopwatch.StartNew();
+            for (var index = 0; index < Runs; index++)
+            {
+                swatchReq.Restart();
+                if (_useRandom)
+                {
+                    Query = PerfCommand.NextDomainName();
+                }
+
+                try
+                {
+                    var resultCount = await ExcecuteIterationAsync();
+                    var responseElapsed = swatchReq.ElapsedTicks / 10000d;
+                    result.Times.Add(responseElapsed);
+
+                    if (resultCount <= 0)
+                    {
+                        result.ErrorResponses++;
+                    }
+                    else
+                    {
+                        result.SuccessResponses += resultCount;
+                    }
+                }
+                catch
+                {
+                    result.ErrorResponses++;
+                }
+            }
+
+            result.TimeTakenMs = (long)result.Times.Sum();
+
+            return result;
+        }
+    }
+
+    internal class ManagedTestClient : PerformanceTestClient
+    {
+        private readonly LookupClient _lookup;
+
+        public ManagedTestClient(LookupSettings settings, int runs, string query)
+            : base(settings, runs, query)
         {
             _lookup = new LookupClient(settings.Endpoints)
             {
@@ -45,166 +109,42 @@ namespace DigApp
                 UseCache = settings.UseCache,
                 MimimumCacheTimeout = settings.MinTTL
             };
-
-            _query = query;
-            _runs = runs;
-            if (_query == string.Empty)
-            {
-                _useRandom = true;
-            }
         }
 
-        public async Task<PerfResult> Run()
+        protected override async Task<int> ExcecuteIterationAsync()
         {
-            var result = new PerfResult();
-            result.Times = new List<double>();
-
-            var swatchReq = Stopwatch.StartNew();
-            for (var index = 0; index < _runs; index++)
-            {
-                swatchReq.Restart();
-                if (_useRandom)
-                {
-                    _query = PerfCommand.NextDomainName();
-                }
-
-                var queryResult = await _lookup.QueryAsync(_query, QueryType.A);
-                var responseElapsed = swatchReq.ElapsedTicks / 10000d;
-                if (queryResult.HasError)
-                {
-                    result.ErrorResponses++;
-                }
-                else
-                {
-                    result.SuccessResponses += queryResult.AllRecords.Count;
-                }
-
-                result.Times.Add(responseElapsed);
-            }
-
-            result.TimeTakenMs = (long)result.Times.Sum();
-
-            // cleanup
-            _lookup.Dispose();
-            return result;
+            var queryResult = await _lookup.QueryAsync(Query, QueryType.A);
+            return queryResult.AllRecords.Count;
         }
     }
 
-    internal class PerfClientNative
+    internal class NativeTestClientDnsQuery : PerformanceTestClient
     {
-        private string _query;
-        private readonly bool _useRandom;
-        private readonly int _runs;
-
-        public PerfClientNative(LookupSettings settings, int runs, string query)
+        public NativeTestClientDnsQuery(LookupSettings settings, int runs, string query)
+            : base(settings, runs, query)
         {
-            _query = query;
-            _runs = runs;
-            if (_query == string.Empty)
-            {
-                _useRandom = true;
-            }
         }
 
-        public PerfResult Run()
+        protected override Task<int> ExcecuteIterationAsync()
         {
-            var result = new PerfResult();
-            result.Times = new List<double>();
-            var swatch = Stopwatch.StartNew();
-            var swatchReq = Stopwatch.StartNew();
-
-            for (var index = 0; index < _runs; index++)
-            {
-                swatchReq.Restart();
-                if (_useRandom)
-                {
-                    _query = PerfCommand.NextDomainName();
-                }
-
-                try
-                {
-                    var queryResult = Interop.Dns.GetARecords(_query);
-                    //Interop.DnsFlushResolverCacheEntry(_query);
-                    //if (Interop.DnsFlushResolverCacheEntry(_query) == 0)
-                    //{
-                    //    result.ErrorResponses++;
-                    //}
-                    result.SuccessResponses += queryResult.Count;
-                }
-                catch (Exception)
-                {
-                    result.ErrorResponses++;
-                }
-
-                var responseElapsed = swatchReq.ElapsedTicks / 10000d;
-                result.Times.Add(responseElapsed);
-            }
-
-            result.TimeTakenMs = swatch.ElapsedMilliseconds;
-
-            return result;
+            var queryResult = Interop.Dns.GetARecords(Query, Settings.UseCache);
+            return Task.FromResult(queryResult.Count);
         }
     }
 
-    internal class PerfClientNativeEx
+    internal class NativeTestClientDnsQueryEx : PerformanceTestClient
     {
-        private string _query;
-        private readonly bool _useRandom;
-        private readonly int _runs;
-        private readonly LookupSettings _settings;
-
-        public PerfClientNativeEx(LookupSettings settings, int runs, string query)
+        public NativeTestClientDnsQueryEx(LookupSettings settings, int runs, string query)
+            : base(settings, runs, query)
         {
-            _query = query;
-            _settings = settings;
-            _runs = runs;
-            if (_query == string.Empty)
-            {
-                _useRandom = true;
-            }
         }
 
-        public PerfResult Run()
+        protected override Task<int> ExcecuteIterationAsync()
         {
-            var result = new PerfResult();
-            result.Times = new List<double>();
-            var swatch = Stopwatch.StartNew();
-            var swatchReq = Stopwatch.StartNew();
+            var queryResult = Interop.DNSQueryer.QueryDNSForRecordTypeSpecificNameServers(
+                        Query, Settings.Endpoints, Interop.DNSQueryer.DnsRecordTypes.DNS_TYPE_A);
 
-            for (var index = 0; index < _runs; index++)
-            {
-                swatchReq.Restart();
-                if (_useRandom)
-                {
-                    _query = PerfCommand.NextDomainName();
-                }
-
-                try
-                {
-                    var queryResult = Interop.DNSQueryer.QueryDNSForRecordTypeSpecificNameServers(
-                        _query, _settings.Endpoints, Interop.DNSQueryer.DnsRecordTypes.DNS_TYPE_A);
-                    //Interop.DnsFlushResolverCacheEntry(_query);
-                    //if (Interop.DnsFlushResolverCacheEntry(_query) == 0)
-                    //{
-                    //    result.ErrorResponses++;
-                    //}
-                    if (queryResult.Length > 0)
-                    {
-                        result.SuccessResponses++;
-                    }
-                }
-                catch (Exception)
-                {
-                    result.ErrorResponses++;
-                }
-
-                var responseElapsed = swatchReq.ElapsedTicks / 10000d;
-                result.Times.Add(responseElapsed);
-            }
-
-            result.TimeTakenMs = swatch.ElapsedMilliseconds;
-
-            return result;
+            return Task.FromResult(queryResult.Select(p => p.Keys.Count).Count());
         }
     }
 
@@ -282,60 +222,84 @@ namespace DigApp
         {
             Console.WriteLine($"; <<>> Starting perf run with {_clients} clients and {_runs} queries per client <<>>");
             Console.WriteLine($"; ({_settings.Endpoints.Length} Servers, caching:{_settings.UseCache}, minttl:{_settings.MinTTL.TotalMilliseconds})");
-            
-            await ManagedTest();
-            NativeTest();
-            NativeTestEx();
+
+            await RunManaged();
+            await RunNativeDnsQuery();
+            await RunNativeDnsQueryEx();
         }
 
-        private async Task ManagedTest()
+        private async Task RunManaged()
         {
-            // managed test
-            var sw = Stopwatch.StartNew();
-            var tasks = new List<Task<PerfResult>>();
-
-            for (var i = 0; i < _clients; i++)
+            await RunBench("Managed", async () =>
             {
-                var client = new PerfClient(_settings, _runs, _query);
-                tasks.Add(client.Run());
-            }
+                var tasks = new List<Task<PerformanceResult>>();
 
-            await Task.WhenAll(tasks);
+                for (var i = 0; i < _clients; i++)
+                {
+                    var client = new ManagedTestClient(_settings, _runs, _query);
+                    tasks.Add(client.Run());
+                }
 
-            var elapsed = sw.ElapsedMilliseconds;
-            var results = tasks.Select(p => p.Result);
-
-            Console.WriteLine($";; Managed Results per client:\t\t");
-            Console.WriteLine($";; {"Overall(ms)",-15} {"OK",-10} {"Errors",-10} {"MIN(ms)",-10}{"MAX(ms)",-10}{"AVG(ms)",-10}{"Median",-10}");
-            foreach (var result in results)
-            {
-                Console.WriteLine(result);
-            }
-
-            var avgRuntime = (1000.0d / elapsed) * (_clients * _runs);
-            Console.WriteLine($";; Run finished after {elapsed}ms for {_clients} clients and {_runs} queries => {avgRuntime:N0}queries per second.");
+                return await Task.WhenAll(tasks);
+            });
         }
-        
-        private void NativeTest()
+
+        private async Task RunNativeDnsQuery()
         {
+            await RunBench("DnsQuery", () =>
+            {
+                var tasks = new List<Action>();
+                var results = new System.Collections.Concurrent.ConcurrentBag<PerformanceResult>();
+                for (var i = 0; i < _clients; i++)
+                {
+                    var client = new NativeTestClientDnsQuery(_settings, _runs, _query);
+                    tasks.Add(() =>
+                    {
+                        results.Add(client.Run().Result);
+                    });
+                }
+
+                Parallel.Invoke(new ParallelOptions() { MaxDegreeOfParallelism = 32 }, tasks.ToArray());
+                return Task.FromResult(results.ToArray());
+            });
+        }
+
+        private async Task RunNativeDnsQueryEx()
+        {
+            await RunBench("DnsQueryEx", () =>
+            {
+                var tasks = new List<Action>();
+                var results = new System.Collections.Concurrent.ConcurrentBag<PerformanceResult>();
+                for (var i = 0; i < _clients; i++)
+                {
+                    var client = new NativeTestClientDnsQueryEx(_settings, _runs, _query);
+                    tasks.Add(() =>
+                    {
+                        results.Add(client.Run().Result);
+                    });
+                }
+
+                Parallel.Invoke(new ParallelOptions() { MaxDegreeOfParallelism = 32 }, tasks.ToArray());
+                return Task.FromResult(results.ToArray());
+            });
+        }
+
+        private async Task RunBench(string name, Func<Task<PerformanceResult[]>> act)
+        {
+            var spinner = new Spiner();
+            spinner.Start();
+
             // native test
             var sw = Stopwatch.StartNew();
-            var tasks = new List<Action>();
-            var results = new System.Collections.Concurrent.ConcurrentBag<PerfResult>();
-            for (var i = 0; i < _clients; i++)
-            {
-                var client = new PerfClientNative(_settings, _runs, _query);
-                tasks.Add(() =>
-                {
-                    results.Add(client.Run());
-                });
-            }
-
-            Parallel.Invoke(new ParallelOptions() { MaxDegreeOfParallelism = 32 }, tasks.ToArray());
-
+            PerformanceResult[] results = await act();
             var elapsed = sw.ElapsedMilliseconds;
 
-            Console.WriteLine($";; Native Results per client:\t\t");
+            // results
+            spinner.Stop();
+
+            Console.WriteLine(string.Join("-", Enumerable.Repeat("-", 50)));
+            Console.WriteLine($";; {name} results:\t\t");
+            Console.WriteLine(string.Join("-", Enumerable.Repeat("-", 50)));
             Console.WriteLine($";; {"Overall(ms)",-15} {"OK",-10} {"Errors",-10} {"MIN(ms)",-10}{"MAX(ms)",-10}{"AVG(ms)",-10}{"Median",-10}");
             foreach (var result in results)
             {
@@ -343,37 +307,51 @@ namespace DigApp
             }
 
             var avgRuntime = (1000.0d / elapsed) * (_clients * _runs);
-            Console.WriteLine($";; Run finished after {elapsed}ms for {_clients} clients and {_runs} queries => {avgRuntime:N0}queries per second.");
+            Console.WriteLine($";; {name} run took {elapsed}ms for {_clients} clients * {_runs} queries: {avgRuntime:N0} queries per second.");
         }
 
-        private void NativeTestEx()
+        private class Spiner
         {
-            // native test
-            var sw = Stopwatch.StartNew();
-            var tasks = new List<Action>();
-            var results = new System.Collections.Concurrent.ConcurrentBag<PerfResult>();
-            for (var i = 0; i < _clients; i++)
+            private CancellationTokenSource _source;
+            private CancellationToken _token;
+            private ConsoleColor _oldColor;
+
+            public void Start()
             {
-                var client = new PerfClientNativeEx(_settings, _runs, _query);
-                tasks.Add(() =>
+                Console.CursorVisible = false;
+                Console.Write("Running...");
+                _oldColor = Console.ForegroundColor;
+                Console.ForegroundColor = ConsoleColor.Yellow;
+
+                _source = new CancellationTokenSource();
+                _token = _source.Token;
+                Task.Run(Spin, _token);
+            }
+
+            public void Stop()
+            {
+                _source.Cancel();
+
+                Console.SetCursorPosition(0, Console.CursorTop);
+                Console.Write("\t\t\t\t   ");
+                Console.SetCursorPosition(0, Console.CursorTop);
+                Console.CursorVisible = true;
+                Console.ForegroundColor = _oldColor;
+            }
+
+            private async Task Spin()
+            {
+                var chars = new System.Collections.Generic.Queue<string>(new[] { "|", "/", "-", "\\" });
+
+                while (true)
                 {
-                    results.Add(client.Run());
-                });
+                    var chr = chars.Dequeue();
+                    chars.Enqueue(chr);
+                    Console.Write("{" + chr + "}");
+                    Console.SetCursorPosition(Console.CursorLeft - 3, Console.CursorTop);
+                    await Task.Delay(100, _token);
+                }
             }
-
-            Parallel.Invoke(new ParallelOptions() { MaxDegreeOfParallelism = 32 }, tasks.ToArray());
-
-            var elapsed = sw.ElapsedMilliseconds;
-
-            Console.WriteLine($";; NativeEx Results per client:\t\t");
-            Console.WriteLine($";; {"Overall(ms)",-15} {"OK",-10} {"Errors",-10} {"MIN(ms)",-10}{"MAX(ms)",-10}{"AVG(ms)",-10}{"Median",-10}");
-            foreach (var result in results)
-            {
-                Console.WriteLine(result);
-            }
-
-            var avgRuntime = (1000.0d / elapsed) * (_clients * _runs);
-            Console.WriteLine($";; Run finished after {elapsed}ms for {_clients} clients and {_runs} queries => {avgRuntime:N0}queries per second.");
         }
     }
 }
