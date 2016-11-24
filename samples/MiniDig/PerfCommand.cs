@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using DnsClient;
@@ -30,8 +31,9 @@ namespace DigApp
     internal class PerfClient
     {
         private readonly LookupClient _lookup;
-        private readonly string _query;
+        private string _query;
         private readonly int _runs;
+        private readonly bool _useRandom;
 
         public PerfClient(LookupSettings settings, int runs, string query)
         {
@@ -46,6 +48,10 @@ namespace DigApp
 
             _query = query;
             _runs = runs;
+            if (_query == string.Empty)
+            {
+                _useRandom = true;
+            }
         }
 
         public async Task<PerfResult> Run()
@@ -57,7 +63,12 @@ namespace DigApp
             for (var index = 0; index < _runs; index++)
             {
                 swatchReq.Restart();
-                var queryResult = await _lookup.QueryAsync(_query, QueryType.ANY);
+                if (_useRandom)
+                {
+                    _query = PerfCommand.NextDomainName();
+                }
+
+                var queryResult = await _lookup.QueryAsync(_query, QueryType.A);
                 var responseElapsed = swatchReq.ElapsedTicks / 10000d;
                 if (queryResult.HasError)
                 {
@@ -69,9 +80,6 @@ namespace DigApp
                 }
 
                 result.Times.Add(responseElapsed);
-
-                // delay each request a little
-                await Task.Delay(0);
             }
 
             result.TimeTakenMs = (long)result.Times.Sum();
@@ -82,13 +90,18 @@ namespace DigApp
     internal class PerfClientNative
     {
         private readonly LookupClient _lookup;
-        private readonly string _query;
+        private string _query;
+        private readonly bool _useRandom;
         private readonly int _runs;
 
         public PerfClientNative(LookupSettings settings, int runs, string query)
         {
             _query = query;
             _runs = runs;
+            if (_query == string.Empty)
+            {
+                _useRandom = true;
+            }
         }
 
         public PerfResult Run()
@@ -96,20 +109,26 @@ namespace DigApp
             var result = new PerfResult();
             result.Times = new List<double>();
             var swatchReq = Stopwatch.StartNew();
+
             for (var index = 0; index < _runs; index++)
             {
                 swatchReq.Restart();
+                if (_useRandom)
+                {
+                    _query = PerfCommand.NextDomainName();
+                }
+
                 try
                 {
-                    var queryResult = Interop.Dns.GetMxRecords(_query);
+                    var queryResult = Interop.Dns.GetARecords(_query);
                     result.SuccessResponses++;
                 }
                 catch (Exception)
                 {
                     result.ErrorResponses++;
                 }
-                var responseElapsed = swatchReq.ElapsedTicks / 10000d;
 
+                var responseElapsed = swatchReq.ElapsedTicks / 10000d;
                 result.Times.Add(responseElapsed);
             }
 
@@ -121,11 +140,28 @@ namespace DigApp
 
     internal class PerfCommand : DnsCommand
     {
+        private static object locke = new object();
+        private static string[] _domainNames;
+        private static Random rnd = new Random();
+
+        public static string NextDomainName()
+        {
+            lock (locke)
+            {
+                return _domainNames[rnd.Next(0, _domainNames.Length)];
+            }
+        }
+
         public CommandOption ClientsArg { get; private set; }
 
         public CommandArgument QueryArg { get; private set; }
 
         public CommandOption RunsArg { get; private set; }
+
+        static PerfCommand()
+        {
+            _domainNames = File.ReadAllLines("names.txt");
+        }
 
         public PerfCommand(CommandLineApplication app, string[] originalArgs) : base(app, originalArgs)
         {
@@ -143,7 +179,7 @@ namespace DigApp
         {
             var useClients = ClientsArg.HasValue() ? int.Parse(ClientsArg.Value()) : 10;
             var useRuns = RunsArg.HasValue() ? int.Parse(RunsArg.Value()) : 100;
-            var useQuery = string.IsNullOrWhiteSpace(QueryArg.Value) ? "google.com" : QueryArg.Value;
+            var useQuery = string.IsNullOrWhiteSpace(QueryArg.Value) ? string.Empty : QueryArg.Value;
             var lookup = GetDnsLookup();
 
             var loggerFactory = new LoggerFactory().AddConsole(GetLoglevelValue());
@@ -190,7 +226,7 @@ namespace DigApp
             //Console.Write("\r");
             //await Task.WhenAll(tasks);
 
-            //await ManagedTest();
+            await ManagedTest();
             await NativeTest();
         }
 

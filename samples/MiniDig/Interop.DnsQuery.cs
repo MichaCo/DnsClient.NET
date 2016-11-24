@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 
 namespace DigApp
 {
-    public class Interop
+    public partial class Interop
     {
         public const int DNS_ATMA_MAX_ADDR_LENGTH = 20;
         public const int DNS_ATMA_FORMAT_E164 = 1;
@@ -16,7 +16,7 @@ namespace DigApp
         public class Dns
         {
             // test method
-            public static List<string> GetMxRecords(string domain)
+            public static List<IPAddress> GetARecords(string domain)
             {
                 if (!RuntimeInformation.OSDescription.Trim().Contains("Windows"))
                 {
@@ -26,7 +26,7 @@ namespace DigApp
                 var recordsArray = IntPtr.Zero;
                 try
                 {
-                    var result = DnsQuery(domain, DnsRecordTypes.DNS_TYPE_MX, DnsQueryOptions.DNS_QUERY_BYPASS_CACHE,
+                    var result = DnsQuery(domain, DnsRecordTypes.DNS_TYPE_A, DnsQueryOptions.DNS_QUERY_BYPASS_CACHE,
                     IntPtr.Zero, ref recordsArray, IntPtr.Zero);
                     if (result != 0)
                     {
@@ -34,13 +34,13 @@ namespace DigApp
                     }
 
                     DNS_RECORD record;
-                    var recordList = new List<string>();
+                    var recordList = new List<IPAddress>();
                     for (var recordPtr = recordsArray; !recordPtr.Equals(IntPtr.Zero); recordPtr = record.pNext)
                     {
                         record = Marshal.PtrToStructure<DNS_RECORD>(recordPtr);
-                        if (record.wType == (int)DnsRecordTypes.DNS_TYPE_MX)
+                        if (record.wType == (int)DnsRecordTypes.DNS_TYPE_A)
                         {
-                            recordList.Add(Marshal.PtrToStringUni(record.Data.MX.pNameExchange));
+                            recordList.Add(ConvertUintToIpAddress(record.Data.A.IpAddress));
                         }
                     }
 
