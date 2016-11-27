@@ -77,16 +77,20 @@ namespace DigApp
 
             public override string ToString()
             {
-                Times.Sort();
-                var median = Times.ElementAt(Times.Count / 2);
-                return $":: {TimeTakenMs,-15:N0} {SuccessResponses,-10} {ErrorResponses,-10} {Times.Min(),-10:N4}{Times.Max(),-10:N2}{Times.Average(),-10:N4}{median,-10:N4}";
+                if (Times.Count > 0)
+                {
+                    Times.Sort();
+                    var median = Times.Sum() / (Times.Count / 2);
+                    return $":: {TimeTakenMs,-15:N0} {SuccessResponses,-10} {ErrorResponses,-10} {Times.Min(),-10:N4}{Times.Max(),-10:N2}{Times.Average(),-10:N4}{median,-10:N4}";
+                }
+                return $";; no response.";
             }
         }
 
         private class ManagedTestClient : PerformanceTestClient
         {
             private readonly LookupClient _lookup;
-
+            
             public ManagedTestClient(LookupSettings settings, int runs, string query)
                 : base(settings, runs, query)
             {
@@ -221,10 +225,10 @@ namespace DigApp
             {
                 Console.WriteLine($"; <<>> Starting perf run with {_clients} clients and {_runs} queries per client <<>>");
                 Console.WriteLine($"; ({_settings.Endpoints.Length} Servers, caching:{_settings.UseCache}, minttl:{_settings.MinTTL.TotalMilliseconds})");
-
+                
                 await RunManaged();
-                await RunNativeDnsQuery();
-                await RunNativeDnsQueryEx();
+                // await RunNativeDnsQuery();
+                // await RunNativeDnsQueryEx();
             }
 
             private async Task RunBench(string name, Func<Task<PerformanceResult[]>> act)

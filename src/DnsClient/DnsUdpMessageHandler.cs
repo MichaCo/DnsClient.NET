@@ -11,12 +11,10 @@ namespace DnsClient
 {
     public class DnsUdpMessageHandler : DnsMessageHandler, IDisposable
     {
-        private readonly UdpClient _client = new UdpClient();
         private bool _disposedValue = false;
 
         public override bool IsTransientException<T>(T exception)
         {
-            Debug.WriteLine("Check transient {0}.", exception);
             if (exception is SocketException) return true;
             return false;
         }
@@ -28,22 +26,22 @@ namespace DnsClient
         {
             var sw = Stopwatch.StartNew();
 
-            //using (var udpClient = new UdpClient())
-            //{
-            var data = GetRequestData(request);
-            await _client.SendAsync(data, data.Length, server);
-
-            var result = await _client.ReceiveAsync();
-
-            var response = GetResponseMessage(result.Buffer);
-
-            if (request.Header.Id != response.Header.Id)
+            using (var udpClient = new UdpClient() { EnableBroadcast = true })
             {
-                throw new DnsResponseException("Header id missmatch.");
-            }
+                var data = GetRequestData(request);
+                await udpClient.SendAsync(data, data.Length, server);
 
-            return response;
-            //}
+                var result = await udpClient.ReceiveAsync();
+
+                var response = GetResponseMessage(result.Buffer);
+                
+                if (request.Header.Id != response.Header.Id)
+                {
+                    throw new DnsResponseException("Header id missmatch.");
+                }
+
+                return response;
+            }
         }
 
         protected override void Dispose(bool disposing)
@@ -52,11 +50,6 @@ namespace DnsClient
             {
                 if (disposing)
                 {
-#if !XPLAT
-                    _client.Close();
-#else
-                    _client.Dispose();
-#endif
                 }
 
                 _disposedValue = true;

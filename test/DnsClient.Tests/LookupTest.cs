@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using DnsClient.Protocol.Record;
-using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace DnsClient.Tests
@@ -29,7 +28,7 @@ namespace DnsClient.Tests
         public async Task Lookup_GetHostAddresses_LocalReverse_NoResult()
         {
             // expecting no result as reverse lookup must be explicit
-            using (var client = new LookupClient())
+            using (var client = new LookupClient() { Timeout = TimeSpan.FromMilliseconds(500) })
             {
                 var result = await client.QueryAsync("127.0.0.1", QueryType.A);
 
