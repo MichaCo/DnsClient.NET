@@ -239,7 +239,7 @@ namespace DigApp
                         Buffer.BlockCopy(ipv4AddressBytes, 0, sockAddrIn.SinAddr, 0, IpAddressV4LengthBytes);
 
                         sockAddrIn.SinFamily = AFInet;
-                        sockAddrIn.SinPort = (ushort)IPAddress.HostToNetworkOrder(endpoint.Port);
+                        sockAddrIn.SinPort = (ushort)IPAddress.HostToNetworkOrder((short)endpoint.Port);
 
                         IntPtr sockAddrInPtr = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(SockAddrIn)));
                         Marshal.StructureToPtr(sockAddrIn, sockAddrInPtr, false);
@@ -253,7 +253,7 @@ namespace DigApp
                         SockAddrIn6 sockAddrIn6 = new SockAddrIn6();
 
                         sockAddrIn6.Sin6Family = AFInet16;
-                        sockAddrIn6.Sin6Port = (ushort)IPAddress.HostToNetworkOrder(endpoint.Port);
+                        sockAddrIn6.Sin6Port = (ushort)IPAddress.HostToNetworkOrder((short)endpoint.Port);
                         sockAddrIn6.Sin6FlowInfo = 0;
 
                         byte[] ipv6AddressBytes = endpoint.Address.GetAddressBytes();

@@ -9,6 +9,9 @@ namespace DigApp
     {
         public static void Main(string[] args)
         {
+            //var queryResult = Interop.DNSQueryer.QueryDNSForRecordTypeSpecificNameServers(
+            //                "consul.service.consul", new[] { new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8600) } , Interop.DNSQueryer.DnsRecordTypes.DNS_TYPE_A);
+
             //var result = Interop.DNSQueryer.QueryDNSForRecordTypeSpecificNameServers(
             //    "google.com",
             //    new[] { new IPEndPoint(IPAddress.Parse("127.0.0.1"), 53) },

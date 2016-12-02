@@ -2,7 +2,7 @@
   "profiles": {
     "DigApp": {
       "commandName": "Project",
-      "commandLineArgs": "run -s 8.8.8.8  google.com"
+      "commandLineArgs": "perf -s 127.0.0.1 -p 8600 consul.service.consul"
     },
     "MiniDig": {
       "commandName": "Project"

@@ -228,7 +228,7 @@ namespace DigApp
                 
                 await RunManaged();
                 // await RunNativeDnsQuery();
-                // await RunNativeDnsQueryEx();
+                await RunNativeDnsQueryEx();
             }
 
             private async Task RunBench(string name, Func<Task<PerformanceResult[]>> act)
