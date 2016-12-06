@@ -191,7 +191,7 @@ namespace DnsClient
             var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, DnsOpCode.Query);
             var request = new DnsRequestMessage(head, question);
             var cacheKey = ResponseCache.GetCacheKey(question);
-            var result = await _cache.GetOrAdd(cacheKey, async () => await ResolveQueryAsync(request, cancellationToken));
+            var result = await _cache.GetOrAdd(cacheKey, async () => await ResolveQueryAsync(request, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
             
             return result;
         }
@@ -273,10 +273,10 @@ namespace DnsClient
                         var resultTask = _messageHandler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
                         if (Timeout != s_infiniteTimeout)
                         {
-                            response = await resultTask.TimeoutAfter(Timeout);
+                            response = await resultTask.TimeoutAfter(Timeout).ConfigureAwait(false);
                         }
 
-                        response = await resultTask;
+                        response = await resultTask.ConfigureAwait(false);
 
                         var result = response.AsReadonly;
 
