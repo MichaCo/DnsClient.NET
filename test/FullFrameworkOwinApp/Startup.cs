@@ -15,10 +15,14 @@ namespace FullFrameworkOwinApp
         {
             //var x = GetService("TenantConfigurationService").Result;
 
-            app.Run(async ctx =>
+            // forced sync context within async owin, bad bad things will happen
+            app.Run(ctx =>
             {
-                var txt = await GetService("consul");
-                ctx.Response.Write(txt.OriginalString);                
+                //var task = Task.Factory.StartNew(()=> GetService("consul"));
+                //var uri = task.Unwrap().GetAwaiter().GetResult();
+                var uri = GetService("consul").Result;                
+                ctx.Response.Write(uri.OriginalString);
+                return Task.FromResult(0);
             });
 
             ////app.Run(async ctx =>

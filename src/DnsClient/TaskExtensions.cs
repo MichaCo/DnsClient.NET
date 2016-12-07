@@ -6,10 +6,10 @@
         {
             var cts = new CancellationTokenSource();
 
-            if (task == await Task.WhenAny(task, Task.Delay((int)timeout.TotalMilliseconds, cts.Token)))
+            if (task == await Task.WhenAny(task, Task.Delay((int)timeout.TotalMilliseconds, cts.Token)).ConfigureAwait(false))
             {
                 cts.Cancel();
-                await task;
+                await task.ConfigureAwait(false);
             }
             else
             {
@@ -21,10 +21,10 @@
         {
             var cts = new CancellationTokenSource();
 
-            if (task == await Task.WhenAny(task, Task.Delay((int)timeout.TotalMilliseconds, cts.Token)))
+            if (task == await Task.WhenAny(task, Task.Delay((int)timeout.TotalMilliseconds, cts.Token)).ConfigureAwait(false))
             {
                 cts.Cancel();
-                return await task;
+                return await task.ConfigureAwait(false);
             }
             else
             {

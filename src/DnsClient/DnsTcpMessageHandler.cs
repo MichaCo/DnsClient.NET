@@ -30,15 +30,15 @@ namespace DnsClient
 
             using (var client = new TcpClient() { })
             {
-                await client.ConnectAsync(server.Address, server.Port);
+                await client.ConnectAsync(server.Address, server.Port).ConfigureAwait(false);
                 var stream = new BufferedStream(client.GetStream());
                 var data = GetRequestData(request);
 
                 stream.WriteByte((byte)((data.Length >> 8) & 0xff));
                 stream.WriteByte((byte)(data.Length & 0xff));
-                await stream.WriteAsync(data, 0, data.Length);
+                await stream.WriteAsync(data, 0, data.Length).ConfigureAwait(false);
 
-                await stream.FlushAsync();
+                await stream.FlushAsync().ConfigureAwait(false);
 
                 //while (true)
                 //{
@@ -51,7 +51,7 @@ namespace DnsClient
                 //intMessageSize += intLength;
 
                 var resultData = new byte[intLength];
-                await stream.ReadAsync(resultData, 0, intLength);
+                await stream.ReadAsync(resultData, 0, intLength).ConfigureAwait(false);
 
                 //}
 

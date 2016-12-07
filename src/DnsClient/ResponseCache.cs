@@ -45,7 +45,7 @@ namespace DnsClient
 
             if (!Enabled)
             {
-                return await create();
+                return await create().ConfigureAwait(false);
             }
 
             ResponseEntry entry;
@@ -61,7 +61,7 @@ namespace DnsClient
                 }
             }
 
-            var record = await create();
+            var record = await create().ConfigureAwait(false);
 
             // only cache in case the result is valid and does need caching
             if (record != null)

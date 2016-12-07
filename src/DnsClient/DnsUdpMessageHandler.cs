@@ -29,9 +29,9 @@ namespace DnsClient
             using (var udpClient = new UdpClient() { EnableBroadcast = true })
             {
                 var data = GetRequestData(request);
-                await udpClient.SendAsync(data, data.Length, server);
+                await udpClient.SendAsync(data, data.Length, server).ConfigureAwait(false);
 
-                var result = await udpClient.ReceiveAsync();
+                var result = await udpClient.ReceiveAsync().ConfigureAwait(false);
 
                 var response = GetResponseMessage(result.Buffer);
                 
