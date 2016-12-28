@@ -20,6 +20,7 @@ namespace DnsClient
         private readonly ResponseCache _cache = new ResponseCache(true);
         private readonly object _endpointLock = new object();
         private readonly DnsMessageHandler _messageHandler;
+        private readonly DnsMessageHandler _tcpFallbackHandler;
         private Queue<EndPointInfo> _endpoints;
         private TimeSpan _timeout = s_defaultTimeout;
         private bool _disposedValue = false;
@@ -105,36 +106,29 @@ namespace DnsClient
         {
         }
 
-        public LookupClient(params IPEndPoint[] nameServers)
-            : this(new DnsUdpMessageHandler(), nameServers)
-        {
-        }
-
         public LookupClient(params IPAddress[] nameServers)
             : this(
-                  new DnsUdpMessageHandler(),
                   nameServers.Select(p => new IPEndPoint(p, NameServer.DefaultPort)).ToArray())
         {
         }
 
-        public LookupClient(DnsMessageHandler messageHandler, ICollection<IPEndPoint> nameServers)
+        public LookupClient(params IPEndPoint[] nameServers)
         {
-            if (messageHandler == null)
-            {
-                throw new ArgumentNullException(nameof(messageHandler));
-            }
-            if (nameServers == null || nameServers.Count == 0)
+            if (nameServers == null || nameServers.Length == 0)
             {
                 throw new ArgumentException("At least one name server must be configured.", nameof(nameServers));
             }
 
             NameServers = nameServers.ToArray();
+
             _endpoints = new Queue<EndPointInfo>();
             foreach (var server in NameServers)
             {
                 _endpoints.Enqueue(new EndPointInfo(server));
             }
-            _messageHandler = messageHandler;
+
+            _messageHandler = new DnsUdpMessageHandler();
+            _tcpFallbackHandler = new DnsTcpMessageHandler();
         }
 
         /// <summary>
@@ -191,8 +185,8 @@ namespace DnsClient
             var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, DnsOpCode.Query);
             var request = new DnsRequestMessage(head, question);
             var cacheKey = ResponseCache.GetCacheKey(question);
-            var result = await _cache.GetOrAdd(cacheKey, async () => await ResolveQueryAsync(request, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
-            
+            var result = await _cache.GetOrAdd(cacheKey, async () => await ResolveQueryAsync(_messageHandler, request, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+
             return result;
         }
 
@@ -206,7 +200,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(ipAddress));
             }
 
-            var arpa = GetArpaName(ipAddress);            
+            var arpa = GetArpaName(ipAddress);
             return QueryAsync(arpa, QueryType.PTR, QueryClass.IN, cancellationToken);
         }
 
@@ -220,14 +214,7 @@ namespace DnsClient
             return _uniqueId++;
         }
 
-        // TODO: TCP fallback on truncates
-        // TODO: most popular DNS servers do not support mulitple queries in one packet, therefore, split it into multiple requests?
-        //private async Task<DnsQueryResponse> QueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
-        //{
-            
-        //}
-
-        private async Task<DnsQueryResponse> ResolveQueryAsync(DnsRequestMessage request, CancellationToken cancellationToken)
+        private async Task<DnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, CancellationToken cancellationToken)
         {
             if (request == null)
             {
@@ -270,13 +257,19 @@ namespace DnsClient
                     try
                     {
                         DnsResponseMessage response;
-                        var resultTask = _messageHandler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
+                        var resultTask = handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
                         if (Timeout != s_infiniteTimeout)
                         {
                             response = await resultTask.TimeoutAfter(Timeout).ConfigureAwait(false);
                         }
 
                         response = await resultTask.ConfigureAwait(false);
+
+                        if (response.Header.ResultTruncated)
+                        {
+                            Debug.WriteLine("Message truncated, retrying with TCP.");
+                            return await ResolveQueryAsync(_tcpFallbackHandler, request, cancellationToken).ConfigureAwait(false);
+                        }
 
                         var result = response.AsReadonly;
 
@@ -304,7 +297,7 @@ namespace DnsClient
                         Debug.WriteLine($"Disabling name server {serverInfo.Endpoint}.");
                         break;
                     }
-                    catch (Exception ex) when (_messageHandler.IsTransientException(ex))
+                    catch (Exception ex) when (handler.IsTransientException(ex))
                     {
                     }
                     catch (Exception ex)
@@ -315,7 +308,7 @@ namespace DnsClient
                             agg.Handle(e =>
                             {
                                 if (e is TimeoutException) return true;
-                                if (_messageHandler.IsTransientException(e)) return true;
+                                if (handler.IsTransientException(e)) return true;
                                 return false;
                             });
 
@@ -346,7 +339,7 @@ namespace DnsClient
                 IsDisabled = false;
             }
         }
-        
+
         protected virtual void Dispose(bool disposing)
         {
             if (!_disposedValue)
@@ -354,6 +347,7 @@ namespace DnsClient
                 if (disposing)
                 {
                     _messageHandler.Dispose();
+                    _tcpFallbackHandler.Dispose();
                 }
 
                 _disposedValue = true;
