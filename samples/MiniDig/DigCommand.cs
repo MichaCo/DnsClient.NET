@@ -132,7 +132,7 @@ namespace DigApp
             else
             {
                 Console.WriteLine(";; Got answer:");
-                Console.WriteLine($";; ->>HEADER<<- opcode: {result.Header.OPCode}, id: {result.Header.Id}");
+                Console.WriteLine($";; ->>HEADER<<- opcode: {result.Header.OPCode}, status: {result.ErrorMessage}, id: {result.Header.Id}");
                 var flags = new string[] {
                         result.Header.HasQuery ? "qr" : "",
                         result.Header.RecursionAvailable ? "ra" : "",

@@ -40,9 +40,9 @@ namespace DnsClient
         public IReadOnlyCollection<DnsResourceRecord> Authorities { get; }
 
         /// <summary>
-        /// Returns a string value representing the error response code in case an error occured, otherwise empty.
+        /// Returns a string value representing the error response code in case an error occured, otherwise 'No Error'.
         /// </summary>
-        public string ErrorMessage => HasError ? DnsResponseCodeText.GetErrorText(Header.ResponseCode) : string.Empty;
+        public string ErrorMessage => DnsResponseCodeText.GetErrorText(Header.ResponseCode);
 
         /// <summary>
         /// A flag indicating if the header contains a response codde other than <see cref="DnsResponseCode.NoError"/>.

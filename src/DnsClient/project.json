@@ -16,7 +16,7 @@
     "languageVersion": "csharp6",
     "warningsAsErrors": false,
     "xmlDoc": true,
-    "keyFile": "../../Tools/key.snk"
+    "keyFile": "../../tools/key.snk"
   },
   "copyright": "Copyright (c) 2016 MichaConrad",
   "configurations": {
@@ -35,7 +35,7 @@
   "dependencies": {
   },
   "frameworks": {
-    "netstandard1.5": {
+    "netstandard1.3": {
       "dependencies": {
         "NETStandard.Library": "1.6.0",
         "System.Net.NameResolution": "4.0.0",

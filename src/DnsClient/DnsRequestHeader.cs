@@ -43,6 +43,19 @@
             }
         }
 
+        public ushort RCode
+        {
+            get
+            {
+                return (ushort)(DnsHeader.RCODE_MASK & _flags);
+            }
+            set
+            {
+                _flags &= (ushort)~(DnsHeader.RCODE_MASK);
+                _flags |= (ushort)(value & DnsHeader.RCODE_MASK);
+            }
+        }
+
         public int QuestionCount { get; set; }
 
         public bool UseRecursion
@@ -64,7 +77,7 @@
             Id = id;
             QuestionCount = questionCount;
             OpCode = queryKind;
-            UseRecursion = useRecursion;
+            UseRecursion = useRecursion;            
         }
 
         public override string ToString()

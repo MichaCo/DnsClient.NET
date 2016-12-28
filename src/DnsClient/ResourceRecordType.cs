@@ -101,6 +101,8 @@ namespace DnsClient
         /// </summary>
         SRV = 33,
 
+        Opt = 41,
+
         /// <summary>
         /// RRSIG rfc3755.  TODO:impl
         /// </summary>
