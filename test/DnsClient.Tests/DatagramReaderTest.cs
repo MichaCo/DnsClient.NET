@@ -85,7 +85,7 @@ namespace DnsClient.Tests
         {
             var host = "www.cachemanager.net";
             var name = new DnsName(host);
-            var reader = new DnsDatagramReader(name.AsBytes());
+            var reader = new DnsDatagramReader(name.GetBytes());
 
             var result = reader.ReadName();
 

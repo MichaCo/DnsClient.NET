@@ -1,4 +1,6 @@
-﻿namespace DnsClient
+﻿using System;
+
+namespace DnsClient
 {
     public class DnsRequestHeader
     {
@@ -6,8 +8,10 @@
 
         private ushort _flags = 0;
 
+        [CLSCompliant(false)]
         public ushort RawFlags => _flags;
 
+        [CLSCompliant(false)]
         public DnsHeaderFlag HeaderFlags
         {
             get
@@ -34,29 +38,28 @@
         {
             get
             {
-                return (DnsOpCode)((DnsHeader.OPCODE_MASK & _flags) >> DnsHeader.OPCODE_SHIFT);
+                return (DnsOpCode)((DnsHeader.OPCodeMask & _flags) >> DnsHeader.OPCodeShift);
             }
             set
             {
-                _flags &= (ushort)~(DnsHeader.OPCODE_MASK);
-                _flags |= (ushort)(((ushort)value << DnsHeader.OPCODE_SHIFT) & DnsHeader.OPCODE_MASK);
+                _flags &= (ushort)~(DnsHeader.OPCodeMask);
+                _flags |= (ushort)(((ushort)value << DnsHeader.OPCodeShift) & DnsHeader.OPCodeMask);
             }
         }
 
+        [CLSCompliant(false)]
         public ushort RCode
         {
             get
             {
-                return (ushort)(DnsHeader.RCODE_MASK & _flags);
+                return (ushort)(DnsHeader.RCodeMask & _flags);
             }
             set
             {
-                _flags &= (ushort)~(DnsHeader.RCODE_MASK);
-                _flags |= (ushort)(value & DnsHeader.RCODE_MASK);
+                _flags &= (ushort)~(DnsHeader.RCodeMask);
+                _flags |= (ushort)(value & DnsHeader.RCodeMask);
             }
         }
-
-        public int QuestionCount { get; set; }
 
         public bool UseRecursion
         {
@@ -67,22 +70,21 @@
             }
         }
 
-        public DnsRequestHeader(int id, int questionCount, DnsOpCode queryKind)
-            : this(id, questionCount, true, queryKind)
+        public DnsRequestHeader(int id, DnsOpCode queryKind)
+            : this(id, true, queryKind)
         {
         }
 
-        public DnsRequestHeader(int id, int questionCount, bool useRecursion, DnsOpCode queryKind)
+        public DnsRequestHeader(int id, bool useRecursion, DnsOpCode queryKind)
         {
             Id = id;
-            QuestionCount = questionCount;
             OpCode = queryKind;
             UseRecursion = useRecursion;            
         }
 
         public override string ToString()
         {
-            return $"{Id} - Qs: {QuestionCount} Recursion: {UseRecursion} OpCode: {OpCode}";
+            return $"{Id} - Qs: {1} Recursion: {UseRecursion} OpCode: {OpCode}";
         }
     }
 }

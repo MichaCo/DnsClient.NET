@@ -31,6 +31,7 @@ namespace DnsClient.Protocol.Record
     /// specified by EXCHANGE.The use of MX RRs is explained in detail in
     /// [RFC-974].
     /// </summary>
+    [CLSCompliant(false)]
     public class MxRecord : DnsResourceRecord
     {
         /// <summary>

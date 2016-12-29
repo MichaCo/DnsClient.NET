@@ -9,29 +9,28 @@ namespace DnsClient.Protocol
     /// </summary>
     public class DnsResponseMessage
     {
-        private readonly IList<DnsResourceRecord> _additionals = new List<DnsResourceRecord>();
-        private readonly IList<DnsResourceRecord> _answers = new List<DnsResourceRecord>();
-        private readonly IList<DnsResourceRecord> _authorities = new List<DnsResourceRecord>();
-        private readonly DnsResponseHeader _header;
-        private readonly IList<DnsQuestion> _questions = new List<DnsQuestion>();
-
-        /// <summary>
-        /// Gets the readonly representation of this message which can be returned.
-        /// </summary>
-        public DnsQueryResponse AsReadonly
-            => new DnsQueryResponse(_header, _questions.ToArray(), _answers.ToArray(), _additionals.ToArray(), _authorities.ToArray());
-
-        public DnsResponseHeader Header => _header;
-
-        public DnsResponseMessage(DnsResponseHeader header)
+        public DnsResponseMessage(DnsResponseHeader header, int messageSize)
         {
             if (header == null)
             {
                 throw new ArgumentNullException(nameof(header));
             }
 
-            _header = header;
+            Header = header;
+            MessageSize = messageSize;
         }
+
+        public IList<DnsResourceRecord> Additionals { get; } = new List<DnsResourceRecord>();
+
+        public IList<DnsResourceRecord> Answers { get; } = new List<DnsResourceRecord>();
+
+        public IList<DnsResourceRecord> Authorities { get; } = new List<DnsResourceRecord>();
+
+        public DnsResponseHeader Header { get; }
+
+        public int MessageSize { get; }
+
+        public IList<DnsQuestion> Qestions { get; } = new List<DnsQuestion>();
 
         public void AddAdditional(DnsResourceRecord record)
         {
@@ -40,7 +39,7 @@ namespace DnsClient.Protocol
                 throw new ArgumentNullException(nameof(record));
             }
 
-            _additionals.Add(record);
+            Additionals.Add(record);
         }
 
         public void AddAnswer(DnsResourceRecord record)
@@ -50,7 +49,7 @@ namespace DnsClient.Protocol
                 throw new ArgumentNullException(nameof(record));
             }
 
-            _answers.Add(record);
+            Answers.Add(record);
         }
 
         public void AddAuthority(DnsResourceRecord record)
@@ -60,7 +59,7 @@ namespace DnsClient.Protocol
                 throw new ArgumentNullException(nameof(record));
             }
 
-            _authorities.Add(record);
+            Authorities.Add(record);
         }
 
         public void AddQuestion(DnsQuestion question)
@@ -70,7 +69,13 @@ namespace DnsClient.Protocol
                 throw new ArgumentNullException(nameof(question));
             }
 
-            _questions.Add(question);
+            Qestions.Add(question);
         }
+
+        /// <summary>
+        /// Gets the readonly representation of this message which can be returned.
+        /// </summary>
+        public DnsQueryResponse AsQueryResponse(NameServer nameServer)
+            => new DnsQueryResponse(Header, MessageSize, Qestions.ToArray(), Answers.ToArray(), Additionals.ToArray(), Authorities.ToArray(), nameServer);
     }
 }

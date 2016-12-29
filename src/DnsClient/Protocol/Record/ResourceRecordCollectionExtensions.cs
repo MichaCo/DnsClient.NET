@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq;
 using DnsClient.Protocol;
 using DnsClient.Protocol.Record;
 
@@ -39,11 +38,13 @@ namespace DnsClient
             return records.OfType<PtrRecord>();
         }
 
+        [CLSCompliant(false)]
         public static IEnumerable<SoaRecord> SoaRecords(this IEnumerable<DnsResourceRecord> records)
         {
             return records.OfType<SoaRecord>();
         }
 
+        [CLSCompliant(false)]
         public static IEnumerable<SrvRecord> SrvRecords(this IEnumerable<DnsResourceRecord> records)
         {
             return records.OfType<SrvRecord>();

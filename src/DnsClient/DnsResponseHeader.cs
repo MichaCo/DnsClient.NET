@@ -1,4 +1,7 @@
-﻿namespace DnsClient
+﻿using System;
+using System.Linq;
+
+namespace DnsClient
 {
     public class DnsResponseHeader
     {
@@ -12,6 +15,7 @@
 
         public bool HasAuthorityAnswer => HasFlag(DnsHeaderFlag.HasAuthorityAnswer);
 
+        [CLSCompliant(false)]
         public DnsHeaderFlag HeaderFlags => (DnsHeaderFlag)_flags;
 
         public int Id { get; }
@@ -24,13 +28,13 @@
 
         public int NameServerCount { get; }
 
-        public DnsOpCode OPCode => (DnsOpCode)((DnsHeader.OPCODE_MASK & _flags) >> DnsHeader.OPCODE_SHIFT);
+        public DnsOpCode OPCode => (DnsOpCode)((DnsHeader.OPCodeMask & _flags) >> DnsHeader.OPCodeShift);
 
         public int QuestionCount { get; }
 
         public bool RecursionAvailable => HasFlag(DnsHeaderFlag.RecursionAvailable);
 
-        public DnsResponseCode ResponseCode => (DnsResponseCode)(_flags & DnsHeader.RCODE_MASK);
+        public DnsResponseCode ResponseCode => (DnsResponseCode)(_flags & DnsHeader.RCodeMask);
 
         ////ResponseCode {set
         ////{
@@ -42,6 +46,7 @@
 
         public bool RecursionDesired => HasFlag(DnsHeaderFlag.RecursionDesired);
 
+        [CLSCompliant(false)]
         public DnsResponseHeader(int id, ushort flags, int questionCount, int answerCount, int additionalCount, int serverCount)
         {
             Id = id;
@@ -53,5 +58,22 @@
         }
 
         private bool HasFlag(DnsHeaderFlag flag) => (HeaderFlags & flag) != 0;
+
+        public override string ToString()
+        {
+            var head = $";; ->>HEADER<<- opcode: {OPCode}, status: {DnsResponseCodeText.GetErrorText(ResponseCode)}, id: {Id}";
+            var flags = new string[] {
+                        HasQuery ? "qr" : "",
+                        RecursionDesired ? "rd" : "",
+                        RecursionAvailable ? "ra" : "",
+                        ResultTruncated ? "tc" : "",
+                        IsCheckingDisabled ? "cd" : "",
+                        IsAuthenticData ? "ad" : ""
+                    };
+
+            var flagsString = string.Join(" ", flags.Where(p => p != ""));
+            return $"{head}\r\n;; flags: {flagsString}; QUERY: {QuestionCount}, " +
+                $"ANSWER: {AnswerCount}, AUTORITY: {NameServerCount}, ADDITIONAL: {AdditionalCount}";
+        }
     }
 }

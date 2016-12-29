@@ -1,4 +1,6 @@
-﻿namespace DnsClient.Protocol.Record
+﻿using System;
+
+namespace DnsClient.Protocol.Record
 {
     /* RFC 2782 (https://tools.ietf.org/html/rfc2782)
 
@@ -115,6 +117,7 @@
     /// Note that where this document refers to "address records", it means A
     /// RR's, AAAA RR's, or their most modern equivalent.
     /// </summary>
+    [CLSCompliant(false)]
     public class SrvRecord : DnsResourceRecord
     {
         public ushort Port { get; }

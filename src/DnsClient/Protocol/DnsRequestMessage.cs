@@ -22,10 +22,6 @@ namespace DnsClient.Protocol
             {
                 throw new ArgumentNullException(nameof(question));
             }
-            if (header.QuestionCount != 1)
-            {
-                throw new InvalidOperationException("Header question count and number of questions do not match.");
-            }
 
             Header = header;
             Question = question;

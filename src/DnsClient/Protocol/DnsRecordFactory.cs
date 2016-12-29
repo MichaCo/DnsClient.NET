@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using DnsClient.Protocol.Options;
 using DnsClient.Protocol.Record;
 
 namespace DnsClient.Protocol
@@ -45,10 +46,10 @@ namespace DnsClient.Protocol
         public ResourceRecordInfo ReadRecordInfo()
         {
             return new ResourceRecordInfo(
-                _reader.ReadName().ToString(),                  // name
+                _reader.ReadName(),                             // name
                 (ResourceRecordType)_reader.ReadUInt16Reverse(),// type
                 (QueryClass)_reader.ReadUInt16Reverse(),        // class
-                _reader.ReadUInt32Reverse(),                    // ttl - 32bit!!
+                (int)_reader.ReadUInt32Reverse(),                    // ttl - 32bit!!
                 _reader.ReadUInt16Reverse());                   // RDLength
                                                                 //reader.ReadBytes(reader.ReadUInt16Reverse()));  // rdata
         }
@@ -103,6 +104,10 @@ namespace DnsClient.Protocol
                         result = ResolveSrvRecord(info);
                         break;
 
+                    case ResourceRecordType.Opt:
+                        result = ResolveOptRecord(info);
+                        break;
+
                     default:
                         // update reader index because we don't read full data for the empty record
                         _reader.Index += info.RawDataLength;
@@ -118,6 +123,11 @@ namespace DnsClient.Protocol
             }
 
             return result;
+        }
+
+        private OptRecord ResolveOptRecord(ResourceRecordInfo info)
+        {
+            return new OptRecord((int)info.RecordClass, info.TimeToLive, info.RawDataLength);
         }
 
         private PtrRecord ResolvePtrRecord(ResourceRecordInfo info)

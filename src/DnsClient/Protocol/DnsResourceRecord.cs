@@ -5,7 +5,7 @@ namespace DnsClient.Protocol
     public abstract class DnsResourceRecord : ResourceRecordInfo
     {
         public DnsResourceRecord(ResourceRecordInfo info)
-            : base(info.QueryName, info.RecordType, info.RecordClass, info.TimeToLive, info.RawDataLength)
+            : base(info.DomainName, info.RecordType, info.RecordClass, info.TimeToLive, info.RawDataLength)
         {
         }
 
@@ -16,7 +16,7 @@ namespace DnsClient.Protocol
         }
         
         /// <summary>
-        /// Same as <c>ToString</c> but offsets the <see cref="ResourceRecordInfo.QueryName"/> 
+        /// Same as <c>ToString</c> but offsets the <see cref="ResourceRecordInfo.DomainName"/> 
         /// by <paramref name="offset"/>.
         /// Set the offset to -32 for example to make it print nicely in consols.
         /// </summary>
@@ -25,7 +25,7 @@ namespace DnsClient.Protocol
         public virtual string ToString(int offset = 0)
         {
             return string.Format("{0," + offset + "}{1} \t{2} \t{3} \t{4}",
-                QueryName,
+                DomainName,
                 TimeToLive,
                 RecordClass,
                 RecordType,
@@ -45,7 +45,7 @@ namespace DnsClient.Protocol
         /// <summary>
         /// The query name.
         /// </summary>
-        public string QueryName { get; }
+        public DnsName DomainName { get; }
 
         /// <summary>
         /// Specifies type of resource record.
@@ -55,26 +55,26 @@ namespace DnsClient.Protocol
         /// <summary>
         /// Specifies type class of resource record, mostly IN but can be CS, CH or HS .
         /// </summary>
-        public QueryClass RecordClass { get; }
+        public QueryClass RecordClass { get; set; }
 
         /// <summary>
         /// The TTL value for the record set by the server.
         /// </summary>
-        public uint TimeToLive { get; }
+        public int TimeToLive { get; protected set; }
 
         /// <summary>
         /// Gets the number of bytes for this resource record stored in RDATA
         /// </summary>
         public int RawDataLength { get; }
 
-        public ResourceRecordInfo(string queryName, ResourceRecordType recordType, QueryClass recordClass, uint ttl, int length)
+        public ResourceRecordInfo(DnsName queryName, ResourceRecordType recordType, QueryClass recordClass, int ttl, int length)
         {
             if (queryName == null)
             {
                 throw new ArgumentNullException(nameof(queryName));
             }
 
-            QueryName = queryName;
+            DomainName = queryName;
             RecordType = recordType;
             RecordClass = recordClass;
             TimeToLive = ttl;

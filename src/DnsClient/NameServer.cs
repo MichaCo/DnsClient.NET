@@ -13,6 +13,27 @@ namespace DnsClient
         /// </summary>
         public const int DefaultPort = 53;
 
+        public NameServer(IPAddress endpoint)
+            : this(new IPEndPoint(endpoint, DefaultPort))
+        {
+        }
+
+        public NameServer(IPEndPoint endpoint)
+        {
+            if (endpoint == null)
+            {
+                throw new ArgumentNullException(nameof(endpoint));
+            }
+
+            Endpoint = endpoint;
+        }
+
+        public bool Enabled { get; internal set; } = true;
+
+        public IPEndPoint Endpoint { get; }
+
+        public int? SupportedUdpPayloadSize { get; internal set; }
+
         /// <summary>
         /// Gets a list of name servers by iterating over the available network interfaces.
         /// </summary>
@@ -39,6 +60,20 @@ namespace DnsClient
             }
 
             return result.ToArray();
+        }
+
+        public override string ToString()
+        {
+            return $"{Endpoint} (Udp: {SupportedUdpPayloadSize ?? 512})";
+        }
+
+        internal NameServer Clone()
+        {
+            return new NameServer(Endpoint)
+            {
+                Enabled = Enabled,
+                SupportedUdpPayloadSize = SupportedUdpPayloadSize
+            };
         }
     }
 }

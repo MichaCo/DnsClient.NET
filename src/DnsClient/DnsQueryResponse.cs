@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using DnsClient.Protocol;
-using DnsClient.Protocol.Record;
 
 namespace DnsClient
 {
@@ -12,6 +11,8 @@ namespace DnsClient
     public class DnsQueryResponse
     {
         private int? _hashCode;
+
+        public NameServer NameServer { get; }
 
         /// <summary>
         /// Gets a list of additional records.
@@ -28,7 +29,9 @@ namespace DnsClient
                 return Answers.Concat(Additionals).Concat(Authorities).ToArray();
             }
         }
-        
+
+        public string AuditTrail { get; internal set; }
+
         /// <summary>
         /// Gets a list of answer records.
         /// </summary>
@@ -59,28 +62,35 @@ namespace DnsClient
         /// </summary>
         public IReadOnlyCollection<DnsQuestion> Questions { get; }
 
+        public int MessageSize { get; }
+
         /// <summary>
         /// Creates a new instace of <see cref="DnsQueryResponse"/>.
         /// </summary>
         /// <see cref="DnsResponseMessage"/>
         public DnsQueryResponse(
             DnsResponseHeader header,
+            int messageSize,
             IReadOnlyCollection<DnsQuestion> questions,
             IReadOnlyCollection<DnsResourceRecord> answers,
             IReadOnlyCollection<DnsResourceRecord> additionals,
-            IReadOnlyCollection<DnsResourceRecord> authorities)
+            IReadOnlyCollection<DnsResourceRecord> authorities,
+            NameServer nameServer)
         {
             if (header == null) throw new ArgumentNullException(nameof(header));
             if (questions == null) throw new ArgumentNullException(nameof(questions));
             if (answers == null) throw new ArgumentNullException(nameof(answers));
             if (additionals == null) throw new ArgumentNullException(nameof(additionals));
             if (authorities == null) throw new ArgumentNullException(nameof(authorities));
+            if (nameServer == null) throw new ArgumentNullException(nameof(nameServer));
 
             Header = header;
+            MessageSize = messageSize;
             Questions = questions;
             Answers = answers;
             Additionals = additionals;
             Authorities = authorities;
+            NameServer = nameServer;
         }
 
         /// <inheritdoc />
@@ -102,7 +112,7 @@ namespace DnsClient
                 && string.Join("", Questions).Equals(string.Join("", response.Questions))
                 && string.Join("", AllRecords).Equals(string.Join("", response.AllRecords));
         }
-        
+
         /// <inheritdoc />
         public override int GetHashCode()
         {

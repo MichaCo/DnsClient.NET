@@ -7,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using DnsClient;
 using Microsoft.Extensions.CommandLineUtils;
-using Microsoft.Extensions.Logging;
 
 namespace DigApp
 {
@@ -49,8 +48,6 @@ namespace DigApp
 
         protected override async Task<int> Execute()
         {
-            var loggerFactory = new LoggerFactory().AddConsole(GetLoglevelValue());
-
             string useDomain = string.IsNullOrWhiteSpace(DomainArg.Value) ? "." : DomainArg.Value;
             QueryType useQType = 0;
             QueryClass useQClass = 0;
@@ -109,6 +106,7 @@ namespace DigApp
 
             // finally running the command
             var lookup = GetDnsLookup();
+            lookup.EnableAuditTrail = true;
 
             var swatch = Stopwatch.StartNew();
 
@@ -120,83 +118,12 @@ namespace DigApp
 
             // Printing infomrational stuff
             var useServers = lookup.NameServers;
-
+            
             Console.WriteLine();
             Console.WriteLine($"; <<>> MiniDiG {Version} {OS} <<>> {string.Join(" ", OriginalArgs)}");
-            Console.WriteLine($"; ({useServers.Count} server found)");
 
-            if (result.HasError)
-            {
-                Console.WriteLine($";; {result.ErrorMessage}");
-            }
-            else
-            {
-                Console.WriteLine(";; Got answer:");
-                Console.WriteLine($";; ->>HEADER<<- opcode: {result.Header.OPCode}, status: {result.ErrorMessage}, id: {result.Header.Id}");
-                var flags = new string[] {
-                        result.Header.HasQuery ? "qr" : "",
-                        result.Header.RecursionAvailable ? "ra" : "",
-                        result.Header.RecursionDesired ? "rd" : "",
-                        result.Header.ResultTruncated ? "tc" : ""
-                    };
-
-                var flagsString = string.Join(" ", flags.Where(p => p != ""));
-
-                Console.WriteLine($";; flags: {flagsString}; QUERY: {result.Header.QuestionCount}, " +
-                    $"ANSWER: {result.Header.AnswerCount}, AUTORITY: {result.Header.NameServerCount}, ADDITIONAL: {result.Header.AdditionalCount}");
-
-                Console.WriteLine();
-
-                if (result.Questions.Count > 0)
-                {
-                    Console.WriteLine(";; QUESTION SECTION:");
-                    foreach (var question in result.Questions)
-                    {
-                        Console.WriteLine(question.ToString(s_printOffset));
-                    }
-
-                    Console.WriteLine();
-                }
-
-                if (result.Answers.Count > 0)
-                {
-                    Console.WriteLine(";; ANSWER SECTION:");
-                    foreach (var answer in result.Answers)
-                    {
-                        Console.WriteLine(answer.ToString(s_printOffset));
-                    }
-
-                    Console.WriteLine();
-                }
-
-                if (result.Additionals.Count > 0)
-                {
-                    Console.WriteLine(";; ADDITIONALS SECTION:");
-                    foreach (var additional in result.Additionals)
-                    {
-                        Console.WriteLine(additional.ToString(s_printOffset));
-                    }
-
-                    Console.WriteLine();
-                }
-
-                if (result.Authorities.Count > 0)
-                {
-                    Console.WriteLine(";; AUTHORITIES SECTION:");
-                    foreach (var auth in result.Authorities)
-                    {
-                        Console.WriteLine(auth.ToString(s_printOffset));
-                    }
-
-                    Console.WriteLine();
-                }
-            }
-
-            // footer
-            Console.WriteLine($";; Query time: {elapsed:N0} msec");
-            Console.WriteLine($";; SERVER: {useServers.FirstOrDefault()}");
-            Console.WriteLine($";; WHEN: {DateTime.Now.ToString("R")}");
-
+            Console.WriteLine(result.AuditTrail);
+            
             return 0;
         }
     }

@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DnsClient;
 using Microsoft.Extensions.CommandLineUtils;
-using Microsoft.Extensions.Logging;
 
 namespace DigApp
 {
@@ -54,10 +53,7 @@ namespace DigApp
             var useRuns = RunsArg.HasValue() ? int.Parse(RunsArg.Value()) : 100;
             var useQuery = string.IsNullOrWhiteSpace(QueryArg.Value) ? string.Empty : QueryArg.Value;
             var lookup = GetDnsLookup();
-
-            var loggerFactory = new LoggerFactory().AddConsole(GetLoglevelValue());
-            var logger = loggerFactory.CreateLogger("Dig_Perf");
-
+            
             var settings = GetLookupSettings();
             var runner = new PerfRunner(settings, useClients, useRuns, useQuery);
             await runner.Run();

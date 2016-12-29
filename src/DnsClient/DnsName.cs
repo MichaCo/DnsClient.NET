@@ -7,26 +7,18 @@ namespace DnsClient
 {
     public class DnsName : IComparable
     {
+        public static readonly DnsName Root = new DnsName();
+
         private const byte ReferenceByte = 0xc0;
         private List<string> _labels = new List<string>();
         private short _octets = 1;
-
-        public bool HasRootLabel => (_labels.Count > 0 && Get(0).Equals(""));
-
-        public bool IsEmpty => Size == 0;
-
-        public bool IsHostName => !_labels.Any(p => !IsHostNameLabel(p));
-
-        public int Octets => _octets;
-
-        public int Size => _labels.Where(p => p != "").Count();
 
         /// <summary>
         /// Creates an empty <see cref="DnsName"/> instance.
         /// </summary>
         public DnsName()
         {
-            Add(0, "");
+            AddLabel(0, "");
         }
 
         /// <summary>
@@ -45,7 +37,31 @@ namespace DnsClient
                 Parse(name);
             }
 
-            if (!HasRootLabel) Add(0, "");
+            if (!HasRootLabel) AddLabel(0, "");
+        }
+
+        public bool IsEmpty => Size == 0;
+
+        public bool IsHostName => !_labels.Any(p => !IsHostNameLabel(p));
+
+        public int Octets => _octets;
+
+        public int Size => _labels.Count - 1;
+
+        private bool HasRootLabel => (_labels.Count > 0 && GetLabel(0).Equals(""));
+
+        public string this[int index]
+        {
+            get
+            {
+                // exclude ""
+                if (index < 0 || index >= Size)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(index));
+                }
+
+                return _labels[index];
+            }
         }
 
         public static DnsName FromBytes(byte[] data, ref int offset)
@@ -84,73 +100,25 @@ namespace DnsClient
                 }
 
                 var label = Encoding.ASCII.GetString(data, offset, length);
-                result.Add(1, label);
+                result.AddLabel(1, label);
                 offset += length;
             }
 
             return result;
         }
 
-        public void Add(int pos, string label)
-        {
-            if (label == null)
-            {
-                throw new ArgumentNullException(nameof(label));
-            }
-            if (pos < 0 || pos > _labels.Count)
-            {
-                throw new ArgumentOutOfRangeException(nameof(pos));
-            }
-            // Check for empty labels:  may have only one, and only at end.
-            int len = label.Length;
-            if ((pos > 0 && len == 0) ||
-                (pos == 0 && HasRootLabel))
-            {
-                throw new InvalidOperationException("Empty label must be the last label in a domain name");
-            }
+        public static implicit operator DnsName(string name) => new DnsName(name);
 
-            // Total length must not be larger than 255 characters (including the ending zero).
-            if (len > 0)
-            {
-                if (_octets + len + 1 >= 256)
-                {
-                    throw new InvalidOperationException("Name too long");
-                }
-                _octets += (short)(len + 1);
-            }
-
-            int i = _labels.Count - pos;
-            VerifyLabel(label);
-            _labels.Insert(i, label);
-        }
-
-        public byte[] AsBytes()
-        {
-            var bytes = new byte[_octets];
-            var offset = 0;
-            for (int i = _labels.Count - 1; i >= 0; i--)
-            {
-                var label = Get(i);
-
-                // should never cause issues as each label's length is limited to 64 chars.
-                var len = checked((byte)label.Length);
-
-                // set the label length byte
-                bytes[offset++] = len;
-
-                // set the label's content
-                var labelBytes = Encoding.ASCII.GetBytes(label);
-                Array.ConstrainedCopy(labelBytes, 0, bytes, offset, len);
-
-                offset += len;
-            }
-
-            return bytes;
-        }
+        public static implicit operator string(DnsName name) => name.ToString();
 
         public int CompareTo(object obj)
         {
             if (obj == null)
+            {
+                return 1;
+            }
+
+            if ((obj as DnsName) == null)
             {
                 return 1;
             }
@@ -167,7 +135,7 @@ namespace DnsClient
 
             foreach (var label in other._labels.Where(p => !string.IsNullOrWhiteSpace(p)))
             {
-                Add(1, label);
+                AddLabel(1, label);
             }
         }
 
@@ -187,14 +155,28 @@ namespace DnsClient
             return CompareTo(otherName) == 0;
         }
 
-        public string Get(int pos)
+        public byte[] GetBytes()
         {
-            if (pos < 0 || pos > _labels.Count)
+            var bytes = new byte[_octets];
+            var offset = 0;
+            for (int i = _labels.Count - 1; i >= 0; i--)
             {
-                throw new ArgumentOutOfRangeException(nameof(pos));
+                var label = GetLabel(i);
+
+                // should never cause issues as each label's length is limited to 64 chars.
+                var len = checked((byte)label.Length);
+
+                // set the label length byte
+                bytes[offset++] = len;
+
+                // set the label's content
+                var labelBytes = Encoding.ASCII.GetBytes(label);
+                Array.ConstrainedCopy(labelBytes, 0, bytes, offset, len);
+
+                offset += len;
             }
 
-            return _labels[_labels.Count - pos - 1];
+            return bytes;
         }
 
         public override int GetHashCode()
@@ -215,9 +197,7 @@ namespace DnsClient
                 Escaped(buf, label);
             }
 
-            var name = buf.ToString();
-
-            return name;
+            return buf.ToString();
         }
 
         private static bool IsHostNameChar(char c)
@@ -260,6 +240,39 @@ namespace DnsClient
                     throw new InvalidOperationException("Label has two-byte char: " + label);
                 }
             }
+        }
+
+        private void AddLabel(int pos, string label)
+        {
+            if (label == null)
+            {
+                throw new ArgumentNullException(nameof(label));
+            }
+            if (pos < 0 || pos > _labels.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pos));
+            }
+            // Check for empty labels:  may have only one, and only at end.
+            int len = label.Length;
+            if ((pos > 0 && len == 0) ||
+                (pos == 0 && HasRootLabel))
+            {
+                throw new InvalidOperationException("Empty label must be the last label in a domain name");
+            }
+
+            // Total length must not be larger than 255 characters (including the ending zero).
+            if (len > 0)
+            {
+                if (_octets + len + 1 >= 256)
+                {
+                    throw new InvalidOperationException("Name too long");
+                }
+                _octets += (short)(len + 1);
+            }
+
+            int i = _labels.Count - pos;
+            VerifyLabel(label);
+            _labels.Insert(i, label);
         }
 
         private void Escaped(StringBuilder buf, string label)
@@ -307,6 +320,16 @@ namespace DnsClient
             }
         }
 
+        private string GetLabel(int label)
+        {
+            if (label < 0 || label >= _labels.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(label));
+            }
+
+            return _labels[_labels.Count - label - 1];
+        }
+
         private bool IsDigit(char c)
         {
             return (c >= '0' && c <= '9');
@@ -336,14 +359,14 @@ namespace DnsClient
                 }
                 else
                 {
-                    Add(0, label.ToString());
+                    AddLabel(0, label.ToString());
                     label.Clear();
                 }
             }
 
             if (label.Length > 0)
             {
-                Add(0, label.ToString());
+                AddLabel(0, label.ToString());
             }
         }
     }

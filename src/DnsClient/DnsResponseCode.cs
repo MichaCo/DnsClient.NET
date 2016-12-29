@@ -6,10 +6,11 @@ namespace DnsClient
     /*
      * Reference RFC6895#section-2.3
      */
+
     // <summary>
     /// RFCs 1035, 2136, 2671, 2845, 2930, 4635.
     /// </summary>
-    public enum DnsResponseCode : ushort
+    public enum DnsResponseCode : short
     {
         /// <summary>
         /// RFC 1035.
@@ -31,7 +32,7 @@ namespace DnsClient
 
         /// <summary>
         /// RFC 1035.
-        /// Name Error. Meaningful only for responses from an authoritative name server, 
+        /// Name Error. Meaningful only for responses from an authoritative name server,
         /// this code signifies that the domain name referenced in the query does not exist.
         /// </summary>
         NotExistentDomain = 3,
@@ -44,8 +45,8 @@ namespace DnsClient
 
         /// <summary>
         /// RFC 1035.
-        /// Refused. The name server refuses to perform the specified operation for policy reasons.  
-        /// For example, a name server may not wish to provide the information to the particular requester, 
+        /// Refused. The name server refuses to perform the specified operation for policy reasons.
+        /// For example, a name server may not wish to provide the information to the particular requester,
         /// or a name server may not wish to perform a particular operation (e.g., zone transfer) for particular data.
         /// </summary>
         Refused = 5,
@@ -134,8 +135,7 @@ namespace DnsClient
         Unassigned = 666
     }
 
-
-    public static class DnsResponseCodeText
+    internal static class DnsResponseCodeText
     {
         internal const string BADALG = "Algorithm not supported";
         internal const string BADCOOKIE = "Bad/missing Server Cookie";
@@ -219,7 +219,7 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Creates an instance of <see cref="DnsResponseException"/> with 
+        /// Creates an instance of <see cref="DnsResponseException"/> with
         /// the standard error text for this <paramref name="code"/>.
         /// </summary>
         public DnsResponseException(DnsResponseCode code) : base(DnsResponseCodeText.GetErrorText(code))

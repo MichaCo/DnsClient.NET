@@ -13,7 +13,7 @@ namespace DnsClient.Tests
             var strValue = name.ToString();
 
             // ending
-            Assert.Equal(strValue, "abc.xyz.example.com.");
+            Assert.Equal(name, "abc.xyz.example.com.");
 
             // domain name has 4 labels
             Assert.Equal(name.Size, 4);
@@ -36,9 +36,9 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsName_EscapingNoHostName()
         {
-            var name = new DnsName("abc.zy\\.z.com");
+            var name = (DnsName)"abc.zy\\.z.com";
 
-            Assert.Equal(name.Get(2), "zy.z");
+            Assert.Equal(name[1], "zy.z");
             Assert.Equal(name.Size, 3);
             Assert.False(name.IsHostName);
         }
@@ -47,7 +47,7 @@ namespace DnsClient.Tests
         public void DnsName_Concat()
         {
             var name = new DnsName("xyz.ns1");
-            name.Concat(new DnsName("abc.com"));
+            name.Concat("abc.com");
 
             Assert.Equal(name.ToString(), "xyz.ns1.abc.com.");
             Assert.Equal(name.Size, 4);

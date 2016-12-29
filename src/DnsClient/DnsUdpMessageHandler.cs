@@ -24,9 +24,16 @@ namespace DnsClient
             DnsRequestMessage request,
             CancellationToken cancellationToken)
         {
+            if (cancellationToken.IsCancellationRequested)
+            {
+                return null;
+            }
+
             var sw = Stopwatch.StartNew();
 
-            using (var udpClient = new UdpClient() { EnableBroadcast = true })
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using (var udpClient = new UdpClient() { })
             {
                 var data = GetRequestData(request);
                 await udpClient.SendAsync(data, data.Length, server).ConfigureAwait(false);

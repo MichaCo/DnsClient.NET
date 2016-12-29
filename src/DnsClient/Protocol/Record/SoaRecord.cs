@@ -1,4 +1,6 @@
-﻿namespace DnsClient.Protocol.Record
+﻿using System;
+
+namespace DnsClient.Protocol.Record
 {
     /*
     3.3.13. SOA RDATA format
@@ -66,7 +68,7 @@
     reason for this provison is to allow future dynamic update facilities to
     change the SOA RR with known semantics.
     */
-
+    [CLSCompliant(false)]
     public class SoaRecord : DnsResourceRecord
     {
         public uint Expire { get; }

@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
+using DnsClient.Protocol.Options;
 
 namespace DnsClient
 {
@@ -16,19 +17,36 @@ namespace DnsClient
         private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
-        private static ushort _uniqueId = 0;
+        private static int _uniqueId = 0;
         private readonly ResponseCache _cache = new ResponseCache(true);
         private readonly object _endpointLock = new object();
         private readonly DnsMessageHandler _messageHandler;
         private readonly DnsMessageHandler _tcpFallbackHandler;
-        private Queue<EndPointInfo> _endpoints;
+        private readonly Queue<NameServer> _endpoints;
+        private readonly Random _random = new Random();
         private TimeSpan _timeout = s_defaultTimeout;
         private bool _disposedValue = false;
 
         /// <summary>
+        /// Gets or sets a flag indicating if Tcp should not be used in case a Udp response is truncated.
+        /// If <c>True</c>, truncated results will potentially yield no answers.
+        /// </summary>
+        public bool UseTcpFallback { get; set; }
+
+        /// <summary>
+        /// Gets or sets a flag indicating if Udp should not be used at all.
+        /// </summary>
+        public bool UseTcpOnly { get; set; }
+
+        /// <summary>
         /// Gets the list of configured name servers.
         /// </summary>
-        public IReadOnlyCollection<IPEndPoint> NameServers { get; }
+        public IReadOnlyCollection<NameServer> NameServers { get; }
+
+        /// <summary>
+        /// If enabled, each response will contain a full documentation of the lookup chain
+        /// </summary>
+        public bool EnableAuditTrail { get; set; } = false;
 
         /// <summary>
         /// Gets or set a flag indicating if recursion should be enabled for DNS queries.
@@ -119,14 +137,10 @@ namespace DnsClient
                 throw new ArgumentException("At least one name server must be configured.", nameof(nameServers));
             }
 
-            NameServers = nameServers.ToArray();
+            // TODO validate ip endpoints
 
-            _endpoints = new Queue<EndPointInfo>();
-            foreach (var server in NameServers)
-            {
-                _endpoints.Enqueue(new EndPointInfo(server));
-            }
-
+            NameServers = nameServers.Select(p => new NameServer(p)).ToArray();
+            _endpoints = new Queue<NameServer>(NameServers);
             _messageHandler = new DnsUdpMessageHandler();
             _tcpFallbackHandler = new DnsTcpMessageHandler();
         }
@@ -182,10 +196,15 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(question));
             }
 
-            var head = new DnsRequestHeader(GetNextUniqueId(), 1, Recursion, DnsOpCode.Query);
+            var head = new DnsRequestHeader(GetNextUniqueId(), Recursion, DnsOpCode.Query);
             var request = new DnsRequestMessage(head, question);
             var cacheKey = ResponseCache.GetCacheKey(question);
-            var result = await _cache.GetOrAdd(cacheKey, async () => await ResolveQueryAsync(_messageHandler, request, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+
+            var handler = UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
+            var result = await _cache.GetOrAdd(
+                    cacheKey,
+                    async () => await ResolveQueryAsync(handler, request, cancellationToken).ConfigureAwait(false))
+                .ConfigureAwait(false);
 
             return result;
         }
@@ -204,14 +223,14 @@ namespace DnsClient
             return QueryAsync(arpa, QueryType.PTR, QueryClass.IN, cancellationToken);
         }
 
-        private static ushort GetNextUniqueId()
+        private ushort GetNextUniqueId()
         {
             if (_uniqueId == ushort.MaxValue || _uniqueId == 0)
             {
-                _uniqueId = (ushort)(new Random()).Next(ushort.MaxValue / 2);
+                _uniqueId = (ushort)_random.Next(ushort.MaxValue / 2);
             }
 
-            return _uniqueId++;
+            return unchecked((ushort)Interlocked.Increment(ref _uniqueId));
         }
 
         private async Task<DnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, CancellationToken cancellationToken)
@@ -221,41 +240,38 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(request));
             }
 
-            for (int index = 0; index < NameServers.Count; index++)
+            var audit = EnableAuditTrail ? new Audit() : null;
+
+            NameServer[] servers = null;
+            lock (_endpointLock)
             {
-                EndPointInfo serverInfo = null;
-                lock (_endpointLock)
+                if (_endpoints.Count > 1)
                 {
-                    while (_endpoints.Count > 0 && serverInfo == null)
-                    {
-                        serverInfo = _endpoints.Dequeue();
+                    servers = _endpoints.Where(p => p.Enabled).ToArray();
 
-                        if (serverInfo.IsDisabled)
-                        {
-                            serverInfo = null;
-                        }
-                        else
-                        {
-                            // put it back and then use it..
-                            _endpoints.Enqueue(serverInfo);
-                        }
-                    }
-
-                    if (serverInfo == null)
-                    {
-                        // let's be optimistic and eable them again, maybe they wher offline one for a while
-                        _endpoints.ToList().ForEach(p => p.IsDisabled = false);
-
-                        continue;
-                    }
+                    // rotate for the next request so that we pick the next one next time
+                    var server = _endpoints.Dequeue();
+                    _endpoints.Enqueue(server);
                 }
+                else
+                {
+                    // fast forward without queue logic if there is only one server...
+                    servers = _endpoints.ToArray();
+                }
+            }
 
+            if (EnableAuditTrail) audit.AuditResolveServers(servers.Length);
+
+            foreach (var serverInfo in servers)
+            {
                 var tries = 0;
-                do
+                do /*(int index = 0; index < NameServers.Where(p => p.Enabled).Count(); index++)*/
                 {
                     tries++;
+
                     try
                     {
+                        if (EnableAuditTrail) audit.StartTimer();
                         DnsResponseMessage response;
                         var resultTask = handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
                         if (Timeout != s_infiniteTimeout)
@@ -265,20 +281,45 @@ namespace DnsClient
 
                         response = await resultTask.ConfigureAwait(false);
 
-                        if (response.Header.ResultTruncated)
+                        if (EnableAuditTrail) audit.AuditResponseHeader(response.Header);
+
+                        if (response.Header.ResultTruncated && UseTcpFallback && !handler.GetType().Equals(typeof(DnsTcpMessageHandler)))
                         {
-                            Debug.WriteLine("Message truncated, retrying with TCP.");
+                            if (EnableAuditTrail) audit.AuditTruncatedRetryTcp();
                             return await ResolveQueryAsync(_tcpFallbackHandler, request, cancellationToken).ConfigureAwait(false);
                         }
 
-                        var result = response.AsReadonly;
-
-                        if (ThrowDnsErrors && result.Header.ResponseCode != DnsResponseCode.NoError)
+                        if (response.Header.ResponseCode != DnsResponseCode.NoError)
                         {
-                            throw new DnsResponseException(result.Header.ResponseCode);
+                            if (EnableAuditTrail) audit.AuditResponseError(response.Header.ResponseCode);
+
+                            if (ThrowDnsErrors)
+                            {
+                                throw new DnsResponseException(response.Header.ResponseCode);
+                            }
                         }
 
-                        return result;
+                        var opt = response.Additionals.OfType<OptRecord>().FirstOrDefault();
+                        if (opt != null)
+                        {
+                            if (EnableAuditTrail) audit.AuditOptPseudo();
+                            serverInfo.SupportedUdpPayloadSize = opt.UdpSize;
+
+                            // TODO: handle opt records and remove them later
+                            response.Additionals.Remove(opt);
+
+                            if (EnableAuditTrail) audit.AuditEdnsOpt(opt.UdpSize, opt.Version, opt.ResponseCodeEx);
+                        }
+
+                        DnsQueryResponse queryResponse = response.AsQueryResponse(serverInfo.Clone());
+                        if (EnableAuditTrail)
+                        {
+                            audit.AuditResponse(queryResponse);
+                            audit.AuditEnd(queryResponse);
+                            queryResponse.AuditTrail = audit.Build();
+                        }
+
+                        return queryResponse;
                     }
                     catch (DnsResponseException)
                     {
@@ -288,56 +329,58 @@ namespace DnsClient
                     }
                     catch (TimeoutException)
                     {
-                        // do nothing... transient if timeoutAfter timed out
+                        DisableEndpoint(serverInfo);
+                        break;
                     }
                     catch (SocketException ex) when (ex.SocketErrorCode == SocketError.AddressFamilyNotSupported)
                     {
                         // this socket error might indicate the server endpoint is actually bad and should be ignored in future queries.
-                        serverInfo.IsDisabled = true;
-                        Debug.WriteLine($"Disabling name server {serverInfo.Endpoint}.");
+                        DisableEndpoint(serverInfo);
                         break;
                     }
                     catch (Exception ex) when (handler.IsTransientException(ex))
                     {
+                        DisableEndpoint(serverInfo);
+                        break;
                     }
                     catch (Exception ex)
                     {
+                        DisableEndpoint(serverInfo);
+
                         var agg = ex as AggregateException;
                         if (agg != null)
                         {
-                            agg.Handle(e =>
+                            if (agg.InnerExceptions.Any(e => e is TimeoutException || handler.IsTransientException(e)))
                             {
-                                if (e is TimeoutException) return true;
-                                if (handler.IsTransientException(e)) return true;
-                                return false;
-                            });
+                                break;
+                            }
 
                             throw new DnsResponseException("Unhandled exception", agg.InnerException);
                         }
 
                         throw new DnsResponseException("Unhandled exception", ex);
                     }
-                    finally
-                    {
-                        // do cleanup stuff or logging?
-                    }
-                } while (tries <= Retries && !cancellationToken.IsCancellationRequested);
-            }
 
+                    // TODO delay configurable?
+                } while (tries <= Retries && !cancellationToken.IsCancellationRequested && serverInfo.Enabled);
+            }
             throw new DnsResponseException($"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.");
         }
 
-        private class EndPointInfo
+        private void DisableEndpoint(NameServer server)
         {
-            public IPEndPoint Endpoint { get; }
-
-            public bool IsDisabled { get; set; }
-
-            public EndPointInfo(IPEndPoint endpoint)
+            lock (_endpointLock)
             {
-                Endpoint = endpoint;
-                IsDisabled = false;
+                server.Enabled = false;
+
+                if (_endpoints.Count(p => p.Enabled == true) == 0)
+                {
+                    // reset all servers to try again...
+                    _endpoints.ToList().ForEach(p => p.Enabled = true);
+                }
             }
+
+            Debug.WriteLine($"Disabling name server {server.Endpoint}.");
         }
 
         protected virtual void Dispose(bool disposing)
@@ -357,6 +400,113 @@ namespace DnsClient
         public void Dispose()
         {
             Dispose(true);
+        }
+
+        private class Audit
+        {
+            private static readonly int s_printOffset = -32;
+            private StringBuilder _auditWriter = new StringBuilder();
+            private Stopwatch _swatch;
+
+            public Audit()
+            {
+                _swatch = Stopwatch.StartNew();
+            }
+
+            public void StartTimer()
+            {
+                _swatch.Restart();
+            }
+
+            public void AuditResolveServers(int count)
+            {
+                _auditWriter.AppendLine($"; ({count} server found)");
+            }
+
+            public string Build()
+            {
+                return _auditWriter.ToString();
+            }
+
+            public void AuditTruncatedRetryTcp()
+            {
+                _auditWriter.AppendLine("; Udp result truncated, using tcp now");
+            }
+
+            public void AuditResponseError(DnsResponseCode responseCode)
+            {
+                _auditWriter.AppendLine($";; {DnsResponseCodeText.GetErrorText(responseCode)}");
+            }
+
+            public void AuditOptPseudo()
+            {
+                _auditWriter.AppendLine(";; OPT PSEUDOSECTION:");
+            }
+
+            public void AuditResponseHeader(DnsResponseHeader header)
+            {
+                _auditWriter.AppendLine(";; Got answer:");
+                _auditWriter.AppendLine(header.ToString());
+                _auditWriter.AppendLine();
+            }
+
+            public void AuditEdnsOpt(short udpSize, byte version, DnsResponseCode responseCodeEx)
+            {
+                // TODO: flags
+                _auditWriter.AppendLine($"; EDNS: version: {version}, flags:; udp: {udpSize}");
+            }
+
+            public void AuditResponse(DnsQueryResponse queryResponse)
+            {
+                if (queryResponse.Questions.Count > 0)
+                {
+                    _auditWriter.AppendLine(";; QUESTION SECTION:");
+                    foreach (var question in queryResponse.Questions)
+                    {
+                        _auditWriter.AppendLine(question.ToString(s_printOffset));
+                    }
+                    _auditWriter.AppendLine();
+                }
+
+                if (queryResponse.Answers.Count > 0)
+                {
+                    _auditWriter.AppendLine(";; ANSWER SECTION:");
+                    foreach (var answer in queryResponse.Answers)
+                    {
+                        _auditWriter.AppendLine(answer.ToString(s_printOffset));
+                    }
+                    _auditWriter.AppendLine();
+                }
+
+                if (queryResponse.Authorities.Count > 0)
+                {
+                    _auditWriter.AppendLine(";; AUTHORITIES SECTION:");
+                    foreach (var auth in queryResponse.Authorities)
+                    {
+                        _auditWriter.AppendLine(auth.ToString(s_printOffset));
+                    }
+                    _auditWriter.AppendLine();
+                }
+
+                if (queryResponse.Additionals.Count > 0)
+                {
+                    _auditWriter.AppendLine(";; ADDITIONALS SECTION:");
+                    foreach (var additional in queryResponse.Additionals)
+                    {
+                        _auditWriter.AppendLine(additional.ToString(s_printOffset));
+                    }
+                    _auditWriter.AppendLine();
+                }
+            }
+
+            public void AuditEnd(DnsQueryResponse queryResponse)
+            {
+                var elapsed = _swatch.ElapsedTicks / 10000d;
+                _auditWriter.AppendLine($";; Query time: {elapsed:N0} msec");
+                _auditWriter.AppendLine($";; SERVER: {queryResponse.NameServer.Endpoint.Address}#{queryResponse.NameServer.Endpoint.Port}");
+                _auditWriter.AppendLine($";; WHEN: {DateTime.Now.ToString("R")}");
+                _auditWriter.AppendLine($";; MSG SIZE  rcvd: {queryResponse.MessageSize}");
+            }
         }
     }
 }
