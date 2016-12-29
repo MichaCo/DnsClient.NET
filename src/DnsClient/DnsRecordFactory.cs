@@ -135,10 +135,10 @@ namespace DnsClient
             return new PtrRecord(info, _reader.ReadName().ToString());
         }
 
-        private AAAARecord ResolveAAAARecord(ResourceRecordInfo info)
+        private AaaaRecord ResolveAAAARecord(ResourceRecordInfo info)
         {
             var address = _reader.ReadIPv6Address();
-            return new AAAARecord(info, address);
+            return new AaaaRecord(info, address);
         }
 
         // default resolver implementation for an A Record

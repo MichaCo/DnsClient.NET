@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Linq;
-namespace DnsClient
+namespace DnsClient.Protocol
 {
     /*
      * RFC 1035 (https://tools.ietf.org/html/rfc1035#section-3.2.2)

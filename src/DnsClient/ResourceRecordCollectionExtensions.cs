@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using DnsClient.Protocol;
 
-namespace DnsClient
+namespace System.Linq
 {
     public static class RecordCollectionExtension
     {
-        public static IEnumerable<AAAARecord> AaaaRecords(this IEnumerable<DnsResourceRecord> records)
+        public static IEnumerable<AaaaRecord> AaaaRecords(this IEnumerable<DnsResourceRecord> records)
         {
-            return records.OfType<AAAARecord>();
+            return records.OfType<AaaaRecord>();
         }
 
         public static IEnumerable<ARecord> ARecords(this IEnumerable<DnsResourceRecord> records)

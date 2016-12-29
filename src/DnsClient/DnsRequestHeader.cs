@@ -3,13 +3,12 @@ using DnsClient.Protocol;
 
 namespace DnsClient
 {
-    public class DnsRequestHeader
+    internal class DnsRequestHeader
     {
         public const int HeaderLength = 12;
 
         private ushort _flags = 0;
-
-        [CLSCompliant(false)]
+        
         public ushort RawFlags => _flags;
         
         internal DnsHeaderFlag HeaderFlags
@@ -46,8 +45,7 @@ namespace DnsClient
                 _flags |= (ushort)(((ushort)value << DnsHeader.OPCodeShift) & DnsHeader.OPCodeMask);
             }
         }
-
-        [CLSCompliant(false)]
+        
         public ushort RCode
         {
             get

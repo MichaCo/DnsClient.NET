@@ -260,7 +260,10 @@ namespace DnsClient
                 }
             }
 
-            if (EnableAuditTrail) audit.AuditResolveServers(servers.Length);
+            if (EnableAuditTrail)
+            {
+                audit.AuditResolveServers(servers.Length);
+            }
 
             foreach (var serverInfo in servers)
             {
@@ -271,7 +274,11 @@ namespace DnsClient
 
                     try
                     {
-                        if (EnableAuditTrail) audit.StartTimer();
+                        if (EnableAuditTrail)
+                        {
+                            audit.StartTimer();
+                        }
+
                         DnsResponseMessage response;
                         var resultTask = handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
                         if (Timeout != s_infiniteTimeout)
@@ -281,17 +288,27 @@ namespace DnsClient
 
                         response = await resultTask.ConfigureAwait(false);
 
-                        if (EnableAuditTrail) audit.AuditResponseHeader(response.Header);
+                        if (EnableAuditTrail)
+                        {
+                            audit.AuditResponseHeader(response.Header);
+                        }
 
                         if (response.Header.ResultTruncated && UseTcpFallback && !handler.GetType().Equals(typeof(DnsTcpMessageHandler)))
                         {
-                            if (EnableAuditTrail) audit.AuditTruncatedRetryTcp();
+                            if (EnableAuditTrail)
+                            {
+                                audit.AuditTruncatedRetryTcp();
+                            }
+
                             return await ResolveQueryAsync(_tcpFallbackHandler, request, cancellationToken).ConfigureAwait(false);
                         }
 
                         if (response.Header.ResponseCode != DnsResponseCode.NoError)
                         {
-                            if (EnableAuditTrail) audit.AuditResponseError(response.Header.ResponseCode);
+                            if (EnableAuditTrail)
+                            {
+                                audit.AuditResponseError(response.Header.ResponseCode);
+                            }
 
                             if (ThrowDnsErrors)
                             {
@@ -302,13 +319,20 @@ namespace DnsClient
                         var opt = response.Additionals.OfType<OptRecord>().FirstOrDefault();
                         if (opt != null)
                         {
-                            if (EnableAuditTrail) audit.AuditOptPseudo();
+                            if (EnableAuditTrail)
+                            {
+                                audit.AuditOptPseudo();
+                            }
+
                             serverInfo.SupportedUdpPayloadSize = opt.UdpSize;
 
                             // TODO: handle opt records and remove them later
                             response.Additionals.Remove(opt);
 
-                            if (EnableAuditTrail) audit.AuditEdnsOpt(opt.UdpSize, opt.Version, opt.ResponseCodeEx);
+                            if (EnableAuditTrail)
+                            {
+                                audit.AuditEdnsOpt(opt.UdpSize, opt.Version, opt.ResponseCodeEx);
+                            }
                         }
 
                         DnsQueryResponse queryResponse = response.AsQueryResponse(serverInfo.Clone());

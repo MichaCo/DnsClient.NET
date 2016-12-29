@@ -68,6 +68,7 @@ namespace DnsClient.Protocol
     reason for this provison is to allow future dynamic update facilities to
     change the SOA RR with known semantics.
     */
+
     [CLSCompliant(false)]
     public class SoaRecord : DnsResourceRecord
     {

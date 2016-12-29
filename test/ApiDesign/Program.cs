@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using DnsClient;
 using DnsClient.Protocol;
 
@@ -10,29 +11,33 @@ namespace ApiDesign
     {
         public static void Main(string[] args)
         {
-            ////var lookup = new LookupClient();
-            ////var result = lookup.QueryAsync("google.com", QueryType.ANY).Result;
-
-            ////var record = result.Answers.ARecords().FirstOrDefault();
-            ////Console.WriteLine(record?.Address);
-
             var lookup = new LookupClient();
-            lookup.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
+            lookup.Timeout = Timeout.InfiniteTimeSpan;
+            lookup.EnableAuditTrail = true;
 
             try
             {
-                var rResult = lookup.QueryReverseAsync(IPAddress.Parse("192.168.178.23")).Result;                
-                var answer = rResult.Answers.OfType<PtrRecord>().FirstOrDefault();
+                var result = lookup.QueryReverseAsync(IPAddress.Parse("216.239.32.10")).Result;
+
+                Console.WriteLine(result.AuditTrail);
+
+                WriteLongLine();
+                var answer = result.Answers.OfType<PtrRecord>().FirstOrDefault();
                 Console.WriteLine(answer?.ToString(-32));
-                
+                WriteLongLine();
+
                 if (answer != null)
                 {
-                    //var result = lookup.QueryAsync("google.com", 255).GetAwaiter().GetResult();
                     var mResult = lookup.QueryAsync(answer.PtrDomainName, QueryType.A, QueryClass.IN).Result;
-                    Console.WriteLine(mResult.Answers.FirstOrDefault()?.ToString(-32));
+
+                    Console.WriteLine(mResult.AuditTrail);
+                    WriteLongLine();
                 }
 
                 var gResult = lookup.QueryAsync("google.com", QueryType.ANY).GetAwaiter().GetResult();
+
+                Console.WriteLine(gResult.AuditTrail);
+                WriteLongLine();
                 Console.WriteLine(gResult.Answers.FirstOrDefault()?.ToString(-32));
             }
             catch (DnsResponseException ex)
@@ -54,6 +59,11 @@ namespace ApiDesign
             }
 
             Console.ReadKey();
+        }
+
+        public static void WriteLongLine()
+        {
+            Console.WriteLine("----------------------------------------------------");
         }
     }
 }
