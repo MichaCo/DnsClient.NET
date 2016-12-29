@@ -37,13 +37,19 @@
   "frameworks": {
     "netstandard1.3": {
       "dependencies": {
-        "NETStandard.Library": "1.6.0",
-        "System.Net.NameResolution": "4.0.0",
-        "System.Net.NetworkInformation": "4.3.0"
+        "System.Collections": "4.3.0",
+        "System.Collections.Concurrent": "4.3.0",
+        "System.Linq": "4.3.0",
+        "System.Net.NameResolution": "4.3.0",
+        "System.Net.NetworkInformation": "4.3.0",
+        "System.Net.Sockets": "4.3.0",
+        "System.Runtime.Extensions": "4.3.0",
+        "System.Text.Encoding": "4.3.0",
+        "System.Threading": "4.3.0"
       },
       "buildOptions": { "define": [ "XPLAT" ] }
     },
-    "net451": {
+    "net45": {
       "frameworkAssemblies": {
       }
     }

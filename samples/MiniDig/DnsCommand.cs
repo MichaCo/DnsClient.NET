@@ -38,8 +38,6 @@ namespace DigApp
 
         public string[] OriginalArgs { get; }
 
-        public CommandOption PortArg { get; set; }
-
         public CommandOption ServerArg { get; set; }
 
         public CommandOption TriesArg { get; set; }
@@ -141,9 +139,7 @@ namespace DigApp
 
             return TimeSpan.Zero;
         }
-
-        public int GetPortValue() => PortArg.HasValue() ? int.Parse(PortArg.Value()) : 53;
-
+        
         public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 5000;
 
         public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value()) : 10;
@@ -165,14 +161,9 @@ namespace DigApp
         {
             ServerArg = App.Option(
                 "-s | --server",
-                "The DNS server.",
+                "The DNS server <name|ip>#<port> (multiple)",
                 CommandOptionType.MultipleValue);
-
-            PortArg = App.Option(
-                "-p | --port",
-                $"The port to use to connect to the DNS server [{NameServer.DefaultPort}].",
-                CommandOptionType.SingleValue);
-
+            
             NoRecurseArg = App.Option(
                 "-nr | --norecurse",
                 "Non recurive mode.",

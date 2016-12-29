@@ -403,8 +403,6 @@ namespace DnsClient
                     _endpoints.ToList().ForEach(p => p.Enabled = true);
                 }
             }
-
-            Debug.WriteLine($"Disabling name server {server.Endpoint}.");
         }
 
         private class Audit

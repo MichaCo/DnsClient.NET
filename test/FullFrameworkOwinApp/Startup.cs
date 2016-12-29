@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using System.Web;
 using DnsClient;
 using Owin;
 
@@ -13,46 +11,39 @@ namespace FullFrameworkOwinApp
     {
         public void Configuration(IAppBuilder app)
         {
-            //var x = GetService("TenantConfigurationService").Result;
-
-            // forced sync context within async owin, bad bad things will happen
             app.Run(ctx =>
             {
-                //var task = Task.Factory.StartNew(()=> GetService("consul"));
-                //var uri = task.Unwrap().GetAwaiter().GetResult();
-                var uri = GetService("consul").Result;                
-                ctx.Response.Write(uri.OriginalString);
+                var query = ctx.Request.Query.Get("q") ?? Dns.GetHostName();
+                // explicitly use Result here although middleware could be async
+                // just to test the bad blocking behavior of the owin stuff and see
+                // if QueryAsync produces a deadlock.
+                try
+                {
+                    var ip = GetService(query).Result;
+                    ctx.Response.Write($"{{ \"answer\": \"{ip.ToString()}\"}}");
+                }
+                catch(Exception ex)
+                {
+                    ctx.Response.StatusCode = (int)HttpStatusCode.NotFound;
+                    ctx.Response.Write(ex.InnerException?.Message ?? ex.Message);
+                }
+
                 return Task.FromResult(0);
             });
-
-            ////app.Run(async ctx =>
-            ////{
-            ////    await ctx.Response.WriteAsync((await GetService("TenantConfigurationService")).OriginalString);
-            ////    //return Task.FromResult(0);
-            ////});
         }
 
-        private static async Task<Uri> GetService(string serviceName)
+        private static async Task<IPAddress> GetService(string query)
         {
-            // TODO: What about the datacenter/tag features?
-            var dnsQuery = string.Format("{0}.service.consul", serviceName);
-            var dnsClient = new LookupClient(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8600));
-            var dnsResult = await dnsClient.QueryAsync(dnsQuery, QueryType.SRV).ConfigureAwait(false);
+            var dnsClient = new LookupClient();
+            var dnsResult = await dnsClient.QueryAsync(query, QueryType.ANY).ConfigureAwait(false);
 
-            var srv = dnsResult.Answers.SrvRecords().FirstOrDefault();
-            if (srv == null)
+            var aRecord = dnsResult.Answers.ARecords().FirstOrDefault();
+            if (aRecord == null)
             {
-                throw new InvalidOperationException($"SRV record not found for {dnsQuery}");
+                throw new InvalidOperationException($"Record not found for {query}");
             }
 
-            var ip = dnsResult.Additionals.ARecords().FirstOrDefault(p => p.QueryName == srv.Target)?.Address;
-            if (ip == null)
-            {
-                throw new InvalidOperationException($"Invalid DNS response. A record missing for {srv.Target}");
-            }
-
-            // TODO: HTTP scheme is hard-coded!!!
-            return new Uri($"http://{ip}:{srv.Port}", UriKind.Absolute);
+            return aRecord.Address;
         }
     }
 }
