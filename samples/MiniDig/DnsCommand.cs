@@ -4,7 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using DnsClient;
-using DnsClient.Protocol.Record;
+using DnsClient.Protocol;
 using Microsoft.Extensions.CommandLineUtils;
 
 namespace DigApp

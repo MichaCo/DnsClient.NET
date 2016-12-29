@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using DnsClient.Protocol.Record;
+using DnsClient.Protocol;
 using Xunit;
 
 namespace DnsClient.Tests

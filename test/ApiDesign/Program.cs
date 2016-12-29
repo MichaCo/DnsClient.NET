@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Net;
 using DnsClient;
-using DnsClient.Protocol.Record;
+using DnsClient.Protocol;
 
 namespace ApiDesign
 {

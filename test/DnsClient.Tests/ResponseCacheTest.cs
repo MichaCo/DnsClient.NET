@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
-using DnsClient.Protocol.Record;
 using Xunit;
 
 namespace DnsClient.Tests
