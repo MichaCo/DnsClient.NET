@@ -28,7 +28,7 @@ namespace DnsClient.Tests
         public async Task Lookup_GetHostAddresses_LocalReverse_NoResult()
         {
             // expecting no result as reverse lookup must be explicit
-            using (var client = new LookupClient(IPAddress.Parse("127.0.0.1")) { Timeout = TimeSpan.FromMilliseconds(500) })
+            using (var client = new LookupClient() { Timeout = TimeSpan.FromMilliseconds(500) })
             {
                 client.EnableAuditTrail = true;
                 var result = await client.QueryAsync("127.0.0.1", QueryType.A);
