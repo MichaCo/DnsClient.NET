@@ -7,10 +7,8 @@ using DnsClient.Protocol.Options;
 
 namespace DnsClient
 {
-    internal abstract class DnsMessageHandler : IDisposable
+    internal abstract class DnsMessageHandler
     {
-        private bool _disposedValue = false;
-
         public abstract Task<DnsResponseMessage> QueryAsync(IPEndPoint server, DnsRequestMessage request, CancellationToken cancellationToken);
 
         public abstract bool IsTransientException<T>(T exception) where T : Exception;
@@ -72,7 +70,7 @@ namespace DnsClient
             writer.WriteBytes(nameBytes, nameBytes.Length);
             writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
             writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
-            writer.WirteUInt32NetworkOrder((ushort)opt.TimeToLive);
+            writer.WriteUInt32NetworkOrder((ushort)opt.TimeToLive);
             writer.WriteUInt16NetworkOrder(0);
 
             return writer.Data;
@@ -121,23 +119,6 @@ namespace DnsClient
             }
 
             return response;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                }
-
-                _disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
         }
     }
 }

@@ -11,11 +11,13 @@
   },    
   "testRunner": "xunit",
   "buildOptions": {
+    "keyFile": "../../tools/key.snk",
     "copyToOutput": [
       "xunit.runner.json"
     ],
     "compile": {
-      "includeFiles": ["../../src/DnsClient/ResponseCache.cs"]
+      "includeFiles": [
+      ]
     }
   },
   "frameworks": {

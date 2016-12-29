@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace DnsClient.Protocol.Record
+namespace DnsClient.Protocol
 {
     /*
     * RFC 1464  https://tools.ietf.org/html/rfc1464

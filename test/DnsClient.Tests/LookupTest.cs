@@ -12,47 +12,43 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Lookup_GetHostAddresses_Local()
         {
-            using (var client = new LookupClient())
-            {
-                var result = await client.QueryAsync("localhost", QueryType.A);
+            var client = new LookupClient();
 
-                var answer = result.Answers.OfType<ARecord>().First();
-                Assert.Equal("127.0.0.1", answer.Address.ToString());
-                Assert.Equal(QueryClass.IN, result.Questions.First().QuestionClass);
-                Assert.Equal(QueryType.A, result.Questions.First().QuestionType);
-                Assert.True(result.Header.AnswerCount > 0);
-            }
+            var result = await client.QueryAsync("localhost", QueryType.A);
+
+            var answer = result.Answers.OfType<ARecord>().First();
+            Assert.Equal("127.0.0.1", answer.Address.ToString());
+            Assert.Equal(QueryClass.IN, result.Questions.First().QuestionClass);
+            Assert.Equal(QueryType.A, result.Questions.First().QuestionType);
+            Assert.True(result.Header.AnswerCount > 0);
         }
 
         [Fact]
         public async Task Lookup_GetHostAddresses_LocalReverse_NoResult()
         {
             // expecting no result as reverse lookup must be explicit
-            using (var client = new LookupClient() { Timeout = TimeSpan.FromMilliseconds(500) })
-            {
-                client.EnableAuditTrail = true;
-                var result = await client.QueryAsync("127.0.0.1", QueryType.A);
+            var client = new LookupClient() { Timeout = TimeSpan.FromMilliseconds(500) };
 
-                Assert.Equal(QueryClass.IN, result.Questions.First().QuestionClass);
-                Assert.Equal(QueryType.A, result.Questions.First().QuestionType);
-                Assert.True(result.Header.AnswerCount == 0);
-            }
+            client.EnableAuditTrail = true;
+            var result = await client.QueryAsync("127.0.0.1", QueryType.A);
+
+            Assert.Equal(QueryClass.IN, result.Questions.First().QuestionClass);
+            Assert.Equal(QueryType.A, result.Questions.First().QuestionType);
+            Assert.True(result.Header.AnswerCount == 0);
         }
 
         [Fact]
         public void Lookup_ThrowDnsErrors()
         {
-            using (var client = new LookupClient())
-            {
-                client.ThrowDnsErrors = true;
+            var client = new LookupClient();
+            client.ThrowDnsErrors = true;
 
-                Action act = () => client.QueryAsync("lalacom", (QueryType)12345).GetAwaiter().GetResult();
+            Action act = () => client.QueryAsync("lalacom", (QueryType)12345).GetAwaiter().GetResult();
 
-                var ex = Record.Exception(act) as DnsResponseException;
+            var ex = Record.Exception(act) as DnsResponseException;
 
-                // make sure the complex try catch in ResolveQuery doesn't re throw with a messed up message/stack.
-                Assert.Equal(ex.Code, DnsResponseCode.NotExistentDomain);
-            }
+            // make sure the complex try catch in ResolveQuery doesn't re throw with a messed up message/stack.
+            Assert.Equal(ex.Code, DnsResponseCode.NotExistentDomain);
         }
 
         private async Task<IPAddress> GetDnsEntryAsync()

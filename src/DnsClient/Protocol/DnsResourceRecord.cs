@@ -4,7 +4,7 @@ namespace DnsClient.Protocol
 {
     public abstract class DnsResourceRecord : ResourceRecordInfo
     {
-        public DnsResourceRecord(ResourceRecordInfo info)
+        internal DnsResourceRecord(ResourceRecordInfo info)
             : base(info.DomainName, info.RecordType, info.RecordClass, info.TimeToLive, info.RawDataLength)
         {
         }
@@ -55,7 +55,7 @@ namespace DnsClient.Protocol
         /// <summary>
         /// Specifies type class of resource record, mostly IN but can be CS, CH or HS .
         /// </summary>
-        public QueryClass RecordClass { get; set; }
+        public QueryClass RecordClass { get; }
 
         /// <summary>
         /// The TTL value for the record set by the server.

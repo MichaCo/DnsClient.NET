@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace DnsClient.Protocol.Record
+namespace DnsClient.Protocol
 {
     /*
     3.4.1. A RDATA format
@@ -33,7 +33,7 @@ namespace DnsClient.Protocol.Record
             {
                 throw new ArgumentNullException(nameof(address));
             }
-
+            
             Address = address;
         }
 

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Net;
 
-namespace DnsClient.Protocol.Record
+namespace DnsClient.Protocol
 {
     /* https://tools.ietf.org/html/rfc3596#section-2.2
     2.2 AAAA data format

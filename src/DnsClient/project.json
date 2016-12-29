@@ -43,7 +43,7 @@
       },
       "buildOptions": { "define": [ "XPLAT" ] }
     },
-    "net45": {
+    "net451": {
       "frameworkAssemblies": {
       }
     }

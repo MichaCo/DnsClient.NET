@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using DnsClient.Protocol;
 
-namespace DnsClient.Protocol
+namespace DnsClient
 {
     /// <summary>
     /// A simple response message which gets returned by the <see cref="LookupClient"/>.
     /// </summary>
-    public class DnsResponseMessage
+    internal class DnsResponseMessage
     {
         public DnsResponseMessage(DnsResponseHeader header, int messageSize)
         {

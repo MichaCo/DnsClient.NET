@@ -2,9 +2,9 @@
 using System.Net;
 using System.Text;
 
-namespace DnsClient.Protocol
+namespace DnsClient
 {
-    public class DnsDatagramReader
+    internal class DnsDatagramReader
     {
         private readonly byte[] _data;
         private int _index;
@@ -92,8 +92,7 @@ namespace DnsClient.Protocol
         {
             return DnsName.FromBytes(_data, ref _index);
         }
-
-        [CLSCompliant(false)]
+        
         public ushort ReadUInt16()
         {
             if (_data.Length < Index + 2)
@@ -105,8 +104,7 @@ namespace DnsClient.Protocol
             _index += 2;
             return result;
         }
-
-        [CLSCompliant(false)]
+        
         public ushort ReadUInt16NetworkOrder()
         {
             if (_data.Length < Index + 2)
@@ -117,8 +115,7 @@ namespace DnsClient.Protocol
             byte a = _data[_index++], b = _data[_index++];
             return (ushort)(a << 8 | b);
         }
-
-        [CLSCompliant(false)]
+        
         public uint ReadUInt32NetworkOrder()
         {
             return (uint)(ReadUInt16NetworkOrder() << 16 | ReadUInt16NetworkOrder());

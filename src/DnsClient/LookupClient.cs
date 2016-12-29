@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -12,7 +13,7 @@ using DnsClient.Protocol.Options;
 
 namespace DnsClient
 {
-    public class LookupClient : IDisposable
+    public class LookupClient
     {
         private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
@@ -25,7 +26,6 @@ namespace DnsClient
         private readonly Queue<NameServer> _endpoints;
         private readonly Random _random = new Random();
         private TimeSpan _timeout = s_defaultTimeout;
-        private bool _disposedValue = false;
 
         /// <summary>
         /// Gets or sets a flag indicating if Tcp should not be used in case a Udp response is truncated.
@@ -383,25 +383,6 @@ namespace DnsClient
             Debug.WriteLine($"Disabling name server {server.Endpoint}.");
         }
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    _messageHandler.Dispose();
-                    _tcpFallbackHandler.Dispose();
-                }
-
-                _disposedValue = true;
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-
         private class Audit
         {
             private static readonly int s_printOffset = -32;
@@ -501,8 +482,8 @@ namespace DnsClient
 
             public void AuditEnd(DnsQueryResponse queryResponse)
             {
-                var elapsed = _swatch.ElapsedTicks / 10000d;
-                _auditWriter.AppendLine($";; Query time: {elapsed:N0} msec");
+                var elapsed = _swatch.ElapsedMilliseconds;
+                _auditWriter.AppendLine($";; Query time: {elapsed} msec");
                 _auditWriter.AppendLine($";; SERVER: {queryResponse.NameServer.Endpoint.Address}#{queryResponse.NameServer.Endpoint.Port}");
                 _auditWriter.AppendLine($";; WHEN: {DateTime.Now.ToString("R")}");
                 _auditWriter.AppendLine($";; MSG SIZE  rcvd: {queryResponse.MessageSize}");

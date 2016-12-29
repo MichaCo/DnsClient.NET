@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Linq;
 
-namespace DnsClient.Protocol
+namespace DnsClient
 {
     /// <summary>
     /// Represents a simple request message which can be send through <see cref="DnsMessageHandler"/>.
     /// </summary>
-    public class DnsRequestMessage
+    internal class DnsRequestMessage
     {
         public DnsRequestHeader Header { get; }
 

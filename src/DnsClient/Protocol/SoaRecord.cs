@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DnsClient.Protocol.Record
+namespace DnsClient.Protocol
 {
     /*
     3.3.13. SOA RDATA format

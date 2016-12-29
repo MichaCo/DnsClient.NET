@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DnsClient.Protocol.Record
+namespace DnsClient.Protocol
 {
     /* RFC 2782 (https://tools.ietf.org/html/rfc2782)
 

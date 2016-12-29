@@ -9,10 +9,8 @@ using DnsClient.Protocol;
 
 namespace DnsClient
 {
-    internal class DnsUdpMessageHandler : DnsMessageHandler, IDisposable
+    internal class DnsUdpMessageHandler : DnsMessageHandler
     {
-        private bool _disposedValue = false;
-
         public override bool IsTransientException<T>(T exception)
         {
             if (exception is SocketException) return true;
@@ -41,7 +39,7 @@ namespace DnsClient
                 var result = await udpClient.ReceiveAsync().ConfigureAwait(false);
 
                 var response = GetResponseMessage(result.Buffer);
-                
+
                 if (request.Header.Id != response.Header.Id)
                 {
                     throw new DnsResponseException("Header id missmatch.");
@@ -49,20 +47,6 @@ namespace DnsClient
 
                 return response;
             }
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                }
-
-                _disposedValue = true;
-            }
-
-            base.Dispose(disposing);
         }
     }
 }

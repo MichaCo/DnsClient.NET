@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using DnsClient.Protocol;
 using DnsClient.Protocol.Options;
-using DnsClient.Protocol.Record;
 
-namespace DnsClient.Protocol
+namespace DnsClient
 {
-    public class DnsRecordFactory
+    internal class DnsRecordFactory
     {
         public static IDictionary<ResourceRecordType, Func<DnsDatagramReader, ResourceRecordInfo, DnsResourceRecord>> s_recordFactory =
                new Dictionary<ResourceRecordType, Func<DnsDatagramReader, ResourceRecordInfo, DnsResourceRecord>>();

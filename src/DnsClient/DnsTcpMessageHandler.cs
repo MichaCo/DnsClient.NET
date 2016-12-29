@@ -10,10 +10,8 @@ using DnsClient.Protocol;
 
 namespace DnsClient
 {
-    internal class DnsTcpMessageHandler : DnsMessageHandler, IDisposable
+    internal class DnsTcpMessageHandler : DnsMessageHandler
     {
-        private bool _disposedValue = false;
-
         public override bool IsTransientException<T>(T exception)
         {
             //if (exception is SocketException) return true;
@@ -71,20 +69,6 @@ namespace DnsClient
                     return response;
                 }
             }
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                }
-
-                _disposedValue = true;
-            }
-
-            base.Dispose(disposing);
         }
     }
 }

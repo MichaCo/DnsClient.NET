@@ -1,4 +1,4 @@
-﻿namespace DnsClient.Protocol.Record
+﻿namespace DnsClient.Protocol
 {
     public class EmptyRecord : DnsResourceRecord
     {

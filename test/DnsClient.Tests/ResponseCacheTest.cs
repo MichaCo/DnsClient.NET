@@ -81,7 +81,7 @@ namespace DnsClient.Tests
             Assert.Equal(item, response.AsQueryResponse(new NameServer(IPAddress.Any)));
             Assert.NotNull(item2);
 
-            await Task.Delay(1010);
+            await Task.Delay(1100);
             var item3 = await cache.GetOrAdd("key", async () => null);
 
             // should be null because recordC has zero TTL which wins

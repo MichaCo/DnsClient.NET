@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace DnsClient.Protocol.Record
+namespace DnsClient.Protocol
 {
     /* RFC 6844 (https://tools.ietf.org/html/rfc6844#section-5.1)
     A CAA RR contains a single property entry consisting of a tag-value

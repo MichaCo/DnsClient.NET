@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DnsClient.Protocol.Record
+namespace DnsClient.Protocol
 {
     /*
     3.3.9. MX RDATA format

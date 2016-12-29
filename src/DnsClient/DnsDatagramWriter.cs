@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Net;
 
-namespace DnsClient.Protocol
+namespace DnsClient
 {
-    public class DnsDatagramWriter
+    internal class DnsDatagramWriter
     {
         private byte[] _buffer;
 
@@ -53,18 +53,15 @@ namespace DnsClient.Protocol
         public void WriteInt16(short value) => SetInt16(value, Index);
 
         public void WriteInt16NetworkOrder(short value) => SetInt16Network(value, Index);
-
-        [CLSCompliant(false)]
-        public void WirteUInt32NetworkOrder(uint value)
+        
+        public void WriteUInt32NetworkOrder(uint value)
         {
             var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder((int)value));
             SetBytes(bytes, Index, bytes.Length);
         }
-
-        [CLSCompliant(false)]
+        
         public void WriteUInt16(ushort value) => SetInt16((short)value, Index);
-
-        [CLSCompliant(false)]
+        
         public void WriteUInt16NetworkOrder(ushort value) => SetInt16Network((short)value, Index);
 
         private void SetBytes(byte[] data, int destOffset, int length)
