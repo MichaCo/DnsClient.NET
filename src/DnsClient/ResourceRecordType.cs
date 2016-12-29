@@ -101,7 +101,10 @@ namespace DnsClient
         /// </summary>
         SRV = 33,
 
-        Opt = 41,
+        /// <summary>
+        /// Option record [RFC6891]
+        /// </summary>
+        OPT = 41,
 
         /// <summary>
         /// RRSIG rfc3755.  TODO:impl

@@ -31,18 +31,7 @@ namespace DnsClient.Protocol
             _data = data;
             Index = startIndex;
         }
-
-        /*
-         https://tools.ietf.org/html/rfc1035#section-3.3:
-        <character-string> is a single
-        length octet followed by that number of characters.  <character-string>
-        is treated as binary information, and can be up to 256 characters in
-        length (including the length octet).
-         * */
-        /// <summary>
-        /// Reads the single length octet and the following characters as ASCII text.
-        /// </summary>
-        /// <returns></returns>
+        
         public string ReadString()
         {
             var length = ReadByte();
@@ -118,7 +107,7 @@ namespace DnsClient.Protocol
         }
 
         [CLSCompliant(false)]
-        public ushort ReadUInt16Reverse()
+        public ushort ReadUInt16NetworkOrder()
         {
             if (_data.Length < Index + 2)
             {
@@ -130,9 +119,9 @@ namespace DnsClient.Protocol
         }
 
         [CLSCompliant(false)]
-        public uint ReadUInt32Reverse()
+        public uint ReadUInt32NetworkOrder()
         {
-            return (uint)(ReadUInt16Reverse() << 16 | ReadUInt16Reverse());
+            return (uint)(ReadUInt16NetworkOrder() << 16 | ReadUInt16NetworkOrder());
         }
     }
 }

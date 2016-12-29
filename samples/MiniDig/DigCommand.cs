@@ -12,8 +12,6 @@ namespace DigApp
 {
     public class DigCommand : DnsCommand
     {
-        private static readonly int s_printOffset = -32;
-
         public static string OS
         {
             get

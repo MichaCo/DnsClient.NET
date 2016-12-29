@@ -47,10 +47,10 @@ namespace DnsClient.Protocol
         {
             return new ResourceRecordInfo(
                 _reader.ReadName(),                             // name
-                (ResourceRecordType)_reader.ReadUInt16Reverse(),// type
-                (QueryClass)_reader.ReadUInt16Reverse(),        // class
-                (int)_reader.ReadUInt32Reverse(),                    // ttl - 32bit!!
-                _reader.ReadUInt16Reverse());                   // RDLength
+                (ResourceRecordType)_reader.ReadUInt16NetworkOrder(),// type
+                (QueryClass)_reader.ReadUInt16NetworkOrder(),        // class
+                (int)_reader.ReadUInt32NetworkOrder(),                    // ttl - 32bit!!
+                _reader.ReadUInt16NetworkOrder());                   // RDLength
                                                                 //reader.ReadBytes(reader.ReadUInt16Reverse()));  // rdata
         }
 
@@ -104,7 +104,7 @@ namespace DnsClient.Protocol
                         result = ResolveSrvRecord(info);
                         break;
 
-                    case ResourceRecordType.Opt:
+                    case ResourceRecordType.OPT:
                         result = ResolveOptRecord(info);
                         break;
 
@@ -154,7 +154,7 @@ namespace DnsClient.Protocol
 
         private MxRecord ResolveMXRecord(ResourceRecordInfo info)
         {
-            var preference = _reader.ReadUInt16Reverse();
+            var preference = _reader.ReadUInt16NetworkOrder();
             var domain = _reader.ReadName();
 
             return new MxRecord(info, preference, domain.ToString());
@@ -170,20 +170,20 @@ namespace DnsClient.Protocol
         {
             var mName = _reader.ReadName();
             var rName = _reader.ReadName();
-            var serial = _reader.ReadUInt32Reverse();
-            var refresh = _reader.ReadUInt32Reverse();
-            var retry = _reader.ReadUInt32Reverse();
-            var expire = _reader.ReadUInt32Reverse();
-            var minimum = _reader.ReadUInt32Reverse();
+            var serial = _reader.ReadUInt32NetworkOrder();
+            var refresh = _reader.ReadUInt32NetworkOrder();
+            var retry = _reader.ReadUInt32NetworkOrder();
+            var expire = _reader.ReadUInt32NetworkOrder();
+            var minimum = _reader.ReadUInt32NetworkOrder();
 
             return new SoaRecord(info, mName.ToString(), rName.ToString(), serial, refresh, retry, expire, minimum);
         }
 
         private SrvRecord ResolveSrvRecord(ResourceRecordInfo info)
         {
-            var priority = _reader.ReadUInt16Reverse();
-            var weight = _reader.ReadUInt16Reverse();
-            var port = _reader.ReadUInt16Reverse();
+            var priority = _reader.ReadUInt16NetworkOrder();
+            var weight = _reader.ReadUInt16NetworkOrder();
+            var port = _reader.ReadUInt16NetworkOrder();
             var target = _reader.ReadName();
 
             return new SrvRecord(info, priority, weight, port, target.ToString());

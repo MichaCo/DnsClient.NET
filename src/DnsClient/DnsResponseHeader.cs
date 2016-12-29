@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using DnsClient.Protocol;
 
 namespace DnsClient
 {
@@ -14,9 +15,8 @@ namespace DnsClient
         public bool FutureUse => HasFlag(DnsHeaderFlag.FutureUse);
 
         public bool HasAuthorityAnswer => HasFlag(DnsHeaderFlag.HasAuthorityAnswer);
-
-        [CLSCompliant(false)]
-        public DnsHeaderFlag HeaderFlags => (DnsHeaderFlag)_flags;
+        
+        internal DnsHeaderFlag HeaderFlags => (DnsHeaderFlag)_flags;
 
         public int Id { get; }
 

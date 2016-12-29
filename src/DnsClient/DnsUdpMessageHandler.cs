@@ -9,7 +9,7 @@ using DnsClient.Protocol;
 
 namespace DnsClient
 {
-    public class DnsUdpMessageHandler : DnsMessageHandler, IDisposable
+    internal class DnsUdpMessageHandler : DnsMessageHandler, IDisposable
     {
         private bool _disposedValue = false;
 

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DnsClient
+namespace DnsClient.Protocol
 {
     /* Reference: https://tools.ietf.org/html/rfc6895#section-2
      * Response header fields
@@ -27,8 +27,7 @@ namespace DnsClient
     /// The flags of the header's second 16bit value
     /// </summary>
     [Flags]
-    [CLSCompliant(false)]
-    public enum DnsHeaderFlag : ushort
+    internal enum DnsHeaderFlag : ushort
     {
         IsCheckingDisabled      = 0x0010,
         IsAuthenticData         = 0x0020,
@@ -40,8 +39,7 @@ namespace DnsClient
         HasQuery                 = 0x8000,
     }
 
-    [CLSCompliant(false)]
-    public static class DnsHeader
+    internal static class DnsHeader
     {
         public static readonly ushort OPCodeMask = 0x7800;
         public static readonly ushort OPCodeShift = 11;

@@ -65,7 +65,7 @@ namespace DnsClient.Protocol.Options
     /// A DNS resource record represending an IP address.
     /// Hosts that have multiple Internet addresses will have multiple A records.
     /// </summary>
-    public class OptRecord : DnsResourceRecord
+    internal class OptRecord : DnsResourceRecord
     {
         private const uint ResponseCodeMask = 0xff000000;
         private const int ResponseCodeShift = 20;
@@ -120,7 +120,7 @@ namespace DnsClient.Protocol.Options
         }
 
         public OptRecord(int size = 4096, int version = 0, int length = 0)
-            : base(new ResourceRecordInfo(DnsName.Root, ResourceRecordType.Opt, (QueryClass)size, version, length))
+            : base(new ResourceRecordInfo(DnsName.Root, ResourceRecordType.OPT, (QueryClass)size, version, length))
         {
         }
 

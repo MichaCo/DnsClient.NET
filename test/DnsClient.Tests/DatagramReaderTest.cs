@@ -52,7 +52,7 @@ namespace DnsClient.Tests
         {
             var reader = new DnsDatagramReader(new byte[2] { 0, 1 });
 
-            var result = reader.ReadUInt16Reverse();
+            var result = reader.ReadUInt16NetworkOrder();
 
             Assert.Equal(result, 1);
             Assert.Equal(reader.Index, 2);
@@ -74,8 +74,8 @@ namespace DnsClient.Tests
         {
             var reader = new DnsDatagramReader(new byte[2] { 0, 1 });
 
-            var result = reader.ReadUInt16Reverse();
-            Action act = () => reader.ReadUInt16Reverse();
+            var result = reader.ReadUInt16NetworkOrder();
+            Action act = () => reader.ReadUInt16NetworkOrder();
 
             Assert.ThrowsAny<IndexOutOfRangeException>(act);
         }

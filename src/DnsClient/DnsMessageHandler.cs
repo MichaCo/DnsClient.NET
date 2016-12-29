@@ -7,7 +7,7 @@ using DnsClient.Protocol.Options;
 
 namespace DnsClient
 {
-    public abstract class DnsMessageHandler : IDisposable
+    internal abstract class DnsMessageHandler : IDisposable
     {
         private bool _disposedValue = false;
 
@@ -40,19 +40,19 @@ namespace DnsClient
             // 4 more bytes for the type and class
             var writer = new DnsDatagramWriter(DnsRequestHeader.HeaderLength + questionData.Length + 4);
 
-            writer.SetInt16Network((short)request.Header.Id);
-            writer.SetUInt16Network(request.Header.RawFlags);
-            writer.SetInt16Network(1);   // we support single question only... (as most DNS servers anyways).
-            writer.SetInt16Network(0);
-            writer.SetInt16Network(0);
-            writer.SetInt16Network(1); // one additional for the Opt record.
+            writer.WriteInt16NetworkOrder((short)request.Header.Id);
+            writer.WriteUInt16NetworkOrder(request.Header.RawFlags);
+            writer.WriteInt16NetworkOrder(1);   // we support single question only... (as most DNS servers anyways).
+            writer.WriteInt16NetworkOrder(0);
+            writer.WriteInt16NetworkOrder(0);
+            writer.WriteInt16NetworkOrder(1); // one additional for the Opt record.
 
             // jump to end of header, we didn't write all fields
             writer.Index = DnsRequestHeader.HeaderLength;
 
-            writer.SetBytes(questionData, questionData.Length);
-            writer.SetUInt16Network((ushort)question.QuestionType);
-            writer.SetUInt16Network((ushort)question.QuestionClass);
+            writer.WriteBytes(questionData, questionData.Length);
+            writer.WriteUInt16NetworkOrder((ushort)question.QuestionType);
+            writer.WriteUInt16NetworkOrder((ushort)question.QuestionClass);
 
             /*
        +------------+--------------+------------------------------+
@@ -69,11 +69,11 @@ namespace DnsClient
             var opt = new OptRecord();
             var nameBytes = opt.DomainName.GetBytes();
             writer.Extend(nameBytes.Length + 2 + 2 + 4 + 2);
-            writer.SetBytes(nameBytes, nameBytes.Length);
-            writer.SetUInt16Network((ushort)opt.RecordType);
-            writer.SetUInt16Network((ushort)opt.RecordClass);
-            writer.SetUInt32Network((ushort)opt.TimeToLive);
-            writer.SetUInt16Network(0);
+            writer.WriteBytes(nameBytes, nameBytes.Length);
+            writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
+            writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
+            writer.WirteUInt32NetworkOrder((ushort)opt.TimeToLive);
+            writer.WriteUInt16NetworkOrder(0);
 
             return writer.Data;
         }
@@ -83,19 +83,19 @@ namespace DnsClient
             var reader = new DnsDatagramReader(responseData);
             var factory = new DnsRecordFactory(reader);
 
-            var id = reader.ReadUInt16Reverse();
-            var flags = reader.ReadUInt16Reverse();
-            var questionCount = reader.ReadUInt16Reverse();
-            var answerCount = reader.ReadUInt16Reverse();
-            var nameServerCount = reader.ReadUInt16Reverse();
-            var additionalCount = reader.ReadUInt16Reverse();
+            var id = reader.ReadUInt16NetworkOrder();
+            var flags = reader.ReadUInt16NetworkOrder();
+            var questionCount = reader.ReadUInt16NetworkOrder();
+            var answerCount = reader.ReadUInt16NetworkOrder();
+            var nameServerCount = reader.ReadUInt16NetworkOrder();
+            var additionalCount = reader.ReadUInt16NetworkOrder();
 
             var header = new DnsResponseHeader(id, flags, questionCount, answerCount, additionalCount, nameServerCount);
             var response = new DnsResponseMessage(header, responseData.Length);
 
             for (int questionIndex = 0; questionIndex < questionCount; questionIndex++)
             {
-                var question = new DnsQuestion(reader.ReadName(), (QueryType)reader.ReadUInt16Reverse(), (QueryClass)reader.ReadUInt16Reverse());
+                var question = new DnsQuestion(reader.ReadName(), (QueryType)reader.ReadUInt16NetworkOrder(), (QueryClass)reader.ReadUInt16NetworkOrder());
                 response.AddQuestion(question);
             }
 

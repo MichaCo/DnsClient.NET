@@ -28,46 +28,44 @@ namespace DnsClient.Protocol
         }
 
         /// <summary>
-        /// Creates a new writer instance with a new length.
+        /// Extends the buffer of this <see cref="DnsDatagramWriter"/> instance by <paramref name="length"/>.
         /// </summary>
-        /// <param name="byLength">The amount of bytes the current buffer should be extended by.</param>
-        /// <returns>A new writer.</returns>
-        public void Extend(int byLength)
+        /// <param name="length">The amount of bytes the current buffer should be extended by.</param>
+        public void Extend(int length)
         {
-            if (byLength <= 0)
+            if (length <= 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(byLength));
+                throw new ArgumentOutOfRangeException(nameof(length));
             }
 
-            var fullLength = byLength + _buffer.Length;
+            var fullLength = length + _buffer.Length;
             var newBuffer = new byte[fullLength];
             Array.Copy(_buffer, 0, newBuffer, 0, _buffer.Length);
-            //return new DnsDatagramWriter(newBuffer, fullLength) { Offset = Offset };
             _buffer = newBuffer;
         }
 
-        public void SetBytes(byte[] data, int length) => SetBytes(data, 0, Index, length);
+        public void WriteBytes(byte[] data, int length) => SetBytes(data, 0, Index, length);
 
-        public void SetInt(int value) => SetInt(value, Index);
+        public void WriteInt32(int value) => SetInt(value, Index);
 
-        public void SetInt16(short value) => SetInt16(value, Index);
+        public void WriteInt32NetworkOrder(int value) => SetIntNetwork(value, Index);
 
-        public void SetInt16Network(short value) => SetInt16Network(value, Index);
+        public void WriteInt16(short value) => SetInt16(value, Index);
+
+        public void WriteInt16NetworkOrder(short value) => SetInt16Network(value, Index);
 
         [CLSCompliant(false)]
-        public void SetUInt32Network(uint value)
+        public void WirteUInt32NetworkOrder(uint value)
         {
             var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder((int)value));
             SetBytes(bytes, Index, bytes.Length);
         }
 
-        public void SetIntNetwork(int value) => SetIntNetwork(value, Index);
+        [CLSCompliant(false)]
+        public void WriteUInt16(ushort value) => SetInt16((short)value, Index);
 
         [CLSCompliant(false)]
-        public void SetUInt16(ushort value) => SetInt16((short)value, Index);
-
-        [CLSCompliant(false)]
-        public void SetUInt16Network(ushort value) => SetInt16Network((short)value, Index);
+        public void WriteUInt16NetworkOrder(ushort value) => SetInt16Network((short)value, Index);
 
         private void SetBytes(byte[] data, int destOffset, int length)
         {

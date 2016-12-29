@@ -1,4 +1,5 @@
 ﻿using System;
+using DnsClient.Protocol;
 
 namespace DnsClient
 {
@@ -10,9 +11,8 @@ namespace DnsClient
 
         [CLSCompliant(false)]
         public ushort RawFlags => _flags;
-
-        [CLSCompliant(false)]
-        public DnsHeaderFlag HeaderFlags
+        
+        internal DnsHeaderFlag HeaderFlags
         {
             get
             {
