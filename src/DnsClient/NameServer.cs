@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Runtime.InteropServices;
 
 namespace DnsClient
 {
@@ -39,6 +40,50 @@ namespace DnsClient
         /// </summary>
         /// <returns>The list of name servers.</returns>
         public static ICollection<IPEndPoint> ResolveNameServers()
+        {
+            try
+            {
+                return QueryNetworkInterfaces();
+            }
+            catch (Exception ex) when (ex is PlatformNotSupportedException || ex is NotImplementedException)
+            {
+                // well... hope this never happens on NET45 ^^
+#if !PORTABLE
+                throw;
+#endif
+            }
+
+#if PORTABLE
+            //
+            try
+            {
+                return GetDnsEndpointsNative();
+            }
+            catch (Exception)
+            {
+                // log etc?
+                throw;
+            }
+#endif
+        }
+
+#if PORTABLE
+        private static IPEndPoint[] GetDnsEndpointsNative()
+        {
+            IPEndPoint[] endpoints = null;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                var fixedInfo = Windows.IpHlpApi.FixedNetworkInformation.GetFixedInformation();
+
+                endpoints = fixedInfo.DnsAddresses.Select(p => new IPEndPoint(p, DefaultPort)).ToArray();
+            }
+
+            return endpoints;
+        }
+
+#endif
+
+        private static IPEndPoint[] QueryNetworkInterfaces()
         {
             var result = new HashSet<IPEndPoint>();
 

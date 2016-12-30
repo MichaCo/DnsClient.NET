@@ -29,7 +29,7 @@ namespace DigApp
             //    }
             //}
             //return;
-
+            
             var app = new CommandLineApplication(throwOnUnexpectedArg: true);
 
             var perfApplication = app.Command("perf", (perfApp) => new PerfCommand(perfApp, args), throwOnUnexpectedArg: true);

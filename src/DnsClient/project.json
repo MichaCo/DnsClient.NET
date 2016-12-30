@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "1.0.1-*",
   "authors": [ "MichaCo" ],
   "packOptions": {
@@ -45,9 +45,12 @@
         "System.Net.Sockets": "4.3.0",
         "System.Runtime.Extensions": "4.3.0",
         "System.Text.Encoding": "4.3.0",
-        "System.Threading": "4.3.0"
+        "System.Threading": "4.3.0",
+        "System.Runtime.InteropServices.RuntimeInformation": "4.3.0",
+        "System.Runtime.InteropServices": "4.3.0",
+        "Microsoft.Win32.Primitives": "4.3.0"
       },
-      "buildOptions": { "define": [ "XPLAT" ] }
+      "buildOptions": { "define": [ "PORTABLE" ] }
     },
     "net45": {
       "frameworkAssemblies": {
