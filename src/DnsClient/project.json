@@ -39,6 +39,7 @@
       "dependencies": {
         "System.Collections": "4.3.0",
         "System.Collections.Concurrent": "4.3.0",
+        "System.IO.FileSystem": "4.3.0",
         "System.Linq": "4.3.0",
         "System.Net.NameResolution": "4.3.0",
         "System.Net.NetworkInformation": "4.3.0",

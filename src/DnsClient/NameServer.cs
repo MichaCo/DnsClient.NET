@@ -14,6 +14,8 @@ namespace DnsClient
         /// </summary>
         public const int DefaultPort = 53;
 
+        internal const string EtcResolvConfFile = "/etc/resolv.conf";
+
         public NameServer(IPAddress endpoint)
             : this(new IPEndPoint(endpoint, DefaultPort))
         {
@@ -52,8 +54,19 @@ namespace DnsClient
                 throw;
 #endif
             }
-
 #if PORTABLE
+            catch (NetworkInformationException ex)
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    // continue, try reading the resolv.conf...
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Error resolving name servers.\n{ex.Message} Code: {ex.ErrorCode} HResult: {ex.HResult}.", ex);
+                }
+            }
+
             //
             try
             {
@@ -70,15 +83,20 @@ namespace DnsClient
 #if PORTABLE
         private static IPEndPoint[] GetDnsEndpointsNative()
         {
-            IPEndPoint[] endpoints = null;
+            IPAddress[] addresses = null;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var fixedInfo = Windows.IpHlpApi.FixedNetworkInformation.GetFixedInformation();
 
-                endpoints = fixedInfo.DnsAddresses.Select(p => new IPEndPoint(p, DefaultPort)).ToArray();
+                addresses = fixedInfo.DnsAddresses.ToArray();
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                // TODO: Remove if fixed in dotnet core runtim 1.2.x?
+                addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(EtcResolvConfFile).ToArray();
             }
 
-            return endpoints;
+            return addresses?.Select(p => new IPEndPoint(p, DefaultPort)).ToArray();
         }
 
 #endif

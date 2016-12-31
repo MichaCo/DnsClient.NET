@@ -1,0 +1,32 @@
+﻿<Page
+    x:Class="UwpApp.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:UwpApp"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" MinHeight="200">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0" Margin="5" VerticalAlignment="Top" Orientation="Vertical">
+            <StackPanel Orientation="Horizontal" Margin="5">
+                <TextBox x:Name="txtQuery" Height="35" Margin="5,5,5,0" TextWrapping="Wrap" Text="" 
+                     KeyDown="txtQuery_KeyDown" InputScope="Text" PlaceholderText="Enter Something..."
+                     Style="{StaticResource AutoSuggestBoxTextBoxStyle}"
+                     />
+
+                <Button x:Name="cmdQuery" Click="cmdQuery_Click" Content="Run" Style="{StaticResource PivotTitleContentControlStyle}"/>
+                <Button x:Name="cmdAddresses" Click="cmdAddresses_Click" Style="{StaticResource PivotTitleContentControlStyle}">List addresses</Button>
+            </StackPanel>
+        </StackPanel>
+        <Grid Grid.Row="1" Margin="5,0,5,5">
+            <ScrollViewer>
+                <TextBlock x:Name="txtOutput" TextWrapping="Wrap" Text="Startin2dg" Style="{StaticResource BaseTextBlockStyle}" />
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Page>
