@@ -120,7 +120,6 @@ To specify a different server, use the `-s` switch, for example:
 
 ## Milestones
 ### 1.1 release
-* Better xplat support for determining DNS Servers as the .NET Framework has some bugs and lacking some features in this regards.
 * More testing
 * More RRs parsing
 
