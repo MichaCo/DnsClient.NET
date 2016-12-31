@@ -43,7 +43,7 @@ namespace DnsClient.Protocol
     public class ResourceRecordInfo
     {
         /// <summary>
-        /// The query name.
+        /// The domain name used to query.
         /// </summary>
         public DnsName DomainName { get; }
 

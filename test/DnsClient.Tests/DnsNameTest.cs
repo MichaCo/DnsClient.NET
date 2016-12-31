@@ -110,7 +110,7 @@ namespace DnsClient.Tests
             int offset = 1;
             Action act = () => DnsName.FromBytes(new byte[] { 2 }, ref offset);
 
-            Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
+            Assert.ThrowsAny<ArgumentNullException>(act);
         }
     }
 }

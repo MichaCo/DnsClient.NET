@@ -124,11 +124,11 @@ namespace DnsClient.Protocol
 
         public ushort Priority { get; }
 
-        public string Target { get; }
+        public DnsName Target { get; }
 
         public ushort Weight { get; }
 
-        public SrvRecord(ResourceRecordInfo info, ushort priority, ushort weigth, ushort port, string target)
+        public SrvRecord(ResourceRecordInfo info, ushort priority, ushort weigth, ushort port, DnsName target)
             : base(info)
         {
             Priority = priority;

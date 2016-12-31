@@ -31,7 +31,7 @@ namespace DnsClient
         /// Gets or sets a flag indicating if Tcp should not be used in case a Udp response is truncated.
         /// If <c>True</c>, truncated results will potentially yield no answers.
         /// </summary>
-        public bool UseTcpFallback { get; set; }
+        public bool UseTcpFallback { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a flag indicating if Udp should not be used at all.

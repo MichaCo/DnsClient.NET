@@ -6,6 +6,9 @@ namespace DnsClient
 {
     internal class DnsDatagramReader
     {
+        public const int IPv6Length = 16;
+        public const int IPv4Length = 4;
+
         private readonly byte[] _data;
         private int _index;
 
@@ -73,9 +76,9 @@ namespace DnsClient
         /// <exception cref="IndexOutOfRangeException">If there are no 4 bytes to read.</exception>
         public IPAddress ReadIPAddress()
         {
-            if (_data.Length < _index + 4)
+            if (_data.Length < _index + IPv4Length)
             {
-                throw new IndexOutOfRangeException("IPAddress expected exactly 4 bytes.");
+                throw new IndexOutOfRangeException($"Reading IPv4 address, expected {IPv4Length} bytes.");
             }
 
             return new IPAddress(ReadBytes(4));
@@ -83,7 +86,12 @@ namespace DnsClient
 
         public IPAddress ReadIPv6Address()
         {
-            var address = new IPAddress(ReadBytes(8 * 2));
+            if (_data.Length < _index + IPv6Length)
+            {
+                throw new IndexOutOfRangeException($"Reading IPv6 address, expected {IPv6Length} bytes.");
+            }
+
+            var address = new IPAddress(ReadBytes(IPv6Length));
 
             return address;
         }

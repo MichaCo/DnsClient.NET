@@ -66,7 +66,7 @@ namespace DnsClient
 
         public static DnsName FromBytes(byte[] data, ref int offset)
         {
-            if (data == null)
+            if (data == null || data.Length == 0 || data.Length < offset + 1)
             {
                 throw new ArgumentNullException(nameof(data));
             }

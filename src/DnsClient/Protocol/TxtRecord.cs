@@ -36,7 +36,7 @@ namespace DnsClient.Protocol
         /// <summary>
         /// The list of TXT values of this TXT RR.
         /// </summary>
-        public IReadOnlyCollection<string> Text { get; }
+        public ICollection<string> Text { get; }
         
         public TxtRecord(ResourceRecordInfo info, string[] values)
             : base(info)

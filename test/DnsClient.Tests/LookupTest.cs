@@ -10,6 +10,22 @@ namespace DnsClient.Tests
     public class LookupTest
     {
         [Fact]
+        public void Lookup_Defaults()
+        {
+            var client = new LookupClient();
+
+            Assert.True(client.UseCache);            
+            Assert.False(client.EnableAuditTrail);
+            Assert.Null(client.MimimumCacheTimeout);
+            Assert.True(client.Recursion);
+            Assert.False(client.ThrowDnsErrors);
+            Assert.Equal(client.Retries, 5);
+            Assert.Equal(client.Timeout, TimeSpan.FromSeconds(5));
+            Assert.True(client.UseTcpFallback);
+            Assert.False(client.UseTcpOnly);
+        }
+
+        [Fact]
         public async Task Lookup_GetHostAddresses_Local()
         {
             var client = new LookupClient();

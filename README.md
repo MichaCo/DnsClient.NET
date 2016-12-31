@@ -11,7 +11,21 @@ Package: https://www.nuget.org/packages/DnsClient/
 Get beta builds from [MyGet](https://www.myget.org/feed/dnsclient/package/nuget/DnsClient).
 
 ## Features
-TODO
+#### General
+* Full Async API
+* UDP and TCP lookup, configurable if TCP should be used as fallback in case UDP result is truncated (default=true).
+* Caching
+  * Query result cache based on provided TTL 
+  * Minimum TTL setting to overrule the result's TTL and always cache the responses for at least that time. (Even verly low value, like a few milliseconds, do make a huge difference if used in high traffic low latency scenarios)
+  * Cache can be disabled alltogether
+* Supports mulitple dns endpoints to be configured.
+* Retry logic in case of timeouts and errors (configurable)
+* Audit trail of each response
+
+#### Supported resource records
+* PTR for reverse lookups
+* AAAA, A, MX, NS, SOA, SRV and TXT
+* OPT (currently only for reading the supported UDP buffer size, EDNS version)
 
 ## Usage examples:
 ### Simple usage

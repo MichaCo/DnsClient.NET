@@ -44,12 +44,12 @@ namespace DnsClient.Protocol
         /// <summary>
         /// A <domain-name> which specifies a host willing to act as a mail exchange.
         /// </summary>
-        public string Exchange { get; }
+        public DnsName Exchange { get; }
 
-        public MxRecord(ResourceRecordInfo info, ushort preference, string domainName)
+        public MxRecord(ResourceRecordInfo info, ushort preference, DnsName domainName)
             : base(info)
         {
-            if (string.IsNullOrWhiteSpace(domainName))
+            if (domainName == null)
             {
                 throw new ArgumentNullException(nameof(domainName));
             }

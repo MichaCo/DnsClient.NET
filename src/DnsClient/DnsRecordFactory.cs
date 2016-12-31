@@ -7,9 +7,6 @@ namespace DnsClient
 {
     internal class DnsRecordFactory
     {
-        public static IDictionary<ResourceRecordType, Func<DnsDatagramReader, ResourceRecordInfo, DnsResourceRecord>> s_recordFactory =
-               new Dictionary<ResourceRecordType, Func<DnsDatagramReader, ResourceRecordInfo, DnsResourceRecord>>();
-
         private readonly DnsDatagramReader _reader;
 
         public DnsRecordFactory(DnsDatagramReader reader)
@@ -51,7 +48,7 @@ namespace DnsClient
                 (QueryClass)_reader.ReadUInt16NetworkOrder(),        // class
                 (int)_reader.ReadUInt32NetworkOrder(),                    // ttl - 32bit!!
                 _reader.ReadUInt16NetworkOrder());                   // RDLength
-                                                                //reader.ReadBytes(reader.ReadUInt16Reverse()));  // rdata
+                                                                     //reader.ReadBytes(reader.ReadUInt16Reverse()));  // rdata
         }
 
         public DnsResourceRecord GetRecord(ResourceRecordInfo info)
@@ -64,56 +61,49 @@ namespace DnsClient
             var oldIndex = _reader.Index;
             DnsResourceRecord result;
 
-            if (s_recordFactory.ContainsKey(info.RecordType))
+            switch (info.RecordType)
             {
-                result = s_recordFactory[info.RecordType](_reader, info);
-            }
-            else
-            {
-                switch (info.RecordType)
-                {
-                    case ResourceRecordType.A:
-                        result = ResolveARecord(info);
-                        break;
+                case ResourceRecordType.A:
+                    result = ResolveARecord(info);
+                    break;
 
-                    case ResourceRecordType.NS:
-                        result = ResolveNsRecord(info);
-                        break;
+                case ResourceRecordType.NS:
+                    result = ResolveNsRecord(info);
+                    break;
 
-                    case ResourceRecordType.SOA:
-                        result = ResolveSoaRecord(info);
-                        break;
+                case ResourceRecordType.SOA:
+                    result = ResolveSoaRecord(info);
+                    break;
 
-                    case ResourceRecordType.PTR:
-                        result = ResolvePtrRecord(info);
-                        break;
+                case ResourceRecordType.PTR:
+                    result = ResolvePtrRecord(info);
+                    break;
 
-                    case ResourceRecordType.MX:
-                        result = ResolveMXRecord(info);
-                        break;
+                case ResourceRecordType.MX:
+                    result = ResolveMXRecord(info);
+                    break;
 
-                    case ResourceRecordType.TXT:
-                        result = ResolveTXTRecord(info);
-                        break;
+                case ResourceRecordType.TXT:
+                    result = ResolveTXTRecord(info);
+                    break;
 
-                    case ResourceRecordType.AAAA:
-                        result = ResolveAAAARecord(info);
-                        break;
+                case ResourceRecordType.AAAA:
+                    result = ResolveAAAARecord(info);
+                    break;
 
-                    case ResourceRecordType.SRV:
-                        result = ResolveSrvRecord(info);
-                        break;
+                case ResourceRecordType.SRV:
+                    result = ResolveSrvRecord(info);
+                    break;
 
-                    case ResourceRecordType.OPT:
-                        result = ResolveOptRecord(info);
-                        break;
+                case ResourceRecordType.OPT:
+                    result = ResolveOptRecord(info);
+                    break;
 
-                    default:
-                        // update reader index because we don't read full data for the empty record
-                        _reader.Index += info.RawDataLength;
-                        result = new EmptyRecord(info);
-                        break;
-                }
+                default:
+                    // update reader index because we don't read full data for the empty record
+                    _reader.Index += info.RawDataLength;
+                    result = new EmptyRecord(info);
+                    break;
             }
 
             // sanity check
@@ -132,7 +122,7 @@ namespace DnsClient
 
         private PtrRecord ResolvePtrRecord(ResourceRecordInfo info)
         {
-            return new PtrRecord(info, _reader.ReadName().ToString());
+            return new PtrRecord(info, _reader.ReadName());
         }
 
         private AaaaRecord ResolveAAAARecord(ResourceRecordInfo info)
@@ -144,11 +134,6 @@ namespace DnsClient
         // default resolver implementation for an A Record
         private ARecord ResolveARecord(ResourceRecordInfo info)
         {
-            if (info.RawDataLength != 4)
-            {
-                throw new IndexOutOfRangeException($"Reading wrong length for an IP address. Expected 4 found {info.RawDataLength}.");
-            }
-
             return new ARecord(info, _reader.ReadIPAddress());
         }
 
@@ -157,13 +142,13 @@ namespace DnsClient
             var preference = _reader.ReadUInt16NetworkOrder();
             var domain = _reader.ReadName();
 
-            return new MxRecord(info, preference, domain.ToString());
+            return new MxRecord(info, preference, domain);
         }
 
         private NsRecord ResolveNsRecord(ResourceRecordInfo info)
         {
             var name = _reader.ReadName();
-            return new NsRecord(info, name.ToString());
+            return new NsRecord(info, name);
         }
 
         private SoaRecord ResolveSoaRecord(ResourceRecordInfo info)
@@ -176,7 +161,7 @@ namespace DnsClient
             var expire = _reader.ReadUInt32NetworkOrder();
             var minimum = _reader.ReadUInt32NetworkOrder();
 
-            return new SoaRecord(info, mName.ToString(), rName.ToString(), serial, refresh, retry, expire, minimum);
+            return new SoaRecord(info, mName, rName, serial, refresh, retry, expire, minimum);
         }
 
         private SrvRecord ResolveSrvRecord(ResourceRecordInfo info)
@@ -186,7 +171,7 @@ namespace DnsClient
             var port = _reader.ReadUInt16NetworkOrder();
             var target = _reader.ReadName();
 
-            return new SrvRecord(info, priority, weight, port, target.ToString());
+            return new SrvRecord(info, priority, weight, port, target);
         }
 
         private TxtRecord ResolveTXTRecord(ResourceRecordInfo info)

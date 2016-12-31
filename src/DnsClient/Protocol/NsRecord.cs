@@ -30,12 +30,12 @@ namespace DnsClient.Protocol
 
     public class NsRecord : DnsResourceRecord
     {
-        public string NSDName { get; }
+        public DnsName NSDName { get; }
 
-        internal NsRecord(ResourceRecordInfo info, string name)
+        internal NsRecord(ResourceRecordInfo info, DnsName name)
             : base(info)
         {
-            if (string.IsNullOrWhiteSpace(name))
+            if (name == null)
             {
                 throw new ArgumentNullException(nameof(name));
             }

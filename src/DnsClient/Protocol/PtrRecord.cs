@@ -23,12 +23,12 @@ namespace DnsClient.Protocol
     */
     public class PtrRecord : DnsResourceRecord
     {
-        public string PtrDomainName { get; }
+        public DnsName PtrDomainName { get; }
 
-        internal PtrRecord(ResourceRecordInfo info, string ptrDName)
+        internal PtrRecord(ResourceRecordInfo info, DnsName ptrDName)
             : base(info)
         {
-            if (string.IsNullOrWhiteSpace(ptrDName))
+            if (ptrDName == null)
             {
                 throw new ArgumentNullException(nameof(ptrDName));
             }

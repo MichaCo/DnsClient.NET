@@ -16,7 +16,7 @@ namespace DnsClient
 
         public int Count => _cache.Count;
 
-        public bool Enabled { get; set; }
+        public bool Enabled { get; set; } = true;
 
         public TimeSpan? MinimumTimout { get; set; }
 
