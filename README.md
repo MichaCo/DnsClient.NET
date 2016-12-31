@@ -15,7 +15,8 @@ TODO
 
 ## Usage examples:
 ### Simple usage
-The following example instantiates a new `LookupClient` using your network adapters to determine available DNS servers.
+The following example instantiates a new `LookupClient` without specifying a DNS endpoint. 
+DnsClient.NET will query the system's network adapters to determine available DNS servers.
 
 ``` csharp
 
@@ -33,20 +34,63 @@ To explicitly specify a DNS server, there are some overloads:
 Create a client using a DNS server on localhost with the default port (53)
 
 ``` csharp
-var lookup = new LookupClient(IPAddress.Parse("127.0.0.1"));
+var result = new LookupClient(IPAddress.Parse("127.0.0.1"));
 ```
 
 Create a client using a DNS server on port 5000:
 
 ``` csharp
 var endpoint = new IPEndPoint(IPAddress.Parse("192.168.178.23"), 5000);
-var lookup = new LookupClient(endpoint);
+var result = new LookupClient(endpoint);
 ```
 
-TODO: more examples
+### Audit Trail
+If enabled, the lookup client adds an audit trail to each result, `result.AuditTrail`. This is a simple text field log information, which can be pretty useful for debugging etc...
+
+```csharp
+var lookup = new LookupClient();
+lookup.EnableAuditTrail = true;
+var result = await lookup.QueryAsync("google.com", QueryType.ANY);
+```
+
+The result.AuditTrail will have some value like this now:
+
+```
+; (3 server found)
+;; Got answer:
+;; ->>HEADER<<- opcode: Query, status: No Error, id: 27205
+;; flags: qr rd ra; QUERY: 1, ANSWER: 11, AUTORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 4096
+;; QUESTION SECTION:
+google.com.                             IN      ANY
+
+;; ANSWER SECTION:
+google.com.                     160     IN      A       216.58.211.46
+google.com.                     152     IN      AAAA    2a00:1450:4016:805::200e
+google.com.                     398     IN      MX      30 alt2.aspmx.l.google.com.
+google.com.                     398     IN      MX      10 aspmx.l.google.com.
+google.com.                     398     IN      MX      40 alt3.aspmx.l.google.com.
+google.com.                     398     IN      MX      20 alt1.aspmx.l.google.com.
+google.com.                     398     IN      MX      50 alt4.aspmx.l.google.com.
+google.com.                     329150  IN      NS      ns1.google.com.
+google.com.                     329150  IN      NS      ns4.google.com.
+google.com.                     329150  IN      NS      ns2.google.com.
+google.com.                     329150  IN      NS      ns3.google.com.
+
+;; Query time: 68 msec
+;; SERVER: 127.0.0.1#53
+;; WHEN: Sat, 01 Dec 2016 15:10:47 GMT
+;; MSG SIZE  rcvd: 263
+```
+
 
 ## Examples
-Under Samples in this repoistory there is a greate console application which kind of works like the well known "dig".
+
+The [Samples](https://github.com/MichaCo/DnsClient.NET.Samples) repository will have some solutions to showcase the usage and also to test some functionality.
+
+Also, under [samples](https://github.com/MichaCo/DnsClient.NET/tree/dev/samples) in this repository, there is a great console application which kind of works like the well known "dig".
 It doesn't have all the features of course but quite many...
 
 To run it, open a command line windows, navigate to \Samples\MiniDig and run `dotnet run`.
@@ -61,15 +105,13 @@ To specify a different server, use the `-s` switch, for example:
 `dotnet run -s 8.8.8.8 google.com` to use the public google name server.
 
 ## Milestones
-The package is currently available as a beta version and is not feature complete yet.
-
-### 1.0 release
-Stuff needed for the 1.0 release:
+### 1.1 release
+* Default instance
+* Better xplat support for determining DNS Servers as the .NET Framework has some bugs and lacking some features in this regards.
 * More testing
 * More RRs parsing
 
 ## Motivation and Thanks!
-I used [Heijden.Dns](https://github.com/ghuntley/Heijden.Dns) as a baseline for my first steps into the world of DNS RFCs. A big thanks to the original author of the code, Alphons van der Heijden and also Geoffrey Huntley who created a great package out of that.
-This was a great resource to learn from it and start building this API!
+I used [Heijden.Dns](https://github.com/ghuntley/Heijden.Dns) as a baseline for my first steps into the world of DNS RFCs. A big thanks to the original author of the code, Alphons van der Heijden and also Geoffrey Huntley who created a great package out of that. This was a great resource to learn from it and start building this API!
 
-In the end, I decided to write my own API to make it easily useable, extensible and build on dotnet core for xplat support and make it use async all the way, too.
+In the end, I decided to write my own API to make it easy to use, more robust, extensible and build on dotnet core for xplat support.
