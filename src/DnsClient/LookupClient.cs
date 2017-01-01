@@ -172,6 +172,20 @@ namespace DnsClient
             throw new InvalidOperationException("Not a valid IP4 or IP6 address.");
         }
 
+        public Task<DnsQueryResponse> QueryReverseAsync(IPAddress ipAddress)
+            => QueryReverseAsync(ipAddress, CancellationToken.None);
+
+        public Task<DnsQueryResponse> QueryReverseAsync(IPAddress ipAddress, CancellationToken cancellationToken)
+        {
+            if (ipAddress == null)
+            {
+                throw new ArgumentNullException(nameof(ipAddress));
+            }
+
+            var arpa = GetArpaName(ipAddress);
+            return QueryAsync(arpa, QueryType.PTR, QueryClass.IN, cancellationToken);
+        }
+
         public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType)
             => QueryAsync(query, queryType, CancellationToken.None);
 
@@ -207,38 +221,14 @@ namespace DnsClient
             return result;
         }
 
-        public Task<DnsQueryResponse> QueryReverseAsync(IPAddress ipAddress)
-            => QueryReverseAsync(ipAddress, CancellationToken.None);
-
-        public Task<DnsQueryResponse> QueryReverseAsync(IPAddress ipAddress, CancellationToken cancellationToken)
-        {
-            if (ipAddress == null)
-            {
-                throw new ArgumentNullException(nameof(ipAddress));
-            }
-
-            var arpa = GetArpaName(ipAddress);
-            return QueryAsync(arpa, QueryType.PTR, QueryClass.IN, cancellationToken);
-        }
-
-        private ushort GetNextUniqueId()
-        {
-            if (_uniqueId == ushort.MaxValue || _uniqueId == 0)
-            {
-                _uniqueId = (ushort)_random.Next(ushort.MaxValue / 2);
-            }
-
-            return unchecked((ushort)Interlocked.Increment(ref _uniqueId));
-        }
-
-        private async Task<DnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, CancellationToken cancellationToken)
+        private async Task<DnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, CancellationToken cancellationToken, Audit continueAudit = null)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var audit = EnableAuditTrail ? new Audit() : null;
+            var audit = EnableAuditTrail ? continueAudit ?? new Audit() : null;
 
             NameServer[] servers = null;
             lock (_endpointLock)
@@ -256,11 +246,6 @@ namespace DnsClient
                     // fast forward without queue logic if there is only one server...
                     servers = _endpoints.ToArray();
                 }
-            }
-
-            if (EnableAuditTrail)
-            {
-                audit.AuditResolveServers(servers.Length);
             }
 
             foreach (var serverInfo in servers)
@@ -286,11 +271,6 @@ namespace DnsClient
 
                         response = await resultTask.ConfigureAwait(false);
 
-                        if (EnableAuditTrail)
-                        {
-                            audit.AuditResponseHeader(response.Header);
-                        }
-
                         if (response.Header.ResultTruncated && UseTcpFallback && !handler.GetType().Equals(typeof(DnsTcpMessageHandler)))
                         {
                             if (EnableAuditTrail)
@@ -298,7 +278,13 @@ namespace DnsClient
                                 audit.AuditTruncatedRetryTcp();
                             }
 
-                            return await ResolveQueryAsync(_tcpFallbackHandler, request, cancellationToken).ConfigureAwait(false);
+                            return await ResolveQueryAsync(_tcpFallbackHandler, request, cancellationToken, audit).ConfigureAwait(false);
+                        }
+
+                        if (EnableAuditTrail)
+                        {
+                            audit.AuditResolveServers(servers.Length);
+                            audit.AuditResponseHeader(response.Header);
                         }
 
                         if (response.Header.ResponseCode != DnsResponseCode.NoError)
@@ -401,6 +387,16 @@ namespace DnsClient
             }
         }
 
+        private ushort GetNextUniqueId()
+        {
+            if (_uniqueId == ushort.MaxValue || _uniqueId == 0)
+            {
+                _uniqueId = (ushort)_random.Next(ushort.MaxValue / 2);
+            }
+
+            return unchecked((ushort)Interlocked.Increment(ref _uniqueId));
+        }
+
         private class Audit
         {
             private static readonly int s_printOffset = -32;
@@ -429,12 +425,13 @@ namespace DnsClient
 
             public void AuditTruncatedRetryTcp()
             {
-                _auditWriter.AppendLine("; Udp result truncated, using tcp now");
+                _auditWriter.AppendLine(";; Truncated, retrying in TCP mode.");
+                _auditWriter.AppendLine();
             }
 
             public void AuditResponseError(DnsResponseCode responseCode)
             {
-                _auditWriter.AppendLine($";; {DnsResponseCodeText.GetErrorText(responseCode)}");
+                _auditWriter.AppendLine($";; ERROR: {DnsResponseCodeText.GetErrorText(responseCode)}");
             }
 
             public void AuditOptPseudo()
