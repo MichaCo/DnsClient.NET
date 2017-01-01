@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-
 namespace DnsClient.Protocol
 {
     /* RFC 6844 (https://tools.ietf.org/html/rfc6844#section-5.1)
@@ -77,6 +74,7 @@ namespace DnsClient.Protocol
       The length of the value field is specified implicitly as the
       remaining length of the enclosing Resource Record data field.
     * */
+
     /// <summary>
     /// Record type 257
     /// The Certification Authority Authorization (CAA) DNS Resource Record
@@ -87,7 +85,24 @@ namespace DnsClient.Protocol
     /// certificate mis-issue.This document defines the syntax of the CAA
     /// record and rules for processing CAA records by certificate issuers.
     /// </summary>
-    public class CaaRecord
+    public class CaaRecord : DnsResourceRecord
     {
+        public byte Flags { get; }
+
+        public string Tag { get; }
+
+        public string Value { get; }
+
+        public CaaRecord(ResourceRecordInfo info, byte flags, string tag, string value) : base(info)
+        {
+            Flags = flags;
+            Tag = tag;
+            Value = value;
+        }
+
+        public override string RecordToString()
+        {
+            return $"{Flags} {Tag} {Value}";
+        }
     }
 }

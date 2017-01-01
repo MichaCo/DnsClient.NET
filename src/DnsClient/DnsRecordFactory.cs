@@ -112,7 +112,7 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.MX:
-                    result = ResolveMXRecord(info);                                        
+                    result = ResolveMXRecord(info);
                     break;
 
                 case ResourceRecordType.TXT:
@@ -129,6 +129,10 @@ namespace DnsClient
 
                 case ResourceRecordType.OPT:
                     result = ResolveOptRecord(info);
+                    break;
+
+                case ResourceRecordType.CAA:
+                    result = ResolveCaaRecord(info);
                     break;
 
                 default:
@@ -211,6 +215,16 @@ namespace DnsClient
             }
 
             return new TxtRecord(info, values.ToArray(), utf8Values.ToArray());
+        }
+
+        private DnsResourceRecord ResolveCaaRecord(ResourceRecordInfo info)
+        {
+            var flag = _reader.ReadByte();
+            var tag = _reader.ReadString();
+            var value = _reader.ReadBytes(info.RawDataLength - 2 - tag.Length);
+            var index = 0;
+            var stringValue = DnsDatagramReader.ParseString(value, ref index, value.Length);
+            return new CaaRecord(info, flag, tag, stringValue);
         }
     }
 }
