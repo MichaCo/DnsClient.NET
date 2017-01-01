@@ -24,11 +24,13 @@ namespace DnsClient.Protocol
         /// <summary>
         /// A mail destination (OBSOLETE - use MX)	[RFC1035].
         /// </summary>
+        [Obsolete("Use MX")]
         MD = 3,
 
         /// <summary>
         /// A mail forwarder (OBSOLETE - use MX)	[RFC1035].
         /// </summary>
+        [Obsolete("Use MX")]
         MF = 4,
 
         /// <summary>
@@ -59,7 +61,7 @@ namespace DnsClient.Protocol
         /// <summary>
         /// A null RR (EXPERIMENTAL)	[RFC1035].
         /// </summary>
-        NULL = 10,
+        NULL = 10,  /* not implemented */
 
         /// <summary>
         /// A well known service description    [RFC1035]
@@ -107,7 +109,7 @@ namespace DnsClient.Protocol
         OPT = 41,
 
         /// <summary>
-        /// RRSIG rfc3755.  TODO:impl
+        /// RRSIG rfc3755.
         /// </summary>
         RRSIG = 46,
 

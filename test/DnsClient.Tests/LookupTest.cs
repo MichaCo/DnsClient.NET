@@ -14,7 +14,7 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient();
 
-            Assert.True(client.UseCache);            
+            Assert.True(client.UseCache);
             Assert.False(client.EnableAuditTrail);
             Assert.Null(client.MimimumCacheTimeout);
             Assert.True(client.Recursion);
@@ -25,6 +25,16 @@ namespace DnsClient.Tests
             Assert.False(client.UseTcpOnly);
         }
 
+        [Fact]
+        public void Lookup_Query_InvalidTimeout()
+        {
+            var client = new LookupClient();
+            
+            Action act = () => client.Timeout = TimeSpan.FromMilliseconds(0);
+
+            Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
+        }
+        
         [Fact]
         public async Task Lookup_GetHostAddresses_Local()
         {
@@ -78,141 +88,76 @@ namespace DnsClient.Tests
             return ip;
         }
 
-        //[Theory]
-        //[InlineData(TransportType.Tcp)]
-        //[InlineData(TransportType.Udp)]
-        //public async Task Lookup_GetHostAddresses_ActualHost(TransportType transport)
-        //{
-        //    var entry = await GetDnsEntryAsync();
+        [Fact]
+        public async Task Lookup_Reverse()
+        {
+            var client = new LookupClient();
+            var result = await client.QueryReverseAsync(IPAddress.Parse("127.0.0.1"));
 
-        //    var client = new DnsLookup(LoggerFactory, new DnsLookupOptions() { TransportType = transport });
-        //    var result = await client.GetHostAddressesAsync(entry.HostName);
+            Assert.Equal(result.Answers.PtrRecords().First().PtrDomainName, new DnsName("localhost"));
+        }
 
-        //    Assert.True(entry.AddressList.Contains(result.First()));
-        //}
+        [Fact]
+        public async Task Lookup_Query_AAAA()
+        {
+            var client = new LookupClient();
+            var result = await client.QueryAsync("google.com", QueryType.AAAA);
 
-        //[Theory]
-        //[InlineData(TransportType.Tcp)]
-        //[InlineData(TransportType.Udp)]
-        //public async Task Lookup_GetHostEntryAsync_ByIp(TransportType transport)
-        //{
-        //    var entry = await GetDnsEntryAsync();
-        //    var client = new DnsLookup(LoggerFactory, new DnsLookupOptions() { TransportType = transport });
-        //    var result = await client.GetHostEntryAsync(entry.AddressList.First());
+            Assert.NotEmpty(result.Answers.AaaaRecords());
+            Assert.NotNull(result.Answers.AaaaRecords().First().Address);
+        }
 
-        //    Assert.True(entry.AddressList.Contains(result.AddressList.First()));
-        //    Assert.Equal(entry.HostName, result.HostName);
-        //}
+        [Fact]
+        public async Task Lookup_Query_Any()
+        {
+            var client = new LookupClient();
+            var result = await client.QueryAsync("google.com", QueryType.ANY);
 
-        //[Theory]
-        //[InlineData(TransportType.Tcp)]
-        //[InlineData(TransportType.Udp)]
-        //public async Task Lookup_GetHostEntryAsync_ByName(TransportType transport)
-        //{
-        //    var entry = await GetDnsEntryAsync();
-        //    var client = new DnsLookup(LoggerFactory, new DnsLookupOptions() { TransportType = transport });
-        //    var result = await client.GetHostEntryAsync(entry.HostName);
+            Assert.NotEmpty(result.Answers);
+            Assert.NotEmpty(result.Answers.ARecords());
+            Assert.NotEmpty(result.Answers.NsRecords());
+        }
 
-        //    Assert.True(entry.AddressList.Contains(result.AddressList.First()));
-        //    Assert.Equal(entry.HostName, result.HostName);
-        //}
+        [Fact]
+        public async Task Lookup_Query_Mx()
+        {
+            var client = new LookupClient();
+            var result = await client.QueryAsync("google.com", QueryType.MX);
 
-        //[Theory]
-        //[InlineData(TransportType.Tcp)]
-        //[InlineData(TransportType.Udp)]
-        //public async Task Lookup_Query_A(TransportType transport)
-        //{
-        //    var client = new DnsLookup(LoggerFactory, new DnsLookupOptions() { TransportType = transport });
-        //    var result = await client.QueryAsync("google.com", QType.A);
+            Assert.NotEmpty(result.Answers.MxRecords());
+            Assert.NotNull(result.Answers.MxRecords().First().Exchange);
+            Assert.True(result.Answers.MxRecords().First().Preference > 0);
+        }
 
-        //    Assert.True(result.Answers.Count > 0);
-        //    Assert.True(result.RecordsA.Count > 0);
-        //}
+        [Fact]
+        public async Task Lookup_Query_NS()
+        {
+            var client = new LookupClient();
+            var result = await client.QueryAsync("google.com", QueryType.NS);
 
-        //[Theory]
-        //[InlineData(TransportType.Tcp)]
-        //[InlineData(TransportType.Udp)]
-        //public async Task Lookup_Query_AAAA(TransportType transport)
-        //{
-        //    var client = new DnsLookup(LoggerFactory, new DnsLookupOptions() { TransportType = transport });
-        //    var result = await client.QueryAsync("google.com", QType.AAAA);
+            Assert.NotEmpty(result.Answers.NsRecords());
+            Assert.NotNull(result.Answers.NsRecords().First().NSDName);
+        }
 
-        //    Assert.True(result.Answers.Count > 0);
-        //    Assert.True(result.RecordsAAAA.Count > 0);
-        //}
+        [Fact]
+        public async Task Lookup_Query_TXT()
+        {
+            var client = new LookupClient();
+            var result = await client.QueryAsync("google.com", QueryType.TXT);
 
-        //[Theory]
-        //[InlineData(TransportType.Tcp)]
-        //[InlineData(TransportType.Udp)]
-        //public async Task Lookup_Query_Any(TransportType transport)
-        //{
-        //    var client = new DnsLookup(LoggerFactory, new DnsLookupOptions() { TransportType = transport });
-        //    var result = await client.QueryAsync("google.com", QType.ANY);
+            Assert.NotEmpty(result.Answers.TxtRecords());
+            Assert.NotEmpty(result.Answers.TxtRecords().First().Text);
+        }
 
-        //    Assert.True(result.Answers.Count > 5);
-        //    Assert.True(result.RecordsA.Count > 0);
-        //    Assert.True(result.RecordsAAAA.Count > 0);
-        //    Assert.True(result.RecordsMX.Count > 0);
-        //}
+        [Fact]
+        public async Task Lookup_Query_SOA()
+        {
+            var client = new LookupClient();
+            var result = await client.QueryAsync("google.com", QueryType.SOA);
 
-        //[Theory]
-        //[InlineData(TransportType.Tcp)]
-        //[InlineData(TransportType.Udp)]
-        //public async Task Lookup_Query_Mx(TransportType transport)
-        //{
-        //    var client = new DnsLookup(LoggerFactory, new DnsLookupOptions() { TransportType = transport });
-        //    var result = await client.QueryAsync("google.com", QType.MX);
-
-        //    Assert.True(result.Answers.Count > 0);
-        //    Assert.True(result.RecordsMX.Count > 0);
-        //}
-
-        //[Theory]
-        //[InlineData(TransportType.Tcp)]
-        //[InlineData(TransportType.Udp)]
-        //public async Task Lookup_Query_NS(TransportType transport)
-        //{
-        //    var client = new DnsLookup(LoggerFactory, new DnsLookupOptions() { TransportType = transport });
-        //    var result = await client.QueryAsync("google.com", QType.NS);
-
-        //    Assert.True(result.Answers.Count > 0);
-        //    Assert.True(result.RecordsNS.Count > 0);
-        //}
-
-        //[Theory]
-        //[InlineData(TransportType.Tcp)]
-        //[InlineData(TransportType.Udp)]
-        //public async Task Lookup_Query_TXT(TransportType transport)
-        //{
-        //    var client = new DnsLookup(LoggerFactory, new DnsLookupOptions() { TransportType = transport });
-        //    var result = await client.QueryAsync("google.com", QType.TXT);
-
-        //    Assert.True(result.Answers.Count > 0);
-        //    Assert.True(result.RecordsTXT.Count > 0);
-        //}
-
-        //[Theory]
-        //[InlineData(TransportType.Tcp)]
-        //[InlineData(TransportType.Udp)]
-        //public async Task Lookup_Query_SOA(TransportType transport)
-        //{
-        //    var client = new DnsLookup(LoggerFactory, new DnsLookupOptions() { TransportType = transport });
-        //    var result = await client.QueryAsync("google.com", QType.SOA);
-
-        //    Assert.True(result.Answers.Count > 0);
-        //    Assert.True(result.RecordsSOA.Count > 0);
-        //}
-
-        //[Theory]
-        //[InlineData(TransportType.Tcp)]
-        //[InlineData(TransportType.Udp)]
-        //public async Task Lookup_Query_ForceTimeout(TransportType transport)
-        //{
-        //    // basically testing we don't throw an error but return information
-        //    var client = new DnsLookup(LoggerFactory, new DnsLookupOptions() { Timeout = 0, TransportType = transport });
-        //    var result = await client.QueryAsync("google.com", QType.ANY);
-        //    Assert.True(!string.IsNullOrWhiteSpace(result.Error));
-        //    Assert.True(result.Answers.Count == 0);
-        //}
+            Assert.NotEmpty(result.Answers.SoaRecords());
+            Assert.NotNull(result.Answers.SoaRecords().First().MName);
+            Assert.NotNull(result.Answers.SoaRecords().First().RName);
+        }
     }
 }

@@ -352,18 +352,16 @@ namespace DnsClient
                     catch (TimeoutException)
                     {
                         DisableEndpoint(serverInfo);
-                        break;
                     }
                     catch (SocketException ex) when (ex.SocketErrorCode == SocketError.AddressFamilyNotSupported)
                     {
                         // this socket error might indicate the server endpoint is actually bad and should be ignored in future queries.
                         DisableEndpoint(serverInfo);
-                        break;
+                        break;             
                     }
                     catch (Exception ex) when (handler.IsTransientException(ex))
                     {
                         DisableEndpoint(serverInfo);
-                        break;
                     }
                     catch (Exception ex)
                     {
@@ -374,7 +372,7 @@ namespace DnsClient
                         {
                             if (agg.InnerExceptions.Any(e => e is TimeoutException || handler.IsTransientException(e)))
                             {
-                                break;
+                                continue;
                             }
 
                             throw new DnsResponseException("Unhandled exception", agg.InnerException);
@@ -448,6 +446,10 @@ namespace DnsClient
             {
                 _auditWriter.AppendLine(";; Got answer:");
                 _auditWriter.AppendLine(header.ToString());
+                if(header.RecursionDesired && !header.RecursionAvailable)
+                {
+                    _auditWriter.AppendLine(";; WARNING: recursion requested but not available");
+                }
                 _auditWriter.AppendLine();
             }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace DnsClient.Protocol
 {
@@ -51,7 +52,7 @@ namespace DnsClient.Protocol
 
         public override string RecordToString()
         {
-            return string.Join(" ", Text).Trim();
+            return string.Join(" ", Text.Select(p => "\"" + p + "\"")).Trim();
         }
     }
 }

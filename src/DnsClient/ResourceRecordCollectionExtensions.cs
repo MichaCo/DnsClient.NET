@@ -16,11 +16,6 @@ namespace System.Linq
             return records.OfType<ARecord>();
         }
 
-        public static IEnumerable<CaaRecord> CaaRecords(this IEnumerable<DnsResourceRecord> records)
-        {
-            return records.OfType<CaaRecord>();
-        }
-
         public static IEnumerable<NsRecord> NsRecords(this IEnumerable<DnsResourceRecord> records)
         {
             return records.OfType<NsRecord>();
@@ -51,6 +46,12 @@ namespace System.Linq
         public static IEnumerable<TxtRecord> TxtRecords(this IEnumerable<DnsResourceRecord> records)
         {
             return records.OfType<TxtRecord>();
+        }
+        
+        [CLSCompliant(false)]
+        public static IEnumerable<MxRecord> MxRecords(this IEnumerable<DnsResourceRecord> records)
+        {
+            return records.OfType<MxRecord>();
         }
     }
 }

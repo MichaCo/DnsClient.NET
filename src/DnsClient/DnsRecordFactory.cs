@@ -64,19 +64,51 @@ namespace DnsClient
             switch (info.RecordType)
             {
                 case ResourceRecordType.A:
-                    result = ResolveARecord(info);
+                    result = new ARecord(info, _reader.ReadIPAddress());
                     break;
 
                 case ResourceRecordType.NS:
-                    result = ResolveNsRecord(info);
+                    result = new NsRecord(info, _reader.ReadName());
+                    break;
+
+                case ResourceRecordType.CNAME:
+                    result = new CNameRecord(info, _reader.ReadName());
                     break;
 
                 case ResourceRecordType.SOA:
                     result = ResolveSoaRecord(info);
                     break;
 
+                case ResourceRecordType.MB:
+                    result = new MbRecord(info, _reader.ReadName());
+                    break;
+
+                case ResourceRecordType.MG:
+                    result = new MgRecord(info, _reader.ReadName());
+                    break;
+
+                case ResourceRecordType.MR:
+                    result = new MrRecord(info, _reader.ReadName());
+                    break;
+
+                case ResourceRecordType.NULL:
+                    result = new NullRecord(info, _reader.ReadBytes(_reader.ReadUInt16NetworkOrder()));
+                    break;
+
+                case ResourceRecordType.WKS:
+                    result = ResolveWksRecord(info);
+                    break;
+
                 case ResourceRecordType.PTR:
-                    result = ResolvePtrRecord(info);
+                    result = new PtrRecord(info, _reader.ReadName());
+                    break;
+
+                case ResourceRecordType.HINFO:
+                    result = new HInfoRecord(info, _reader.ReadString(), _reader.ReadString());
+                    break;
+
+                case ResourceRecordType.MINFO:
+                    result = new MInfoRecord(info, _reader.ReadName(), _reader.ReadName());
                     break;
 
                 case ResourceRecordType.MX:
@@ -88,7 +120,7 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.AAAA:
-                    result = ResolveAAAARecord(info);
+                    result = new AaaaRecord(info, _reader.ReadIPv6Address());
                     break;
 
                 case ResourceRecordType.SRV:
@@ -115,29 +147,21 @@ namespace DnsClient
             return result;
         }
 
-        private OptRecord ResolveOptRecord(ResourceRecordInfo info)
+        private DnsResourceRecord ResolveOptRecord(ResourceRecordInfo info)
         {
             return new OptRecord((int)info.RecordClass, info.TimeToLive, info.RawDataLength);
         }
 
-        private PtrRecord ResolvePtrRecord(ResourceRecordInfo info)
+        private DnsResourceRecord ResolveWksRecord(ResourceRecordInfo info)
         {
-            return new PtrRecord(info, _reader.ReadName());
+            var address = _reader.ReadIPAddress();
+            var protocol = _reader.ReadByte();
+            var bitmap = _reader.ReadBytes(info.RawDataLength - 5);
+
+            return new WksRecord(info, address, protocol, bitmap);
         }
 
-        private AaaaRecord ResolveAAAARecord(ResourceRecordInfo info)
-        {
-            var address = _reader.ReadIPv6Address();
-            return new AaaaRecord(info, address);
-        }
-
-        // default resolver implementation for an A Record
-        private ARecord ResolveARecord(ResourceRecordInfo info)
-        {
-            return new ARecord(info, _reader.ReadIPAddress());
-        }
-
-        private MxRecord ResolveMXRecord(ResourceRecordInfo info)
+        private DnsResourceRecord ResolveMXRecord(ResourceRecordInfo info)
         {
             var preference = _reader.ReadUInt16NetworkOrder();
             var domain = _reader.ReadName();
@@ -145,13 +169,7 @@ namespace DnsClient
             return new MxRecord(info, preference, domain);
         }
 
-        private NsRecord ResolveNsRecord(ResourceRecordInfo info)
-        {
-            var name = _reader.ReadName();
-            return new NsRecord(info, name);
-        }
-
-        private SoaRecord ResolveSoaRecord(ResourceRecordInfo info)
+        private DnsResourceRecord ResolveSoaRecord(ResourceRecordInfo info)
         {
             var mName = _reader.ReadName();
             var rName = _reader.ReadName();
@@ -164,7 +182,7 @@ namespace DnsClient
             return new SoaRecord(info, mName, rName, serial, refresh, retry, expire, minimum);
         }
 
-        private SrvRecord ResolveSrvRecord(ResourceRecordInfo info)
+        private DnsResourceRecord ResolveSrvRecord(ResourceRecordInfo info)
         {
             var priority = _reader.ReadUInt16NetworkOrder();
             var weight = _reader.ReadUInt16NetworkOrder();
@@ -174,7 +192,7 @@ namespace DnsClient
             return new SrvRecord(info, priority, weight, port, target);
         }
 
-        private TxtRecord ResolveTXTRecord(ResourceRecordInfo info)
+        private DnsResourceRecord ResolveTXTRecord(ResourceRecordInfo info)
         {
             int pos = _reader.Index;
 

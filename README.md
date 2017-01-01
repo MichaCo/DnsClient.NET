@@ -24,7 +24,7 @@ Get beta builds from [MyGet](https://www.myget.org/feed/dnsclient/package/nuget/
 
 #### Supported resource records
 * PTR for reverse lookups
-* AAAA, A, MX, NS, SOA, SRV and TXT
+* A, AAAA, NS, CNAME, SOA, MB, MG, MR, WKS, HINFO, MINFO, MX, SRV and TXT
 * OPT (currently only for reading the supported UDP buffer size, EDNS version)
 
 ## Usage examples:

@@ -15,7 +15,7 @@ namespace DnsClient
         public bool FutureUse => HasFlag(DnsHeaderFlag.FutureUse);
 
         public bool HasAuthorityAnswer => HasFlag(DnsHeaderFlag.HasAuthorityAnswer);
-        
+
         internal DnsHeaderFlag HeaderFlags => (DnsHeaderFlag)_flags;
 
         public int Id { get; }
@@ -35,13 +35,7 @@ namespace DnsClient
         public bool RecursionAvailable => HasFlag(DnsHeaderFlag.RecursionAvailable);
 
         public DnsResponseCode ResponseCode => (DnsResponseCode)(_flags & DnsHeader.RCodeMask);
-
-        ////ResponseCode {set
-        ////{
-        ////    _flags &= (ushort)~(DnsHeader.RCODE_MASK);
-        ////    _flags |= (ushort)((ushort)value & DnsHeader.RCODE_MASK);
-        ////}}
-
+        
         public bool ResultTruncated => HasFlag(DnsHeaderFlag.ResultTruncated);
 
         public bool RecursionDesired => HasFlag(DnsHeaderFlag.RecursionDesired);
@@ -64,6 +58,7 @@ namespace DnsClient
             var head = $";; ->>HEADER<<- opcode: {OPCode}, status: {DnsResponseCodeText.GetErrorText(ResponseCode)}, id: {Id}";
             var flags = new string[] {
                         HasQuery ? "qr" : "",
+                        HasAuthorityAnswer ? "aa" : "",
                         RecursionDesired ? "rd" : "",
                         RecursionAvailable ? "ra" : "",
                         ResultTruncated ? "tc" : "",
