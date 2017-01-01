@@ -257,6 +257,8 @@ namespace DnsClient
 
                     try
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
+
                         if (EnableAuditTrail)
                         {
                             audit.StartTimer();
@@ -266,10 +268,12 @@ namespace DnsClient
                         var resultTask = handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
                         if (Timeout != s_infiniteTimeout)
                         {
-                            response = await resultTask.TimeoutAfter(Timeout).ConfigureAwait(false);
+                            response = await resultTask.TimeoutAfter(Timeout, cancellationToken).ConfigureAwait(false);
                         }
-
-                        response = await resultTask.ConfigureAwait(false);
+                        else
+                        {
+                            response = await resultTask.TimeoutAfter(TimeSpan.MaxValue, cancellationToken).ConfigureAwait(false);
+                        }
 
                         if (response.Header.ResultTruncated && UseTcpFallback && !handler.GetType().Equals(typeof(DnsTcpMessageHandler)))
                         {
@@ -343,7 +347,7 @@ namespace DnsClient
                     {
                         // this socket error might indicate the server endpoint is actually bad and should be ignored in future queries.
                         DisableEndpoint(serverInfo);
-                        break;             
+                        break;
                     }
                     catch (Exception ex) when (handler.IsTransientException(ex))
                     {
@@ -353,6 +357,7 @@ namespace DnsClient
                     {
                         DisableEndpoint(serverInfo);
 
+                        var handleEx = ex;
                         var agg = ex as AggregateException;
                         if (agg != null)
                         {
@@ -361,13 +366,18 @@ namespace DnsClient
                                 continue;
                             }
 
-                            throw new DnsResponseException("Unhandled exception", agg.InnerException);
+                            handleEx = agg.InnerException;
+                        }
+
+                        if (handleEx is OperationCanceledException || handleEx is TaskCanceledException)
+                        {
+                            throw new DnsResponseException("Operation canceled", handleEx);
                         }
 
                         throw new DnsResponseException("Unhandled exception", ex);
                     }
 
-                    // TODO delay configurable?
+                    // TODO delay?
                 } while (tries <= Retries && !cancellationToken.IsCancellationRequested && serverInfo.Enabled);
             }
             throw new DnsResponseException($"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.");
@@ -443,7 +453,7 @@ namespace DnsClient
             {
                 _auditWriter.AppendLine(";; Got answer:");
                 _auditWriter.AppendLine(header.ToString());
-                if(header.RecursionDesired && !header.RecursionAvailable)
+                if (header.RecursionDesired && !header.RecursionAvailable)
                 {
                     _auditWriter.AppendLine(";; WARNING: recursion requested but not available");
                 }

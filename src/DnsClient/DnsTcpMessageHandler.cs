@@ -20,11 +20,6 @@ namespace DnsClient
             DnsRequestMessage request,
             CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return null;
-            }
-
             cancellationToken.ThrowIfCancellationRequested();
 
             using (var client = new TcpClient(server.AddressFamily))

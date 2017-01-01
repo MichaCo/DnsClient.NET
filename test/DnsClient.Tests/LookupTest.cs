@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
 using Xunit;
@@ -29,12 +30,12 @@ namespace DnsClient.Tests
         public void Lookup_Query_InvalidTimeout()
         {
             var client = new LookupClient();
-            
+
             Action act = () => client.Timeout = TimeSpan.FromMilliseconds(0);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
-        
+
         [Fact]
         public async Task Lookup_GetHostAddresses_Local()
         {
@@ -73,8 +74,67 @@ namespace DnsClient.Tests
 
             var ex = Record.Exception(act) as DnsResponseException;
 
-            // make sure the complex try catch in ResolveQuery doesn't re throw with a messed up message/stack.
             Assert.Equal(ex.Code, DnsResponseCode.NotExistentDomain);
+        }
+
+        [Fact]
+        public void Lookup_QueryCanceled()
+        {
+            var client = new LookupClient();
+
+            var tokenSource = new CancellationTokenSource();
+            var token = tokenSource.Token;
+            Action act = () => client.QueryAsync("lala.com", QueryType.A, token).GetAwaiter().GetResult();
+            tokenSource.Cancel();
+
+            var ex = Record.Exception(act) as DnsResponseException;
+
+            Assert.Equal(ex.Code, DnsResponseCode.Unassigned);
+            Assert.True(ex.InnerException is OperationCanceledException);
+        }
+
+        [Fact]
+        public async Task Lookup_QueryDelayCanceled()
+        {
+            var client = new LookupClient(IPAddress.Parse("8.1.8.1"));
+            client.Timeout = TimeSpan.FromMilliseconds(1000);
+
+            // should hit the cancelation timeout, not the 1sec timeout
+            var tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+
+            var token = tokenSource.Token;
+
+            try
+            {
+                await client.QueryAsync("lala.com", QueryType.A, token);
+            }
+            catch (DnsResponseException ex)
+            {
+                Assert.Equal(ex.Code, DnsResponseCode.Unassigned);
+                Assert.True(ex.InnerException is TaskCanceledException);
+            }
+        }
+
+        [Fact]
+        public async Task Lookup_QueryDelayCanceledWithUnlimitedTimeout()
+        {
+            var client = new LookupClient(IPAddress.Parse("8.1.8.1"));
+            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
+
+            // should hit the cancelation timeout, not the 1sec timeout
+            var tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+
+            var token = tokenSource.Token;
+
+            try
+            {
+                await client.QueryAsync("lala.com", QueryType.A, token);
+            }
+            catch (DnsResponseException ex)
+            {
+                Assert.Equal(ex.Code, DnsResponseCode.Unassigned);
+                Assert.True(ex.InnerException is TaskCanceledException);
+            }
         }
 
         private async Task<IPAddress> GetDnsEntryAsync()

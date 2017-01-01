@@ -22,13 +22,8 @@ namespace DnsClient
             DnsRequestMessage request,
             CancellationToken cancellationToken)
         {
-            if (cancellationToken.IsCancellationRequested)
-            {
-                return null;
-            }
-
             cancellationToken.ThrowIfCancellationRequested();
-
+            
             using (var udpClient = new UdpClient() { })
             {
                 var data = GetRequestData(request);
