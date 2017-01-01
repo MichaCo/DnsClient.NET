@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Net;
-
 namespace DnsClient.Protocol
 {
-    /* https://tools.ietf.org/html/rfc1183#section-1
+    /* https://tools.ietf.org/html/rfc1183#section-1, https://tools.ietf.org/html/rfc5864
     1. AFS Data Base location
 
        This section defines an extension of the DNS to locate servers both
@@ -24,7 +22,7 @@ namespace DnsClient.Protocol
 
        <owner> <ttl> <class> AFSDB <subtype> <hostname>
     */
-    
+
     public class AfsDbRecord : DnsResourceRecord
     {
         public AfsType SubType { get; }

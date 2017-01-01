@@ -94,6 +94,11 @@ namespace DnsClient.Protocol
         TXT = 16,
 
         /// <summary>
+        /// Responsible Person [RFC1183]
+        /// </summary>
+        RP = 17,
+
+        /// <summary>
         /// AfsDb [RFC1183]
         /// </summary>
         AFSDB = 18,
