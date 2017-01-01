@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 
 namespace DnsClient.Protocol
@@ -48,30 +50,111 @@ namespace DnsClient.Protocol
     In master files, both ports and protocols are expressed using mnemonics
     or decimal numbers.
 
-     */
+    ** remark:
+    * RFS-1010 is obsolete/history.
+    * The most current one is https://tools.ietf.org/html/rfc3232
+    * The lists of protocols and ports are now handled via the online database on http://www.iana.org/.
+    * 
+    * Also, see https://tools.ietf.org/html/rfc6335
+    * For clarification which protocols are supported etc.
+    */
 
+    /// <summary>
+    /// See http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml.
+    /// According to https://tools.ietf.org/html/rfc6335, only ports for TCP, UDP, DCCP and SCTP services will be assigned.
+    /// </summary>
+    public enum WksProtocol
+    {
+        Unsupported = 0,
+        TCP = 6,
+        UDP = 17,
+        DCCP = 33,
+        SCTP = 132
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
     public class WksRecord : DnsResourceRecord
     {
         public IPAddress Address { get; }
+        
+        /// <summary>
+        /// Gets the Protocol.
+        /// </summary>
+        public WksProtocol Protocol { get; }
 
-        public int Protocol { get; }
-
+        /// <summary>
+        /// Gets the binary raw bitmap.
+        /// Use <see cref="Services"/> to determine which ports are actually configured.
+        /// </summary>
         public byte[] Bitmap { get; }
+
+        /// <summary>
+        /// Gets the list of assigned ports. See http://www.iana.org/assignments/port-numbers.
+        /// <para>
+        /// For example if this list contains port 25, which is assigned to 
+        /// the <c>SMTP</c> service. This means that a SMTP services 
+        /// is running on <see cref="Address"/> with transport <see cref="Protocol"/>.
+        /// </para>
+        /// </summary>
+        public int[] Services { get; }
 
         internal WksRecord(ResourceRecordInfo info, IPAddress address, int protocol, byte[] bitmap)
             : base(info)
         {
             Address = address;
-            Protocol = protocol;
+            Protocol = (WksProtocol)protocol;
             Bitmap = bitmap;
-            var reader = new DnsDatagramReader(bitmap, 0);
-            var a = reader.ReadUInt16();
-            var b = reader.ReadUInt16NetworkOrder();
+            Services = bitmap.GetSetBitsBinary().ToArray();            
         }
 
         public override string RecordToString()
         {
-            return $"{Address} {Protocol}";
+            return $"{Address} {Protocol} {string.Join(" ", Services)}";
+        }
+    }
+
+    internal static class BitExtensions
+    {
+        public static IEnumerable<int> GetSetBitsBinary(this byte[] values)
+        {
+            for (int vIndex = 0; vIndex < values.Length; vIndex++)
+            {
+                var bits = values[vIndex].ToBitsBinary().ToArray();
+                for (var bIndex = 0; bIndex < bits.Length; bIndex++)
+                {
+                    if (bits[bIndex])
+                    {
+                        yield return (vIndex * 8) + bIndex + (8 - bits.Length);
+                    }
+                }
+            }
+        }
+
+        public static IEnumerable<KeyValuePair<byte, bool[]>> ToBitsBinary(this byte[] values)
+        {
+            foreach (var b in values)
+            {
+                yield return new KeyValuePair<byte, bool[]>(b, b.ToBitsBinary().ToArray());
+            }
+        }
+
+        public static IEnumerable<bool> ToBitsBinary(this byte value)
+        {
+            return value.ToBitsBinaryUnordered().Reverse();
+        }
+
+        private static IEnumerable<bool> ToBitsBinaryUnordered(this byte value)
+        {
+            int val = value;
+            var radix = 2;
+            do
+            {
+                yield return (val % radix) != 0;
+                val = val / radix;
+
+            } while (val != 0);
         }
     }
 }

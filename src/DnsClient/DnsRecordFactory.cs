@@ -92,7 +92,7 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.NULL:
-                    result = new NullRecord(info, _reader.ReadBytes(_reader.ReadUInt16NetworkOrder()));
+                    result = new NullRecord(info, _reader.ReadBytes(info.RawDataLength));
                     break;
 
                 case ResourceRecordType.WKS:
@@ -112,7 +112,7 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.MX:
-                    result = ResolveMXRecord(info);
+                    result = ResolveMXRecord(info);                                        
                     break;
 
                 case ResourceRecordType.TXT:
