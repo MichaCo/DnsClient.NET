@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 
 namespace DnsClient.Protocol
 {
@@ -58,31 +59,21 @@ namespace DnsClient.Protocol
     * Also, see https://tools.ietf.org/html/rfc6335
     * For clarification which protocols are supported etc.
     */
-
+    
     /// <summary>
     /// See http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml.
-    /// According to https://tools.ietf.org/html/rfc6335, only ports for TCP, UDP, DCCP and SCTP services will be assigned.
-    /// </summary>
-    public enum WksProtocol
-    {
-        Unsupported = 0,
-        TCP = 6,
-        UDP = 17,
-        DCCP = 33,
-        SCTP = 132
-    }
-
-    /// <summary>
-    /// 
     /// </summary>
     public class WksRecord : DnsResourceRecord
     {
         public IPAddress Address { get; }
-        
+
         /// <summary>
         /// Gets the Protocol.
         /// </summary>
-        public WksProtocol Protocol { get; }
+        /// <remarks>
+        /// According to https://tools.ietf.org/html/rfc6335, only ports for TCP, UDP, DCCP and SCTP services will be assigned.
+        /// </remarks>
+        public ProtocolType Protocol { get; }
 
         /// <summary>
         /// Gets the binary raw bitmap.
@@ -104,7 +95,7 @@ namespace DnsClient.Protocol
             : base(info)
         {
             Address = address;
-            Protocol = (WksProtocol)protocol;
+            Protocol = (ProtocolType)protocol;
             Bitmap = bitmap;
             Services = bitmap.GetSetBitsBinary().ToArray();            
         }
