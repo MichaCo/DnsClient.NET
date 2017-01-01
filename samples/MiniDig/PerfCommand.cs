@@ -103,7 +103,7 @@ namespace DigApp
             protected override async Task<int> ExcecuteIterationAsync()
             {
                 var queryResult = await _lookup.QueryAsync(Query, QueryType.A);
-                return queryResult.AllRecords.Count;
+                return queryResult.MessageSize;
             }
         }
 
@@ -161,6 +161,7 @@ namespace DigApp
             public async Task<PerformanceResult> Run()
             {
                 var result = new PerformanceResult();
+                var responseBytes = 0;
                 result.Times = new List<double>();
 
                 var swatchReq = Stopwatch.StartNew();
@@ -184,7 +185,7 @@ namespace DigApp
                         }
                         else
                         {
-                            result.SuccessResponses += resultCount;
+                            Interlocked.Add(ref responseBytes, resultCount);
                         }
                     }
                     catch
@@ -194,6 +195,7 @@ namespace DigApp
                 }
 
                 result.TimeTakenMs = (long)result.Times.Sum();
+                result.SuccessResponses = responseBytes;
 
                 return result;
             }

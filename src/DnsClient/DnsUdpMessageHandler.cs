@@ -27,8 +27,6 @@ namespace DnsClient
                 return null;
             }
 
-            var sw = Stopwatch.StartNew();
-
             cancellationToken.ThrowIfCancellationRequested();
 
             using (var udpClient = new UdpClient() { })

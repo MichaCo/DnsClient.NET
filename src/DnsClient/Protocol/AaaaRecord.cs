@@ -9,27 +9,15 @@ namespace DnsClient.Protocol
     A 128 bit IPv6 address is encoded in the data portion of an AAAA
     resource record in network byte order (high-order byte first).
     */
+
     /// <summary>
     /// A 128 bit IPv6 address is encoded in the data portion of an AAAA
     /// resource record in network byte order(high-order byte first).
     /// </summary>
-    public class AaaaRecord : DnsResourceRecord
+    public class AaaaRecord : AddressRecord
     {
-        public IPAddress Address { get; }
-
-        public AaaaRecord(ResourceRecordInfo info, IPAddress address) : base(info)
+        public AaaaRecord(ResourceRecordInfo info, IPAddress address) : base(info, address)
         {
-            if (address == null)
-            {
-                throw new ArgumentNullException(nameof(address));
-            }
-
-            Address = address;
-        }
-
-        public override string RecordToString()
-        {
-            return Address.ToString();
         }
     }
 }

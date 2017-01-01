@@ -23,23 +23,10 @@ namespace DnsClient.Protocol
     /// A DNS resource record represending an IP address.
     /// Hosts that have multiple Internet addresses will have multiple A records.
     /// </summary>
-    public class ARecord : DnsResourceRecord
+    public class ARecord : AddressRecord
     {
-        public IPAddress Address { get; }
-
-        public ARecord(ResourceRecordInfo info, IPAddress address) : base(info)
+        public ARecord(ResourceRecordInfo info, IPAddress address) : base(info, address)
         {
-            if (address == null)
-            {
-                throw new ArgumentNullException(nameof(address));
-            }
-            
-            Address = address;
-        }
-
-        public override string RecordToString()
-        {
-            return Address.ToString();
         }
     }
 }

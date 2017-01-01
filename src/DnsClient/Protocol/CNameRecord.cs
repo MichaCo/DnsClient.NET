@@ -24,7 +24,7 @@ namespace DnsClient.Protocol
 
     public class CNameRecord : DnsResourceRecord
     {
-        public DnsName CName { get; }
+        public DnsName CanonicalName { get; }
 
         internal CNameRecord(ResourceRecordInfo info, DnsName name)
             : base(info)
@@ -34,12 +34,12 @@ namespace DnsClient.Protocol
                 throw new ArgumentNullException(nameof(name));
             }
 
-            CName = name;
+            CanonicalName = name;
         }
 
         public override string RecordToString()
         {
-            return CName;
+            return CanonicalName;
         }
     }
 }
