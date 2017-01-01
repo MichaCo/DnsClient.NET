@@ -94,6 +94,11 @@ namespace DnsClient.Protocol
         TXT = 16,
 
         /// <summary>
+        /// AfsDb [RFC1183]
+        /// </summary>
+        AFSDB = 18,
+
+        /// <summary>
         /// A IPV6 host address, [RFC3596]
         /// </summary>
         AAAA = 28,

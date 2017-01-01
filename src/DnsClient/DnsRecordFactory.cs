@@ -119,6 +119,10 @@ namespace DnsClient
                     result = ResolveTXTRecord(info);
                     break;
 
+                case ResourceRecordType.AFSDB:
+                    result = new AfsDbRecord(info, (AfsType)_reader.ReadUInt16NetworkOrder(), _reader.ReadName());
+                    break;
+
                 case ResourceRecordType.AAAA:
                     result = new AaaaRecord(info, _reader.ReadIPv6Address());
                     break;
