@@ -34,13 +34,72 @@ namespace DnsClient
             _data = data;
             Index = startIndex;
         }
-        
+
         public string ReadString()
         {
             var length = ReadByte();
 
             var result = Encoding.ASCII.GetString(_data, _index, length);
             _index += length;
+            return result;
+        }
+
+        public string ParseString()
+        {
+            var length = ReadByte();
+            return ParseString(_data, ref _index, length);
+        }
+
+        /// <summary>
+        /// As defined in https://tools.ietf.org/html/rfc1035#section-5.1 except ()
+        /// </summary>
+        public static string ParseString(byte[] data, ref int index, int length)
+        {
+            var builder = new StringBuilder();
+            var reader = new DnsDatagramReader(data, index);
+            index += length;
+            for (var i = 0; i < length; i++)
+            {
+                byte b = reader.ReadByte();
+                char c = (char)b;
+
+                if (b < 32 || b > 126)
+                {
+                    builder.Append("\\" + b.ToString("000"));
+                }
+                else if(c == ';')
+                {
+                    builder.Append("\\;");
+                }
+                else if (c == '\\')
+                {
+                    builder.Append("\\\\");
+                }
+                else if (c == '"')
+                {
+                    builder.Append("\\\"");
+                }
+                else
+                {
+                    builder.Append(c);
+                }
+            }
+
+            return builder.ToString();
+        }
+
+        public string ReadUTF8String()
+        {
+            var length = ReadByte();
+            return ReadUTF8String(_data, ref _index, length);
+        }
+
+        public static string ReadUTF8String(byte[] data, ref int index, int length)
+        {
+            var reader = new DnsDatagramReader(data, index);
+
+            var result = Encoding.UTF8.GetString(data, index, length);
+            index += length;
             return result;
         }
 
@@ -100,7 +159,7 @@ namespace DnsClient
         {
             return DnsName.FromBytes(_data, ref _index);
         }
-        
+
         public ushort ReadUInt16()
         {
             if (_data.Length < Index + 2)
@@ -112,7 +171,7 @@ namespace DnsClient
             _index += 2;
             return result;
         }
-        
+
         public ushort ReadUInt16NetworkOrder()
         {
             if (_data.Length < Index + 2)
@@ -123,7 +182,7 @@ namespace DnsClient
             byte a = _data[_index++], b = _data[_index++];
             return (ushort)(a << 8 | b);
         }
-        
+
         public uint ReadUInt32NetworkOrder()
         {
             return (uint)(ReadUInt16NetworkOrder() << 16 | ReadUInt16NetworkOrder());

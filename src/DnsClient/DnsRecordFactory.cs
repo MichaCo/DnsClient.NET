@@ -197,12 +197,20 @@ namespace DnsClient
             int pos = _reader.Index;
 
             var values = new List<string>();
+            var utf8Values = new List<string>();
             while ((_reader.Index - pos) < info.RawDataLength)
             {
-                values.Add(_reader.ReadString());
+                var length = _reader.ReadByte();
+                var bytes = _reader.ReadBytes(length);
+                var index = 0;
+                var escaped = DnsDatagramReader.ParseString(bytes, ref index, length);
+                index = 0;
+                var utf = DnsDatagramReader.ReadUTF8String(bytes, ref index, length);
+                values.Add(escaped);
+                utf8Values.Add(utf);
             }
 
-            return new TxtRecord(info, values.ToArray());
+            return new TxtRecord(info, values.ToArray(), utf8Values.ToArray());
         }
     }
 }

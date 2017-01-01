@@ -265,7 +265,7 @@ namespace DnsClient.Tests
 
             Action act = () => factory.GetRecord(info);
 
-            Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
+            Assert.ThrowsAny<IndexOutOfRangeException>(act);
         }
 
         [Fact]
@@ -277,15 +277,13 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as TxtRecord;
 
-            Assert.Empty(result.Text);
+            Assert.Empty(result.EscapedText);
         }
 
         [Fact]
         public void DnsRecordFactory_TXTRecord()
         {
-            var textA = @"Some multiline text
-has multiple lines of text.
-";
+            var textA = @"Some lines of text.";
             var textB = "Another line";
             var lineA = Encoding.ASCII.GetBytes(textA);
             var lineB = Encoding.ASCII.GetBytes(textB);
@@ -300,9 +298,34 @@ has multiple lines of text.
 
             var result = factory.GetRecord(info) as TxtRecord;
 
-            Assert.Equal(result.Text.Count, 2);
-            Assert.Equal(result.Text.ElementAt(0), textA);
+            Assert.Equal(result.EscapedText.Count, 2);
+            Assert.Equal(result.EscapedText.ElementAt(0), textA);
+            Assert.Equal(result.EscapedText.ElementAt(1), textB);
+        }
+
+        [Fact]
+        public void DnsRecordFactory_SpecialChars()
+        {
+            var textA = "\"äöü \\slash/! @bla.com \"";
+            var textB = "(Another line)";
+            var lineA = Encoding.UTF8.GetBytes(textA);
+            var lineB = Encoding.UTF8.GetBytes(textB);
+            var data = new List<byte>();
+            data.Add((byte)lineA.Length);
+            data.AddRange(lineA);
+            data.Add((byte)lineB.Length);
+            data.AddRange(lineB);
+
+            var factory = GetFactory(data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.TXT, QueryClass.IN, 0, data.Count);
+
+            var result = factory.GetRecord(info) as TxtRecord;
+
+            Assert.Equal(result.EscapedText.Count, 2);
+            Assert.Equal(result.Text.ElementAt(0), textA);            
+            Assert.Equal(result.EscapedText.ElementAt(0), "\\\"\\195\\164\\195\\182\\195\\188 \\\\slash/! @bla.com \\\"");
             Assert.Equal(result.Text.ElementAt(1), textB);
+            Assert.Equal(result.EscapedText.ElementAt(1), textB);
         }
     }
 }

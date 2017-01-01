@@ -146,6 +146,7 @@ namespace DnsClient.Tests
             var result = await client.QueryAsync("google.com", QueryType.TXT);
 
             Assert.NotEmpty(result.Answers.TxtRecords());
+            Assert.NotEmpty(result.Answers.TxtRecords().First().EscapedText);
             Assert.NotEmpty(result.Answers.TxtRecords().First().Text);
         }
 

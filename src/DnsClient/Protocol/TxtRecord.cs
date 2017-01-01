@@ -6,7 +6,7 @@ namespace DnsClient.Protocol
 {
     /*
     * RFC 1464  https://tools.ietf.org/html/rfc1464
-    
+
     https://tools.ietf.org/html/rfc1035#section-3.3:
     <character-string> is a single
     length octet followed by that number of characters.  <character-string>
@@ -35,24 +35,37 @@ namespace DnsClient.Protocol
     public class TxtRecord : DnsResourceRecord
     {
         /// <summary>
-        /// The list of TXT values of this TXT RR.
+        /// Gets the list of TXT values of this TXT RR in escaped form valid for root file.
+        /// </summary>
+        /// <remarks>
+        /// See https://tools.ietf.org/html/rfc1035#section-5.1 for escape details.
+        /// </remarks>
+        public ICollection<string> EscapedText { get; }
+
+        /// <summary>
+        /// Gets the actual UTF8 representation of the text values of this record.
         /// </summary>
         public ICollection<string> Text { get; }
-        
-        public TxtRecord(ResourceRecordInfo info, string[] values)
+
+        internal TxtRecord(ResourceRecordInfo info, string[] values, string[] utf8Values)
             : base(info)
         {
             if (values == null)
             {
                 throw new ArgumentNullException(nameof(values));
             }
+            if (utf8Values == null)
+            {
+                throw new ArgumentNullException(nameof(utf8Values));
+            }
 
-            Text = values;
+            EscapedText = values;
+            Text = utf8Values;
         }
 
         public override string RecordToString()
         {
-            return string.Join(" ", Text.Select(p => "\"" + p + "\"")).Trim();
+            return string.Join(" ", EscapedText.Select(p => "\"" + p + "\"")).Trim();
         }
     }
 }
