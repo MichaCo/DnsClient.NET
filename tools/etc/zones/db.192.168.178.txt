@@ -31,7 +31,9 @@ hidden2.mcnet.com.		IN		A  		192.168.178.24
 srv2.mcnet.com.			IN		A  		192.168.178.25
 srv3.mcnet.com.			IN		A  		192.168.178.26
 srv4.mcnet.com.			IN		A  		192.168.178.27
+uber.mcnet.com.			IN		A		192.168.178.30
 www.mcnet.com.	500		IN		CNAME	micha.mcnet.com.
+XN--CLCHC0EA0B2G2A9GCD.XN--0ZWM56D.mcnet.com.		IN		A		192.168.178.100
 
 ; Sub Domain
 $ORIGIN		micha.mcnet.com.
@@ -48,6 +50,7 @@ mail		IN		A		192.168.178.1
 @			IN		MX		10 mail.micha.mcnet.com.
 @			IN		MX		10 mail.mcnet.com.
 @			IN		MB		srv.mcnet.com.
+@			IN		MB		lÜä'laüö#2x.XN--CLCHC0EA0B2G2A9GCD.XN--0ZWM56D.mcnet.com.
 @			IN		MG		hidden.mcnet.com.
 @			IN		MR		hidden2.mcnet.com.
 @			IN		SRV		1 1 8080 srv4.mcnet.com.

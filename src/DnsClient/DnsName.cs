@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -12,13 +13,14 @@ namespace DnsClient
         private const byte ReferenceByte = 0xc0;
         private List<string> _labels = new List<string>();
         private short _octets = 1;
+        private string _string = null;
 
         /// <summary>
         /// Creates an empty <see cref="DnsName"/> instance.
         /// </summary>
         public DnsName()
         {
-            AddLabel(0, "");
+            AddRootLabel();
         }
 
         /// <summary>
@@ -32,12 +34,21 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(name));
             }
 
-            if (name.Length > 0)
+            if (name.Equals(".", StringComparison.Ordinal))
             {
-                Parse(name);
+                AddRootLabel();
+            }
+            else if (name.Length > 0)
+            {
+                Parse(name.ToCharArray());
             }
 
-            if (!HasRootLabel) AddLabel(0, "");
+            if (!HasRootLabel) AddRootLabel();
+        }
+
+        private void AddRootLabel()
+        {
+            AddLabel(0, "");
         }
 
         public bool IsEmpty => Size == 0;
@@ -99,7 +110,7 @@ namespace DnsClient
                         $"Found invalid label position {offset - 1} or length {length} in the source data.");
                 }
 
-                var label = Encoding.ASCII.GetString(data, offset, length);
+                var label = Encoding.UTF8.GetString(data, offset, length);
                 result.AddLabel(1, label);
                 offset += length;
             }
@@ -110,7 +121,7 @@ namespace DnsClient
         public static implicit operator DnsName(string name) => new DnsName(name);
 
         public static implicit operator string(DnsName name) => name.ToString();
-
+        
         public int CompareTo(object obj)
         {
             if (obj == null)
@@ -170,7 +181,7 @@ namespace DnsClient
                 bytes[offset++] = len;
 
                 // set the label's content
-                var labelBytes = Encoding.ASCII.GetBytes(label);
+                var labelBytes = Encoding.UTF8.GetBytes(label);
                 Array.ConstrainedCopy(labelBytes, 0, bytes, offset, len);
 
                 offset += len;
@@ -184,8 +195,23 @@ namespace DnsClient
             return ToString().GetHashCode();
         }
 
+        public string ToString(bool utf8)
+        {
+            if (!utf8)
+            {
+                return ToString();
+            }
+
+            return string.Join(".", _labels);
+        }
+
         public override string ToString()
         {
+            if (_string != null)
+            {
+                return _string;
+            }
+
             var buf = new StringBuilder();
             foreach (var label in _labels)
             {
@@ -197,7 +223,28 @@ namespace DnsClient
                 Escaped(buf, label);
             }
 
-            return buf.ToString();
+            return _string = buf.ToString();
+        }
+
+        private void Escaped(StringBuilder buf, string label)
+        {
+            var bytes = Encoding.UTF8.GetBytes(label);
+            for (int i = 0; i < bytes.Length; i++)
+            {
+                byte b = bytes[i];
+                char c = (char)b;
+                if ((b < 32) || (b > 126))
+                {
+                    buf.Append("\\" + ((int)b).ToString("000"));
+                    continue;
+                }
+                else if (c == '.' || c == '\\' || c == '"')
+                {
+                    buf.Append('\\');
+                }
+
+                buf.Append(c);
+            }
         }
 
         private static bool IsHostNameChar(char c)
@@ -219,27 +266,6 @@ namespace DnsClient
                 }
             }
             return !(label.StartsWith("-") || label.EndsWith("-"));
-        }
-
-        private static void VerifyLabel(string label)
-        {
-            // http://www.freesoft.org/CIE/RFC/1035/9.htm
-            // dns name limits are 63octets per label
-            // (63 letters).(63 letters).(63 letters).(62 letters)
-            if (label.Length > 63)
-            {
-                throw new InvalidOperationException("Label exceeds 63 octets: " + label);
-            }
-
-            // Check for two-byte characters.
-            for (int i = 0; i < label.Length; i++)
-            {
-                char c = label.ElementAt(i);
-                if ((c & 0xFF00) != 0)
-                {
-                    throw new InvalidOperationException("Label has two-byte char: " + label);
-                }
-            }
         }
 
         private void AddLabel(int pos, string label)
@@ -271,52 +297,50 @@ namespace DnsClient
             }
 
             int i = _labels.Count - pos;
-            VerifyLabel(label);
-            _labels.Insert(i, label);
-        }
 
-        private void Escaped(StringBuilder buf, string label)
-        {
-            for (int i = 0; i < label.Length; i++)
+            // http://www.freesoft.org/CIE/RFC/1035/9.htm
+            // dns name limits are 63octets per label
+            // (63 letters).(63 letters).(63 letters).(62 letters)
+            if (label.Length > 63)
             {
-                char c = label.ElementAt(i);
-                if (c == '.' || c == '\\')
-                {
-                    buf.Append('\\');
-                }
-
-                buf.Append(c);
+                throw new InvalidOperationException($"Label exceeds 63 octets: '{label}'.");
             }
+
+            _labels.Insert(i, label);
+            _string = null;
         }
 
-        private char GetEscaped(string domainName, int pos)
+        public static byte ReadByte(char[] value, ref int index)
         {
-            try
+            char c1 = value[++index];
+            if (c1.IsDigit())
             {
-                // assert (name.charAt(pos) == '\\');
-                char c1 = domainName.ElementAt(++pos);
-                if (IsDigit(c1))
+                // sequence is `\DDD'
+                char c2 = value[++index];
+                char c3 = value[++index];
+                if (c2.IsDigit() && c3.IsDigit())
                 {
-                    // sequence is `\DDD'
-                    char c2 = domainName.ElementAt(++pos);
-                    char c3 = domainName.ElementAt(++pos);
-                    if (IsDigit(c2) && IsDigit(c3))
+                    if (value[index + 1].IsDigit())
                     {
-                        return (char)((c1 - '0') * 100 + (c2 - '0') * 10 + (c3 - '0'));
+                        throw new InvalidOperationException("Double byte unicode characters are not supported.");
                     }
-                    else
+
+                    int val = ((c1 - '0') * 100 + (c2 - '0') * 10 + (c3 - '0'));
+                    if (val > byte.MaxValue)
                     {
-                        throw new ArgumentException("Invalid escape sequence.", nameof(domainName));
+                        throw new InvalidOperationException("Double byte unicode characters are not supported");
                     }
+
+                    return checked((byte)val);
                 }
                 else
                 {
-                    return c1;
+                    throw new ArgumentException("Invalid escape sequence.", nameof(value));
                 }
             }
-            catch (ArgumentOutOfRangeException)
+            else
             {
-                throw new ArgumentException("Invalid escape sequence.", nameof(domainName));
+                return (byte)c1;
             }
         }
 
@@ -334,40 +358,46 @@ namespace DnsClient
         {
             return (c >= '0' && c <= '9');
         }
-
-        private void Parse(string domainName)
+        
+        private void Parse(char[] domainName)
         {
-            var label = new StringBuilder();
+            var label = new List<byte>();
+            
 
             for (int index = 0; index < domainName.Length; index++)
             {
+                byte b;
                 var c = domainName[index];
 
                 if (c == '\\')
                 {
-                    c = GetEscaped(domainName, index++);
-                    if (IsDigit(domainName[index]))
-                    {
-                        index += 2;
-                    }
-
-                    label.Append(c);
+                    //index++;
+                    b = ReadByte(domainName, ref index);
+                    label.Add(b);
                 }
                 else if (c != '.')
                 {
-                    label.Append(c);
+                    label.Add((byte)c);
                 }
                 else
                 {
-                    AddLabel(0, label.ToString());
+                    AddLabel(0, Encoding.UTF8.GetString(label.ToArray()));
                     label.Clear();
                 }
             }
 
-            if (label.Length > 0)
+            if (label.Count > 0)
             {
-                AddLabel(0, label.ToString());
+                AddLabel(0, Encoding.UTF8.GetString(label.ToArray()));
             }
+        }
+    }
+
+    internal static class CharExtentions
+    {
+        public static bool IsDigit(this char c)
+        {
+            return (c >= '0' && c <= '9');
         }
     }
 }

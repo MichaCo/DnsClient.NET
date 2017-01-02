@@ -103,7 +103,8 @@ namespace DigApp
             protected override async Task<int> ExcecuteIterationAsync()
             {
                 var queryResult = await _lookup.QueryAsync(Query, QueryType.A);
-                return queryResult.MessageSize;
+                await Task.Delay(0);
+                return queryResult.AllRecords.Count;
             }
         }
 
@@ -226,7 +227,7 @@ namespace DigApp
                 
                 await RunManaged();
                 // await RunNativeDnsQuery();
-                await RunNativeDnsQueryEx();
+                //await RunNativeDnsQueryEx();
             }
 
             private async Task RunBench(string name, Func<Task<PerformanceResult[]>> act)

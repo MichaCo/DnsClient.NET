@@ -118,13 +118,12 @@ namespace DnsClient
         }
 
         public LookupClient()
-            : this(NameServer.ResolveNameServers().ToArray())
+            : this(NameServer.ResolveNameServers()?.ToArray())
         {
         }
 
         public LookupClient(params IPAddress[] nameServers)
-            : this(
-                  nameServers.Select(p => new IPEndPoint(p, NameServer.DefaultPort)).ToArray())
+            : this(nameServers?.Select(p => new IPEndPoint(p, NameServer.DefaultPort)).ToArray())
         {
         }
 
@@ -287,24 +286,7 @@ namespace DnsClient
                             }
                         }
 
-                        var opt = response.Additionals.OfType<OptRecord>().FirstOrDefault();
-                        if (opt != null)
-                        {
-                            if (EnableAuditTrail)
-                            {
-                                audit.AuditOptPseudo();
-                            }
-
-                            serverInfo.SupportedUdpPayloadSize = opt.UdpSize;
-
-                            // TODO: handle opt records and remove them later
-                            response.Additionals.Remove(opt);
-
-                            if (EnableAuditTrail)
-                            {
-                                audit.AuditEdnsOpt(opt.UdpSize, opt.Version, opt.ResponseCodeEx);
-                            }
-                        }
+                        HandleOptRecords(audit, serverInfo, response);
 
                         DnsQueryResponse queryResponse = response.AsQueryResponse(serverInfo.Clone());
 
@@ -369,6 +351,28 @@ namespace DnsClient
             {
                 AuditTrail = audit.Build()
             };
+        }
+
+        private void HandleOptRecords(Audit audit, NameServer serverInfo, DnsResponseMessage response)
+        {
+            var opt = response.Additionals.OfType<OptRecord>().FirstOrDefault();
+            if (opt != null)
+            {
+                if (EnableAuditTrail)
+                {
+                    audit.AuditOptPseudo();
+                }
+
+                serverInfo.SupportedUdpPayloadSize = opt.UdpSize;
+
+                // TODO: handle opt records and remove them later
+                response.Additionals.Remove(opt);
+
+                if (EnableAuditTrail)
+                {
+                    audit.AuditEdnsOpt(opt.UdpSize, opt.Version, opt.ResponseCodeEx);
+                }
+            }
         }
 
         private NameServer[] GetNextServers()

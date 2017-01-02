@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 
 namespace DnsClient
 {
     public class NameServer
     {
+        public static readonly IPAddress GooglePublicDns = IPAddress.Parse("8.8.4.4");
+        public static readonly IPAddress GooglePublicDns2 = IPAddress.Parse("8.8.8.8");
+        public static readonly IPAddress GooglePublicDnsIPv6 = IPAddress.Parse("2001:4860:4860::8844");
+        public static readonly IPAddress GooglePublicDns2IPv6 = IPAddress.Parse("2001:4860:4860::8888");
+
         /// <summary>
         /// The default DNS server port.
         /// </summary>
@@ -16,12 +22,12 @@ namespace DnsClient
 
         internal const string EtcResolvConfFile = "/etc/resolv.conf";
 
-        public NameServer(IPAddress endpoint)
+        internal NameServer(IPAddress endpoint)
             : this(new IPEndPoint(endpoint, DefaultPort))
         {
         }
 
-        public NameServer(IPEndPoint endpoint)
+        internal NameServer(IPEndPoint endpoint)
         {
             if (endpoint == null)
             {
@@ -37,15 +43,37 @@ namespace DnsClient
 
         public int? SupportedUdpPayloadSize { get; internal set; }
 
+        public override string ToString()
+        {
+            return $"{Endpoint} (Udp: {SupportedUdpPayloadSize ?? 512})";
+        }
+
         /// <summary>
         /// Gets a list of name servers by iterating over the available network interfaces.
         /// </summary>
         /// <returns>The list of name servers.</returns>
-        public static ICollection<IPEndPoint> ResolveNameServers()
+        public static ICollection<IPEndPoint> ResolveNameServers(bool skipIPv6SiteLocal = true)
+        {
+            var endpoints = ResolveNameServersInternal(skipIPv6SiteLocal);
+            if (endpoints.Count == 0)
+            {
+                return new[]
+                {
+                    new IPEndPoint(GooglePublicDnsIPv6, DefaultPort),
+                    new IPEndPoint(GooglePublicDns2IPv6, DefaultPort),
+                    new IPEndPoint(GooglePublicDns, DefaultPort),
+                    new IPEndPoint(GooglePublicDns2, DefaultPort),
+                };
+            }
+
+            return endpoints;
+        }
+
+        private static ICollection<IPEndPoint> ResolveNameServersInternal(bool skipIPv6SiteLocal)
         {
             try
             {
-                return QueryNetworkInterfaces();
+                return QueryNetworkInterfaces(skipIPv6SiteLocal);
             }
             catch (Exception ex) when (ex is PlatformNotSupportedException || ex is NotImplementedException)
             {
@@ -57,7 +85,7 @@ namespace DnsClient
 #if PORTABLE
             catch (NetworkInformationException ex)
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
                 {
                     // continue, try reading the resolv.conf...
                 }
@@ -81,6 +109,7 @@ namespace DnsClient
         }
 
 #if PORTABLE
+
         private static IPEndPoint[] GetDnsEndpointsNative()
         {
             IPAddress[] addresses = null;
@@ -90,7 +119,7 @@ namespace DnsClient
 
                 addresses = fixedInfo.DnsAddresses.ToArray();
             }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
                 // TODO: Remove if fixed in dotnet core runtim 1.2.x?
                 addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(EtcResolvConfFile).ToArray();
@@ -101,7 +130,7 @@ namespace DnsClient
 
 #endif
 
-        private static IPEndPoint[] QueryNetworkInterfaces()
+        private static IPEndPoint[] QueryNetworkInterfaces(bool skipIPv6SiteLocal)
         {
             var result = new HashSet<IPEndPoint>();
 
@@ -115,19 +144,22 @@ namespace DnsClient
                     .GetIPProperties()
                     .DnsAddresses
                     .Where(i =>
-                        i.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork
-                        || i.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6))
+                        i.AddressFamily == AddressFamily.InterNetwork
+                        || i.AddressFamily == AddressFamily.InterNetworkV6))
                 {
+                    if (dnsAddress.AddressFamily == AddressFamily.InterNetworkV6)
+                    {
+                        if (skipIPv6SiteLocal && dnsAddress.IsIPv6SiteLocal)
+                        {
+                            continue;
+                        }
+                    }
+
                     result.Add(new IPEndPoint(dnsAddress, DefaultPort));
                 }
             }
 
             return result.ToArray();
-        }
-
-        public override string ToString()
-        {
-            return $"{Endpoint} (Udp: {SupportedUdpPayloadSize ?? 512})";
         }
 
         internal NameServer Clone()

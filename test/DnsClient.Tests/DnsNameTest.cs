@@ -7,6 +7,37 @@ namespace DnsClient.Tests
     public class DnsNameTest
     {
         [Fact]
+        public void DnsName_ReceiveEscapedName()
+        {
+            var bytes = new byte[] { 4, 65, 195, 164, 98, 7, 98, 195, 156, 108, 195, 182, 98, 4, 99, 92, 46, 100, 3, 99, 111, 109, 0 };
+
+            var offset = 0;
+            var dnsName = DnsName.FromBytes(bytes, ref offset);
+
+            //  should be "Aäb.bÜlöb.c\.d.com."
+            var unEscapedString = dnsName.ToString(true);
+
+            //  escaped should be A\195\164b.b\195\156l\195\182b.c\\.d.com.
+            var escapedString = dnsName.ToString(false);
+        }
+
+        [Fact]
+        public void DnsName_ReadEscapedName()
+        {
+            var value = "a\\195a.b\\166bc.c\\201\\.@{}dd\\e.e\\;f.f";
+        }
+
+        [Fact]
+        public void DnsName_ReadUtfName()
+        {
+            var value = "aöa.bäb.c|öc.dljY:d.e;-'Üe.f?as.dasd";
+        }
+
+        public void DnsName_GetUtfName()
+        {
+        }
+
+        [Fact]
         public void DnsName_SimpleValid()
         {
             var name = new DnsName("abc.xyz.example.com");
@@ -44,6 +75,29 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void DnsName_ReadEscapedBytes()
+        {
+            var name = (DnsName)"l\\195\\156\\195\\164'la\\195\\188\\195\\182#\\.2x";
+
+            var s = name.ToString();
+            var utf8 = name.ToString(true);
+            Assert.Equal(name[0], "lÜä'laüö#.2x");
+            Assert.Equal(name.Size, 1);
+            Assert.False(name.IsHostName);
+        }
+
+        [Fact]
+        public void DnsName_Concat2()
+        {
+            var name = new DnsName("üöäxyz.ns1");
+            name.Concat("hallo.com");
+
+            Assert.Equal(name.ToString(true), "üöäxyz.ns1.hallo.com.");
+            Assert.Equal(name.Size, 4);
+            Assert.False(name.IsHostName);
+        }
+
+        [Fact]
         public void DnsName_Concat()
         {
             var name = new DnsName("xyz.ns1");
@@ -52,6 +106,13 @@ namespace DnsClient.Tests
             Assert.Equal(name.ToString(), "xyz.ns1.abc.com.");
             Assert.Equal(name.Size, 4);
             Assert.True(name.IsHostName);
+        }
+
+        [Fact]
+        public void DnsName_ImplicitToString()
+        {
+            var name = new DnsName("xyz.ns1.hallo.com");
+            Assert.Equal(name, "xyz.ns1.hallo.com.");
         }
 
         [Fact]

@@ -43,12 +43,11 @@ namespace DnsClient
         public ResourceRecordInfo ReadRecordInfo()
         {
             return new ResourceRecordInfo(
-                _reader.ReadName(),                             // name
-                (ResourceRecordType)_reader.ReadUInt16NetworkOrder(),// type
-                (QueryClass)_reader.ReadUInt16NetworkOrder(),        // class
-                (int)_reader.ReadUInt32NetworkOrder(),                    // ttl - 32bit!!
-                _reader.ReadUInt16NetworkOrder());                   // RDLength
-                                                                     //reader.ReadBytes(reader.ReadUInt16Reverse()));  // rdata
+                _reader.ReadName(),                                     // name
+                (ResourceRecordType)_reader.ReadUInt16NetworkOrder(),   // type
+                (QueryClass)_reader.ReadUInt16NetworkOrder(),           // class
+                (int)_reader.ReadUInt32NetworkOrder(),                  // ttl - 32bit!!
+                _reader.ReadUInt16NetworkOrder());                      // RDLength
         }
 
         public DnsResourceRecord GetRecord(ResourceRecordInfo info)
@@ -214,10 +213,8 @@ namespace DnsClient
             {
                 var length = _reader.ReadByte();
                 var bytes = _reader.ReadBytes(length);
-                var index = 0;
-                var escaped = DnsDatagramReader.ParseString(bytes, ref index, length);
-                index = 0;
-                var utf = DnsDatagramReader.ReadUTF8String(bytes, ref index, length);
+                var escaped = DnsDatagramReader.ParseString(bytes, 0, length);
+                var utf = DnsDatagramReader.ReadUTF8String(bytes, 0, length);
                 values.Add(escaped);
                 utf8Values.Add(utf);
             }
@@ -229,9 +226,7 @@ namespace DnsClient
         {
             var flag = _reader.ReadByte();
             var tag = _reader.ReadString();
-            var value = _reader.ReadBytes(info.RawDataLength - 2 - tag.Length);
-            var index = 0;
-            var stringValue = DnsDatagramReader.ParseString(value, ref index, value.Length);
+            var stringValue = DnsDatagramReader.ParseString(_reader, info.RawDataLength - 2 - tag.Length);
             return new CaaRecord(info, flag, tag, stringValue);
         }
     }

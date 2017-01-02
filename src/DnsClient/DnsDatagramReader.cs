@@ -47,17 +47,21 @@ namespace DnsClient
         public string ParseString()
         {
             var length = ReadByte();
-            return ParseString(_data, ref _index, length);
+            return ParseString(this, length);
         }
 
         /// <summary>
-        /// As defined in https://tools.ietf.org/html/rfc1035#section-5.1 except ()
+        /// As defined in https://tools.ietf.org/html/rfc1035#section-5.1 except '()' or '@' or '.'
         /// </summary>
-        public static string ParseString(byte[] data, ref int index, int length)
+        public static string ParseString(byte[] data, int index, int length)
+        {
+            var result = ParseString(new DnsDatagramReader(data, index), length);
+            return result;
+        }
+
+        public static string ParseString(DnsDatagramReader reader, int length)
         {
             var builder = new StringBuilder();
-            var reader = new DnsDatagramReader(data, index);
-            index += length;
             for (var i = 0; i < length; i++)
             {
                 byte b = reader.ReadByte();
@@ -67,7 +71,7 @@ namespace DnsClient
                 {
                     builder.Append("\\" + b.ToString("000"));
                 }
-                else if(c == ';')
+                else if (c == ';')
                 {
                     builder.Append("\\;");
                 }
@@ -91,16 +95,18 @@ namespace DnsClient
         public string ReadUTF8String()
         {
             var length = ReadByte();
-            return ReadUTF8String(_data, ref _index, length);
+            return ReadUTF8String(this, length);
         }
 
-        public static string ReadUTF8String(byte[] data, ref int index, int length)
+        public static string ReadUTF8String(byte[] data, int index, int length)
         {
-            var reader = new DnsDatagramReader(data, index);
+            return Encoding.UTF8.GetString(data, index, length);
+        }
 
-            var result = Encoding.UTF8.GetString(data, index, length);
-            index += length;
-            return result;
+        public static string ReadUTF8String(DnsDatagramReader reader, int length)
+        {
+            var data = reader.ReadBytes(length);
+            return ReadUTF8String(data, 0, length);
         }
 
         public byte ReadByte()
