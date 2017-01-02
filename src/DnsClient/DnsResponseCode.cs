@@ -139,6 +139,8 @@ namespace DnsClient
     {
         public DnsResponseCode Code { get; }
 
+        public string AuditTrail { get; internal set; }
+
         public string DnsError { get; }
 
         /// <summary>

@@ -228,25 +228,8 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var audit = EnableAuditTrail ? continueAudit ?? new Audit() : null;
-
-            NameServer[] servers = null;
-            lock (_endpointLock)
-            {
-                if (_endpoints.Count > 1)
-                {
-                    servers = _endpoints.Where(p => p.Enabled).ToArray();
-
-                    // rotate for the next request so that we pick the next one next time
-                    var server = _endpoints.Dequeue();
-                    _endpoints.Enqueue(server);
-                }
-                else
-                {
-                    // fast forward without queue logic if there is only one server...
-                    servers = _endpoints.ToArray();
-                }
-            }
+            var audit = new Audit();
+            NameServer[] servers = GetNextServers();
 
             foreach (var serverInfo in servers)
             {
@@ -324,6 +307,7 @@ namespace DnsClient
                         }
 
                         DnsQueryResponse queryResponse = response.AsQueryResponse(serverInfo.Clone());
+
                         if (EnableAuditTrail)
                         {
                             audit.AuditResponse(queryResponse);
@@ -333,29 +317,25 @@ namespace DnsClient
 
                         return queryResponse;
                     }
-                    catch (DnsResponseException)
+                    catch (DnsResponseException ex)
                     {
-                        // occurs only if the option to throw dns exceptions is enabled on the lookup client. (see above).
-                        // lets not mess with the stack
+                        audit.AuditException(ex);
+                        ex.AuditTrail = audit.Build();
                         throw;
-                    }
-                    catch (TimeoutException)
-                    {
-                        DisableEndpoint(serverInfo);
                     }
                     catch (SocketException ex) when (ex.SocketErrorCode == SocketError.AddressFamilyNotSupported)
                     {
                         // this socket error might indicate the server endpoint is actually bad and should be ignored in future queries.
-                        DisableEndpoint(serverInfo);
+                        DisableServer(serverInfo);
                         break;
                     }
-                    catch (Exception ex) when (handler.IsTransientException(ex))
+                    catch (Exception ex) when (ex is TimeoutException || handler.IsTransientException(ex))
                     {
-                        DisableEndpoint(serverInfo);
+                        DisableServer(serverInfo);
                     }
                     catch (Exception ex)
                     {
-                        DisableEndpoint(serverInfo);
+                        DisableServer(serverInfo);
 
                         var handleEx = ex;
                         var agg = ex as AggregateException;
@@ -368,22 +348,51 @@ namespace DnsClient
 
                             handleEx = agg.InnerException;
                         }
-
+                        
+                        audit.AuditException(ex);
                         if (handleEx is OperationCanceledException || handleEx is TaskCanceledException)
                         {
-                            throw new DnsResponseException("Operation canceled", handleEx);
+                            throw new DnsResponseException("Operation canceled", handleEx)
+                            {
+                                AuditTrail = audit.Build()
+                            };
                         }
 
-                        throw new DnsResponseException("Unhandled exception", ex);
+                        throw new DnsResponseException("Unhandled exception", ex)
+                        {
+                            AuditTrail = audit.Build()
+                        };
                     }
-
-                    // TODO delay?
                 } while (tries <= Retries && !cancellationToken.IsCancellationRequested && serverInfo.Enabled);
             }
-            throw new DnsResponseException($"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.");
+            throw new DnsResponseException($"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.")
+            {
+                AuditTrail = audit.Build()
+            };
         }
 
-        private void DisableEndpoint(NameServer server)
+        private NameServer[] GetNextServers()
+        {
+            NameServer[] servers = null;
+            lock (_endpointLock)
+            {
+                if (_endpoints.Count > 1)
+                {
+                    servers = _endpoints.Where(p => p.Enabled).ToArray();
+
+                    var server = _endpoints.Dequeue();
+                    _endpoints.Enqueue(server);
+                }
+                else
+                {
+                    servers = _endpoints.ToArray();
+                }
+            }
+
+            return servers;
+        }
+
+        private void DisableServer(NameServer server)
         {
             lock (_endpointLock)
             {
@@ -516,6 +525,24 @@ namespace DnsClient
                 _auditWriter.AppendLine($";; SERVER: {queryResponse.NameServer.Endpoint.Address}#{queryResponse.NameServer.Endpoint.Port}");
                 _auditWriter.AppendLine($";; WHEN: {DateTime.Now.ToString("R")}");
                 _auditWriter.AppendLine($";; MSG SIZE  rcvd: {queryResponse.MessageSize}");
+            }
+
+            public void AuditException(Exception ex)
+            {
+                var dnsEx = ex as DnsResponseException;
+                var aggEx = ex as AggregateException;
+                if (dnsEx != null)
+                {
+                    _auditWriter.AppendLine($";; Error: {DnsResponseCodeText.GetErrorText(dnsEx.Code)} {dnsEx.InnerException?.Message ?? dnsEx.Message}");
+                }
+                else if (aggEx != null)
+                {
+                    _auditWriter.AppendLine($";; Error: {aggEx.InnerException?.Message ?? aggEx.Message}");
+                }
+                else
+                {
+                    _auditWriter.AppendLine($";; Error: {ex.Message}");
+                }
             }
         }
     }

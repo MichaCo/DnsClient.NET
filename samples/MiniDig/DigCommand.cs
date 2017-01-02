@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -46,6 +45,9 @@ namespace DigApp
 
         protected override async Task<int> Execute()
         {
+            Console.WriteLine();
+            Console.WriteLine($"; <<>> MiniDiG {Version} {OS} <<>> {string.Join(" ", OriginalArgs)}");
+
             string useDomain = string.IsNullOrWhiteSpace(DomainArg.Value) ? "." : DomainArg.Value;
             QueryType useQType = 0;
             QueryClass useQClass = 0;
@@ -83,7 +85,7 @@ namespace DigApp
                 IPAddress ip;
                 if (!IPAddress.TryParse(useDomain, out ip))
                 {
-                    Console.WriteLine(";; WARNING: recursion requested but not available");
+                    Console.WriteLine($";; Error: Reverse lookup for invalid ip {useDomain}.");
                     return 1;
                 }
 
@@ -102,26 +104,46 @@ namespace DigApp
                 }
             }
 
-            // finally running the command
-            var lookup = GetDnsLookup();
-            lookup.EnableAuditTrail = true;
+            try
+            {
+                // finally running the command
+                var lookup = GetDnsLookup();
+                lookup.EnableAuditTrail = true;
 
-            var swatch = Stopwatch.StartNew();
+                var result = useQClass == 0 ?
+                    await lookup.QueryAsync(useDomain, useQType) :
+                    await lookup.QueryAsync(useDomain, useQType, useQClass);
 
-            var result = useQClass == 0 ?
-                await lookup.QueryAsync(useDomain, useQType) :
-                await lookup.QueryAsync(useDomain, useQType, useQClass);
+                Console.WriteLine(result.AuditTrail);
+            }
+            catch (Exception ex)
+            {
+                var agg = ex as AggregateException;
+                var dns = ex as DnsResponseException;
+                agg?.Handle(e =>
+                {
+                    dns = e as DnsResponseException;
+                    if (dns != null)
+                    {
+                        return true;
+                    }
 
-            var elapsed = swatch.ElapsedMilliseconds;
+                    return false;
+                });
 
-            // Printing infomrational stuff
-            var useServers = lookup.NameServers;
-            
-            Console.WriteLine();
-            Console.WriteLine($"; <<>> MiniDiG {Version} {OS} <<>> {string.Join(" ", OriginalArgs)}");
+                if (dns != null)
+                {
+                    Console.WriteLine(dns.AuditTrail);
+                    Console.WriteLine($";; Error: {ex.Message}");
+                    return 24;
+                }
+                else
+                {
+                    Console.WriteLine($";; Error: {ex.Message}");
+                    return 40;
+                }
+            }
 
-            Console.WriteLine(result.AuditTrail);
-            
             return 0;
         }
     }

@@ -87,16 +87,9 @@ namespace DigApp
                     IPAddress ip;
                     if (!IPAddress.TryParse(server, out ip))
                     {
-                        try
-                        {
-                            var lookup = new LookupClient();
-                            var lResult = lookup.QueryAsync(server, QueryType.A).Result;
-                            ip = lResult.Answers.OfType<ARecord>().FirstOrDefault()?.Address;
-                        }
-                        catch
-                        {
-                            throw new Exception("Cannot resolve server.");
-                        }
+                        var lookup = new LookupClient();
+                        var lResult = lookup.QueryAsync(server, QueryType.A).Result;
+                        ip = lResult.Answers.OfType<ARecord>().FirstOrDefault()?.Address;
                     }
 
                     if (ip == null)
@@ -139,7 +132,7 @@ namespace DigApp
 
             return TimeSpan.Zero;
         }
-        
+
         public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 5000;
 
         public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value()) : 10;
@@ -163,7 +156,7 @@ namespace DigApp
                 "-s | --server",
                 "The DNS server <name|ip>#<port> (multiple)",
                 CommandOptionType.MultipleValue);
-            
+
             NoRecurseArg = App.Option(
                 "-nr | --norecurse",
                 "Non recurive mode.",
