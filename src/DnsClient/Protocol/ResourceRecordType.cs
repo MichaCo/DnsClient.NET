@@ -7,7 +7,8 @@ namespace DnsClient.Protocol
      * */
 
     /// <summary>
-    /// TYPE fields are used in resource records.  Note that these types are a subset of QTYPEs.
+    /// The resource record type field is used in all resource records.
+    /// Resource record types are a subset of <see cref="QueryType"/>.
     /// </summary>
     public enum ResourceRecordType : short
     {
@@ -61,7 +62,7 @@ namespace DnsClient.Protocol
         /// <summary>
         /// A null RR (EXPERIMENTAL)	[RFC1035].
         /// </summary>
-        NULL = 10,  /* not implemented */
+        NULL = 10,
 
         /// <summary>
         /// A well known service description    [RFC1035]

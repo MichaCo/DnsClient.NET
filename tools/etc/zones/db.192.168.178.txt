@@ -1,0 +1,84 @@
+$TTL 100
+$ORIGIN		mcnet.com.
+
+@       IN      SOA     ns1.mcnet.com. hostmaster.mcnet.com. (
+			2017010100  ; Serial
+             604800     ; Refresh
+              86400     ; Retry
+            2419200     ; Expire
+             604800 )   ; Negative Cache TTL
+			 
+; name servers - NS records
+    IN      NS      ns1.mcnet.com.
+    IN      NS      ns2.mcnet.com.
+
+; name servers - A records
+ns1          IN      A       192.168.178.1
+ns2          IN      A       192.168.178.2
+@			IN		A 		192.168.178.23
+micha		IN		A		192.168.178.23
+
+; mail
+@			IN 		MX	10 		mail.mcnet.com.
+
+; 192.168.178.0/100 - A records
+mail.mcnet.com.			IN		A		192.168.178.1
+phone.mcnet.com.  		IN      A      	192.168.178.20
+srv.mcnet.com.			IN		A  		192.168.178.21
+srv.mcnet.com.			IN    	HINFO   Intel-I5    WINDOWS
+hidden.mcnet.com.		IN		A  		192.168.178.24
+hidden2.mcnet.com.		IN		A  		192.168.178.24
+srv2.mcnet.com.			IN		A  		192.168.178.25
+srv3.mcnet.com.			IN		A  		192.168.178.26
+srv4.mcnet.com.			IN		A  		192.168.178.27
+www.mcnet.com.	500		IN		CNAME	micha.mcnet.com.
+
+; Sub Domain
+$ORIGIN		micha.mcnet.com.
+home		IN		CNAME	www.mcnet.com.
+mail		IN		A		192.168.178.1
+; Test Records
+@			IN		A		192.168.178.23
+@        	IN      A     	127.0.0.1
+@        	IN      AAAA   	fe80::24c9:8e14:9df4:a314
+@			IN		TXT		"some long text with some stuff in it {lala:blub}"
+@			IN		TXT		(some text "separated by" space
+										with new line stuff too)
+@			IN		TXT		more "(text with)" "\"special\" öäÜ!""§$%\\/" @stuff \;and ";fake commend"
+@			IN		MX		10 mail.micha.mcnet.com.
+@			IN		MX		10 mail.mcnet.com.
+@			IN		MB		srv.mcnet.com.
+@			IN		MG		hidden.mcnet.com.
+@			IN		MR		hidden2.mcnet.com.
+@			IN		SRV		1 1 8080 srv4.mcnet.com.
+@			IN		PTR		hidden.mcnet.com.
+@			IN		PTR		mcnet.com.
+@			IN		MINFO	hidden.mcnet.com. hidden2.mcnet.com.
+@			IN		CAA 	129 tbs MDIGA1UEJQYJYIZIAWUDBAIBBCAXzJgPaoT7FeXaPzKv6mI2D0yilif+7WhzmhMGLe/oBA==
+@			IN		CAA 	1 policy 1.3.6.1.4.1.35405.666.1
+
+; RP entries
+@			RP    micha.c.mcnet.com. addr.micha.mcnet.com.
+@			RP    alex.b.mcnet.com. addr.alex.mcnet.com.
+@			RP    mia.c.mcnet.com. addr.mia.mcnet.com.
+@			RP    lucy.c.mcnet.com.  .
+;AFS
+@			IN		AFSDB 1 srv2.mcnet.com.
+@			IN		AFSDB 2 srv3.mcnet.com.
+
+;WKS [name]	[TTL]	class	WKS	address 	 protocol-list-of-services
+@			IN		WKS		192.168.178.25	 TCP ( smtp discard rpc uucp-path systat daytime qotd nntp )
+@			IN		WKS		192.168.178.26	 UDP 32400 31029 echo domain 80 109 113 
+;HINFO [name]   [TTL] class HINFO   hardware    OS
+@			IN    	HINFO   Sparc-10    UNIX
+@			IN    	HINFO   Intel-I7    WINDOWS
+
+
+; AFS example
+_afs3-vl._tcp 	IN	 SRV   0 0 7003 srv2.mcnet.com.
+_afs3-pr._udp 	IN	 SRV   0 0 7002 srv3.mcnet.com.
+_afs3-pr._tcp 	IN	 SRV   0 0 7002 srv4.mcnet.com.
+
+addr.micha.mcnet.com.  	TXT   "Boss (123) 456789"
+addr.alex.mcnet.com. 	TXT   "Ernst (123) 456789"
+addr.mia.mcnet.com.		TXT   "Yey (123) 456789"
