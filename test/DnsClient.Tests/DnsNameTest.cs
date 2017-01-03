@@ -149,11 +149,11 @@ namespace DnsClient.Tests
         public void DnsName_FromBytesValid()
         {
             int offset = 0;
-            var name = DnsName.FromBytes(new byte[] { 3, 90, 90, 90, 2, 56, 56, 0 }, ref offset);
+            var name = DnsName.FromBytes(new byte[] { 5, 90, 90, 92, 46, 90, 2, 56, 56, 0 }, ref offset);
 
             Assert.Equal(name.Size, 2);
-            Assert.Equal(name.Octets, 8);
-            Assert.True(name.IsHostName);
+            Assert.Equal(name.Octets, 10);
+            Assert.False(name.IsHostName);
         }
 
         [Fact]

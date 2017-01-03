@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text;
 
@@ -75,53 +74,10 @@ namespace DnsClient
             }
         }
 
-        public static DnsName FromBytes(byte[] data, ref int offset)
-        {
-            if (data == null || data.Length == 0 || data.Length < offset + 1)
-            {
-                throw new ArgumentNullException(nameof(data));
-            }
-            if (offset > data.Length - 1)
-            {
-                throw new ArgumentOutOfRangeException(nameof(offset));
-            }
-
-            var result = new DnsName();
-
-            // read the length byte for the label, then get the content from offset+1 to length
-            // proceed till we reach zero length byte.
-            byte length;
-            while ((length = data[offset++]) != 0)
-            {
-                // respect the reference bit and lookup the name at the given position
-                // the reader will advance only for the 2 bytes read.
-                if ((length & ReferenceByte) != 0)
-                {
-                    var subset = (length & 0x3f) << 8 | data[offset++];
-                    var subName = FromBytes(data, ref subset);
-                    result.Concat(subName);
-                    return result;
-                }
-
-                if (offset + length > data.Length - 1)
-                {
-                    throw new ArgumentOutOfRangeException(
-                        nameof(data),
-                        $"Found invalid label position {offset - 1} or length {length} in the source data.");
-                }
-
-                var label = Encoding.UTF8.GetString(data, offset, length);
-                result.AddLabel(1, label);
-                offset += length;
-            }
-
-            return result;
-        }
-
         public static implicit operator DnsName(string name) => new DnsName(name);
 
         public static implicit operator string(DnsName name) => name.ToString();
-        
+
         public int CompareTo(object obj)
         {
             if (obj == null)
@@ -238,12 +194,145 @@ namespace DnsClient
                     buf.Append("\\" + ((int)b).ToString("000"));
                     continue;
                 }
-                else if (c == '.' || c == '\\' || c == '"')
+                else if (c == '.' || c == '"')
                 {
-                    buf.Append('\\');
+                    if ((char)bytes[i - 1] != '\\') buf.Append('\\');
+                }
+                else if (c == '\\')
+                {
+                    var next = (char)bytes[i + 1];
+                    if (next != '.' && next != '"') buf.Append('\\');
                 }
 
                 buf.Append(c);
+            }
+        }
+
+        public static DnsName FromBytes(byte[] data, ref int offset)
+        {
+            if (data == null || data.Length == 0 || data.Length < offset + 1)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+            if (offset > data.Length - 1)
+            {
+                throw new ArgumentOutOfRangeException(nameof(offset));
+            }
+
+            var result = new DnsName();
+
+            // read the length byte for the label, then get the content from offset+1 to length
+            // proceed till we reach zero length byte.
+            byte length;
+            while ((length = data[offset++]) != 0)
+            {
+                // respect the reference bit and lookup the name at the given position
+                // the reader will advance only for the 2 bytes read.
+                if ((length & ReferenceByte) != 0)
+                {
+                    var subset = (length & 0x3f) << 8 | data[offset++];
+                    var subName = FromBytes(data, ref subset);
+                    result.Concat(subName);
+                    return result;
+                }
+
+                if (offset + length > data.Length - 1)
+                {
+                    throw new ArgumentOutOfRangeException(
+                        nameof(data),
+                        $"Found invalid label position {offset - 1} or length {length} in the source data.");
+                }
+
+                var label = Encoding.UTF8.GetString(data, offset, length);
+                result.AddLabel(1, UnescapeBytes(label.ToArray()));
+                offset += length;
+            }
+
+            return result;
+        }
+
+        private static string UnescapeBytes(char[] label)
+        {
+            var buf = new StringBuilder();
+            for (int i = 0; i < label.Length; i++)
+            {
+                char c = label[i];
+                if (c == '\\')
+                {
+                    buf.Append(c);
+                    c = (char)ReadByte(label, ref i);
+                }
+
+                buf.Append(c);
+            }
+
+            return buf.ToString();
+        }
+
+        private void Parse(char[] domainName)
+        {
+            var label = new List<byte>();
+
+            for (int index = 0; index < domainName.Length; index++)
+            {
+                byte b;
+                var c = domainName[index];
+
+                if (c == '\\')
+                {
+                    label.Add((byte)c);
+                    //index++;
+                    b = ReadByte(domainName, ref index);
+                    label.Add(b);
+                }
+                else if (c != '.')
+                {
+                    label.Add((byte)c);
+                }
+                else
+                {
+                    AddLabel(0, Encoding.UTF8.GetString(label.ToArray()));
+                    label.Clear();
+                }
+            }
+
+            if (label.Count > 0)
+            {
+                AddLabel(0, Encoding.UTF8.GetString(label.ToArray()));
+            }
+        }
+
+        public static byte ReadByte(char[] value, ref int index)
+        {
+            char c1 = value[++index];
+            if (c1.IsDigit())
+            {
+                // sequence is `\DDD'
+                char c2 = value[++index];
+                char c3 = value[++index];
+                if (c2.IsDigit() && c3.IsDigit())
+                {
+                    if (value[index + 1].IsDigit())
+                    {
+                        throw new InvalidOperationException("Double byte unicode characters are not supported.");
+                    }
+
+                    int val = ((c1 - '0') * 100 + (c2 - '0') * 10 + (c3 - '0'));
+                    if (val > byte.MaxValue)
+                    {
+                        throw new InvalidOperationException("Double byte unicode characters are not supported");
+                    }
+
+                    return checked((byte)val);
+                }
+                else
+                {
+                    throw new ArgumentException("Invalid escape sequence.", nameof(value));
+                }
+            }
+            else
+            {
+                return (byte)c1;
             }
         }
 
@@ -310,40 +399,6 @@ namespace DnsClient
             _string = null;
         }
 
-        public static byte ReadByte(char[] value, ref int index)
-        {
-            char c1 = value[++index];
-            if (c1.IsDigit())
-            {
-                // sequence is `\DDD'
-                char c2 = value[++index];
-                char c3 = value[++index];
-                if (c2.IsDigit() && c3.IsDigit())
-                {
-                    if (value[index + 1].IsDigit())
-                    {
-                        throw new InvalidOperationException("Double byte unicode characters are not supported.");
-                    }
-
-                    int val = ((c1 - '0') * 100 + (c2 - '0') * 10 + (c3 - '0'));
-                    if (val > byte.MaxValue)
-                    {
-                        throw new InvalidOperationException("Double byte unicode characters are not supported");
-                    }
-
-                    return checked((byte)val);
-                }
-                else
-                {
-                    throw new ArgumentException("Invalid escape sequence.", nameof(value));
-                }
-            }
-            else
-            {
-                return (byte)c1;
-            }
-        }
-
         private string GetLabel(int label)
         {
             if (label < 0 || label >= _labels.Count)
@@ -357,39 +412,6 @@ namespace DnsClient
         private bool IsDigit(char c)
         {
             return (c >= '0' && c <= '9');
-        }
-        
-        private void Parse(char[] domainName)
-        {
-            var label = new List<byte>();
-            
-
-            for (int index = 0; index < domainName.Length; index++)
-            {
-                byte b;
-                var c = domainName[index];
-
-                if (c == '\\')
-                {
-                    //index++;
-                    b = ReadByte(domainName, ref index);
-                    label.Add(b);
-                }
-                else if (c != '.')
-                {
-                    label.Add((byte)c);
-                }
-                else
-                {
-                    AddLabel(0, Encoding.UTF8.GetString(label.ToArray()));
-                    label.Clear();
-                }
-            }
-
-            if (label.Count > 0)
-            {
-                AddLabel(0, Encoding.UTF8.GetString(label.ToArray()));
-            }
         }
     }
 
