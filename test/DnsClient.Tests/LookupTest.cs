@@ -220,5 +220,25 @@ namespace DnsClient.Tests
             Assert.NotNull(result.Answers.SoaRecords().First().MName);
             Assert.NotNull(result.Answers.SoaRecords().First().RName);
         }
+
+        [Fact]
+        public async Task Lookup_Query_Puny()
+        {
+            var client = new LookupClient(IPAddress.Parse("8.8.8.8"));
+            var result = await client.QueryAsync("müsli.de", QueryType.A);
+
+            Assert.NotEmpty(result.Answers);
+            Assert.NotEmpty(result.Answers.ARecords());
+        }
+
+        [Fact]
+        public void Lookup_Query_InvalidPuny()
+        {
+            var client = new LookupClient(IPAddress.Parse("8.8.8.8"));
+
+            Func<DnsQueryResponse> act = () => client.QueryAsync("müsliiscool!.de", QueryType.A).Result;
+
+            Assert.ThrowsAny<ArgumentException>(act);
+        }
     }
 }

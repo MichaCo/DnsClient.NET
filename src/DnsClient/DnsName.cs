@@ -15,7 +15,7 @@ namespace DnsClient
         /// <summary>
         /// Domain root label '.'.
         /// </summary>
-        public static readonly DnsName Root = new DnsName(Dot);
+        public static readonly DnsName Root = new DnsName(DnsNameLabel.Root);
 
         /// <summary>
         /// The ASCII Compatible Encoding, used to identify punycode encoded labels.
@@ -24,23 +24,30 @@ namespace DnsClient
 
         private static readonly byte[] ACEPrefixBytes = ACEPrefix.Select(p => (byte)p).ToArray();
 
-        internal const string Dot = ".";
-        internal const byte DotByte = 46;
-        internal const byte BackslashByte = 92;
+        private const char Dot = '.';
+        private const string DotStr = ".";
+        private const byte DotByte = 46;
+        private const byte BackslashByte = 92;
 
         private static readonly IdnMapping _idn = new IdnMapping() { UseStd3AsciiRules = true };
         private const byte ReferenceByte = 0xc0;
-        private List<DnsNameLabel> _labels = new List<DnsNameLabel>(10);
-        private short _octets = 1;
-        private string _string = null;
-        private string _stringUnescaped = null;
-        private bool _hasRoot = false;
 
-        /// <summary>
-        /// Creates an empty <see cref="DnsName"/> instance.
-        /// </summary>
-        private DnsName()
+        private readonly DnsNameLabel[] _labels;
+        private readonly int _octets = 1;
+
+        // tostring cache
+        private string _string = null;
+
+        private string _stringUnescaped = null;
+
+        private DnsName(params DnsNameLabel[] labels)
         {
+            _labels = ValidateLabels(labels, out _octets);
+        }
+
+        private DnsName(ICollection<DnsNameLabel> labels)
+        {
+            _labels = ValidateLabels(labels, out _octets);
         }
 
         /// <summary>
@@ -49,25 +56,11 @@ namespace DnsClient
         /// <param name="name">The input name.</param>
         public DnsName(string name)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-            if (name.Length > 1 && name.StartsWith(Dot))
-            {
-                throw new ArgumentException($"'{name}' is not a legal name, found empty label.", nameof(name));
-            }
-
-            if (name.Length > 0 && !name.Equals(".", StringComparison.Ordinal))
-            {
-                Parse(name);
-            }
-
-            if (!_hasRoot)
-            {
-                AddLabel(DnsNameLabel.Root);
-            }
+            OriginalString = name;
+            _labels = ValidateLabels(ParseInternal(name), out _octets);
         }
+
+        public string OriginalString { get; }
 
         public bool IsEmpty => Size == 0;
 
@@ -75,7 +68,7 @@ namespace DnsClient
 
         public int Octets => _octets;
 
-        public int Size => _labels.Count - 1;
+        public int Size => _labels.Length - 1;
 
         public string Value => ToString(false);
 
@@ -98,6 +91,21 @@ namespace DnsClient
         public static implicit operator DnsName(string name) => new DnsName(name);
 
         public static implicit operator string(DnsName name) => name.ToString();
+
+        public static DnsName ParsePuny(string unicodeName)
+        {
+            return _idn.GetAscii(unicodeName);
+        }
+
+        public static DnsName ParsePuny(string unicodeName, int index)
+        {
+            return _idn.GetAscii(unicodeName, index);
+        }
+
+        public static DnsName ParsePuny(string unicodeName, int index, int count)
+        {
+            return _idn.GetAscii(unicodeName, index, count);
+        }
 
         public int CompareTo(object other)
         {
@@ -128,35 +136,22 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(other));
             }
 
-            var result = new DnsName();
-            foreach (var label in _labels.Where(p => !p.IsRoot))
-            {
-                result.AddLabel(label);
-            }
-            foreach (var label in other._labels)
-            {
-                result.AddLabel(label);
-            }
+            var result = new List<DnsNameLabel>();
+            result.AddRange(_labels.Where(p => !p.IsRoot));
+            result.AddRange(other._labels);
 
-            if (!result._hasRoot)
-            {
-                result.AddLabel(DnsNameLabel.Root);
-            }
-
-            return result;
+            return new DnsName(result.ToArray());
         }
+
+        public override string ToString() => ToString(false);
 
         public string ToString(bool unescaped)
         {
-            if (_labels.Count == 1)
-            {
-                return Dot;
-            }
             if (unescaped)
             {
                 if (_stringUnescaped == null)
                 {
-                    _stringUnescaped = string.Join(Dot, _labels.Select(p => p.ToUnescapedString()));
+                    _stringUnescaped = string.Join(DotStr, _labels.Select(p => p.ToUnescapedString()).ToArray(), 0, _labels.Length - 1) + DotStr;
                 }
 
                 return _stringUnescaped;
@@ -164,16 +159,36 @@ namespace DnsClient
 
             if (_string == null)
             {
-                _string = string.Join(Dot, _labels);
+                _string = string.Join(DotStr, _labels.Select(p => p.ToString()).ToArray(), 0, _labels.Length - 1) + DotStr;
             }
 
             return _string;
         }
 
-        private void Parse(string name)
+        public static DnsName Parse(string name)
         {
+            return new DnsName(name);
+        }
+
+        private static ICollection<DnsNameLabel> ParseInternal(string name)
+        {
+            if (name == null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+            if (name.Length > 1 && name[0] == Dot)
+            {
+                throw new ArgumentException($"'{name}' is not a legal name, found empty label.", nameof(name));
+            }
+
+            if (name.Length == 0 || (name.Length == 1 && name[0] == Dot))
+            {
+                return new DnsNameLabel[] { DnsNameLabel.Root };
+            }
+
             var actualLength = Encoding.UTF8.GetByteCount(name);
 
+            var result = new List<DnsNameLabel>();
             using (var bytes = new PooledBytes(actualLength))
             {
                 int offset = 0;
@@ -188,7 +203,7 @@ namespace DnsClient
 
                     if (b == DotByte && lastByte != BackslashByte)
                     {
-                        AddLabel(ParseLabel(new ArraySegment<byte>(bytes.Buffer, offset, count - 1)));
+                        result.Add(ParseLabel(new ArraySegment<byte>(bytes.Buffer, offset, count - 1)));
                         offset += count;
                         count = 0;
                     }
@@ -197,14 +212,11 @@ namespace DnsClient
                 }
                 if (count > 0)
                 {
-                    AddLabel(ParseLabel(new ArraySegment<byte>(bytes.Buffer, offset, count)));
+                    result.Add(ParseLabel(new ArraySegment<byte>(bytes.Buffer, offset, count)));
                 }
             }
 
-            if (!_hasRoot)
-            {
-                AddLabel(DnsNameLabel.Root);
-            }
+            return result;
         }
 
         internal static DnsName FromBytes(ArraySegment<byte> utf8Bytes, out int bytesRead)
@@ -216,7 +228,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(utf8Bytes));
             }
 
-            var result = new DnsName();
+            var result = new List<DnsNameLabel>();
 
             // read the length byte for the label, then get the content from offset+1 to length
             // proceed till we reach zero length byte.
@@ -231,7 +243,7 @@ namespace DnsClient
                     int subset = (length & 0x3f) << 8 | utf8Bytes.ElementAt(offset++);
                     var sub = FromBytes(new ArraySegment<byte>(utf8Bytes.Array, subset, utf8Bytes.Array.Length - subset), out subset);
                     bytesRead = offset;
-                    return result.Concat(sub);
+                    return new DnsName(result).Concat(sub);
                 }
 
                 if (offset + length > utf8Bytes.Count - 1)
@@ -244,18 +256,13 @@ namespace DnsClient
                 var label = ParseLabel(new ArraySegment<byte>(utf8Bytes.Array, utf8Bytes.Offset + offset, length));
 
                 // maybe store orignial bytes in this instance too?
-                result.AddLabel(label);
+                result.Add(label);
 
                 offset += length;
             }
 
-            if (!result._hasRoot)
-            {
-                result.AddLabel(DnsNameLabel.Root);
-            }
-
             bytesRead = offset;
-            return result;
+            return new DnsName(result);
         }
 
         private static DnsNameLabel ParseLabel(ArraySegment<byte> bytes)
@@ -280,7 +287,10 @@ namespace DnsClient
                         var unicode = _idn.GetUnicode(stringRep);
                         return new DnsNameLabel(stringRep, unicode, bytes.Count);
                     }
-                    catch { /*do nothing*/ }
+                    catch
+                    {
+                        throw new InvalidOperationException("Found lable with ACE-prefix, but the name is invalid and cannot be parsed.");
+                    }
                 }
             }
 
@@ -292,6 +302,18 @@ namespace DnsClient
 
                 if (current == BackslashByte)
                 {
+                    // eof check
+                    if (index == bytes.Count - 1)
+                    {
+                        // escape backslash
+                        unescapedBytes.Add(BackslashByte);
+
+                        // escape the escape
+                        escapedBytes.Add(BackslashByte);
+                        escapedBytes.Add(BackslashByte);
+                        continue;
+                    }
+
                     // escape sequence started
                     // continue
                     current = bytes.Array[bytes.Offset + ++index];
@@ -395,6 +417,12 @@ namespace DnsClient
             var offset = 0;
             foreach (var label in _labels)
             {
+                if (label.IsRoot)
+                {
+                    bytes[offset++] = 0;
+                    break;
+                }
+
                 // should never cause issues as each label's length is limited to 64 chars.
                 var len = checked((byte)label.OctetLength);
 
@@ -402,10 +430,7 @@ namespace DnsClient
                 bytes[offset++] = len;
 
                 // set the label's content
-                if (!label.IsRoot)
-                {
-                    Array.ConstrainedCopy(label.GetBytes(), 0, bytes, offset, len);
-                }
+                Array.ConstrainedCopy(label.GetBytes(), 0, bytes, offset, len);
 
                 offset += len;
             }
@@ -434,49 +459,60 @@ namespace DnsClient
             return ToString().GetHashCode();
         }
 
-        public override string ToString() => ToString(false);
-
         // stays as it is
-        private void AddLabel(DnsNameLabel label)
+        private DnsNameLabel[] ValidateLabels(ICollection<DnsNameLabel> labels, out int octets)
         {
-            if (label == null)
-            {
-                throw new ArgumentNullException(nameof(label));
-            }
-            // http://www.freesoft.org/CIE/RFC/1035/9.htm
-            // dns name limits are 63octets per label
-            // (63 letters).(63 letters).(63 letters).(62 letters)
-            if (label.OctetLength > 63)
-            {
-                throw new InvalidOperationException($"Label exceeds 63 octets: '{label}'.");
-            }
+            octets = 0;
+            var result = new List<DnsNameLabel>();
 
-            // Check for empty labels: we want to have only one, and only at end.
-            int len = label.OctetLength;
-            if (len == 0)
+            for (var index = 0; index < labels.Count; index++)
             {
-                if (_hasRoot)
+                var label = labels.ElementAt(index);
+                if (label == null)
                 {
-                    throw new InvalidOperationException("Only one root label is allowed at the end.");
+                    throw new ArgumentNullException(nameof(label));
                 }
 
-                _hasRoot = true;
-            }
-
-            // Total length must not be larger than 255 characters (including the ending zero).
-            if (len > 0)
-            {
-                if (_octets + len + 1 >= 256)
+                // http://www.freesoft.org/CIE/RFC/1035/9.htm
+                // dns name limits are 63octets per label
+                // (63 letters).(63 letters).(63 letters).(62 letters)
+                if (label.OctetLength > 63)
                 {
-                    throw new InvalidOperationException("Name too long");
+                    throw new InvalidOperationException($"Label exceeds 63 octets: '{label}'.");
                 }
 
-                _octets += (short)(len + 1);
+                // Check for empty labels: we want to have only one, and only at end.
+                int len = label.OctetLength;
+                if (len == 0)
+                {
+                    if (index != labels.Count - 1)
+                    {
+                        // not the end
+                        throw new InvalidOperationException("Only one root label is allowed at the end.");
+                    }
+
+                    // adding root at the end anyways
+                    break;
+                }
+
+                // Total length must not be larger than 255 characters (including the ending zero).
+                if (len > 0)
+                {
+                    if (octets + len + 1 >= 256)
+                    {
+                        throw new InvalidOperationException("Name too long");
+                    }
+
+                    octets += (short)(len + 1);
+                }
+
+                result.Add(label);
             }
 
-            _labels.Add(label);
+            result.Add(DnsNameLabel.Root);
+            octets++;
 
-            _string = null;
+            return result.ToArray();
         }
 
         internal class DnsNameLabel
@@ -498,8 +534,11 @@ namespace DnsClient
 
             public DnsNameLabel(string asci, string unicode, int byteLength)
             {
+                if (string.IsNullOrWhiteSpace(asci)) throw new ArgumentNullException(nameof(asci));
+                if (string.IsNullOrWhiteSpace(unicode)) throw new ArgumentNullException(nameof(unicode));
                 _toString = asci;
                 _toStringUnescaped = unicode;
+                _escapedBytes = Encoding.ASCII.GetBytes(_toString);
                 OctetLength = byteLength;
             }
 
@@ -512,11 +551,6 @@ namespace DnsClient
 
             public byte[] GetBytes()
             {
-                if (_escapedBytes == null && _toString != null)
-                {
-                    return Encoding.ASCII.GetBytes(_toString);
-                }
-
                 return _escapedBytes;
             }
 

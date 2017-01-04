@@ -415,11 +415,18 @@ namespace DnsClient.Tests
         public void DnsName_EscapingTheEscapeGetBytes()
         {
             string value = "\\abc\\\\d\\\\\\f\\";
-            DnsName name = value;
+            DnsName name = DnsName.Parse(value);
             string expected = "\\\\abc\\\\d\\\\\\\\f\\\\.";
+            Assert.Equal(expected, name.Value);
+
             var bytes = name.GetBytes();
+            var lastBytes = bytes.Skip(bytes.Count - 3).ToArray();
+            Assert.Equal(92, lastBytes[0]);
+            Assert.Equal(92, lastBytes[1]);
+            Assert.Equal(0, lastBytes[2]);
             int readBytes;
             name = DnsName.FromBytes(bytes, out readBytes);
+            Assert.Equal(bytes.Count, readBytes);
 
             Assert.Equal(expected, name.Value);
         }
@@ -438,7 +445,7 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public void DnsName_ReadPruny()
+        public void DnsName_ReadPuny()
         {
             var val = "xn--4gbrim.xn----ymcbaaajlc6dj7bxne2c.xn--wgbh1c";
             var name = (DnsName)val;
@@ -453,7 +460,7 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public void DnsName_PrunyGetBytes()
+        public void DnsName_PunyGetBytes()
         {
             var val = "xn--4gbrim.xn----ymcbaaajlc6dj7bxne2c.xn--wgbh1c";
             var name = (DnsName)val;
@@ -468,21 +475,16 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public void DnsName_ReadPruny_IDNA2003()
+        public void DnsName_ReadPuny_IDNA2003_Invalid()
         {
             var val = "xn--fuball-cta.example";
-            var name = (DnsName)val;
-
-            var s = name.ToString();
-            var utf8 = name.ToString(true);
-            Assert.Equal(s, val + ".");
-            Assert.Equal(utf8, val + "."); // because parse failed, not a pruny address
-            Assert.Equal(name.Size, 2);
-            Assert.True(name.IsHostName);
+            string result;
+            Action act = () => result = (DnsName)val;
+            Assert.ThrowsAny<InvalidOperationException>(act);
         }
 
         [Fact]
-        public void DnsName_ReadPruny_IDNA2003_2()
+        public void DnsName_ReadPuny_IDNA2003_2()
         {
             var val = "xn--n3h.example";
             var name = (DnsName)val;
@@ -493,6 +495,16 @@ namespace DnsClient.Tests
             Assert.Equal(utf8, "☃.example.");
             Assert.Equal(name.Size, 2);
             Assert.True(name.IsHostName);
+        }
+
+        [Fact]
+        public void DnsName_ParsePuny()
+        {
+            var domain = "müsli.de";
+
+            DnsName name = DnsName.ParsePuny(domain);
+
+            Assert.Equal("xn--msli-0ra.de.", name);
         }
 
         [Fact]

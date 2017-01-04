@@ -22,6 +22,19 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(queryName));
             }
 
+            if (!queryName.IsHostName)
+            {
+                DnsName original = queryName;
+                try
+                {
+                    queryName = DnsName.ParsePuny(queryName.ValueUTF8);
+                }
+                catch
+                {
+                    throw new ArgumentException($"'{original.OriginalString}' is not a valid hostname or puny address.", nameof(queryName));
+                }
+            }
+
             QueryName = queryName;
             QuestionType = questionType;
             QuestionClass = questionClass;
@@ -34,7 +47,7 @@ namespace DnsClient
 
         public string ToString(int offset = -32)
         {
-            return string.Format("{0,"+offset+"} \t{1} \t{2}", QueryName, QuestionClass, QuestionType);
+            return string.Format("{0," + offset + "} \t{1} \t{2}", QueryName, QuestionClass, QuestionType);
         }
     }
 }
