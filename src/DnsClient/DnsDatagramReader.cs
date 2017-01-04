@@ -163,7 +163,10 @@ namespace DnsClient
 
         public DnsName ReadName()
         {
-            return DnsName.FromBytes(_data, ref _index);
+            var bytesRead = 0;
+            var name = DnsName.FromBytes(new ArraySegment<byte>(_data, _index, _data.Length - _index), out bytesRead);
+            _index += bytesRead;
+            return name;
         }
 
         public ushort ReadUInt16()

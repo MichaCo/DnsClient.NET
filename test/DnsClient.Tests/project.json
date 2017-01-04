@@ -23,6 +23,8 @@
   "frameworks": {
     "netcoreapp1.0": {
       "dependencies": {
+        "Microsoft.CodeCoverage": "1.0.2",
+        "System.Diagnostics.Tools": "4.3.0",
         "Microsoft.NETCore.App": {
           "version": "1.0.0",
           "type": "platform"

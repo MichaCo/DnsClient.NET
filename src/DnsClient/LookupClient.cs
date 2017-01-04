@@ -227,7 +227,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(request));
             }
 
-            var audit = new Audit();
+            var audit = continueAudit ?? new Audit();
             NameServer[] servers = GetNextServers();
 
             foreach (var serverInfo in servers)

@@ -53,6 +53,7 @@ mail		IN		A		192.168.178.1
 @			IN		MB		lÜä'laüö#2x.XN--CLCHC0EA0B2G2A9GCD.XN--0ZWM56D.mcnet.com.
 @			IN		MG		hidden.mcnet.com.
 @			IN		MR		hidden2.mcnet.com.
+@			IN		MR		xn--4gbrim.xn----ymcbaaajlc6dj7bxne2c.xn--wgbh1c
 @			IN		SRV		1 1 8080 srv4.mcnet.com.
 @			IN		PTR		hidden.mcnet.com.
 @			IN		PTR		mcnet.com.

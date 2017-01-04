@@ -33,10 +33,12 @@
     }
   },
   "dependencies": {
+    "System.Buffers": "4.3.0"
   },
   "frameworks": {
     "netstandard1.3": {
       "dependencies": {
+        "System.Runtime": "4.3.0",
         "System.Collections": "4.3.0",
         "System.Collections.Concurrent": "4.3.0",
         "System.Globalization.Extensions": "4.3.0",
@@ -56,6 +58,7 @@
     },
     "net45": {
       "frameworkAssemblies": {
+        "System.Runtime": ""
       }
     }
   }

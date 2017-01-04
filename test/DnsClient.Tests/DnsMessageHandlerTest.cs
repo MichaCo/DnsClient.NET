@@ -3,7 +3,7 @@ using System.Net;
 using DnsClient.Protocol;
 using Xunit;
 
-namespace DnsClient.Test
+namespace DnsClient.Tests
 {
     public class DnsMessageHandlerTest
     {
@@ -54,8 +54,8 @@ namespace DnsClient.Test
 
             var answer = message.Answers.First();
             var q = new DnsName(answer.DomainName).GetBytes();
-            writer.Extend(q.Length);    // the following query->length
-            writer.WriteBytes(q, q.Length);
+            writer.Extend(q.Count);    // the following query->length
+            writer.WriteBytes(q.ToArray(), q.Count);
             writer.Extend(10);  // the following 4x ushort
             writer.WriteUInt16NetworkOrder((ushort)answer.RecordType);
             writer.WriteUInt16NetworkOrder((ushort)answer.RecordClass);

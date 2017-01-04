@@ -36,7 +36,7 @@ namespace DnsClient
     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
              * */
             // 4 more bytes for the type and class
-            var writer = new DnsDatagramWriter(DnsRequestHeader.HeaderLength + questionData.Length + 4);
+            var writer = new DnsDatagramWriter(DnsRequestHeader.HeaderLength + questionData.Count + 4);
 
             writer.WriteInt16NetworkOrder((short)request.Header.Id);
             writer.WriteUInt16NetworkOrder(request.Header.RawFlags);
@@ -48,7 +48,7 @@ namespace DnsClient
             // jump to end of header, we didn't write all fields
             writer.Index = DnsRequestHeader.HeaderLength;
 
-            writer.WriteBytes(questionData, questionData.Length);
+            writer.WriteBytes(questionData.Array, questionData.Count);
             writer.WriteUInt16NetworkOrder((ushort)question.QuestionType);
             writer.WriteUInt16NetworkOrder((ushort)question.QuestionClass);
 
@@ -66,8 +66,8 @@ namespace DnsClient
              * */
             var opt = new OptRecord();
             var nameBytes = opt.DomainName.GetBytes();
-            writer.Extend(nameBytes.Length + 2 + 2 + 4 + 2);
-            writer.WriteBytes(nameBytes, nameBytes.Length);
+            writer.Extend(nameBytes.Count + 2 + 2 + 4 + 2);
+            writer.WriteBytes(nameBytes.Array, nameBytes.Count);
             writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
             writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
             writer.WriteUInt32NetworkOrder((ushort)opt.TimeToLive);

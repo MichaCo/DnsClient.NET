@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using DnsClient.Protocol;
 using Xunit;
 
@@ -85,7 +86,7 @@ namespace DnsClient.Tests
         {
             var host = "www.cachemanager.net";
             var name = new DnsName(host);
-            var reader = new DnsDatagramReader(name.GetBytes());
+            var reader = new DnsDatagramReader(name.GetBytes().ToArray());
 
             var result = reader.ReadName();
 

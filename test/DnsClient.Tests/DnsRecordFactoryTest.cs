@@ -44,8 +44,8 @@ namespace DnsClient.Tests
         {
             var name = new DnsName("result.example.com");
             var data = name.GetBytes();
-            var factory = GetFactory(data);
-            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.PTR, QueryClass.IN, 0, data.Length);
+            var factory = GetFactory(data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.PTR, QueryClass.IN, 0, data.Count);
 
             var result = factory.GetRecord(info) as PtrRecord;
 
@@ -130,8 +130,8 @@ namespace DnsClient.Tests
         {
             var name = new DnsName("result.example.com");
             var data = name.GetBytes();
-            var factory = GetFactory(data);
-            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.NS, QueryClass.IN, 0, data.Length);
+            var factory = GetFactory(data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.NS, QueryClass.IN, 0, data.Count);
 
             var result = factory.GetRecord(info) as NsRecord;
 

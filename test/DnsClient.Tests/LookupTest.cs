@@ -181,7 +181,7 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Lookup_Query_Mx()
         {
-            var client = new LookupClient();
+            var client = new LookupClient() { Timeout = TimeSpan.FromDays(10) };
             var result = await client.QueryAsync("google.com", QueryType.MX);
 
             Assert.NotEmpty(result.Answers.MxRecords());
