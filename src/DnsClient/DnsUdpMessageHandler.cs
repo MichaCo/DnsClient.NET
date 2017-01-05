@@ -16,7 +16,7 @@ namespace DnsClient
         public DnsUdpMessageHandler(bool enableClientQueue)
         {
             _enableClientQueue = enableClientQueue;
-            if (_enableClientQueue)
+            if (_enableClientQueue && _clients.Count == 0)
             {
                 for (var i = 0; i < 10; i++)
                 {
@@ -43,7 +43,7 @@ namespace DnsClient
             {
                 while (udpClient == null || !_clients.TryDequeue(out udpClient))
                 {
-                    udpClient = new UdpClient();
+                    udpClient = new UdpClient();                    
                 }
             }
             else

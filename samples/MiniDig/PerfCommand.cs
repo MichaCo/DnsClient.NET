@@ -265,7 +265,7 @@ namespace DigApp
                     for (var i = 0; i < _clients; i++)
                     {
                         var client = new ManagedTestClient(_settings, _runs, _query);
-                        tasks.Add(client.Run());
+                        tasks.Add(Task.Run(client.Run));
                     }
 
                     return await Task.WhenAll(tasks);
