@@ -41,7 +41,7 @@ namespace DnsClient
             UdpClient udpClient = null;
             if (_enableClientQueue)
             {
-                while (udpClient == null || !_clients.TryDequeue(out udpClient))
+                while (udpClient == null && !_clients.TryDequeue(out udpClient))
                 {
                     udpClient = new UdpClient();                    
                 }

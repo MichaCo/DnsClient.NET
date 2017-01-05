@@ -32,7 +32,7 @@ namespace DigApp
             
             var app = new CommandLineApplication(throwOnUnexpectedArg: true);
 
-            var perfApplication = app.Command("perf", (perfApp) => new PerfCommand(perfApp, args), throwOnUnexpectedArg: true);
+            var perfApplication = app.Command("perf", (perfApp) => new PerfCommand2(perfApp, args), throwOnUnexpectedArg: true);
 
             var defaultCommand = new DigCommand(app, args);
 
