@@ -138,7 +138,7 @@ namespace DnsClient
 
             NameServers = nameServers.Select(p => new NameServer(p)).ToArray();
             _endpoints = new Queue<NameServer>(NameServers);
-            _messageHandler = new DnsUdpMessageHandler();
+            _messageHandler = new DnsUdpMessageHandler(true);
             _tcpFallbackHandler = new DnsTcpMessageHandler();
         }
 

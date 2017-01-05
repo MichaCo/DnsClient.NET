@@ -23,7 +23,7 @@ namespace DnsClient.Tests
 
             var raw = GetResponseBytes(response, answerBytes);
 
-            var handle = new DnsUdpMessageHandler();
+            var handle = new DnsUdpMessageHandler(true);
             var result = handle.GetResponseMessage(raw).AsQueryResponse(new NameServer(ip));
 
             Assert.Equal(result.Answers.Count, 1);
