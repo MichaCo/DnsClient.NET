@@ -2,7 +2,6 @@
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using DnsClient.Protocol;
 using DnsClient.Protocol.Options;
 
 namespace DnsClient
@@ -16,7 +15,6 @@ namespace DnsClient
         public virtual byte[] GetRequestData(DnsRequestMessage request)
         {
             var question = request.Question;
-            var questionData = question.QueryName.GetBytes();
 
             /*
                                     1  1  1  1  1  1
@@ -36,47 +34,48 @@ namespace DnsClient
     +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
              * */
             // 4 more bytes for the type and class
-            var writer = new DnsDatagramWriter(DnsRequestHeader.HeaderLength + questionData.Count + 4);
+            using (var writer = new DnsDatagramWriter())
+            {
+                writer.WriteInt16NetworkOrder((short)request.Header.Id);
+                writer.WriteUInt16NetworkOrder(request.Header.RawFlags);
+                writer.WriteInt16NetworkOrder(1);   // we support single question only... (as most DNS servers anyways).
+                writer.WriteInt16NetworkOrder(0);
+                writer.WriteInt16NetworkOrder(0);
+                writer.WriteInt16NetworkOrder(1); // one additional for the Opt record.
 
-            writer.WriteInt16NetworkOrder((short)request.Header.Id);
-            writer.WriteUInt16NetworkOrder(request.Header.RawFlags);
-            writer.WriteInt16NetworkOrder(1);   // we support single question only... (as most DNS servers anyways).
-            writer.WriteInt16NetworkOrder(0);
-            writer.WriteInt16NetworkOrder(0);
-            writer.WriteInt16NetworkOrder(1); // one additional for the Opt record.
+                question.QueryName.WriteBytes(writer);
+                //writer.WriteBytes(questionData.Array, questionData.Count);
+                writer.WriteUInt16NetworkOrder((ushort)question.QuestionType);
+                writer.WriteUInt16NetworkOrder((ushort)question.QuestionClass);
 
-            // jump to end of header, we didn't write all fields
-            writer.Index = DnsRequestHeader.HeaderLength;
+                /*
+           +------------+--------------+------------------------------+
+           | Field Name | Field Type   | Description                  |
+           +------------+--------------+------------------------------+
+           | NAME       | domain name  | MUST be 0 (root domain)      |
+           | TYPE       | u_int16_t    | OPT (41)                     |
+           | CLASS      | u_int16_t    | requestor's UDP payload size |
+           | TTL        | u_int32_t    | extended RCODE and flags     |
+           | RDLEN      | u_int16_t    | length of all RDATA          |
+           | RDATA      | octet stream | {attribute,value} pairs      |
+           +------------+--------------+------------------------------+
+                 * */
+                var opt = new OptRecord();
+                //var nameBytes = opt.DomainName.GetBytes();
+                opt.DomainName.WriteBytes(writer);
+                //writer.WriteBytes(nameBytes.Array, nameBytes.Count);
+                writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
+                writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
+                writer.WriteUInt32NetworkOrder((ushort)opt.TimeToLive);
+                writer.WriteUInt16NetworkOrder(0);
 
-            writer.WriteBytes(questionData.Array, questionData.Count);
-            writer.WriteUInt16NetworkOrder((ushort)question.QuestionType);
-            writer.WriteUInt16NetworkOrder((ushort)question.QuestionClass);
+                return writer.Data;
 
-            /*
-       +------------+--------------+------------------------------+
-       | Field Name | Field Type   | Description                  |
-       +------------+--------------+------------------------------+
-       | NAME       | domain name  | MUST be 0 (root domain)      |
-       | TYPE       | u_int16_t    | OPT (41)                     |
-       | CLASS      | u_int16_t    | requestor's UDP payload size |
-       | TTL        | u_int32_t    | extended RCODE and flags     |
-       | RDLEN      | u_int16_t    | length of all RDATA          |
-       | RDATA      | octet stream | {attribute,value} pairs      |
-       +------------+--------------+------------------------------+
-             * */
-            var opt = new OptRecord();
-            var nameBytes = opt.DomainName.GetBytes();
-            writer.Extend(nameBytes.Count + 2 + 2 + 4 + 2);
-            writer.WriteBytes(nameBytes.Array, nameBytes.Count);
-            writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
-            writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
-            writer.WriteUInt32NetworkOrder((ushort)opt.TimeToLive);
-            writer.WriteUInt16NetworkOrder(0);
-
-            return writer.Data;
+                // dispose the writer here to return puled byte array... otherwise we don't know when to dispose and might be risky
+            }
         }
 
-        public virtual DnsResponseMessage GetResponseMessage(byte[] responseData)
+        public virtual DnsResponseMessage GetResponseMessage(ArraySegment<byte> responseData)
         {
             var reader = new DnsDatagramReader(responseData);
             var factory = new DnsRecordFactory(reader);
@@ -89,7 +88,7 @@ namespace DnsClient
             var additionalCount = reader.ReadUInt16NetworkOrder();
 
             var header = new DnsResponseHeader(id, flags, questionCount, answerCount, additionalCount, nameServerCount);
-            var response = new DnsResponseMessage(header, responseData.Length);
+            var response = new DnsResponseMessage(header, responseData.Count);
 
             for (int questionIndex = 0; questionIndex < questionCount; questionIndex++)
             {

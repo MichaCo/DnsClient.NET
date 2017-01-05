@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using DnsClient.Protocol;
 using Xunit;
 
 namespace DnsClient.Tests
@@ -14,7 +13,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DatagramReader_IndexOutOfRange()
         {
-            Action act = () => new DnsDatagramReader(new byte[10], 11);
+            Action act = () => new DnsDatagramReader(new ArraySegment<byte>(new byte[10]), 11);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -22,7 +21,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DatagramReader_ReadByte_IndexOutOfRange()
         {
-            var reader = new DnsDatagramReader(new byte[10], 9);
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(new byte[10]), 9);
 
             reader.ReadByte();
             Action act = () => reader.ReadByte();
@@ -32,7 +31,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DatagramReader_IndexOutOfRangeNegativ()
         {
-            Action act = () => new DnsDatagramReader(new byte[10], -1);
+            Action act = () => new DnsDatagramReader(new ArraySegment<byte>(new byte[10]), -1);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -40,7 +39,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DatagramReader_ReadUInt()
         {
-            var reader = new DnsDatagramReader(new byte[2] { 1, 0 });
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(new byte[2] { 1, 0 }));
 
             var result = reader.ReadUInt16();
 
@@ -51,7 +50,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DatagramReader_ReadUIntReverse()
         {
-            var reader = new DnsDatagramReader(new byte[2] { 0, 1 });
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(new byte[2] { 0, 1 }));
 
             var result = reader.ReadUInt16NetworkOrder();
 
@@ -62,7 +61,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DatagramReader_ReadUIntIndexOutOfRange()
         {
-            var reader = new DnsDatagramReader(new byte[2] { 0, 1 });
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(new byte[2] { 0, 1 }));
 
             var result = reader.ReadUInt16();
             Action act = () => reader.ReadUInt16();
@@ -73,7 +72,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DatagramReader_ReadUIntReverseIndexOutOfRange()
         {
-            var reader = new DnsDatagramReader(new byte[2] { 0, 1 });
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(new byte[2] { 0, 1 }));
 
             var result = reader.ReadUInt16NetworkOrder();
             Action act = () => reader.ReadUInt16NetworkOrder();
@@ -86,7 +85,7 @@ namespace DnsClient.Tests
         {
             var host = "www.cachemanager.net";
             var name = new DnsName(host);
-            var reader = new DnsDatagramReader(name.GetBytes().ToArray());
+            var reader = new DnsDatagramReader(new ArraySegment<byte>((name.GetBytes().ToArray())));
 
             var result = reader.ReadName();
 
@@ -97,7 +96,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DatagramReader_ReadBytes()
         {
-            var reader = new DnsDatagramReader(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 });
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(new byte[] { 0, 1, 2, 3, 4, 5, 6, 7 }));
 
             reader.ReadUInt16();
             reader.ReadUInt16();

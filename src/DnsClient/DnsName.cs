@@ -59,7 +59,7 @@ namespace DnsClient
             OriginalString = name;
             _labels = ValidateLabels(ParseInternal(name), out _octets);
         }
-
+        
         public string OriginalString { get; }
 
         public bool IsEmpty => Size == 0;
@@ -169,7 +169,7 @@ namespace DnsClient
         {
             return new DnsName(name);
         }
-
+        
         private static ICollection<DnsNameLabel> ParseInternal(string name)
         {
             if (name == null)
@@ -410,16 +410,18 @@ namespace DnsClient
             return new byte[] { (byte)(a + 48), (byte)(b + 48), (byte)(c + 48) };
         }
 
-        //TODO: private optimize? don't allocate?
-        public ArraySegment<byte> GetBytes()
+                //TODO: private optimize? don't allocate?
+        internal void WriteBytes(DnsDatagramWriter writer)
         {
-            var bytes = new byte[_octets];
-            var offset = 0;
+            //var bytes = new byte[_octets];
+            //var offset = 0;
             foreach (var label in _labels)
             {
                 if (label.IsRoot)
                 {
-                    bytes[offset++] = 0;
+                    writer.WriteByte(0);
+                    //offset++;
+                    //bytes[offset++] = 0;
                     break;
                 }
 
@@ -427,15 +429,25 @@ namespace DnsClient
                 var len = checked((byte)label.OctetLength);
 
                 // set the label length byte
-                bytes[offset++] = len;
+                writer.WriteByte(len);
+                //offset++;
+                //bytes[offset++] = len;
 
                 // set the label's content
-                Array.ConstrainedCopy(label.GetBytes(), 0, bytes, offset, len);
+                writer.WriteBytes(label.GetBytes(), len);
+                //Array.ConstrainedCopy(label.GetBytes(), 0, bytes, offset, len);
 
-                offset += len;
+                //offset += len;
             }
+        }
 
-            return new ArraySegment<byte>(bytes, 0, offset);
+        public byte[] GetBytes()
+        {
+            using (var writer = new DnsDatagramWriter())
+            {
+                WriteBytes(writer);
+                return writer.Data;
+            }
         }
 
         public override bool Equals(object obj)

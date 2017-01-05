@@ -197,10 +197,7 @@ namespace DnsClient
         public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
             => QueryAsync(new DnsQuestion(query, queryType, queryClass), cancellationToken);
 
-        ////public Task<DnsQueryResponse> QueryAsync(params DnsQuestion[] questions)
-        ////    => QueryAsync(CancellationToken.None, questions);
-
-        private async Task<DnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)
+        private Task<DnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)
         {
             if (question == null)
             {
@@ -212,12 +209,9 @@ namespace DnsClient
             var cacheKey = ResponseCache.GetCacheKey(question);
 
             var handler = UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
-            var result = await _cache.GetOrAdd(
+            return _cache.GetOrAdd(
                     cacheKey,
-                    async () => await ResolveQueryAsync(handler, request, cancellationToken).ConfigureAwait(false))
-                .ConfigureAwait(false);
-
-            return result;
+                    () => ResolveQueryAsync(handler, request, cancellationToken));
         }
 
         private async Task<DnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, CancellationToken cancellationToken, Audit continueAudit = null)
@@ -330,14 +324,19 @@ namespace DnsClient
 
                             handleEx = agg.InnerException;
                         }
-                        
+
                         audit.AuditException(ex);
                         if (handleEx is OperationCanceledException || handleEx is TaskCanceledException)
                         {
-                            throw new DnsResponseException("Operation canceled", handleEx)
+                            if (cancellationToken.IsCancellationRequested)
                             {
-                                AuditTrail = audit.Build()
-                            };
+                                throw new DnsResponseException("Operation canceled", handleEx)
+                                {
+                                    AuditTrail = audit.Build()
+                                };
+                            }
+
+                            continue;
                         }
 
                         throw new DnsResponseException("Unhandled exception", ex)

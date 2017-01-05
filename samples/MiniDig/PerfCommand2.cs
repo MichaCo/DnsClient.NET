@@ -23,7 +23,6 @@ namespace DigApp
         private int _errors;
         private int _success;
         private Spiner _spinner;
-        private long _allExecTime;
 
         public CommandOption ClientsArg { get; private set; }
 
@@ -46,7 +45,7 @@ namespace DigApp
         protected override async Task<int> Execute()
         {
             _clients = ClientsArg.HasValue() ? int.Parse(ClientsArg.Value()) : 10;
-            _runtime = RuntimeArg.HasValue() ? int.Parse(RuntimeArg.Value()) : 5;
+            _runtime = RuntimeArg.HasValue() ? int.Parse(RuntimeArg.Value()) <= 1 ? 5 : int.Parse(RuntimeArg.Value()) : 5;
             _query = string.IsNullOrWhiteSpace(QueryArg.Value) ? string.Empty : QueryArg.Value;
             _lookup = GetDnsLookup();
             _running = true;
@@ -78,14 +77,14 @@ namespace DigApp
             Console.WriteLine($";; results:\t\t");
             Console.WriteLine(string.Join("-", Enumerable.Repeat("-", 50)));
 
-            var avgRuntime = _allExcecutions / elapsedSeconds;
+            var avgRuntime = _allExcecutions / _runtime;
             Console.WriteLine($";; run for {elapsedSeconds}sec {_clients} clients.");
 
             var successPercent = _errors == 0 ? 100 : _success == 0 ? 0 : (100 - _success / (_errors * (double)_success));
             Console.WriteLine($";; {_errors:N0} errors {_success:N0} ok {successPercent:N0}% success.");
 
-            var execPerSec = _allExcecutions / elapsedSeconds;
-            var avgExec = _allAvgExec / elapsedSeconds;
+            var execPerSec = _allExcecutions / _runtime;
+            var avgExec = _allAvgExec / _runtime;
             Console.WriteLine($";; {execPerSec:N2} queries per second.");
             return 0;
         }

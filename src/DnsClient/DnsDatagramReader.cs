@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Text;
 
@@ -9,7 +10,7 @@ namespace DnsClient
         public const int IPv6Length = 16;
         public const int IPv4Length = 4;
 
-        private readonly byte[] _data;
+        private readonly ArraySegment<byte> _data;
         private int _index;
 
         public int Index
@@ -20,7 +21,7 @@ namespace DnsClient
             }
             set
             {
-                if (value < 0 || value > _data.Length)
+                if (value < 0 || value > _data.Count)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
@@ -29,7 +30,7 @@ namespace DnsClient
             }
         }
 
-        public DnsDatagramReader(byte[] data, int startIndex = 0)
+        public DnsDatagramReader(ArraySegment<byte> data, int startIndex = 0)
         {
             _data = data;
             Index = startIndex;
@@ -39,7 +40,7 @@ namespace DnsClient
         {
             var length = ReadByte();
 
-            var result = Encoding.ASCII.GetString(_data, _index, length);
+            var result = Encoding.ASCII.GetString(_data.Array, _data.Offset + _index, length);
             _index += length;
             return result;
         }
@@ -53,9 +54,9 @@ namespace DnsClient
         /// <summary>
         /// As defined in https://tools.ietf.org/html/rfc1035#section-5.1 except '()' or '@' or '.'
         /// </summary>
-        public static string ParseString(byte[] data, int index, int length)
+        public static string ParseString(ArraySegment<byte> data)
         {
-            var result = ParseString(new DnsDatagramReader(data, index), length);
+            var result = ParseString(new DnsDatagramReader(data, 0), data.Count);
             return result;
         }
 
@@ -98,38 +99,37 @@ namespace DnsClient
             return ReadUTF8String(this, length);
         }
 
-        public static string ReadUTF8String(byte[] data, int index, int length)
+        public static string ReadUTF8String(ArraySegment<byte> data)
         {
-            return Encoding.UTF8.GetString(data, index, length);
+            return Encoding.UTF8.GetString(data.Array, data.Offset, data.Count);
         }
 
         public static string ReadUTF8String(DnsDatagramReader reader, int length)
         {
             var data = reader.ReadBytes(length);
-            return ReadUTF8String(data, 0, length);
+            return ReadUTF8String(data);
         }
 
         public byte ReadByte()
         {
-            if (_index >= _data.Length)
+            if (_data.Count < _index + 1)
             {
                 throw new IndexOutOfRangeException("Cannot read byte.");
             }
             else
             {
-                return _data[_index++];
+                return _data.Array[_data.Offset + _index++];
             }
         }
 
-        public byte[] ReadBytes(int length)
+        public ArraySegment<byte> ReadBytes(int length)
         {
-            if (_data.Length < _index + length)
+            if (_data.Count < _index + length)
             {
                 throw new IndexOutOfRangeException($"Cannot read that many bytes: '{length}'.");
             }
 
-            var result = new byte[length];
-            Array.Copy(_data, _index, result, 0, length);
+            var result = new ArraySegment<byte>(_data.Array, _data.Offset + _index, length);
             _index += length;
             return result;
         }
@@ -141,54 +141,52 @@ namespace DnsClient
         /// <exception cref="IndexOutOfRangeException">If there are no 4 bytes to read.</exception>
         public IPAddress ReadIPAddress()
         {
-            if (_data.Length < _index + IPv4Length)
+            if (_data.Count < _index + IPv4Length)
             {
                 throw new IndexOutOfRangeException($"Reading IPv4 address, expected {IPv4Length} bytes.");
             }
 
-            return new IPAddress(ReadBytes(4));
+            return new IPAddress(ReadBytes(4).ToArray());
         }
 
         public IPAddress ReadIPv6Address()
         {
-            if (_data.Length < _index + IPv6Length)
+            if (_data.Count < _index + IPv6Length)
             {
                 throw new IndexOutOfRangeException($"Reading IPv6 address, expected {IPv6Length} bytes.");
             }
 
-            var address = new IPAddress(ReadBytes(IPv6Length));
-
-            return address;
+            return new IPAddress(ReadBytes(IPv6Length).ToArray());
         }
 
         public DnsName ReadName()
         {
             var bytesRead = 0;
-            var name = DnsName.FromBytes(new ArraySegment<byte>(_data, _index, _data.Length - _index), out bytesRead);
+            var name = DnsName.FromBytes(new ArraySegment<byte>(_data.Array, _data.Offset + _index, _data.Count - _index), out bytesRead);
             _index += bytesRead;
             return name;
         }
 
         public ushort ReadUInt16()
         {
-            if (_data.Length < Index + 2)
+            if (_data.Count < Index + 2)
             {
                 throw new IndexOutOfRangeException("Cannot read more data.");
             }
 
-            var result = BitConverter.ToUInt16(_data, _index);
+            var result = BitConverter.ToUInt16(_data.Array, _data.Offset + _index);
             _index += 2;
             return result;
         }
 
         public ushort ReadUInt16NetworkOrder()
         {
-            if (_data.Length < Index + 2)
+            if (_data.Count < Index + 2)
             {
                 throw new IndexOutOfRangeException("Cannot read more data.");
             }
 
-            byte a = _data[_index++], b = _data[_index++];
+            byte a = _data.ElementAt(_index++), b = _data.ElementAt(_index++);
             return (ushort)(a << 8 | b);
         }
 

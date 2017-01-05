@@ -10,6 +10,7 @@ namespace DnsClient
 {
     internal class DnsUdpMessageHandler : DnsMessageHandler
     {
+        private const int MaxSize = 0x10000;
         private static ConcurrentQueue<UdpClient> _clients = new ConcurrentQueue<UdpClient>();
         private readonly bool _enableClientQueue;
 
@@ -43,7 +44,7 @@ namespace DnsClient
             {
                 while (udpClient == null && !_clients.TryDequeue(out udpClient))
                 {
-                    udpClient = new UdpClient();                    
+                    udpClient = new UdpClient();
                 }
             }
             else
@@ -57,7 +58,7 @@ namespace DnsClient
 
                 var result = await udpClient.ReceiveAsync().ConfigureAwait(false);
 
-                var response = GetResponseMessage(result.Buffer);
+                var response = GetResponseMessage(new ArraySegment<byte>(result.Buffer, 0, result.Buffer.Length));
 
                 if (request.Header.Id != response.Header.Id)
                 {

@@ -12,7 +12,7 @@ namespace DnsClient.Tests
     {
         internal DnsRecordFactory GetFactory(byte[] data)
         {
-            return new DnsRecordFactory(new DnsDatagramReader(data));
+            return new DnsRecordFactory(new DnsDatagramReader(new ArraySegment<byte>(data)));
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace DnsClient.Tests
             var name = new DnsName("result.example.com");
             var data = name.GetBytes();
             var factory = GetFactory(data.ToArray());
-            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.PTR, QueryClass.IN, 0, data.Count);
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.PTR, QueryClass.IN, 0, data.Length);
 
             var result = factory.GetRecord(info) as PtrRecord;
 
@@ -131,7 +131,7 @@ namespace DnsClient.Tests
             var name = new DnsName("result.example.com");
             var data = name.GetBytes();
             var factory = GetFactory(data.ToArray());
-            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.NS, QueryClass.IN, 0, data.Count);
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.NS, QueryClass.IN, 0, data.Length);
 
             var result = factory.GetRecord(info) as NsRecord;
 
@@ -322,7 +322,7 @@ namespace DnsClient.Tests
             var result = factory.GetRecord(info) as TxtRecord;
 
             Assert.Equal(result.EscapedText.Count, 2);
-            Assert.Equal(result.Text.ElementAt(0), textA);            
+            Assert.Equal(result.Text.ElementAt(0), textA);
             Assert.Equal(result.EscapedText.ElementAt(0), "\\\"\\195\\164\\195\\182\\195\\188 \\\\slash/! @bla.com \\\"");
             Assert.Equal(result.Text.ElementAt(1), textB);
             Assert.Equal(result.EscapedText.ElementAt(1), textB);

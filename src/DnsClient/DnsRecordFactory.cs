@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using DnsClient.Protocol;
 using DnsClient.Protocol.Options;
 
@@ -91,7 +92,7 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.NULL:
-                    result = new NullRecord(info, _reader.ReadBytes(info.RawDataLength));
+                    result = new NullRecord(info, _reader.ReadBytes(info.RawDataLength).ToArray());
                     break;
 
                 case ResourceRecordType.WKS:
@@ -169,7 +170,7 @@ namespace DnsClient
             var protocol = _reader.ReadByte();
             var bitmap = _reader.ReadBytes(info.RawDataLength - 5);
 
-            return new WksRecord(info, address, protocol, bitmap);
+            return new WksRecord(info, address, protocol, bitmap.ToArray());
         }
 
         private DnsResourceRecord ResolveMXRecord(ResourceRecordInfo info)
@@ -213,8 +214,9 @@ namespace DnsClient
             {
                 var length = _reader.ReadByte();
                 var bytes = _reader.ReadBytes(length);
-                var escaped = DnsDatagramReader.ParseString(bytes, 0, length);
-                var utf = DnsDatagramReader.ReadUTF8String(bytes, 0, length);
+                var array = new ArraySegment<byte>(bytes.Array, bytes.Offset, length);
+                var escaped = DnsDatagramReader.ParseString(bytes);
+                var utf = DnsDatagramReader.ReadUTF8String(bytes);
                 values.Add(escaped);
                 utf8Values.Add(utf);
             }

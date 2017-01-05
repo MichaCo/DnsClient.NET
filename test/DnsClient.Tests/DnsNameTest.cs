@@ -420,13 +420,13 @@ namespace DnsClient.Tests
             Assert.Equal(expected, name.Value);
 
             var bytes = name.GetBytes();
-            var lastBytes = bytes.Skip(bytes.Count - 3).ToArray();
+            var lastBytes = bytes.Skip(bytes.Length - 3).ToArray();
             Assert.Equal(92, lastBytes[0]);
             Assert.Equal(92, lastBytes[1]);
             Assert.Equal(0, lastBytes[2]);
             int readBytes;
-            name = DnsName.FromBytes(bytes, out readBytes);
-            Assert.Equal(bytes.Count, readBytes);
+            name = DnsName.FromBytes(new ArraySegment<byte>(bytes), out readBytes);
+            Assert.Equal(bytes.Length, readBytes);
 
             Assert.Equal(expected, name.Value);
         }
@@ -466,7 +466,7 @@ namespace DnsClient.Tests
             var name = (DnsName)val;
             var bytes = name.GetBytes();
             int readBytes;
-            name = DnsName.FromBytes(bytes, out readBytes);
+            name = DnsName.FromBytes(new ArraySegment<byte>(bytes), out readBytes);
 
             var s = name.ToString();
             var utf8 = name.ToString(true);

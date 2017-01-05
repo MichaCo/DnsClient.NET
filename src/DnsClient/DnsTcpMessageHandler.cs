@@ -63,7 +63,7 @@ namespace DnsClient
                         }
                     }
 
-                    var response = GetResponseMessage(resultData);
+                    var response = GetResponseMessage(new ArraySegment<byte>(resultData, 0, bytesReceived));
 
                     if (request.Header.Id != response.Header.Id)
                     {

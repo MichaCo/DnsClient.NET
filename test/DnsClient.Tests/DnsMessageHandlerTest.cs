@@ -13,7 +13,7 @@ namespace DnsClient.Tests
             var header = new DnsResponseHeader(42, 256, 0, 1, 0, 0);
             var responseMessage = new DnsResponseMessage(header, 0);
 
-            var info = new ResourceRecordInfo("query", ResourceRecordType.A,  QueryClass.IN, 100, 4);
+            var info = new ResourceRecordInfo("query", ResourceRecordType.A, QueryClass.IN, 100, 4);
             var ip = IPAddress.Parse("123.45.67.9");
             var answer = new ARecord(info, ip);
             responseMessage.AddAnswer(answer);
@@ -24,7 +24,7 @@ namespace DnsClient.Tests
             var raw = GetResponseBytes(response, answerBytes);
 
             var handle = new DnsUdpMessageHandler(true);
-            var result = handle.GetResponseMessage(raw).AsQueryResponse(new NameServer(ip));
+            var result = handle.GetResponseMessage(new System.ArraySegment<byte>(raw)).AsQueryResponse(new NameServer(ip));
 
             Assert.Equal(result.Answers.Count, 1);
             var resultAnswer = result.Answers.OfType<ARecord>().First();
@@ -40,32 +40,34 @@ namespace DnsClient.Tests
 
         private static byte[] GetResponseBytes(DnsQueryResponse message, byte[] answerData)
         {
-            var writer = new DnsDatagramWriter(12);
-            writer.WriteUInt16NetworkOrder((ushort)message.Header.Id);
-            writer.WriteUInt16NetworkOrder((ushort)message.Header.HeaderFlags);
-            // lets iterate answers only, makse it easier
-            //writer.WriteUInt16Network((ushort)message.Header.QuestionCount);
-            writer.WriteUInt16NetworkOrder(0);
-            writer.WriteUInt16NetworkOrder(1);
-            //writer.WriteUInt16Network((ushort)message.Header.NameServerCount);
-            writer.WriteUInt16NetworkOrder(0);
-            //writer.WriteUInt16Network((ushort)message.Header.AdditionalCount);
-            writer.WriteUInt16NetworkOrder(0);
+            using (var writer = new DnsDatagramWriter())
+            {
+                writer.WriteUInt16NetworkOrder((ushort)message.Header.Id);
+                writer.WriteUInt16NetworkOrder((ushort)message.Header.HeaderFlags);
+                // lets iterate answers only, makse it easier
+                //writer.WriteUInt16Network((ushort)message.Header.QuestionCount);
+                writer.WriteUInt16NetworkOrder(0);
+                writer.WriteUInt16NetworkOrder(1);
+                //writer.WriteUInt16Network((ushort)message.Header.NameServerCount);
+                writer.WriteUInt16NetworkOrder(0);
+                //writer.WriteUInt16Network((ushort)message.Header.AdditionalCount);
+                writer.WriteUInt16NetworkOrder(0);
 
-            var answer = message.Answers.First();
-            var q = new DnsName(answer.DomainName).GetBytes();
-            writer.Extend(q.Count);    // the following query->length
-            writer.WriteBytes(q.ToArray(), q.Count);
-            writer.Extend(10);  // the following 4x ushort
-            writer.WriteUInt16NetworkOrder((ushort)answer.RecordType);
-            writer.WriteUInt16NetworkOrder((ushort)answer.RecordClass);
-            writer.WriteUInt32NetworkOrder((uint)answer.TimeToLive);
-            writer.WriteUInt16NetworkOrder((ushort)answerData.Length);
+                var answer = message.Answers.First();
+                var q = new DnsName(answer.DomainName).GetBytes();
+                //writer.Extend(q.Count);    // the following query->length
+                writer.WriteBytes(q.ToArray(), q.Length);
+                //writer.Extend(10);  // the following 4x ushort
+                writer.WriteUInt16NetworkOrder((ushort)answer.RecordType);
+                writer.WriteUInt16NetworkOrder((ushort)answer.RecordClass);
+                writer.WriteUInt32NetworkOrder((uint)answer.TimeToLive);
+                writer.WriteUInt16NetworkOrder((ushort)answerData.Length);
 
-            writer.Extend(answerData.Length);   // the following data->length
-            writer.WriteBytes(answerData, answerData.Length);
+                //writer.Extend(answerData.Length);   // the following data->length
+                writer.WriteBytes(answerData, answerData.Length);
 
-            return writer.Data;
+                return writer.Data;
+            }
         }
     }
 }
