@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Collections.Generic;
 using System.Net;
 using System.Text;
 
@@ -9,6 +9,7 @@ namespace DnsClient
     {
         public const int IPv6Length = 16;
         public const int IPv4Length = 4;
+        private const byte ReferenceByte = 0xc0;
 
         private readonly ArraySegment<byte> _data;
         private int _index;
@@ -114,7 +115,7 @@ namespace DnsClient
         {
             if (_data.Count < _index + 1)
             {
-                throw new IndexOutOfRangeException("Cannot read byte.");
+                throw new IndexOutOfRangeException($"Cannot read byte {_index + 1}, out of range.");
             }
             else
             {
@@ -134,6 +135,15 @@ namespace DnsClient
             return result;
         }
 
+        // needed for IPAddress ctor as it doesn't work with ArraySegment<>
+        private byte[] ReadByteArray(int length)
+        {
+            var result = new byte[length];
+            Buffer.BlockCopy(_data.Array, _data.Offset + Index, result, 0, length);
+            _index += length;
+            return result;
+        }
+
         /// <summary>
         /// Reads an IP address from the next 4 bytes.
         /// </summary>
@@ -146,7 +156,7 @@ namespace DnsClient
                 throw new IndexOutOfRangeException($"Reading IPv4 address, expected {IPv4Length} bytes.");
             }
 
-            return new IPAddress(ReadBytes(4).ToArray());
+            return new IPAddress(ReadByteArray(4));
         }
 
         public IPAddress ReadIPv6Address()
@@ -156,15 +166,75 @@ namespace DnsClient
                 throw new IndexOutOfRangeException($"Reading IPv6 address, expected {IPv6Length} bytes.");
             }
 
-            return new IPAddress(ReadBytes(IPv6Length).ToArray());
+            return new IPAddress(ReadByteArray(IPv6Length));
         }
 
-        public DnsName ReadName()
+        public DnsName ReadDnsName()
         {
             var bytesRead = 0;
             var name = DnsName.FromBytes(new ArraySegment<byte>(_data.Array, _data.Offset + _index, _data.Count - _index), out bytesRead);
             _index += bytesRead;
             return name;
+        }
+
+        public QueryName ReadQueryName()
+        {
+            var result = new StringBuilder();
+            foreach (var labelArray in ReadLabels())
+            {
+                var label = Encoding.UTF8.GetString(labelArray.Array, labelArray.Offset, labelArray.Count);
+                result.Append(label);
+                result.Append(".");
+            }
+
+            return new QueryName(result.ToString());
+        }
+
+        public ICollection<ArraySegment<byte>> ReadLabels()
+        {
+            var result = new List<ArraySegment<byte>>();
+
+            // read the length byte for the label, then get the content from offset+1 to length
+            // proceed till we reach zero length byte.
+            byte length;
+            while ((length = ReadByte()) != 0)
+            {
+                // respect the reference bit and lookup the name at the given position
+                // the reader will advance only for the 2 bytes read.
+                if ((length & ReferenceByte) != 0)
+                {
+                    int subIndex = (length & 0x3f) << 8 | ReadByte();
+                    if (subIndex >= _data.Array.Length - 1)
+                    {
+                        // invalid length pointer, seems to be actual length of a label which exceeds 63 chars...
+                        // get back one and continue other labels
+                        Index--;
+                        result.Add(_data.SubArray(Index, length));
+                        Index += length;
+                        continue;
+                    }
+
+                    var subReader = new DnsDatagramReader(_data.SubArray(subIndex));
+                    var newLabels = subReader.ReadLabels();
+                    result.AddRange(newLabels); // add range actually much faster than Concat and equal to or faster than foreach.. (array copy would work maybe)
+                    return result;
+                }
+
+                if (Index + length >= _data.Count)
+                {
+                    throw new IndexOutOfRangeException(
+                        $"Found invalid label position '{Index - 1}' with length '{length}' in the source data.");
+                }
+
+                var label = _data.SubArray(Index, length);
+
+                // maybe store orignial bytes in this instance too?
+                result.Add(label);
+
+                Index += length;
+            }
+
+            return result;
         }
 
         public ushort ReadUInt16()
@@ -186,13 +256,27 @@ namespace DnsClient
                 throw new IndexOutOfRangeException("Cannot read more data.");
             }
 
-            byte a = _data.ElementAt(_index++), b = _data.ElementAt(_index++);
+            byte a = _data.Array[_data.Offset + _index++];
+            byte b = _data.Array[_data.Offset + _index++];
             return (ushort)(a << 8 | b);
         }
 
         public uint ReadUInt32NetworkOrder()
         {
             return (uint)(ReadUInt16NetworkOrder() << 16 | ReadUInt16NetworkOrder());
+        }
+    }
+
+    internal static class ArraySegmentExtensions
+    {
+        public static ArraySegment<T> SubArray<T>(this ArraySegment<T> array, int startIndex, int length)
+        {
+            return new ArraySegment<T>(array.Array, array.Offset + startIndex, length);
+        }
+
+        public static ArraySegment<T> SubArray<T>(this ArraySegment<T> array, int startIndex)
+        {
+            return new ArraySegment<T>(array.Array, array.Offset + startIndex, array.Count - startIndex);
         }
     }
 }

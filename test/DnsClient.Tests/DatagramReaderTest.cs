@@ -87,7 +87,7 @@ namespace DnsClient.Tests
             var name = new DnsName(host);
             var reader = new DnsDatagramReader(new ArraySegment<byte>((name.GetBytes().ToArray())));
 
-            var result = reader.ReadName();
+            var result = reader.ReadDnsName();
 
             Assert.Equal(result.ToString(), name.ToString());
             Assert.Equal(reader.Index, name.Octets);

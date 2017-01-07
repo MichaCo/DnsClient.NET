@@ -86,6 +86,8 @@ namespace DigApp
             var execPerSec = _allExcecutions / _runtime;
             var avgExec = _allAvgExec / _runtime;
             Console.WriteLine($";; {execPerSec:N2} queries per second.");
+
+            Console.WriteLine($";;Log: arraysAllocated: {StaticLog.ByteArrayAllocations} arraysReleased: {StaticLog.ByteArrayReleases} queries: {StaticLog.SyncResolveQueryCount} queryTries: {StaticLog.SyncResolveQueryTries}");
             return 0;
         }
 
@@ -96,6 +98,7 @@ namespace DigApp
             {
                 waitCount++;
                 await Task.Delay(1000);
+
                 //long avgExec = _reportExcecutions / 1000;
                 //Interlocked.Add(ref _allAvgExec, avgExec);
                 _spinner.Message = $"Requests per sec: {_reportExcecutions:N2}.";

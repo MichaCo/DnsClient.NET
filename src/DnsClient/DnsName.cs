@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace DnsClient
 {
@@ -59,7 +60,7 @@ namespace DnsClient
             OriginalString = name;
             _labels = ValidateLabels(ParseInternal(name), out _octets);
         }
-        
+
         public string OriginalString { get; }
 
         public bool IsEmpty => Size == 0;
@@ -136,11 +137,11 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(other));
             }
 
-            var result = new List<DnsNameLabel>();
-            result.AddRange(_labels.Where(p => !p.IsRoot));
-            result.AddRange(other._labels);
+            var result = new DnsNameLabel[_labels.Length - 1 + other._labels.Length];
+            Array.Copy(_labels, 0, result, 0, _labels.Length - 1);
+            Array.Copy(other._labels, 0, result, _labels.Length - 1, other._labels.Length);
 
-            return new DnsName(result.ToArray());
+            return new DnsName(result);
         }
 
         public override string ToString() => ToString(false);
@@ -169,7 +170,7 @@ namespace DnsClient
         {
             return new DnsName(name);
         }
-        
+
         private static ICollection<DnsNameLabel> ParseInternal(string name)
         {
             if (name == null)
@@ -410,7 +411,7 @@ namespace DnsClient
             return new byte[] { (byte)(a + 48), (byte)(b + 48), (byte)(c + 48) };
         }
 
-                //TODO: private optimize? don't allocate?
+        //TODO: private optimize? don't allocate?
         internal void WriteBytes(DnsDatagramWriter writer)
         {
             //var bytes = new byte[_octets];
@@ -434,7 +435,7 @@ namespace DnsClient
                 //bytes[offset++] = len;
 
                 // set the label's content
-                writer.WriteBytes(label.GetBytes(), len);
+                writer.WriteBytes((byte[])label.GetBytes(), len);
                 //Array.ConstrainedCopy(label.GetBytes(), 0, bytes, offset, len);
 
                 //offset += len;
@@ -529,16 +530,24 @@ namespace DnsClient
 
         internal class DnsNameLabel
         {
+            private const byte Dash = 45;
+            private const byte a = 97;
+            private const byte z = 122;
+            private const byte A = 65;
+            private const byte Z = 90;
+            private const byte Zero = 48;
+            private const byte Nine = 57;
             public static readonly DnsNameLabel Root = new DnsNameLabel(new byte[0], new byte[0]);
 
-            private readonly byte[] _escapedBytes;
-            private readonly byte[] _unescapedBytes;
+            private readonly ICollection<byte> _escapedBytes;
+            private readonly ICollection<byte> _unescapedBytes;
             private string _toString = null;
             private string _toStringUnescaped = null;
+            public static long CallsToString = 0;
 
-            public DnsNameLabel(byte[] escapedBytes, byte[] unescapedBytes)
+            public DnsNameLabel(ICollection<byte> escapedBytes, ICollection<byte> unescapedBytes)
             {
-                OctetLength = escapedBytes.Length;
+                OctetLength = escapedBytes.Count;
                 _escapedBytes = escapedBytes;
                 _unescapedBytes = unescapedBytes;
                 IsRoot = OctetLength == 0;
@@ -561,7 +570,7 @@ namespace DnsClient
 
             public bool IsRoot { get; }
 
-            public byte[] GetBytes()
+            public ICollection<byte> GetBytes()
             {
                 return _escapedBytes;
             }
@@ -570,7 +579,7 @@ namespace DnsClient
             {
                 if (_toStringUnescaped == null)
                 {
-                    _toStringUnescaped = Encoding.UTF8.GetString(_unescapedBytes, 0, _unescapedBytes.Length);
+                    _toStringUnescaped = Encoding.UTF8.GetString(_unescapedBytes.ToArray(), 0, _unescapedBytes.Count);
                 }
 
                 return _toStringUnescaped;
@@ -580,16 +589,42 @@ namespace DnsClient
             {
                 if (_toString == null)
                 {
-                    _toString = Encoding.ASCII.GetString(_escapedBytes, 0, _escapedBytes.Length);
+                    Interlocked.Increment(ref CallsToString);
+                    _toString = Encoding.ASCII.GetString(_escapedBytes.ToArray(), 0, _escapedBytes.Count);
                 }
 
                 return _toString;
+            }
+
+            public bool IsHostNameLabel()
+            {
+                if (IsRoot) return true;
+                var bytes = (byte[])_escapedBytes;
+                for (int i = 0; i < bytes.Length; i++)
+                {
+                    byte b = bytes[i];
+                    if (!IsHostNameByte(b))
+                    {
+                        return false;
+                    }
+                }
+
+                return bytes[0] != Dash && bytes[bytes.Length - 1] != Dash;
+            }
+
+            public static bool IsHostNameByte(byte b)
+            {
+                return (b == Dash ||
+                        b >= a && b <= z ||
+                        b >= A && b <= Z ||
+                        b >= Zero && b <= Nine);
             }
         }
     }
 
     internal static class DnsNameExtentions
     {
+
         public static bool IsDigit(this char c)
         {
             return (c >= '0' && c <= '9');
@@ -598,30 +633,6 @@ namespace DnsClient
         public static bool IsDigit(this byte c)
         {
             return (c >= 48 && c <= 57);
-        }
-
-        public static bool IsHostNameChar(this char c)
-        {
-            return (c == '-' ||
-                    c >= 'a' && c <= 'z' ||
-                    c >= 'A' && c <= 'Z' ||
-                    c >= '0' && c <= '9');
-        }
-
-        public static bool IsHostNameLabel(this DnsName.DnsNameLabel label)
-        {
-            if (label.IsRoot) return true;
-            var str = label.ToString();
-            for (int i = 0; i < str.Length; i++)
-            {
-                char c = str.ElementAt(i);
-                if (!c.IsHostNameChar())
-                {
-                    return false;
-                }
-            }
-
-            return !(str.StartsWith("-") || str.EndsWith("-"));
         }
     }
 }

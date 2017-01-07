@@ -31,7 +31,7 @@ namespace DnsClient
 
         public int MessageSize { get; }
 
-        public IList<DnsQuestion> Qestions { get; } = new List<DnsQuestion>();
+        public IList<DnsQuestion> Questions { get; } = new List<DnsQuestion>();
 
         public void AddAdditional(DnsResourceRecord record)
         {
@@ -70,13 +70,13 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(question));
             }
 
-            Qestions.Add(question);
+            Questions.Add(question);
         }
 
         /// <summary>
         /// Gets the readonly representation of this message which can be returned.
         /// </summary>
         public DnsQueryResponse AsQueryResponse(NameServer nameServer)
-            => new DnsQueryResponse(Header, MessageSize, Qestions.ToArray(), Answers.ToArray(), Additionals.ToArray(), Authorities.ToArray(), nameServer);
+            => new DnsQueryResponse(this, nameServer);
     }
 }

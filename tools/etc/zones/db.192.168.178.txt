@@ -2,7 +2,7 @@ $TTL 100
 $ORIGIN		mcnet.com.
 
 @       IN      SOA     ns1.mcnet.com. hostmaster.mcnet.com. (
-			2017010100  ; Serial
+			2017010600  ; Serial
              604800     ; Refresh
               86400     ; Retry
             2419200     ; Expire
@@ -46,7 +46,7 @@ mail		IN		A		192.168.178.1
 @			IN		TXT		"some long text with some stuff in it {lala:blub}"
 @			IN		TXT		(some text "separated by" space
 										with new line stuff too)
-@			IN		TXT		more "(text with)" "\"special\" öäÜ!""§$%\\/" @stuff \;and ";fake commend"
+@			IN		TXT		more "(text with)" "\"special\" öäÜ!""§$%\\/" @stuff \;and ";fake comment"
 @			IN		MX		10 mail.micha.mcnet.com.
 @			IN		MX		10 mail.mcnet.com.
 @			IN		MB		srv.mcnet.com.

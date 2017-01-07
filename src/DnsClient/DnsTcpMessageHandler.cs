@@ -15,6 +15,11 @@ namespace DnsClient
             return false;
         }
 
+        public override DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request)
+        {
+            throw new NotImplementedException();
+        }
+
         public override async Task<DnsResponseMessage> QueryAsync(
             IPEndPoint server,
             DnsRequestMessage request,

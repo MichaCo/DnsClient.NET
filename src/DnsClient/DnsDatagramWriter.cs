@@ -8,7 +8,9 @@ namespace DnsClient
     internal class DnsDatagramWriter : IDisposable
     {
         // queries can only be 255 octets + some header bytes, so that size is pretty safe...
-        private const int MaxBufferSize = 4096;
+        private const int MaxBufferSize = 1024;
+
+        private const byte DotByte = 46;
 
         private readonly PooledBytes _pooledBytes;
 
@@ -18,11 +20,6 @@ namespace DnsClient
         {
             get
             {
-                if (Index >= MaxBufferSize)
-                {
-                    throw new NotSupportedException("Buffer size exceeded.");
-                }
-
                 return new ArraySegment<byte>(_buffer.Array, 0, Index).ToArray();
             }
         }
@@ -32,69 +29,63 @@ namespace DnsClient
         public DnsDatagramWriter()
         {
             _pooledBytes = new PooledBytes(MaxBufferSize);
-            _buffer = new ArraySegment<byte>(_pooledBytes.Buffer, 0, 4096);
+            _buffer = new ArraySegment<byte>(_pooledBytes.Buffer, 0, MaxBufferSize);
         }
-        
+
+        public void WriteHostName(string queryName)
+        {
+            var bytes = Encoding.UTF8.GetBytes(queryName);
+            int lastOctet = 0;
+            var index = 0;
+            if (bytes.Length <= 1)
+            {
+                WriteByte(0);
+                return;
+            }
+            foreach (var b in bytes)
+            {
+                if (b == DotByte)
+                {
+                    WriteByte((byte)(index - lastOctet)); // length
+                    WriteBytes(bytes, lastOctet, index - lastOctet);
+                    lastOctet = index + 1;
+                }
+
+                index++;
+            }
+
+            WriteByte(0);
+        }
+
         public void WriteByte(byte b)
         {
             _buffer.Array[_buffer.Offset + Index++] = b;
         }
 
-        public void WriteBytes(byte[] data, int length) => SetBytes(data, 0, Index, length);
+        public void WriteBytes(byte[] data, int length) => WriteBytes(data, 0, length);
 
-        public void WriteQueryName(string queryName)
+        public void WriteBytes(byte[] data, int dataOffset, int length)
         {
-            _buffer.Array[_buffer.Offset + Index++] = (byte)queryName.Length;
-            Encoding.ASCII.GetBytes(queryName, 0, queryName.Length, _buffer.Array, _buffer.Offset + Index);
-            Index += queryName.Length;
-            _buffer.Array[_buffer.Offset + Index++] = 0;
+            Buffer.BlockCopy(data, dataOffset, _buffer.Array, _buffer.Offset + Index, length);
+
+            Index += length;
         }
 
-        public void WriteInt32NetworkOrder(int value) => SetInt32Network(value, Index);
-
-        public void WriteInt16NetworkOrder(short value) => SetInt16Network(value, Index);
-
-        public void WriteUInt32NetworkOrder(uint value)
-        {
-            var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder((int)value));
-            SetBytes(bytes, Index, bytes.Length);
-        }
-
-        public void WriteUInt16NetworkOrder(ushort value) => SetInt16Network((short)value, Index);
-
-        private void SetBytes(byte[] data, int destOffset, int length)
-        {
-            SetBytes(data, 0, destOffset, length);
-        }
-
-        private void SetBytes(byte[] data, int dataOffset, int destOffset, int length)
-        {
-            if (length + dataOffset > data.Length || length + dataOffset > _buffer.Count)
-            {
-                throw new ArgumentOutOfRangeException(nameof(length));
-            }
-            //if (destOffset + dataOffset + length > _buffer.Count)
-            //{
-            //    throw new ArgumentOutOfRangeException(nameof(destOffset));
-            //}
-
-            //Array.ConstrainedCopy(data, dataOffset, _buffer, destOffset, length);
-
-            Buffer.BlockCopy(data, dataOffset, _buffer.Array, _buffer.Offset + destOffset, length);
-            Index = destOffset + length;
-        }
-
-        private void SetInt16Network(short value, int offset)
+        public void WriteInt16NetworkOrder(short value)
         {
             var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(value));
-            SetBytes(bytes, offset, bytes.Length);
+            WriteBytes(bytes, bytes.Length);
         }
 
-        private void SetInt32Network(int value, int offset)
+        public void WriteInt32NetworkOrder(int value)
         {
             var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(value));
-            SetBytes(bytes, offset, bytes.Length);
+            WriteBytes(bytes, bytes.Length);
         }
+
+        public void WriteUInt16NetworkOrder(ushort value) => WriteInt16NetworkOrder((short)value);
+
+        public void WriteUInt32NetworkOrder(uint value) => WriteInt32NetworkOrder((int)value);
 
         protected virtual void Dispose(bool disposing)
         {

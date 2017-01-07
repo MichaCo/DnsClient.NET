@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace DnsClient
         private readonly object _endpointLock = new object();
         private readonly DnsMessageHandler _messageHandler;
         private readonly DnsMessageHandler _tcpFallbackHandler;
-        private readonly Queue<NameServer> _endpoints;
+        private readonly ConcurrentQueue<NameServer> _endpoints;
         private readonly Random _random = new Random();
         private TimeSpan _timeout = s_defaultTimeout;
 
@@ -137,7 +138,7 @@ namespace DnsClient
             // TODO validate ip endpoints
 
             NameServers = nameServers.Select(p => new NameServer(p)).ToArray();
-            _endpoints = new Queue<NameServer>(NameServers);
+            _endpoints = new ConcurrentQueue<NameServer>(NameServers);
             _messageHandler = new DnsUdpMessageHandler(true);
             _tcpFallbackHandler = new DnsTcpMessageHandler();
         }
@@ -185,19 +186,13 @@ namespace DnsClient
             return QueryAsync(arpa, QueryType.PTR, QueryClass.IN, cancellationToken);
         }
 
-        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType)
-            => QueryAsync(query, queryType, CancellationToken.None);
+        public DnsQueryResponse Query(string query, QueryType queryType)
+            => Query(query, queryType, QueryClass.IN);
 
-        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken)
-            => QueryAsync(query, queryType, QueryClass.IN, cancellationToken);
+        public DnsQueryResponse Query(string query, QueryType queryType, QueryClass queryClass)
+            => Query(new DnsQuestion(query, queryType, queryClass));
 
-        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass)
-            => QueryAsync(query, queryType, queryClass, CancellationToken.None);
-
-        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
-            => QueryAsync(new DnsQuestion(query, queryType, queryClass), cancellationToken);
-
-        private Task<DnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)
+        private DnsQueryResponse Query(DnsQuestion question)
         {
             if (question == null)
             {
@@ -206,15 +201,27 @@ namespace DnsClient
 
             var head = new DnsRequestHeader(GetNextUniqueId(), Recursion, DnsOpCode.Query);
             var request = new DnsRequestMessage(head, question);
-            var cacheKey = ResponseCache.GetCacheKey(question);
-
             var handler = UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
-            return _cache.GetOrAdd(
-                    cacheKey,
-                    () => ResolveQueryAsync(handler, request, cancellationToken));
+
+            if (_cache.Enabled)
+            {
+                var cacheKey = ResponseCache.GetCacheKey(question);
+                var item = _cache.Get(cacheKey);
+                if (item == null)
+                {
+                    item = ResolveQuery(handler, request);
+                    _cache.Add(cacheKey, item);
+                }
+
+                return item;
+            }
+            else
+            {
+                return ResolveQuery(handler, request);
+            }
         }
 
-        private async Task<DnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, CancellationToken cancellationToken, Audit continueAudit = null)
+        private DnsQueryResponse ResolveQuery(DnsMessageHandler handler, DnsRequestMessage request, Audit continueAudit = null)
         {
             if (request == null)
             {
@@ -222,34 +229,31 @@ namespace DnsClient
             }
 
             var audit = continueAudit ?? new Audit();
-            NameServer[] servers = GetNextServers();
+            var servers = GetNextServers();
 
             foreach (var serverInfo in servers)
             {
                 var tries = 0;
-                do /*(int index = 0; index < NameServers.Where(p => p.Enabled).Count(); index++)*/
+                do
                 {
                     tries++;
 
                     try
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
-
                         if (EnableAuditTrail)
                         {
                             audit.StartTimer();
                         }
 
-                        DnsResponseMessage response;
-                        var resultTask = handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
-                        if (Timeout != s_infiniteTimeout)
-                        {
-                            response = await resultTask.TimeoutAfter(Timeout, cancellationToken).ConfigureAwait(false);
-                        }
-                        else
-                        {
-                            response = await resultTask.TimeoutAfter(TimeSpan.MaxValue, cancellationToken).ConfigureAwait(false);
-                        }
+                        DnsResponseMessage response = handler.Query(serverInfo.Endpoint, request);
+                        //if (Timeout != s_infiniteTimeout)
+                        //{
+                        //    response = await resultTask.TimeoutAfter(Timeout, cancellationToken).ConfigureAwait(false);
+                        //}
+                        //else
+                        //{
+                        //    response = await resultTask.TimeoutAfter(TimeSpan.MaxValue, cancellationToken).ConfigureAwait(false);
+                        //}
 
                         if (response.Header.ResultTruncated && UseTcpFallback && !handler.GetType().Equals(typeof(DnsTcpMessageHandler)))
                         {
@@ -258,12 +262,12 @@ namespace DnsClient
                                 audit.AuditTruncatedRetryTcp();
                             }
 
-                            return await ResolveQueryAsync(_tcpFallbackHandler, request, cancellationToken, audit).ConfigureAwait(false);
+                            return ResolveQuery(_tcpFallbackHandler, request, audit);
                         }
 
                         if (EnableAuditTrail)
                         {
-                            audit.AuditResolveServers(servers.Length);
+                            audit.AuditResolveServers(_endpoints.Count);
                             audit.AuditResponseHeader(response.Header);
                         }
 
@@ -291,6 +295,165 @@ namespace DnsClient
                             queryResponse.AuditTrail = audit.Build();
                         }
 
+                        Interlocked.Increment(ref StaticLog.SyncResolveQueryCount);
+                        Interlocked.Add(ref StaticLog.SyncResolveQueryTries, tries);
+                        return queryResponse;
+                    }
+                    catch (DnsResponseException ex)
+                    {
+                        audit.AuditException(ex);
+                        ex.AuditTrail = audit.Build();
+                        throw;
+                    }
+                    catch (SocketException ex) when (ex.SocketErrorCode == SocketError.AddressFamilyNotSupported)
+                    {
+                        // this socket error might indicate the server endpoint is actually bad and should be ignored in future queries.
+                        DisableServer(serverInfo);
+                        break;
+                    }
+                    catch (Exception ex) when (ex is TimeoutException || handler.IsTransientException(ex))
+                    {
+                        DisableServer(serverInfo);
+                    }
+                    catch (Exception ex)
+                    {
+                        DisableServer(serverInfo);
+
+                        audit.AuditException(ex);
+
+                        throw new DnsResponseException("Unhandled exception", ex)
+                        {
+                            AuditTrail = audit.Build()
+                        };
+                    }
+                } while (tries <= Retries && serverInfo.Enabled);
+            }
+            throw new DnsResponseException($"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.")
+            {
+                AuditTrail = audit.Build()
+            };
+        }
+
+        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType)
+            => QueryAsync(query, queryType, CancellationToken.None);
+
+        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken)
+            => QueryAsync(query, queryType, QueryClass.IN, cancellationToken);
+
+        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass)
+            => QueryAsync(query, queryType, queryClass, CancellationToken.None);
+
+        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
+            => QueryAsync(new DnsQuestion(query, queryType, queryClass), cancellationToken);
+
+        private async Task<DnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)
+        {
+            if (question == null)
+            {
+                throw new ArgumentNullException(nameof(question));
+            }
+
+            var head = new DnsRequestHeader(GetNextUniqueId(), Recursion, DnsOpCode.Query);
+            var request = new DnsRequestMessage(head, question);
+            var handler = UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
+
+            if (_cache.Enabled)
+            {
+                var cacheKey = ResponseCache.GetCacheKey(question);
+                var item = _cache.Get(cacheKey);
+                if (item == null)
+                {
+                    item = await ResolveQueryAsync(handler, request, cancellationToken);
+                    _cache.Add(cacheKey, item);
+                }
+
+                return item;
+            }
+            else
+            {
+                return await ResolveQueryAsync(handler, request, cancellationToken);
+            }
+        }
+
+        private async Task<DnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, CancellationToken cancellationToken, Audit continueAudit = null)
+        {
+            if (request == null)
+            {
+                throw new ArgumentNullException(nameof(request));
+            }
+
+            var audit = continueAudit ?? new Audit();
+            var servers = GetNextServers();
+
+            foreach (var serverInfo in servers)
+            {
+                var tries = 0;
+                do
+                {
+                    tries++;
+
+                    try
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+
+                        if (EnableAuditTrail)
+                        {
+                            audit.StartTimer();
+                        }
+
+                        DnsResponseMessage response = await handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
+                        // todo: fix this task shit
+                        //if (Timeout != s_infiniteTimeout)
+                        //{
+                        //    response = await resultTask.TimeoutAfter(Timeout, cancellationToken).ConfigureAwait(false);
+                        //}
+                        //else
+                        //{
+                        //    response = await resultTask.TimeoutAfter(TimeSpan.MaxValue, cancellationToken).ConfigureAwait(false);
+                        //}
+
+                        if (response.Header.ResultTruncated && UseTcpFallback && !handler.GetType().Equals(typeof(DnsTcpMessageHandler)))
+                        {
+                            if (EnableAuditTrail)
+                            {
+                                audit.AuditTruncatedRetryTcp();
+                            }
+
+                            return await ResolveQueryAsync(_tcpFallbackHandler, request, cancellationToken, audit).ConfigureAwait(false);
+                        }
+
+                        if (EnableAuditTrail)
+                        {
+                            audit.AuditResolveServers(_endpoints.Count);
+                            audit.AuditResponseHeader(response.Header);
+                        }
+
+                        if (response.Header.ResponseCode != DnsResponseCode.NoError)
+                        {
+                            if (EnableAuditTrail)
+                            {
+                                audit.AuditResponseError(response.Header.ResponseCode);
+                            }
+
+                            if (ThrowDnsErrors)
+                            {
+                                throw new DnsResponseException(response.Header.ResponseCode);
+                            }
+                        }
+
+                        HandleOptRecords(audit, serverInfo, response);
+
+                        DnsQueryResponse queryResponse = response.AsQueryResponse(serverInfo.Clone());
+
+                        if (EnableAuditTrail)
+                        {
+                            audit.AuditResponse(queryResponse);
+                            audit.AuditEnd(queryResponse);
+                            queryResponse.AuditTrail = audit.Build();
+                        }
+
+                        Interlocked.Increment(ref StaticLog.SyncResolveQueryCount);
+                        Interlocked.Add(ref StaticLog.SyncResolveQueryTries, tries);
                         return queryResponse;
                     }
                     catch (DnsResponseException ex)
@@ -374,22 +537,22 @@ namespace DnsClient
             }
         }
 
-        private NameServer[] GetNextServers()
+        private IEnumerable<NameServer> GetNextServers()
         {
-            NameServer[] servers = null;
-            lock (_endpointLock)
+            IEnumerable<NameServer> servers = null;
+            if (_endpoints.Count > 1)
             {
-                if (_endpoints.Count > 1)
-                {
-                    servers = _endpoints.Where(p => p.Enabled).ToArray();
+                servers = _endpoints.Where(p => p.Enabled);
 
-                    var server = _endpoints.Dequeue();
+                NameServer server = null;
+                if (_endpoints.TryDequeue(out server))
+                {
                     _endpoints.Enqueue(server);
                 }
-                else
-                {
-                    servers = _endpoints.ToArray();
-                }
+            }
+            else
+            {
+                servers = _endpoints;
             }
 
             return servers;
@@ -427,11 +590,11 @@ namespace DnsClient
 
             public Audit()
             {
-                _swatch = Stopwatch.StartNew();
             }
 
             public void StartTimer()
             {
+                _swatch = Stopwatch.StartNew();
                 _swatch.Restart();
             }
 

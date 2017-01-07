@@ -44,7 +44,7 @@ namespace DnsClient
         public ResourceRecordInfo ReadRecordInfo()
         {
             return new ResourceRecordInfo(
-                _reader.ReadName(),                                     // name
+                _reader.ReadQueryName(),                                // name
                 (ResourceRecordType)_reader.ReadUInt16NetworkOrder(),   // type
                 (QueryClass)_reader.ReadUInt16NetworkOrder(),           // class
                 (int)_reader.ReadUInt32NetworkOrder(),                  // ttl - 32bit!!
@@ -68,11 +68,11 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.NS:
-                    result = new NsRecord(info, _reader.ReadName());
+                    result = new NsRecord(info, _reader.ReadDnsName());
                     break;
 
                 case ResourceRecordType.CNAME:
-                    result = new CNameRecord(info, _reader.ReadName());
+                    result = new CNameRecord(info, _reader.ReadDnsName());
                     break;
 
                 case ResourceRecordType.SOA:
@@ -80,15 +80,15 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.MB:
-                    result = new MbRecord(info, _reader.ReadName());
+                    result = new MbRecord(info, _reader.ReadDnsName());
                     break;
 
                 case ResourceRecordType.MG:
-                    result = new MgRecord(info, _reader.ReadName());
+                    result = new MgRecord(info, _reader.ReadDnsName());
                     break;
 
                 case ResourceRecordType.MR:
-                    result = new MrRecord(info, _reader.ReadName());
+                    result = new MrRecord(info, _reader.ReadDnsName());
                     break;
 
                 case ResourceRecordType.NULL:
@@ -100,7 +100,7 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.PTR:
-                    result = new PtrRecord(info, _reader.ReadName());
+                    result = new PtrRecord(info, _reader.ReadDnsName());
                     break;
 
                 case ResourceRecordType.HINFO:
@@ -108,7 +108,7 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.MINFO:
-                    result = new MInfoRecord(info, _reader.ReadName(), _reader.ReadName());
+                    result = new MInfoRecord(info, _reader.ReadDnsName(), _reader.ReadDnsName());
                     break;
 
                 case ResourceRecordType.MX:
@@ -120,11 +120,11 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.RP:
-                    result = new RpRecord(info, _reader.ReadName(), _reader.ReadName());
+                    result = new RpRecord(info, _reader.ReadDnsName(), _reader.ReadDnsName());
                     break;
 
                 case ResourceRecordType.AFSDB:
-                    result = new AfsDbRecord(info, (AfsType)_reader.ReadUInt16NetworkOrder(), _reader.ReadName());
+                    result = new AfsDbRecord(info, (AfsType)_reader.ReadUInt16NetworkOrder(), _reader.ReadDnsName());
                     break;
 
                 case ResourceRecordType.AAAA:
@@ -176,15 +176,15 @@ namespace DnsClient
         private DnsResourceRecord ResolveMXRecord(ResourceRecordInfo info)
         {
             var preference = _reader.ReadUInt16NetworkOrder();
-            var domain = _reader.ReadName();
+            var domain = _reader.ReadDnsName();
 
             return new MxRecord(info, preference, domain);
         }
 
         private DnsResourceRecord ResolveSoaRecord(ResourceRecordInfo info)
         {
-            var mName = _reader.ReadName();
-            var rName = _reader.ReadName();
+            var mName = _reader.ReadDnsName();
+            var rName = _reader.ReadDnsName();
             var serial = _reader.ReadUInt32NetworkOrder();
             var refresh = _reader.ReadUInt32NetworkOrder();
             var retry = _reader.ReadUInt32NetworkOrder();
@@ -199,7 +199,7 @@ namespace DnsClient
             var priority = _reader.ReadUInt16NetworkOrder();
             var weight = _reader.ReadUInt16NetworkOrder();
             var port = _reader.ReadUInt16NetworkOrder();
-            var target = _reader.ReadName();
+            var target = _reader.ReadDnsName();
 
             return new SrvRecord(info, priority, weight, port, target);
         }

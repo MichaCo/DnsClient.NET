@@ -4,37 +4,24 @@ namespace DnsClient
 {
     public class DnsQuestion
     {
-        public DnsName QueryName { get; }
+        public QueryName QueryName { get; }
 
         public QueryClass QuestionClass { get; }
 
         public QueryType QuestionType { get; }
 
         public DnsQuestion(string queryName, QueryType questionType, QueryClass questionClass)
-            : this(new DnsName(queryName), questionType, questionClass)
+            : this(new QueryName(queryName), questionType, questionClass)
         {
         }
 
-        public DnsQuestion(DnsName queryName, QueryType questionType, QueryClass questionClass)
+        public DnsQuestion(QueryName queryName, QueryType questionType, QueryClass questionClass)
         {
             if (queryName == null)
             {
                 throw new ArgumentNullException(nameof(queryName));
             }
-
-            if (!queryName.IsHostName)
-            {
-                DnsName original = queryName;
-                try
-                {
-                    queryName = DnsName.ParsePuny(queryName.ValueUTF8);
-                }
-                catch
-                {
-                    throw new ArgumentException($"'{original.OriginalString}' is not a valid hostname or puny address.", nameof(queryName));
-                }
-            }
-
+            
             QueryName = queryName;
             QuestionType = questionType;
             QuestionClass = questionClass;

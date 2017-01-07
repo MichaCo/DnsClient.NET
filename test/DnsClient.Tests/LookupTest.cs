@@ -240,5 +240,15 @@ namespace DnsClient.Tests
 
             Assert.ThrowsAny<ArgumentException>(act);
         }
+
+        [Fact]
+        public async Task Lookup_Query_TooLong()
+        {
+            var client = new LookupClient();
+            var longName = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+            var result = await client.QueryAsync(longName, QueryType.ANY);
+
+            Assert.Equal(longName + ".", result.Questions.First().QueryName);
+        }
     }
 }

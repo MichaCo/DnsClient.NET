@@ -17,7 +17,7 @@ namespace DnsClient
         /// <summary>
         /// Gets a list of additional records.
         /// </summary>
-        public IReadOnlyCollection<DnsResourceRecord> Additionals { get; }
+        public ICollection<DnsResourceRecord> Additionals { get; }
 
         /// <summary>
         /// Gets a list of all answers, addtional and authority records.
@@ -35,12 +35,12 @@ namespace DnsClient
         /// <summary>
         /// Gets a list of answer records.
         /// </summary>
-        public IReadOnlyCollection<DnsResourceRecord> Answers { get; }
+        public ICollection<DnsResourceRecord> Answers { get; }
 
         /// <summary>
         /// Gets a list of authority records.
         /// </summary>
-        public IReadOnlyCollection<DnsResourceRecord> Authorities { get; }
+        public ICollection<DnsResourceRecord> Authorities { get; }
 
         /// <summary>
         /// Returns a string value representing the error response code in case an error occured, otherwise 'No Error'.
@@ -60,36 +60,19 @@ namespace DnsClient
         /// <summary>
         /// Gets the list of questions.
         /// </summary>
-        public IReadOnlyCollection<DnsQuestion> Questions { get; }
+        public ICollection<DnsQuestion> Questions { get; }
 
         public int MessageSize { get; }
 
-        /// <summary>
-        /// Creates a new instace of <see cref="DnsQueryResponse"/>.
-        /// </summary>
-        /// <see cref="DnsResponseMessage"/>
-        public DnsQueryResponse(
-            DnsResponseHeader header,
-            int messageSize,
-            IReadOnlyCollection<DnsQuestion> questions,
-            IReadOnlyCollection<DnsResourceRecord> answers,
-            IReadOnlyCollection<DnsResourceRecord> additionals,
-            IReadOnlyCollection<DnsResourceRecord> authorities,
-            NameServer nameServer)
+        internal DnsQueryResponse(DnsResponseMessage dnsResponseMessage, NameServer nameServer)
         {
-            if (header == null) throw new ArgumentNullException(nameof(header));
-            if (questions == null) throw new ArgumentNullException(nameof(questions));
-            if (answers == null) throw new ArgumentNullException(nameof(answers));
-            if (additionals == null) throw new ArgumentNullException(nameof(additionals));
-            if (authorities == null) throw new ArgumentNullException(nameof(authorities));
-            if (nameServer == null) throw new ArgumentNullException(nameof(nameServer));
-
-            Header = header;
-            MessageSize = messageSize;
-            Questions = questions;
-            Answers = answers;
-            Additionals = additionals;
-            Authorities = authorities;
+            if (dnsResponseMessage == null) throw new ArgumentNullException(nameof(dnsResponseMessage));
+            Header = dnsResponseMessage.Header;
+            MessageSize = dnsResponseMessage.MessageSize;
+            Questions = dnsResponseMessage.Questions;
+            Answers = dnsResponseMessage.Answers;
+            Additionals = dnsResponseMessage.Additionals;
+            Authorities = dnsResponseMessage.Authorities;
             NameServer = nameServer;
         }
 

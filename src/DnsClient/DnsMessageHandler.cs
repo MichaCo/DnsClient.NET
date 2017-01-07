@@ -8,6 +8,8 @@ namespace DnsClient
 {
     internal abstract class DnsMessageHandler
     {
+        public abstract DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request);
+
         public abstract Task<DnsResponseMessage> QueryAsync(IPEndPoint server, DnsRequestMessage request, CancellationToken cancellationToken);
 
         public abstract bool IsTransientException<T>(T exception) where T : Exception;
@@ -43,7 +45,7 @@ namespace DnsClient
                 writer.WriteInt16NetworkOrder(0);
                 writer.WriteInt16NetworkOrder(1); // one additional for the Opt record.
 
-                question.QueryName.WriteBytes(writer);
+                writer.WriteHostName(question.QueryName);
                 //writer.WriteBytes(questionData.Array, questionData.Count);
                 writer.WriteUInt16NetworkOrder((ushort)question.QuestionType);
                 writer.WriteUInt16NetworkOrder((ushort)question.QuestionClass);
@@ -62,7 +64,7 @@ namespace DnsClient
                  * */
                 var opt = new OptRecord();
                 //var nameBytes = opt.DomainName.GetBytes();
-                opt.DomainName.WriteBytes(writer);
+                writer.WriteHostName("");
                 //writer.WriteBytes(nameBytes.Array, nameBytes.Count);
                 writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
                 writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
@@ -92,7 +94,7 @@ namespace DnsClient
 
             for (int questionIndex = 0; questionIndex < questionCount; questionIndex++)
             {
-                var question = new DnsQuestion(reader.ReadName(), (QueryType)reader.ReadUInt16NetworkOrder(), (QueryClass)reader.ReadUInt16NetworkOrder());
+                var question = new DnsQuestion(reader.ReadQueryName(), (QueryType)reader.ReadUInt16NetworkOrder(), (QueryClass)reader.ReadUInt16NetworkOrder());
                 response.AddQuestion(question);
             }
 
