@@ -401,16 +401,21 @@ namespace DnsClient
                             audit.StartTimer();
                         }
 
-                        DnsResponseMessage response = await handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
-                        // todo: fix this task shit
-                        //if (Timeout != s_infiniteTimeout)
-                        //{
-                        //    response = await resultTask.TimeoutAfter(Timeout, cancellationToken).ConfigureAwait(false);
-                        //}
-                        //else
-                        //{
-                        //    response = await resultTask.TimeoutAfter(TimeSpan.MaxValue, cancellationToken).ConfigureAwait(false);
-                        //}
+                        DnsResponseMessage response;
+                        var resultTask = handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
+                        //todo: fix this task shit
+                        if (Timeout != s_infiniteTimeout)
+                        {
+                            using (var cts = new CancellationTokenSource(Timeout))
+                            //using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken))
+                            {
+                                response = await resultTask.WithCancellation(cts.Token);
+                            }
+                        }
+                        else
+                        {
+                            response = await resultTask;
+                        }
 
                         if (response.Header.ResultTruncated && UseTcpFallback && !handler.GetType().Equals(typeof(DnsTcpMessageHandler)))
                         {
