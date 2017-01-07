@@ -52,7 +52,7 @@
   <ItemGroup>
     <Reference Include="DnsClient, Version=1.0.2.0, Culture=neutral, PublicKeyToken=4574bb5573c51424, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\src\DnsClient\bin\Debug\net45\DnsClient.dll</HintPath>
+      <HintPath>..\..\src\DnsClient\bin\Release\net45\DnsClient.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />

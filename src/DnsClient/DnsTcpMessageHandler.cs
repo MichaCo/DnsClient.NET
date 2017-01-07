@@ -17,7 +17,7 @@ namespace DnsClient
 
         public override DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request)
         {
-            throw new NotImplementedException();
+            return QueryAsync(endpoint, request, CancellationToken.None).Result;
         }
 
         public override async Task<DnsResponseMessage> QueryAsync(
@@ -32,21 +32,23 @@ namespace DnsClient
                 await client.ConnectAsync(server.Address, server.Port).ConfigureAwait(false);
                 using (var stream = client.GetStream())
                 {
-                    var data = GetRequestData(request);
-                    int dataLength = data.Length;
+                    // use a pooled buffer to writer the data + the length of the data later into the frist two bytes
+                    using (var memory = new PooledBytes(DnsDatagramWriter.BufferSize + 2))
+                    using (var writer = new DnsDatagramWriter(new ArraySegment<byte>(memory.Buffer, 2, memory.Buffer.Length - 2)))
+                    {
+                        GetRequestData(request, writer);
+                        int dataLength = writer.Index;
+                        memory.Buffer[0] = (byte)((dataLength >> 8) & 0xff);
+                        memory.Buffer[1] = (byte)(dataLength & 0xff);
 
-                    //var sendLength = new byte[2];
-                    //sendLength[0] = (byte)((data.Length >> 8) & 0xff);
-                    //sendLength[1] = (byte)(data.Length & 0xff);
+                        //var sendData = new byte[dataLength + 2];
+                        //sendData[0] = (byte)((dataLength >> 8) & 0xff);
+                        //sendData[1] = (byte)(dataLength & 0xff);
+                        //Array.Copy(data, 0, sendData, 2, dataLength);
 
-                    var sendData = new byte[dataLength + 2];
-                    sendData[0] = (byte)((dataLength >> 8) & 0xff);
-                    sendData[1] = (byte)(dataLength & 0xff);
-                    Array.Copy(data, 0, sendData, 2, dataLength);
-                    
-                    await stream.WriteAsync(sendData, 0, sendData.Length, cancellationToken).ConfigureAwait(false);
-
-                    await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                        await stream.WriteAsync(memory.Buffer, 0, dataLength + 2, cancellationToken).ConfigureAwait(false);
+                        await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+                    }
 
                     int length = stream.ReadByte() << 8 | stream.ReadByte();
                     if (length <= 0)

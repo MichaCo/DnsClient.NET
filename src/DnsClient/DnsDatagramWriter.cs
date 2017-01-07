@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -8,7 +9,7 @@ namespace DnsClient
     internal class DnsDatagramWriter : IDisposable
     {
         // queries can only be 255 octets + some header bytes, so that size is pretty safe...
-        private const int MaxBufferSize = 1024;
+        public const int BufferSize = 1024;
 
         private const byte DotByte = 46;
 
@@ -16,11 +17,11 @@ namespace DnsClient
 
         private ArraySegment<byte> _buffer;
 
-        public byte[] Data
+        public ArraySegment<byte> Data
         {
             get
             {
-                return new ArraySegment<byte>(_buffer.Array, 0, Index).ToArray();
+                return new ArraySegment<byte>(_buffer.Array, 0, Index);
             }
         }
 
@@ -28,8 +29,15 @@ namespace DnsClient
 
         public DnsDatagramWriter()
         {
-            _pooledBytes = new PooledBytes(MaxBufferSize);
-            _buffer = new ArraySegment<byte>(_pooledBytes.Buffer, 0, MaxBufferSize);
+            _pooledBytes = new PooledBytes(BufferSize);
+            _buffer = new ArraySegment<byte>(_pooledBytes.Buffer, 0, BufferSize);
+        }
+
+        public DnsDatagramWriter(ArraySegment<byte> useBuffer)
+        {
+            Debug.Assert(useBuffer.Count >= BufferSize);
+            
+            _buffer = useBuffer;
         }
 
         public void WriteHostName(string queryName)
@@ -91,7 +99,7 @@ namespace DnsClient
         {
             if (disposing)
             {
-                _pooledBytes.Dispose();
+                _pooledBytes?.Dispose();
             }
         }
 

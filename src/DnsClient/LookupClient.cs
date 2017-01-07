@@ -355,7 +355,7 @@ namespace DnsClient
                 var item = _cache.Get(cacheKey);
                 if (item == null)
                 {
-                    item = await ResolveQueryAsync(handler, request, cancellationToken);
+                    item = await ResolveQueryAsync(handler, request, cancellationToken).ConfigureAwait(false);
                     _cache.Add(cacheKey, item);
                 }
 
@@ -363,7 +363,7 @@ namespace DnsClient
             }
             else
             {
-                return await ResolveQueryAsync(handler, request, cancellationToken);
+                return await ResolveQueryAsync(handler, request, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -395,18 +395,17 @@ namespace DnsClient
 
                         DnsResponseMessage response;
                         var resultTask = handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
-                        //todo: fix this task shit
+
                         if (Timeout != s_infiniteTimeout)
                         {
                             using (var cts = new CancellationTokenSource(Timeout))
-                            //using (var linkedSource = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken))
                             {
-                                response = await resultTask.WithCancellation(cts.Token);
+                                response = await resultTask.WithCancellation(cts.Token).ConfigureAwait(false);
                             }
                         }
                         else
                         {
-                            response = await resultTask;
+                            response = await resultTask.ConfigureAwait(false);
                         }
 
                         if (response.Header.ResultTruncated && UseTcpFallback && !handler.GetType().Equals(typeof(DnsTcpMessageHandler)))

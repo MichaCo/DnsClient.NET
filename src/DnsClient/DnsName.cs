@@ -447,7 +447,7 @@ namespace DnsClient
             using (var writer = new DnsDatagramWriter())
             {
                 WriteBytes(writer);
-                return writer.Data;
+                return writer.Data.ToArray();
             }
         }
 

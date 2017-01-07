@@ -108,6 +108,7 @@ namespace DnsClient
 
         private void StartCleanup()
         {
+            // TickCount jump every 25days to int.MinValue, adjusting...
             var currentTicks = Environment.TickCount & int.MaxValue;
             if (_lastCleanup + CleanupInterval < 0 || currentTicks + CleanupInterval < 0) _lastCleanup = 0;
             if (!_cleanupRunning && _lastCleanup + CleanupInterval < currentTicks)

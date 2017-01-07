@@ -14,67 +14,60 @@ namespace DnsClient
 
         public abstract bool IsTransientException<T>(T exception) where T : Exception;
 
-        public virtual byte[] GetRequestData(DnsRequestMessage request)
+        public virtual void GetRequestData(DnsRequestMessage request, DnsDatagramWriter writer)
         {
             var question = request.Question;
 
             /*
-                                    1  1  1  1  1  1
-      0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    |                      ID                       |
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    |                    QDCOUNT                    |
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    |                    ANCOUNT                    |
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    |                    NSCOUNT                    |
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-    |                    ARCOUNT                    |
-    +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-             * */
+                                                1  1  1  1  1  1
+                  0  1  2  3  4  5  6  7  8  9  0  1  2  3  4  5
+                +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                |                      ID                       |
+                +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                |QR|   Opcode  |AA|TC|RD|RA|   Z    |   RCODE   |
+                +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                |                    QDCOUNT                    |
+                +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                |                    ANCOUNT                    |
+                +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                |                    NSCOUNT                    |
+                +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+                |                    ARCOUNT                    |
+                +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
+            * */
             // 4 more bytes for the type and class
-            using (var writer = new DnsDatagramWriter())
-            {
-                writer.WriteInt16NetworkOrder((short)request.Header.Id);
-                writer.WriteUInt16NetworkOrder(request.Header.RawFlags);
-                writer.WriteInt16NetworkOrder(1);   // we support single question only... (as most DNS servers anyways).
-                writer.WriteInt16NetworkOrder(0);
-                writer.WriteInt16NetworkOrder(0);
-                writer.WriteInt16NetworkOrder(1); // one additional for the Opt record.
 
-                writer.WriteHostName(question.QueryName);
-                //writer.WriteBytes(questionData.Array, questionData.Count);
-                writer.WriteUInt16NetworkOrder((ushort)question.QuestionType);
-                writer.WriteUInt16NetworkOrder((ushort)question.QuestionClass);
+            writer.WriteInt16NetworkOrder((short)request.Header.Id);
+            writer.WriteUInt16NetworkOrder(request.Header.RawFlags);
+            writer.WriteInt16NetworkOrder(1);   // we support single question only... (as most DNS servers anyways).
+            writer.WriteInt16NetworkOrder(0);
+            writer.WriteInt16NetworkOrder(0);
+            writer.WriteInt16NetworkOrder(1); // one additional for the Opt record.
 
-                /*
-           +------------+--------------+------------------------------+
-           | Field Name | Field Type   | Description                  |
-           +------------+--------------+------------------------------+
-           | NAME       | domain name  | MUST be 0 (root domain)      |
-           | TYPE       | u_int16_t    | OPT (41)                     |
-           | CLASS      | u_int16_t    | requestor's UDP payload size |
-           | TTL        | u_int32_t    | extended RCODE and flags     |
-           | RDLEN      | u_int16_t    | length of all RDATA          |
-           | RDATA      | octet stream | {attribute,value} pairs      |
-           +------------+--------------+------------------------------+
-                 * */
-                var opt = new OptRecord();
-                //var nameBytes = opt.DomainName.GetBytes();
-                writer.WriteHostName("");
-                //writer.WriteBytes(nameBytes.Array, nameBytes.Count);
-                writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
-                writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
-                writer.WriteUInt32NetworkOrder((ushort)opt.TimeToLive);
-                writer.WriteUInt16NetworkOrder(0);
+            writer.WriteHostName(question.QueryName);
+            writer.WriteUInt16NetworkOrder((ushort)question.QuestionType);
+            writer.WriteUInt16NetworkOrder((ushort)question.QuestionClass);
 
-                return writer.Data;
+            /*
+               +------------+--------------+------------------------------+
+               | Field Name | Field Type   | Description                  |
+               +------------+--------------+------------------------------+
+               | NAME       | domain name  | MUST be 0 (root domain)      |
+               | TYPE       | u_int16_t    | OPT (41)                     |
+               | CLASS      | u_int16_t    | requestor's UDP payload size |
+               | TTL        | u_int32_t    | extended RCODE and flags     |
+               | RDLEN      | u_int16_t    | length of all RDATA          |
+               | RDATA      | octet stream | {attribute,value} pairs      |
+               +------------+--------------+------------------------------+
+            * */
 
-                // dispose the writer here to return puled byte array... otherwise we don't know when to dispose and might be risky
-            }
+            var opt = new OptRecord();
+            
+            writer.WriteHostName("");
+            writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
+            writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
+            writer.WriteUInt32NetworkOrder((ushort)opt.TimeToLive);
+            writer.WriteUInt16NetworkOrder(0);
         }
 
         public virtual DnsResponseMessage GetResponseMessage(ArraySegment<byte> responseData)

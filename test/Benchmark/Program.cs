@@ -26,7 +26,7 @@ namespace ConsoleApplication2
             _client.UseCache = false;
             _client.EnableAuditTrail = false;
 
-            double seconds = 15;
+            double seconds = 10;
             int runtime = 1000 * (int)seconds;
             int clients = 40;
 

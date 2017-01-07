@@ -7,7 +7,7 @@ namespace DnsClient
 {
     internal class PooledBytes : IDisposable
     {
-        private static readonly ArrayPool<byte> _pool = ArrayPool<byte>.Create(4096, 500);
+        private static readonly ArrayPool<byte> _pool = ArrayPool<byte>.Create(4096 * 2, 200);
 
         private readonly byte[] _buffer;
 

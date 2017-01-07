@@ -35,6 +35,7 @@ namespace FullFrameworkOwinApp
         private static async Task<IPAddress> GetService(string query)
         {
             var dnsClient = new LookupClient();
+            dnsClient.UseTcpOnly = true;
             var dnsResult = await dnsClient.QueryAsync(query, QueryType.ANY).ConfigureAwait(false);
 
             var aRecord = dnsResult.Answers.ARecords().FirstOrDefault();

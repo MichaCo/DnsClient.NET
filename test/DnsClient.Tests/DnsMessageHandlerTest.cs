@@ -66,7 +66,7 @@ namespace DnsClient.Tests
                 //writer.Extend(answerData.Length);   // the following data->length
                 writer.WriteBytes(answerData, answerData.Length);
 
-                return writer.Data;
+                return writer.Data.ToArray();
             }
         }
     }
