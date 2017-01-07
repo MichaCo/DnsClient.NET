@@ -59,7 +59,7 @@ namespace DnsClient
             return null;
         }
 
-        public void Add(string key, DnsQueryResponse response)
+        public bool Add(string key, DnsQueryResponse response)
         {
             if (key == null) throw new ArgumentNullException(key);
             if (Enabled && response != null && !response.HasError)
@@ -75,16 +75,18 @@ namespace DnsClient
                     }
                     if (minTtl < 1d)
                     {
-                        return;
+                        return false;
                     }
 
                     var newEntry = new ResponseEntry(response, minTtl);
 
-                    _cache.TryAdd(key, newEntry);
+                    StartCleanup();
+                    return _cache.TryAdd(key, newEntry);
                 }
             }
 
             StartCleanup();
+            return false;
         }
 
         private static void DoCleanup(ResponseCache cache)

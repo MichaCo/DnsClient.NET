@@ -246,14 +246,6 @@ namespace DnsClient
                         }
 
                         DnsResponseMessage response = handler.Query(serverInfo.Endpoint, request);
-                        //if (Timeout != s_infiniteTimeout)
-                        //{
-                        //    response = await resultTask.TimeoutAfter(Timeout, cancellationToken).ConfigureAwait(false);
-                        //}
-                        //else
-                        //{
-                        //    response = await resultTask.TimeoutAfter(TimeSpan.MaxValue, cancellationToken).ConfigureAwait(false);
-                        //}
 
                         if (response.Header.ResultTruncated && UseTcpFallback && !handler.GetType().Equals(typeof(DnsTcpMessageHandler)))
                         {

@@ -118,14 +118,13 @@ namespace DnsClient.Tests
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
 
-            cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
+            var success = cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
+            Assert.True(success);
 
             response.AddAnswer(new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 100, 100)));
-            cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
+            var fail = cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
 
-            var item = cache.Get("key");
-
-            Assert.NotEqual(item, response.AsQueryResponse(new NameServer(IPAddress.Any)));            
+            Assert.False(fail);
         }
     }
 }
