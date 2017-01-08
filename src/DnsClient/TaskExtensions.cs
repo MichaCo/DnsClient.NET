@@ -42,7 +42,7 @@
         ////    }
         ////}
 
-        public static async Task<T> WithCancellation<T>(this Task<T> task, CancellationToken cancellationToken)
+        public static async Task<T> WithCancellation<T>(this Task<T> task, CancellationToken cancellationToken, Action onCancel)
         {
             var tcs = new TaskCompletionSource<bool>();
             
@@ -50,6 +50,11 @@
             {
                 if (task != await Task.WhenAny(task, tcs.Task).ConfigureAwait(false))
                 {
+                    try
+                    {
+                        onCancel();
+                    }
+                    catch { }
                     throw new OperationCanceledException(cancellationToken);
                 }
             }

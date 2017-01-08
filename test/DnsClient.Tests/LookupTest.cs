@@ -128,10 +128,10 @@ namespace DnsClient.Tests
             Action act = () => client.QueryAsync("lala.com", QueryType.A, token).GetAwaiter().GetResult();
             tokenSource.Cancel();
 
-            var ex = Record.Exception(act) as DnsResponseException;
+            var ex = Record.Exception(act) as OperationCanceledException;
 
-            Assert.Equal(ex.Code, DnsResponseCode.Unassigned);
-            Assert.True(ex.InnerException is OperationCanceledException);
+            Assert.NotNull(ex);
+            Assert.Equal(ex.CancellationToken, token);
         }
 
         [Fact]
@@ -150,27 +150,21 @@ namespace DnsClient.Tests
             Assert.Equal(token, ((OperationCanceledException)ex).CancellationToken);
         }
 
-        ////[Fact]
-        ////public async Task Lookup_QueryDelayCanceledWithUnlimitedTimeout()
-        ////{
-        ////    var client = new LookupClient(IPAddress.Parse("8.1.8.1"));
-        ////    client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
+        [Fact]
+        public async Task Lookup_QueryDelayCanceledWithUnlimitedTimeout()
+        {
+            var client = new LookupClient(IPAddress.Parse("8.1.8.1"));
+            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
 
-        ////    // should hit the cancelation timeout, not the 1sec timeout
-        ////    var tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+            // should hit the cancelation timeout, not the 1sec timeout
+            var tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
 
-        ////    var token = tokenSource.Token;
+            var token = tokenSource.Token;
 
-        ////    try
-        ////    {
-        ////        await client.QueryAsync("lala.com", QueryType.A, token);
-        ////    }
-        ////    catch (DnsResponseException ex)
-        ////    {
-        ////        Assert.Equal(ex.Code, DnsResponseCode.Unassigned);
-        ////        Assert.True(ex.InnerException is TaskCanceledException);
-        ////    }
-        ////}
+            var ex = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A, token));
+            Assert.True(ex is OperationCanceledException);
+            Assert.Equal(token, ((OperationCanceledException)ex).CancellationToken);
+        }
 
         private async Task<IPAddress> GetDnsEntryAsync()
         {

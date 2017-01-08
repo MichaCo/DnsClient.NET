@@ -405,39 +405,26 @@ namespace DnsClient
                         }
 
                         DnsResponseMessage response;
-                        Task<DnsResponseMessage> resultTask = null;
-                        resultTask = handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken, async (cancel) =>
+                        Action onCancel = () => { };
+                        Task<DnsResponseMessage> resultTask = handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken, (cancel) =>
                         {
-                            if (Timeout != s_infiniteTimeout)
-                            {
-                                try
-                                {
-                                    await Task.Delay(Timeout, cancellationToken).ConfigureAwait(false);
-                                }
-                                catch (OperationCanceledException)
-                                {
-                                    // indicates the cancelationToken got canceled... cancel the request...
-                                    // continue cancelation
-                                }
-                                if (resultTask != null && resultTask.IsCompleted)
-                                {
-                                    // do nothing
-                                }
-                                else
-                                {
-                                    cancel();
-                                }
-                            }
+                            onCancel = cancel;
                         });
 
-                        //if (Timeout != s_infiniteTimeout)
-                        //{
-                        //    using (var cts = new CancellationTokenSource(Timeout))
-                        //    {
-                        //        response = await resultTask.WithCancellation(cts.Token).ConfigureAwait(false);
-                        //    }
-                        //}
-                        //else
+                        if (Timeout != s_infiniteTimeout || cancellationToken != CancellationToken.None)
+                        {
+                            var cts = new CancellationTokenSource(Timeout);
+                            var useCts = cts;
+                            if(cancellationToken != CancellationToken.None)
+                            {
+                                useCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
+                            }
+                            using (useCts)
+                            {
+                                response = await resultTask.WithCancellation(useCts.Token, onCancel).ConfigureAwait(false);
+                            }
+                        }
+                        else
                         {
                             response = await resultTask.ConfigureAwait(false);
                         }
@@ -524,20 +511,17 @@ namespace DnsClient
                             handleEx = agg.InnerException;
                         }
 
-                        audit.AuditException(ex);
                         if (handleEx is OperationCanceledException || handleEx is TaskCanceledException)
                         {
                             if (cancellationToken.IsCancellationRequested)
                             {
-                                throw new DnsResponseException("Operation canceled", handleEx)
-                                {
-                                    AuditTrail = audit.Build()
-                                };
+                                throw new OperationCanceledException(cancellationToken);
                             }
 
                             continue;
                         }
 
+                        audit.AuditException(ex);
                         throw new DnsResponseException("Unhandled exception", ex)
                         {
                             AuditTrail = audit.Build()
