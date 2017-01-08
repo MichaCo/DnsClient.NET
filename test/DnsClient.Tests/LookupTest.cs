@@ -355,6 +355,16 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void Lookup_Query_Puny2()
+        {
+            var client = new LookupClient();
+            var result = client.Query("müsli.com", QueryType.ANY);
+
+            Assert.NotEmpty(result.Answers);
+            Assert.NotEmpty(result.Answers.ARecords());
+        }
+
+        [Fact]
         public void Lookup_Query_InvalidPuny()
         {
             var client = new LookupClient(IPAddress.Parse("8.8.8.8"));

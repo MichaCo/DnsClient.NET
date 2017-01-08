@@ -171,9 +171,8 @@ namespace DnsClient
 
         public DnsName ReadDnsName()
         {
-            var bytesRead = 0;
-            var name = DnsName.FromBytes(new ArraySegment<byte>(_data.Array, _data.Offset + _index, _data.Count - _index), out bytesRead);
-            _index += bytesRead;
+            var labels = ReadLabels();
+            var name = DnsName.FromBytes(labels);
             return name;
         }
 
@@ -214,7 +213,7 @@ namespace DnsClient
                         continue;
                     }
 
-                    var subReader = new DnsDatagramReader(_data.SubArray(subIndex));
+                    var subReader = new DnsDatagramReader(_data.SubArrayFromOriginal(subIndex));
                     var newLabels = subReader.ReadLabels();
                     result.AddRange(newLabels); // add range actually much faster than Concat and equal to or faster than foreach.. (array copy would work maybe)
                     return result;
@@ -277,6 +276,11 @@ namespace DnsClient
         public static ArraySegment<T> SubArray<T>(this ArraySegment<T> array, int startIndex)
         {
             return new ArraySegment<T>(array.Array, array.Offset + startIndex, array.Count - startIndex);
+        }
+        
+        public static ArraySegment<T> SubArrayFromOriginal<T>(this ArraySegment<T> array, int startIndex)
+        {
+            return new ArraySegment<T>(array.Array, startIndex, array.Array.Length - startIndex);
         }
     }
 }

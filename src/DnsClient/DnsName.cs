@@ -224,49 +224,20 @@ namespace DnsClient
             return result;
         }
 
-        internal static DnsName FromBytes(ArraySegment<byte> utf8Bytes, out int bytesRead)
+        internal static DnsName FromBytes(ICollection<ArraySegment<byte>> labels)
         {
-            // check utf8Bytes .Offset & .Count; ?
-
-            if (utf8Bytes == null || utf8Bytes.Count == 0)
+            if(labels.Count == 0)
             {
-                throw new ArgumentNullException(nameof(utf8Bytes));
+                return Root;
             }
 
             var result = new List<DnsNameLabel>();
 
-            // read the length byte for the label, then get the content from offset+1 to length
-            // proceed till we reach zero length byte.
-            byte length;
-            int offset = 0;
-            while ((length = utf8Bytes.ElementAt(offset++)) != 0)
+            foreach(var label in labels)
             {
-                // respect the reference bit and lookup the name at the given position
-                // the reader will advance only for the 2 bytes read.
-                if ((length & ReferenceByte) != 0)
-                {
-                    int subset = (length & 0x3f) << 8 | utf8Bytes.ElementAt(offset++);
-                    var sub = FromBytes(new ArraySegment<byte>(utf8Bytes.Array, subset, utf8Bytes.Array.Length - subset), out subset);
-                    bytesRead = offset;
-                    return new DnsName(result).Concat(sub);
-                }
-
-                if (offset + length > utf8Bytes.Count - 1)
-                {
-                    throw new ArgumentOutOfRangeException(
-                        nameof(utf8Bytes),
-                        $"Found invalid label position {offset - 1} or length {length} in the source data.");
-                }
-
-                var label = ParseLabel(new ArraySegment<byte>(utf8Bytes.Array, utf8Bytes.Offset + offset, length));
-
-                // maybe store orignial bytes in this instance too?
-                result.Add(label);
-
-                offset += length;
+                result.Add(ParseLabel(label));
             }
 
-            bytesRead = offset;
             return new DnsName(result);
         }
 

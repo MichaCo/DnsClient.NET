@@ -262,8 +262,8 @@ namespace DnsClient.Tests
         {
             var bytes = new byte[] { 4, 65, 195, 164, 98, 7, 98, 195, 156, 108, 195, 182, 98, 4, 99, 92, 46, 100, 3, 99, 111, 109, 0 };
 
-            var offset = 0;
-            var dnsName = DnsName.FromBytes(new ArraySegment<byte>(bytes), out offset);
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(bytes));
+            var dnsName = reader.ReadDnsName();
 
             //  should be "Aäb.bÜlöb.c\.d.com."
             Assert.Equal(dnsName.ToString(true), "Aäb.bÜlöb.c\\.d.com.");
@@ -424,11 +424,10 @@ namespace DnsClient.Tests
             Assert.Equal(92, lastBytes[0]);
             Assert.Equal(92, lastBytes[1]);
             Assert.Equal(0, lastBytes[2]);
-            int readBytes;
-            name = DnsName.FromBytes(new ArraySegment<byte>(bytes), out readBytes);
-            Assert.Equal(bytes.Length, readBytes);
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(bytes));
+            var dnsName = reader.ReadDnsName();
 
-            Assert.Equal(expected, name.Value);
+            Assert.Equal(expected, dnsName.Value);
         }
 
         [Fact]
@@ -465,12 +464,13 @@ namespace DnsClient.Tests
             var val = "xn--4gbrim.xn----ymcbaaajlc6dj7bxne2c.xn--wgbh1c";
             var name = (DnsName)val;
             var bytes = name.GetBytes();
-            int readBytes;
-            name = DnsName.FromBytes(new ArraySegment<byte>(bytes), out readBytes);
 
-            var s = name.ToString();
-            var utf8 = name.ToString(true);
-            Assert.Equal(name[0], "xn--4gbrim");
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(bytes));
+            var dnsName = reader.ReadDnsName();
+
+            var s = dnsName.ToString();
+            var utf8 = dnsName.ToString(true);
+            Assert.Equal(dnsName[0], "xn--4gbrim");
             Assert.Equal(s, val + ".");
         }
 
@@ -590,9 +590,10 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsName_FromBytesValid()
         {
-            int offset = 0;
             var bytes = new byte[] { 5, 90, 90, 92, 46, 90, 2, 56, 56, 0 };
-            var name = DnsName.FromBytes(new ArraySegment<byte>(bytes), out offset);
+
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(bytes));
+            var name = reader.ReadDnsName();
 
             Assert.Equal(name.Size, 2);
             Assert.Equal(name.Octets, 10);
@@ -602,20 +603,21 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsName_FromBytesInvalidLength()
         {
-            int offset = 0;
             var bytes = new byte[] { 3, 90, 90, 90, 6, 56, 56, 0 };
-            Action act = () => DnsName.FromBytes(new ArraySegment<byte>(bytes), out offset);
 
-            Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(bytes));
+            Action act = () => reader.ReadDnsName();
+
+            Assert.ThrowsAny<IndexOutOfRangeException>(act);
         }
 
         [Fact]
         public void DnsName_FromBytesInvalidOffset()
         {
-            int offset = 1;
-            Action act = () => DnsName.FromBytes(new ArraySegment<byte>(new byte[] { 2 }), out offset);
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(new byte[] { 2 }));
+            Action act = () => reader.ReadDnsName();
 
-            Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
+            Assert.ThrowsAny<IndexOutOfRangeException>(act);
         }
     }
 }

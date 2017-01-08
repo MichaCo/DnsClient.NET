@@ -24,7 +24,7 @@ namespace DnsClient.Tests
 
             Action act = () => factory.GetRecord(info);
 
-            Assert.ThrowsAny<ArgumentNullException>(act);
+            Assert.ThrowsAny<IndexOutOfRangeException>(act);
         }
 
         [Fact]
@@ -110,7 +110,7 @@ namespace DnsClient.Tests
 
             Action act = () => factory.GetRecord(info);
 
-            Assert.ThrowsAny<ArgumentNullException>(act);
+            Assert.ThrowsAny<IndexOutOfRangeException>(act);
         }
 
         [Fact]
@@ -159,7 +159,7 @@ namespace DnsClient.Tests
 
             Action act = () => factory.GetRecord(info);
 
-            Assert.ThrowsAny<ArgumentNullException>(act);
+            Assert.ThrowsAny<IndexOutOfRangeException>(act);
         }
 
         [Fact]
@@ -200,7 +200,7 @@ namespace DnsClient.Tests
 
             Action act = () => factory.GetRecord(info);
 
-            Assert.ThrowsAny<ArgumentNullException>(act);
+            Assert.ThrowsAny<IndexOutOfRangeException>(act);
         }
 
         [Fact]

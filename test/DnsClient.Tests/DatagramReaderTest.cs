@@ -6,8 +6,93 @@ namespace DnsClient.Tests
 {
     public class DatagramReaderTest
     {
-        public DatagramReaderTest()
+        private static byte[] ReferenceBitData = new byte[]
         {
+            2, 97, 97, 3, 99, 111, 109, 0, // aa.com.       0-8
+            2, 98, 192, 0,                 // b.ref to 0    8-11
+            1, 99, 192, 0, 0,              // c.ref to 0    12-16
+            2, 100, 100, 192, 12, 0,       // dd.ref to 12  17-22
+            5, 101, 101, 101, 101, 101, 192, 17, 0, 0, 0,     // eeeee.ref to 17 23-33
+            0, // 34
+            0, // 35
+        };
+
+        [Fact]
+        public void DatagramReader_LabelTest_QueryName()
+        {
+            var data = ReferenceBitData.Concat(new byte[] { 192, 0 });
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(data.ToArray()));
+
+            reader.Index = 36;
+            QueryName name = reader.ReadQueryName();
+            Assert.Equal(name, "aa.com.");
+        }
+
+        [Fact]
+        public void DatagramReader_LabelTest_QueryName2()
+        {
+            var data = ReferenceBitData.Concat(new byte[] { 192, 23 });
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(data.ToArray()));
+
+            reader.Index = 36;
+            QueryName name = reader.ReadQueryName();
+            Assert.Equal(name, "eeeee.dd.c.aa.com.");
+        }
+
+        [Fact]
+        public void DatagramReader_LabelTest_DnsName()
+        {
+            var data = ReferenceBitData.Concat(new byte[] { 192, 0 });
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(data.ToArray()));
+
+            reader.Index = 36;
+            DnsName name = reader.ReadDnsName();
+            Assert.Equal(name, "aa.com.");
+        }
+
+        [Fact]
+        public void DatagramReader_LabelTest_DnsName2()
+        {
+            var data = ReferenceBitData.Concat(new byte[] { 192, 23 });
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(data.ToArray()));
+
+            reader.Index = 36;
+            DnsName name = reader.ReadDnsName();
+            Assert.Equal(name, "eeeee.dd.c.aa.com.");
+        }
+
+
+        [Fact]
+        public void DatagramReader_DnsName_FromBytesValid()
+        {
+            var bytes = new byte[] { 5, 90, 90, 92, 46, 90, 2, 56, 56, 0 };
+
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(bytes));
+            var name = reader.ReadDnsName();
+
+            Assert.Equal(name.Size, 2);
+            Assert.Equal(name.Octets, 10);
+            Assert.False(name.IsHostName);
+        }
+
+        [Fact]
+        public void DatagramReader_DnsName_FromBytesInvalidLength()
+        {
+            var bytes = new byte[] { 3, 90, 90, 90, 6, 56, 56, 0 };
+
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(bytes));
+            Action act = () => reader.ReadDnsName();
+
+            Assert.ThrowsAny<IndexOutOfRangeException>(act);
+        }
+
+        [Fact]
+        public void DatagramReader_DnsName_FromBytesInvalidOffset()
+        {
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(new byte[] { 2 }));
+            Action act = () => reader.ReadDnsName();
+
+            Assert.ThrowsAny<IndexOutOfRangeException>(act);
         }
 
         [Fact]
