@@ -507,7 +507,6 @@ namespace DnsClient
             private readonly ICollection<byte> _unescapedBytes;
             private string _toString = null;
             private string _toStringUnescaped = null;
-            public static long CallsToString = 0;
 
             public DnsNameLabel(ICollection<byte> escapedBytes, ICollection<byte> unescapedBytes)
             {
@@ -553,7 +552,6 @@ namespace DnsClient
             {
                 if (_toString == null)
                 {
-                    Interlocked.Increment(ref CallsToString);
                     _toString = Encoding.ASCII.GetString(_escapedBytes.ToArray(), 0, _escapedBytes.Count);
                 }
 

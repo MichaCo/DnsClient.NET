@@ -43,7 +43,7 @@ namespace DnsClient
                 using (var memory = new PooledBytes(readSize))
                 {
                     var received = udpClient.Client.Receive(memory.Buffer, 0, readSize, SocketFlags.None);
-                    
+
                     var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
                     if (request.Header.Id != response.Header.Id)
                     {
@@ -57,6 +57,10 @@ namespace DnsClient
 
                     return response;
                 }
+            }
+            catch
+            {
+                throw;
             }
             finally
             {
@@ -78,13 +82,25 @@ namespace DnsClient
         public override async Task<DnsResponseMessage> QueryAsync(
             IPEndPoint server,
             DnsRequestMessage request,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            Action<Action> cancelationCallback)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             UdpClient udpClient = GetNextUdpClient();
+
             try
             {
+                // setup timeout cancelation, dispose socket (the only way to acutally cancel the request in async...
+                cancelationCallback(() =>
+                {
+#if PORTABLE
+                    udpClient.Dispose();
+#else
+                    udpClient.Close();
+#endif
+                });
+
                 using (var writer = new DnsDatagramWriter())
                 {
                     GetRequestData(request, writer);
@@ -92,14 +108,14 @@ namespace DnsClient
                 }
 
                 var readSize = udpClient.Available > MaxSize ? udpClient.Available : MaxSize;
-                
+
                 using (var memory = new PooledBytes(readSize))
                 {
 #if PORTABLE
                     int received = await udpClient.Client.ReceiveAsync(new ArraySegment<byte>(memory.Buffer), SocketFlags.None).ConfigureAwait(false);
-                    
+
                     var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
-                    
+
 #else
                     var result = await udpClient.ReceiveAsync().ConfigureAwait(false);
 
@@ -117,6 +133,11 @@ namespace DnsClient
 
                     return response;
                 }
+            }
+            catch (ObjectDisposedException)
+            {
+                // we disposed it in case of a timeout request, lets indicate it actually timed out...
+                throw new TimeoutException();
             }
             finally
             {

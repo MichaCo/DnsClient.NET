@@ -2,7 +2,7 @@
   "profiles": {
     "DigApp": {
       "commandName": "Project",
-      "commandLineArgs": "müsli.com"
+      "commandLineArgs": "-s 8.8.8.1 --time 1000 microsoft.com any"
     },
     "MiniDig": {
       "commandName": "Project"

@@ -171,7 +171,7 @@ namespace DnsClient
 
             throw new InvalidOperationException("Not a valid IP4 or IP6 address.");
         }
-        
+
         public DnsQueryResponse QueryReverse(IPAddress ipAddress)
         {
             if (ipAddress == null)
@@ -405,16 +405,39 @@ namespace DnsClient
                         }
 
                         DnsResponseMessage response;
-                        var resultTask = handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken);
-
-                        if (Timeout != s_infiniteTimeout)
+                        Task<DnsResponseMessage> resultTask = null;
+                        resultTask = handler.QueryAsync(serverInfo.Endpoint, request, cancellationToken, async (cancel) =>
                         {
-                            using (var cts = new CancellationTokenSource(Timeout))
+                            if (Timeout != s_infiniteTimeout)
                             {
-                                response = await resultTask.WithCancellation(cts.Token).ConfigureAwait(false);
+                                try
+                                {
+                                    await Task.Delay(Timeout, cancellationToken).ConfigureAwait(false);
+                                }
+                                catch (OperationCanceledException)
+                                {
+                                    // indicates the cancelationToken got canceled... cancel the request...
+                                    // continue cancelation
+                                }
+                                if (resultTask != null && resultTask.IsCompleted)
+                                {
+                                    // do nothing
+                                }
+                                else
+                                {
+                                    cancel();
+                                }
                             }
-                        }
-                        else
+                        });
+
+                        //if (Timeout != s_infiniteTimeout)
+                        //{
+                        //    using (var cts = new CancellationTokenSource(Timeout))
+                        //    {
+                        //        response = await resultTask.WithCancellation(cts.Token).ConfigureAwait(false);
+                        //    }
+                        //}
+                        //else
                         {
                             response = await resultTask.ConfigureAwait(false);
                         }
@@ -477,6 +500,12 @@ namespace DnsClient
                     }
                     catch (Exception ex) when (ex is TimeoutException || handler.IsTransientException(ex))
                     {
+                        // our timeout got eventually triggered by the a task cancelation token, throw OCE instead...
+                        if (cancellationToken.IsCancellationRequested)
+                        {
+                            throw new OperationCanceledException(cancellationToken);
+                        }
+
                         DisableServer(serverInfo);
                     }
                     catch (Exception ex)
@@ -715,6 +744,11 @@ namespace DnsClient
                 else
                 {
                     _auditWriter.AppendLine($";; Error: {ex.Message}");
+                }
+
+                if (Debugger.IsAttached)
+                {
+                    _auditWriter.AppendLine(ex.ToString());
                 }
             }
         }

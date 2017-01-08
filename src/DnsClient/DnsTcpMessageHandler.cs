@@ -17,13 +17,14 @@ namespace DnsClient
 
         public override DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request)
         {
-            return QueryAsync(endpoint, request, CancellationToken.None).Result;
+            return QueryAsync(endpoint, request, CancellationToken.None, (s) => { }).Result;
         }
 
         public override async Task<DnsResponseMessage> QueryAsync(
             IPEndPoint server,
             DnsRequestMessage request,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            Action<Action> cancelationCallback)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
