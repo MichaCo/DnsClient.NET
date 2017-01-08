@@ -420,14 +420,15 @@ namespace DnsClient
                         if (Timeout != s_infiniteTimeout || cancellationToken != CancellationToken.None)
                         {
                             var cts = new CancellationTokenSource(Timeout);
-                            var useCts = cts;
+                            CancellationTokenSource linkedCts = null;
                             if (cancellationToken != CancellationToken.None)
                             {
-                                useCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
+                                linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
                             }
-                            using (useCts)
+                            using (cts)
+                            using (linkedCts)
                             {
-                                response = await resultTask.WithCancellation(useCts.Token, onCancel).ConfigureAwait(false);
+                                response = await resultTask.WithCancellation((linkedCts ?? cts).Token, onCancel).ConfigureAwait(false);
                             }
                         }
                         else
@@ -535,10 +536,13 @@ namespace DnsClient
                     }
                 } while (tries <= Retries && !cancellationToken.IsCancellationRequested && serverInfo.Enabled);
             }
-            throw new DnsResponseException(DnsResponseCode.ConnectionTimeout, $"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.")
-            {
-                AuditTrail = audit.Build()
-            };
+
+            throw new DnsResponseException(
+                DnsResponseCode.ConnectionTimeout, 
+                $"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.")
+                {
+                    AuditTrail = audit.Build()
+                };
         }
 
         private void HandleOptRecords(Audit audit, NameServer serverInfo, DnsResponseMessage response)

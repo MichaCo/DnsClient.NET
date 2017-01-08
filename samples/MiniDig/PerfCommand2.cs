@@ -48,6 +48,7 @@ namespace DigApp
             _runtime = RuntimeArg.HasValue() ? int.Parse(RuntimeArg.Value()) <= 1 ? 5 : int.Parse(RuntimeArg.Value()) : 5;
             _query = string.IsNullOrWhiteSpace(QueryArg.Value) ? string.Empty : QueryArg.Value;
             _lookup = GetDnsLookup();
+            _lookup.EnableAuditTrail = false;
             _running = true;
             _settings = GetLookupSettings();
 
@@ -80,14 +81,14 @@ namespace DigApp
             var avgRuntime = _allExcecutions / _runtime;
             Console.WriteLine($";; run for {elapsedSeconds}sec {_clients} clients.");
 
-            var successPercent = _errors == 0 ? 100 : _success == 0 ? 0 : (100 - _success / (_errors * (double)_success));
-            Console.WriteLine($";; {_errors:N0} errors {_success:N0} ok {successPercent:N0}% success.");
+            var successPercent = _errors == 0 ? 100 : _success == 0 ? 0 : (100 - (double)_success / (_errors * (double)_success));
+            Console.WriteLine($";; {_errors:N0} errors {_success:N0} ok {successPercent:N5}% success.");
 
             var execPerSec = _allExcecutions / _runtime;
             var avgExec = _allAvgExec / _runtime;
             Console.WriteLine($";; {execPerSec:N2} queries per second.");
 
-            Console.WriteLine($";;Log: arraysAllocated: {StaticLog.ByteArrayAllocations} arraysReleased: {StaticLog.ByteArrayReleases} queries: {StaticLog.SyncResolveQueryCount} queryTries: {StaticLog.SyncResolveQueryTries}");
+            Console.WriteLine($";;Log: clients created: {StaticLog.CreatedUdpClients} arraysAllocated: {StaticLog.ByteArrayAllocations} arraysReleased: {StaticLog.ByteArrayReleases} queries: {StaticLog.SyncResolveQueryCount} queryTries: {StaticLog.SyncResolveQueryTries}");
             return 0;
         }
 
@@ -128,8 +129,9 @@ namespace DigApp
                         Interlocked.Increment(ref _success);
                     }
                 }
-                catch
+                catch (Exception ex)
                 {
+                    Console.WriteLine(ex.Message);
                     Interlocked.Increment(ref _errors);
                 }
             }

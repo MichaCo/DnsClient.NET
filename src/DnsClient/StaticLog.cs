@@ -11,5 +11,6 @@ namespace DnsClient
         public static long ByteArrayReleases;
         public static long SyncResolveQueryCount;
         public static long SyncResolveQueryTries;
+        public static long CreatedUdpClients;
     }
 }

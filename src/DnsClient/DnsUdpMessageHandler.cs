@@ -27,7 +27,7 @@ namespace DnsClient
 
         public override DnsResponseMessage Query(
             IPEndPoint server,
-            DnsRequestMessage request, 
+            DnsRequestMessage request,
             TimeSpan timeout)
         {
             UdpClient udpClient = GetNextUdpClient();
@@ -37,6 +37,7 @@ namespace DnsClient
             udpClient.Client.ReceiveTimeout = timeoutInMillis;
             udpClient.Client.SendTimeout = timeoutInMillis;
 
+            bool mustDispose = false;
             try
             {
                 using (var writer = new DnsDatagramWriter())
@@ -67,11 +68,12 @@ namespace DnsClient
             }
             catch
             {
+                mustDispose = true;
                 throw;
             }
             finally
             {
-                if (!_enableClientQueue)
+                if (!_enableClientQueue || mustDispose)
                 {
                     try
                     {
@@ -96,6 +98,7 @@ namespace DnsClient
 
             UdpClient udpClient = GetNextUdpClient();
 
+            bool mustDispose = false;
             try
             {
                 // setup timeout cancelation, dispose socket (the only way to acutally cancel the request in async...
@@ -146,9 +149,15 @@ namespace DnsClient
                 // we disposed it in case of a timeout request, lets indicate it actually timed out...
                 throw new TimeoutException();
             }
+            catch
+            {
+                mustDispose = true;
+
+                throw;
+            }
             finally
             {
-                if (!_enableClientQueue)
+                if (!_enableClientQueue || mustDispose)
                 {
                     try
                     {
@@ -170,11 +179,13 @@ namespace DnsClient
             {
                 while (udpClient == null && !_clients.TryDequeue(out udpClient))
                 {
+                    Interlocked.Increment(ref StaticLog.CreatedUdpClients);
                     udpClient = new UdpClient();
                 }
             }
             else
             {
+                Interlocked.Increment(ref StaticLog.CreatedUdpClients);
                 udpClient = new UdpClient();
             }
 
