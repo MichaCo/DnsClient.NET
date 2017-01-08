@@ -171,6 +171,17 @@ namespace DnsClient
 
             throw new InvalidOperationException("Not a valid IP4 or IP6 address.");
         }
+        
+        public DnsQueryResponse QueryReverse(IPAddress ipAddress)
+        {
+            if (ipAddress == null)
+            {
+                throw new ArgumentNullException(nameof(ipAddress));
+            }
+
+            var arpa = GetArpaName(ipAddress);
+            return Query(arpa, QueryType.PTR, QueryClass.IN);
+        }
 
         public Task<DnsQueryResponse> QueryReverseAsync(IPAddress ipAddress)
             => QueryReverseAsync(ipAddress, CancellationToken.None);

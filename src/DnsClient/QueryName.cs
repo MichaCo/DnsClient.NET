@@ -6,17 +6,20 @@ namespace DnsClient
 {
     public class QueryName
     {
+        public static readonly QueryName Root = new QueryName(".");
         private static readonly IdnMapping _idn = new IdnMapping() { UseStd3AsciiRules = true };
-        private readonly string _original;
         private const char Dot = '.';
         private const string DotStr = ".";
 
         public string Name { get; }
 
+        public string Original { get; }
+
         public QueryName(string name)
         {
-            _original = name;
+            if (name == null) throw new ArgumentNullException(nameof(name));
 
+            Original = name;
             Name = Validate(name);
         }
 
@@ -86,14 +89,5 @@ namespace DnsClient
 
             return result;
         }
-
-        ////[MethodImpl(MethodImplOptions.AggressiveInlining)]
-        ////private static bool IsHostNameByte(char c)
-        ////{
-        ////    return (c == '-' || c == '.' ||
-        ////            c >= 'a' && c <= 'z' ||
-        ////            c >= 'A' && c <= 'Z' ||
-        ////            c >= '0' && c <= '9');
-        ////}
     }
 }

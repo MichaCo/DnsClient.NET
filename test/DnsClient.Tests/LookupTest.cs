@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
 using Xunit;
@@ -51,6 +50,20 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void Lookup_GetHostAddresses_Local_Sync()
+        {
+            var client = new LookupClient();
+
+            var result = client.Query("localhost", QueryType.A);
+
+            var answer = result.Answers.OfType<ARecord>().First();
+            Assert.Equal("127.0.0.1", answer.Address.ToString());
+            Assert.Equal(QueryClass.IN, result.Questions.First().QuestionClass);
+            Assert.Equal(QueryType.A, result.Questions.First().QuestionType);
+            Assert.True(result.Header.AnswerCount > 0);
+        }
+
+        [Fact]
         public async Task Lookup_GetHostAddresses_LocalReverse_NoResult()
         {
             // expecting no result as reverse lookup must be explicit
@@ -65,12 +78,39 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void Lookup_GetHostAddresses_LocalReverse_NoResult_Sync()
+        {
+            // expecting no result as reverse lookup must be explicit
+            var client = new LookupClient() { Timeout = TimeSpan.FromMilliseconds(500) };
+
+            client.EnableAuditTrail = true;
+            var result = client.Query("127.0.0.1", QueryType.A);
+
+            Assert.Equal(QueryClass.IN, result.Questions.First().QuestionClass);
+            Assert.Equal(QueryType.A, result.Questions.First().QuestionType);
+            Assert.True(result.Header.AnswerCount == 0);
+        }
+
+        [Fact]
         public void Lookup_ThrowDnsErrors()
         {
             var client = new LookupClient();
             client.ThrowDnsErrors = true;
 
             Action act = () => client.QueryAsync("lalacom", (QueryType)12345).GetAwaiter().GetResult();
+
+            var ex = Record.Exception(act) as DnsResponseException;
+
+            Assert.Equal(ex.Code, DnsResponseCode.NotExistentDomain);
+        }
+
+        [Fact]
+        public void Lookup_ThrowDnsErrors_Sync()
+        {
+            var client = new LookupClient();
+            client.ThrowDnsErrors = true;
+
+            Action act = () => client.Query("lalacom", (QueryType)12345);
 
             var ex = Record.Exception(act) as DnsResponseException;
 
@@ -158,6 +198,15 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void Lookup_ReverseSync()
+        {
+            var client = new LookupClient();
+            var result = client.QueryReverse(IPAddress.Parse("127.0.0.1"));
+
+            Assert.Equal(result.Answers.PtrRecords().First().PtrDomainName, new DnsName("localhost"));
+        }
+
+        [Fact]
         public async Task Lookup_Query_AAAA()
         {
             var client = new LookupClient();
@@ -168,10 +217,31 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void Lookup_Query_AAAA_Sync()
+        {
+            var client = new LookupClient();
+            var result = client.Query("google.com", QueryType.AAAA);
+
+            Assert.NotEmpty(result.Answers.AaaaRecords());
+            Assert.NotNull(result.Answers.AaaaRecords().First().Address);
+        }
+
+        [Fact]
         public async Task Lookup_Query_Any()
         {
             var client = new LookupClient();
             var result = await client.QueryAsync("google.com", QueryType.ANY);
+
+            Assert.NotEmpty(result.Answers);
+            Assert.NotEmpty(result.Answers.ARecords());
+            Assert.NotEmpty(result.Answers.NsRecords());
+        }
+
+        [Fact]
+        public void Lookup_Query_Any_Sync()
+        {
+            var client = new LookupClient();
+            var result = client.Query("google.com", QueryType.ANY);
 
             Assert.NotEmpty(result.Answers);
             Assert.NotEmpty(result.Answers.ARecords());
@@ -190,6 +260,17 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void Lookup_Query_Mx_Sync()
+        {
+            var client = new LookupClient() { Timeout = TimeSpan.FromDays(10) };
+            var result = client.Query("google.com", QueryType.MX);
+
+            Assert.NotEmpty(result.Answers.MxRecords());
+            Assert.NotNull(result.Answers.MxRecords().First().Exchange);
+            Assert.True(result.Answers.MxRecords().First().Preference > 0);
+        }
+
+        [Fact]
         public async Task Lookup_Query_NS()
         {
             var client = new LookupClient();
@@ -200,10 +281,31 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void Lookup_Query_NS_Sync()
+        {
+            var client = new LookupClient();
+            var result = client.Query("google.com", QueryType.NS);
+
+            Assert.NotEmpty(result.Answers.NsRecords());
+            Assert.NotNull(result.Answers.NsRecords().First().NSDName);
+        }
+
+        [Fact]
         public async Task Lookup_Query_TXT()
         {
             var client = new LookupClient();
             var result = await client.QueryAsync("google.com", QueryType.TXT);
+
+            Assert.NotEmpty(result.Answers.TxtRecords());
+            Assert.NotEmpty(result.Answers.TxtRecords().First().EscapedText);
+            Assert.NotEmpty(result.Answers.TxtRecords().First().Text);
+        }
+
+        [Fact]
+        public void Lookup_Query_TXT_Sync()
+        {
+            var client = new LookupClient();
+            var result = client.Query("google.com", QueryType.TXT);
 
             Assert.NotEmpty(result.Answers.TxtRecords());
             Assert.NotEmpty(result.Answers.TxtRecords().First().EscapedText);
@@ -222,10 +324,31 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void Lookup_Query_SOA_Sync()
+        {
+            var client = new LookupClient();
+            var result = client.Query("google.com", QueryType.SOA);
+
+            Assert.NotEmpty(result.Answers.SoaRecords());
+            Assert.NotNull(result.Answers.SoaRecords().First().MName);
+            Assert.NotNull(result.Answers.SoaRecords().First().RName);
+        }
+
+        [Fact]
         public async Task Lookup_Query_Puny()
         {
             var client = new LookupClient(IPAddress.Parse("8.8.8.8"));
             var result = await client.QueryAsync("müsli.de", QueryType.A);
+
+            Assert.NotEmpty(result.Answers);
+            Assert.NotEmpty(result.Answers.ARecords());
+        }
+
+        [Fact]
+        public void Lookup_Query_Puny_Sync()
+        {
+            var client = new LookupClient(IPAddress.Parse("8.8.8.8"));
+            var result = client.Query("müsli.de", QueryType.A);
 
             Assert.NotEmpty(result.Answers);
             Assert.NotEmpty(result.Answers.ARecords());

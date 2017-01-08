@@ -120,7 +120,7 @@ namespace DnsClient.Protocol.Options
         }
 
         public OptRecord(int size = 4096, int version = 0, int length = 0)
-            : base(new ResourceRecordInfo(".", ResourceRecordType.OPT, (QueryClass)size, version, length))
+            : base(new ResourceRecordInfo(QueryName.Root, ResourceRecordType.OPT, (QueryClass)size, version, length))
         {
         }
 

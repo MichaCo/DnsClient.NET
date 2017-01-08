@@ -91,7 +91,11 @@ namespace DnsClient
 
         public static implicit operator DnsName(string name) => new DnsName(name);
 
-        public static implicit operator string(DnsName name) => name.ToString();
+        public static implicit operator string(DnsName name) => name.Value;
+
+        public static implicit operator DnsName(QueryName name) => new DnsName(name.Name);
+
+        public static implicit operator QueryName(DnsName name) => new QueryName(name.Value);
 
         public static DnsName ParsePuny(string unicodeName)
         {
@@ -410,19 +414,14 @@ namespace DnsClient
             //  ASCI number 0 baseline => 48
             return new byte[] { (byte)(a + 48), (byte)(b + 48), (byte)(c + 48) };
         }
-
-        //TODO: private optimize? don't allocate?
+        
         internal void WriteBytes(DnsDatagramWriter writer)
         {
-            //var bytes = new byte[_octets];
-            //var offset = 0;
             foreach (var label in _labels)
             {
                 if (label.IsRoot)
                 {
                     writer.WriteByte(0);
-                    //offset++;
-                    //bytes[offset++] = 0;
                     break;
                 }
 
@@ -431,14 +430,8 @@ namespace DnsClient
 
                 // set the label length byte
                 writer.WriteByte(len);
-                //offset++;
-                //bytes[offset++] = len;
 
-                // set the label's content
                 writer.WriteBytes((byte[])label.GetBytes(), len);
-                //Array.ConstrainedCopy(label.GetBytes(), 0, bytes, offset, len);
-
-                //offset += len;
             }
         }
 

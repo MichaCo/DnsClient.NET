@@ -34,7 +34,7 @@ namespace DnsClient
 
         public string ToString(int offset = -32)
         {
-            return string.Format("{0," + offset + "} \t{1} \t{2}", QueryName, QuestionClass, QuestionType);
+            return string.Format("{0," + offset + "} \t{1} \t{2}", ((DnsName)QueryName).ValueUTF8, QuestionClass, QuestionType);
         }
     }
 }
