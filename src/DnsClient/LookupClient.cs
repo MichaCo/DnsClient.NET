@@ -256,7 +256,7 @@ namespace DnsClient
                             audit.StartTimer();
                         }
 
-                        DnsResponseMessage response = handler.Query(serverInfo.Endpoint, request);
+                        DnsResponseMessage response = handler.Query(serverInfo.Endpoint, request, Timeout);
 
                         if (response.Header.ResultTruncated && UseTcpFallback && !handler.GetType().Equals(typeof(DnsTcpMessageHandler)))
                         {
@@ -322,16 +322,22 @@ namespace DnsClient
                     {
                         DisableServer(serverInfo);
 
+                        if (ex is OperationCanceledException || ex is TaskCanceledException)
+                        {
+                            // timeout
+                            continue;
+                        }
+
                         audit.AuditException(ex);
 
-                        throw new DnsResponseException("Unhandled exception", ex)
+                        throw new DnsResponseException(DnsResponseCode.Unassigned, "Unhandled exception", ex)
                         {
                             AuditTrail = audit.Build()
                         };
                     }
                 } while (tries <= Retries && serverInfo.Enabled);
             }
-            throw new DnsResponseException($"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.")
+            throw new DnsResponseException(DnsResponseCode.ConnectionTimeout, $"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.")
             {
                 AuditTrail = audit.Build()
             };
@@ -415,7 +421,7 @@ namespace DnsClient
                         {
                             var cts = new CancellationTokenSource(Timeout);
                             var useCts = cts;
-                            if(cancellationToken != CancellationToken.None)
+                            if (cancellationToken != CancellationToken.None)
                             {
                                 useCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
                             }
@@ -529,7 +535,7 @@ namespace DnsClient
                     }
                 } while (tries <= Retries && !cancellationToken.IsCancellationRequested && serverInfo.Enabled);
             }
-            throw new DnsResponseException($"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.")
+            throw new DnsResponseException(DnsResponseCode.ConnectionTimeout, $"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.")
             {
                 AuditTrail = audit.Build()
             };

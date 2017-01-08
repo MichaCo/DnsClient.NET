@@ -132,7 +132,12 @@ namespace DnsClient
         /// <summary>
         /// Unknown error.
         /// </summary>
-        Unassigned = 666
+        Unassigned = 666,
+
+        /// <summary>
+        /// Indicates a timeout error. Connection to the remote server couldn't be established.
+        /// </summary>
+        ConnectionTimeout = 999
     }
 
     public class DnsResponseException : Exception

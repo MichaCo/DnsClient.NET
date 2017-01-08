@@ -8,7 +8,7 @@ namespace DnsClient
 {
     internal abstract class DnsMessageHandler
     {
-        public abstract DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request);
+        public abstract DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request, TimeSpan timeout);
 
         public abstract Task<DnsResponseMessage> QueryAsync(IPEndPoint server, DnsRequestMessage request, CancellationToken cancellationToken,
             Action<Action> cancelationCallback);

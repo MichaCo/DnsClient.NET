@@ -10,6 +10,8 @@ namespace DnsClient.Tests
 {
     public class LookupTest
     {
+        private static readonly IPAddress DoesNotExist = IPAddress.Parse("192.0.21.43");
+
         [Fact]
         public void Lookup_Defaults()
         {
@@ -117,11 +119,76 @@ namespace DnsClient.Tests
 
             Assert.Equal(ex.Code, DnsResponseCode.NotExistentDomain);
         }
+        
+        [Fact]
+        public async Task Lookup_QueryTimesOut_Udp_Async()
+        {
+            var client = new LookupClient(DoesNotExist);
+            client.Timeout = TimeSpan.FromMilliseconds(200);
+            client.Retries = 0;
+            client.UseTcpFallback = false;
+
+            var exe = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A));
+
+            var ex = exe as DnsResponseException;
+            Assert.NotNull(ex);
+            Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
+            Assert.Contains("No connection", ex.Message);
+        }
 
         [Fact]
-        public void Lookup_QueryCanceled()
+        public void Lookup_QueryTimesOut_Udp_Sync()
+        {
+            var client = new LookupClient(DoesNotExist);
+            client.Timeout = TimeSpan.FromMilliseconds(200);
+            client.Retries = 0;
+            client.UseTcpFallback = false;
+
+            var exe = Record.Exception(() => client.Query("lala.com", QueryType.A));
+
+            var ex = exe as DnsResponseException;
+            Assert.NotNull(ex);
+            Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
+            Assert.Contains("No connection", ex.Message);
+        }
+
+        [Fact]
+        public async Task Lookup_QueryTimesOut_Tcp_Async()
+        {
+            var client = new LookupClient(DoesNotExist);
+            client.Timeout = TimeSpan.FromMilliseconds(200);
+            client.Retries = 0;
+            client.UseTcpOnly = true;
+
+            var exe = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A));
+
+            var ex = exe as DnsResponseException;
+            Assert.NotNull(ex);
+            Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
+            Assert.Contains("No connection", ex.Message);
+        }
+
+        [Fact]
+        public void Lookup_QueryTimesOut_Tcp_Sync()
+        {
+            var client = new LookupClient(DoesNotExist);
+            client.Timeout = TimeSpan.FromMilliseconds(200);
+            client.Retries = 0;
+            client.UseTcpOnly = true;
+
+            var exe = Record.Exception(() => client.Query("lala.com", QueryType.A));
+
+            var ex = exe as DnsResponseException;
+            Assert.NotNull(ex);
+            Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
+            Assert.Contains("No connection", ex.Message);
+        }
+
+        [Fact]
+        public void Lookup_QueryCanceled_Udp()
         {
             var client = new LookupClient();
+            client.UseTcpFallback = false;
 
             var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
@@ -135,10 +202,28 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Lookup_QueryDelayCanceled()
+        public void Lookup_QueryCanceled_Tcp()
         {
-            var client = new LookupClient(IPAddress.Parse("8.1.8.1"));
+            var client = new LookupClient();
+            client.UseTcpOnly = true;
+
+            var tokenSource = new CancellationTokenSource();
+            var token = tokenSource.Token;
+            Action act = () => client.QueryAsync("lala.com", QueryType.A, token).GetAwaiter().GetResult();
+            tokenSource.Cancel();
+
+            var ex = Record.Exception(act) as OperationCanceledException;
+
+            Assert.NotNull(ex);
+            Assert.Equal(ex.CancellationToken, token);
+        }
+
+        [Fact]
+        public async Task Lookup_QueryDelayCanceled_Udp()
+        {
+            var client = new LookupClient(DoesNotExist);
             client.Timeout = TimeSpan.FromMilliseconds(1000);
+            client.UseTcpFallback = false;
 
             // should hit the cancelation timeout, not the 1sec timeout
             var tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
@@ -151,10 +236,45 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Lookup_QueryDelayCanceledWithUnlimitedTimeout()
+        public async Task Lookup_QueryDelayCanceled_Tcp()
         {
-            var client = new LookupClient(IPAddress.Parse("8.1.8.1"));
-            client.Timeout = System.Threading.Timeout.InfiniteTimeSpan;
+            var client = new LookupClient(DoesNotExist);
+            client.Timeout = TimeSpan.FromMilliseconds(1000);
+            client.UseTcpOnly = true;
+
+            // should hit the cancelation timeout, not the 1sec timeout
+            var tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+
+            var token = tokenSource.Token;
+
+            var ex = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A, token));
+            Assert.True(ex is OperationCanceledException);
+            Assert.Equal(token, ((OperationCanceledException)ex).CancellationToken);
+        }
+
+        [Fact]
+        public async Task Lookup_QueryDelayCanceledWithUnlimitedTimeout_Udp()
+        {
+            var client = new LookupClient(DoesNotExist);
+            client.Timeout = Timeout.InfiniteTimeSpan;
+            client.UseTcpFallback = false;
+
+            // should hit the cancelation timeout, not the 1sec timeout
+            var tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
+
+            var token = tokenSource.Token;
+
+            var ex = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A, token));
+            Assert.True(ex is OperationCanceledException);
+            Assert.Equal(token, ((OperationCanceledException)ex).CancellationToken);
+        }
+
+        [Fact]
+        public async Task Lookup_QueryDelayCanceledWithUnlimitedTimeout_Tcp()
+        {
+            var client = new LookupClient(DoesNotExist);
+            client.Timeout = Timeout.InfiniteTimeSpan;
+            client.UseTcpOnly = true;
 
             // should hit the cancelation timeout, not the 1sec timeout
             var tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
@@ -240,7 +360,7 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Lookup_Query_Mx()
         {
-            var client = new LookupClient() { Timeout = TimeSpan.FromDays(10) };
+            var client = new LookupClient();
             var result = await client.QueryAsync("google.com", QueryType.MX);
 
             Assert.NotEmpty(result.Answers.MxRecords());
@@ -251,7 +371,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_Query_Mx_Sync()
         {
-            var client = new LookupClient() { Timeout = TimeSpan.FromDays(10) };
+            var client = new LookupClient();
             var result = client.Query("google.com", QueryType.MX);
 
             Assert.NotEmpty(result.Answers.MxRecords());

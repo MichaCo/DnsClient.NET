@@ -15,9 +15,20 @@ namespace DnsClient
             return false;
         }
 
-        public override DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request)
+        public override DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request, TimeSpan timeout)
         {
-            return QueryAsync(endpoint, request, CancellationToken.None, (s) => { }).Result;
+            if (timeout.TotalMilliseconds != Timeout.Infinite && timeout.TotalMilliseconds < int.MaxValue)
+            {
+                using (var cts = new CancellationTokenSource(timeout))
+                {
+                    Action onCancel = () => { };
+                    return QueryAsync(endpoint, request, cts.Token, (s) => onCancel = s)
+                        .WithCancellation(cts.Token, onCancel)
+                        .ConfigureAwait(false).GetAwaiter().GetResult();
+                }
+            }
+
+            return QueryAsync(endpoint, request, CancellationToken.None, (s) => { }).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         public override async Task<DnsResponseMessage> QueryAsync(
@@ -30,6 +41,16 @@ namespace DnsClient
 
             using (var client = new TcpClient(server.AddressFamily))
             {
+                cancelationCallback(() =>
+                {
+#if PORTABLE
+                    client.Dispose();
+#else
+                    client.Close();
+#endif
+                });
+
+                cancellationToken.ThrowIfCancellationRequested();
                 await client.ConnectAsync(server.Address, server.Port).ConfigureAwait(false);
                 using (var stream = client.GetStream())
                 {

@@ -27,9 +27,16 @@ namespace DnsClient
 
         public override DnsResponseMessage Query(
             IPEndPoint server,
-            DnsRequestMessage request)
+            DnsRequestMessage request, 
+            TimeSpan timeout)
         {
             UdpClient udpClient = GetNextUdpClient();
+
+            // -1 indicates infinite
+            int timeoutInMillis = timeout.TotalMilliseconds >= int.MaxValue ? -1 : (int)timeout.TotalMilliseconds;
+            udpClient.Client.ReceiveTimeout = timeoutInMillis;
+            udpClient.Client.SendTimeout = timeoutInMillis;
+
             try
             {
                 using (var writer = new DnsDatagramWriter())
