@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Globalization;
-using System.Runtime.CompilerServices;
 
 namespace DnsClient
 {
+    /// <summary>
+    /// Relaxed version of <see cref="DnsName"/>. Labels don't get analyzed but characters will be.
+    /// The input will eventually get transformed into the IDN, depending on if it contains special chararcters or not.
+    /// </summary>
     public class QueryName
     {
         public static readonly QueryName Root = new QueryName(".");
@@ -11,8 +14,14 @@ namespace DnsClient
         private const char Dot = '.';
         private const string DotStr = ".";
 
+        /// <summary>
+        /// Gets the validated value.
+        /// </summary>
         public string Name { get; }
-
+        
+        /// <summary>
+        /// Gets the original value used to construct the instance of <see cref="QueryName"/> initially.
+        /// </summary>
         public string Original { get; }
 
         public QueryName(string name)
@@ -59,7 +68,7 @@ namespace DnsClient
 
             string result = name;
             bool valid = true;
-            foreach(var c in name) 
+            foreach (var c in name)
             {
                 if (!(c == '-' || c == '.' ||
                     c >= 'a' && c <= 'z' ||

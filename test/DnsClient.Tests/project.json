@@ -7,7 +7,8 @@
     "dotnet-test-xunit": "2.2.0-preview2-build1029",
     "Microsoft.Extensions.Logging": "1.0.0",
     "Microsoft.Extensions.Logging.Console": "1.0.0",
-    "Microsoft.Extensions.Logging.Debug": "1.0.0"
+    "Microsoft.Extensions.Logging.Debug": "1.0.0",
+    "Moq": "4.6.38-alpha"
   },    
   "testRunner": "xunit",
   "buildOptions": {

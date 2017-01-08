@@ -8,7 +8,7 @@ namespace DnsClient
     /// <summary>
     /// A simple response message which gets returned by the <see cref="LookupClient"/>.
     /// </summary>
-    internal class DnsResponseMessage
+    public class DnsResponseMessage
     {
         public DnsResponseMessage(DnsResponseHeader header, int messageSize)
         {

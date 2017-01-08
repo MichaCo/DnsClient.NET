@@ -478,7 +478,7 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient(IPAddress.Parse("8.8.8.8"));
 
-            Func<DnsQueryResponse> act = () => client.QueryAsync("müsliiscool!.de", QueryType.A).Result;
+            Func<IDnsQueryResponse> act = () => client.QueryAsync("müsliiscool!.de", QueryType.A).Result;
 
             Assert.ThrowsAny<ArgumentException>(act);
         }

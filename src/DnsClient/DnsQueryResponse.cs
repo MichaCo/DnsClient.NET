@@ -8,7 +8,7 @@ namespace DnsClient
     /// <summary>
     /// Immutable version of the <see cref="DnsResponseMessage"/>.
     /// </summary>
-    public class DnsQueryResponse
+    public class DnsQueryResponse : IDnsQueryResponse
     {
         private int? _hashCode;
 
@@ -22,11 +22,11 @@ namespace DnsClient
         /// <summary>
         /// Gets a list of all answers, addtional and authority records.
         /// </summary>
-        public IReadOnlyCollection<DnsResourceRecord> AllRecords
+        public IEnumerable<DnsResourceRecord> AllRecords
         {
             get
             {
-                return Answers.Concat(Additionals).Concat(Authorities).ToArray();
+                return Answers.Concat(Additionals).Concat(Authorities);
             }
         }
 

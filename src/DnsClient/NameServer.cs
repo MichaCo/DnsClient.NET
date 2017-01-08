@@ -22,12 +22,12 @@ namespace DnsClient
 
         internal const string EtcResolvConfFile = "/etc/resolv.conf";
 
-        internal NameServer(IPAddress endpoint)
+        public NameServer(IPAddress endpoint)
             : this(new IPEndPoint(endpoint, DefaultPort))
         {
         }
 
-        internal NameServer(IPEndPoint endpoint)
+        public NameServer(IPEndPoint endpoint)
         {
             if (endpoint == null)
             {

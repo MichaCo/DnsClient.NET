@@ -37,7 +37,7 @@ namespace DnsClient
             return string.Concat(question.QueryName.Name, ":", (short)question.QuestionClass, ":", (short)question.QuestionType);
         }
 
-        public DnsQueryResponse Get(string key)
+        public IDnsQueryResponse Get(string key)
         {
             if (key == null) throw new ArgumentNullException(key);
             if (!Enabled) return null;
@@ -59,13 +59,13 @@ namespace DnsClient
             return null;
         }
 
-        public bool Add(string key, DnsQueryResponse response)
+        public bool Add(string key, IDnsQueryResponse response)
         {
             if (key == null) throw new ArgumentNullException(key);
             if (Enabled && response != null && !response.HasError)
             {
                 var all = response.AllRecords;
-                if (all.Count > 0)
+                if (all.Any())
                 {
                     double minTtl = all.Min(p => p.TimeToLive) * 1000d;
 
@@ -134,13 +134,13 @@ namespace DnsClient
         {
             public bool IsExpiredFor(DateTimeOffset forDate) => forDate >= ExpiresAt;
 
-            public DnsQueryResponse Response { get; set; }
+            public IDnsQueryResponse Response { get; set; }
 
             public DateTimeOffset ExpiresAt { get; }
 
             public double TTL { get; set; }
 
-            public ResponseEntry(DnsQueryResponse response, double ttlInMS)
+            public ResponseEntry(IDnsQueryResponse response, double ttlInMS)
             {
                 Debug.Assert(response != null);
                 Debug.Assert(ttlInMS >= 0);

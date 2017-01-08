@@ -104,7 +104,7 @@ namespace DigApp
             {
                 var queryResult = await _lookup.QueryAsync(Query, QueryType.A);
                 await Task.Delay(0);
-                return queryResult.AllRecords.Count;
+                return queryResult.Answers.Count;
             }
         }
 

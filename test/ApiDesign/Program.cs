@@ -18,7 +18,7 @@ namespace ApiDesign
             try
             {
                 var result = lookup.QueryReverseAsync(IPAddress.Parse("216.239.32.10")).Result;
-
+                
                 Console.WriteLine(result.AuditTrail);
 
                 WriteLongLine();

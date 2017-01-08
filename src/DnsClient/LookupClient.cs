@@ -12,7 +12,7 @@ using DnsClient.Protocol.Options;
 
 namespace DnsClient
 {
-    public class LookupClient
+    public class LookupClient : ILookupClient, IDnsQuery
     {
         private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
@@ -172,7 +172,7 @@ namespace DnsClient
             throw new InvalidOperationException("Not a valid IP4 or IP6 address.");
         }
 
-        public DnsQueryResponse QueryReverse(IPAddress ipAddress)
+        public IDnsQueryResponse QueryReverse(IPAddress ipAddress)
         {
             if (ipAddress == null)
             {
@@ -183,10 +183,10 @@ namespace DnsClient
             return Query(arpa, QueryType.PTR, QueryClass.IN);
         }
 
-        public Task<DnsQueryResponse> QueryReverseAsync(IPAddress ipAddress)
+        public Task<IDnsQueryResponse> QueryReverseAsync(IPAddress ipAddress)
             => QueryReverseAsync(ipAddress, CancellationToken.None);
 
-        public Task<DnsQueryResponse> QueryReverseAsync(IPAddress ipAddress, CancellationToken cancellationToken)
+        public Task<IDnsQueryResponse> QueryReverseAsync(IPAddress ipAddress, CancellationToken cancellationToken)
         {
             if (ipAddress == null)
             {
@@ -197,13 +197,13 @@ namespace DnsClient
             return QueryAsync(arpa, QueryType.PTR, QueryClass.IN, cancellationToken);
         }
 
-        public DnsQueryResponse Query(string query, QueryType queryType)
+        public IDnsQueryResponse Query(string query, QueryType queryType)
             => Query(query, queryType, QueryClass.IN);
 
-        public DnsQueryResponse Query(string query, QueryType queryType, QueryClass queryClass)
+        public IDnsQueryResponse Query(string query, QueryType queryType, QueryClass queryClass)
             => Query(new DnsQuestion(query, queryType, queryClass));
 
-        private DnsQueryResponse Query(DnsQuestion question)
+        private IDnsQueryResponse Query(DnsQuestion question)
         {
             if (question == null)
             {
@@ -232,7 +232,7 @@ namespace DnsClient
             }
         }
 
-        private DnsQueryResponse ResolveQuery(DnsMessageHandler handler, DnsRequestMessage request, Audit continueAudit = null)
+        private IDnsQueryResponse ResolveQuery(DnsMessageHandler handler, DnsRequestMessage request, Audit continueAudit = null)
         {
             if (request == null)
             {
@@ -343,19 +343,19 @@ namespace DnsClient
             };
         }
 
-        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType)
+        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType)
             => QueryAsync(query, queryType, CancellationToken.None);
 
-        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken)
+        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken)
             => QueryAsync(query, queryType, QueryClass.IN, cancellationToken);
 
-        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass)
+        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass)
             => QueryAsync(query, queryType, queryClass, CancellationToken.None);
 
-        public Task<DnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
+        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
             => QueryAsync(new DnsQuestion(query, queryType, queryClass), cancellationToken);
 
-        private async Task<DnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)
+        private async Task<IDnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)
         {
             if (question == null)
             {
@@ -384,7 +384,7 @@ namespace DnsClient
             }
         }
 
-        private async Task<DnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, CancellationToken cancellationToken, Audit continueAudit = null)
+        private async Task<IDnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, CancellationToken cancellationToken, Audit continueAudit = null)
         {
             if (request == null)
             {
@@ -671,7 +671,7 @@ namespace DnsClient
                 _auditWriter.AppendLine($"; EDNS: version: {version}, flags:; udp: {udpSize}");
             }
 
-            public void AuditResponse(DnsQueryResponse queryResponse)
+            public void AuditResponse(IDnsQueryResponse queryResponse)
             {
                 if (queryResponse.Questions.Count > 0)
                 {
