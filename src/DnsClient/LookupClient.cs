@@ -417,7 +417,7 @@ namespace DnsClient
                             onCancel = cancel;
                         });
 
-                        if (Timeout != s_infiniteTimeout || cancellationToken != CancellationToken.None)
+                        if (Timeout != s_infiniteTimeout || (cancellationToken != CancellationToken.None && cancellationToken.CanBeCanceled))
                         {
                             var cts = new CancellationTokenSource(Timeout);
                             CancellationTokenSource linkedCts = null;

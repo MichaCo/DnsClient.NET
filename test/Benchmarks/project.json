@@ -1,0 +1,27 @@
+﻿{
+  "version": "1.0.0-*",
+
+  "buildOptions": {
+    "emitEntryPoint": true,
+    "allowUnsafe": true,
+    "languageVersion": "csharp6",
+    "warningsAsErrors": false,
+    "xmlDoc": false,
+    "keyFile": "../../tools/key.snk"
+  },
+  "dependencies": {
+    "Microsoft.NETCore.App": {
+      "type": "platform",
+      "version": "1.1.0"
+    },
+    "BenchmarkDotNet": "0.10.1",
+    "System.Buffers": "4.3.0",
+    "DnsClient": { "target": "project" }
+  },
+
+  "frameworks": {
+    "netcoreapp1.1": {
+      "imports": "dnxcore50"
+    }
+  }
+}
