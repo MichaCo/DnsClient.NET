@@ -10,56 +10,32 @@ namespace NetCoreApp
     {
         public class CharValidate
         {
-            public const string c_value = "a.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.them";
-            public static List<ArraySegment<byte>> source;
-            private const char cDash = '-';
-            private const char cDot = '.';
-            private const char ca = 'a';
-            private const char cz = 'z';
-            private const char cA = 'A';
-            private const char cZ = 'Z';
-            private const char cZero = '0';
-            private const char cNine = '9';
-
+            private static readonly Regex c_regex = new Regex("^[a-zA-Z0-9._-]+$", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+            public const string c_longValue = "a.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.thema.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.thema.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.them";
+            public const string c_shortValue = "a.very.short.hostname";
+            
             private static bool IsHostNameChar(char c)
             {
                 return c == '-' || c == '.' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
             }
+            
+            [Benchmark]
+            public bool ForeachLongName()
+            {
+                var result = true;
+                foreach (var chr in c_longValue)
+                {
+                    if (!IsHostNameChar(chr)) throw new Exception("not expected");
+                }
 
-            private static bool IsHostNameCharConst(char c)
-            {
-                return c == cDash || c == cDot || (c >= ca && c <= cz) || (c >= cA && c <= cZ) || (c >= cZero && c <= cNine);
+                return result;
             }
-            
-            public CharValidate()
-            {
-            }
-            
+
             [Benchmark(Baseline = true)]
-            public bool Char()
+            public bool Foreach()
             {
                 var result = true;
-                foreach (var chr in c_value)
-                {
-                    if (!IsHostNameChar(chr)) throw new Exception("not expected");
-                }
-
-                return result;
-            }
-            
-            [Benchmark]
-            public bool CharAny()
-            {
-                var result = c_value.Any(p => !IsHostNameChar(p));
-
-                return result;
-            }
-            
-            [Benchmark]
-            public bool CharConst()
-            {
-                var result = true;
-                foreach (var chr in c_value)
+                foreach (var chr in c_shortValue)
                 {
                     if (!IsHostNameChar(chr)) throw new Exception("not expected");
                 }
@@ -67,13 +43,39 @@ namespace NetCoreApp
                 return result;
             }
 
-            private static readonly Regex c_regex = new Regex("^[a-zA-Z0-9._-]+$", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+            [Benchmark]
+            public bool LinqAnyLongName()
+            {
+                var result = c_longValue.Any(p => !IsHostNameChar(p));
+
+                return result;
+            }
 
             [Benchmark]
-            public bool CompareRegEx()
+            public bool LinqAny()
+            {
+                var result = c_shortValue.Any(p => !IsHostNameChar(p));
+
+                return result;
+            }
+
+            [Benchmark]
+            public bool RegExLongName()
             {
                 var result = true;
-                if (!c_regex.IsMatch(c_value))
+                if (!c_regex.IsMatch(c_longValue))
+                {
+                    throw new Exception();
+                }
+
+                return result;
+            }
+
+            [Benchmark]
+            public bool RegEx()
+            {
+                var result = true;
+                if (!c_regex.IsMatch(c_shortValue))
                 {
                     throw new Exception();
                 }

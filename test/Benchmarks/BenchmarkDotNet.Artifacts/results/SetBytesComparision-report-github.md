@@ -12,7 +12,7 @@ Allocated=71 B
 ```
          Method |          Mean |     StdDev | Scaled | Scaled-StdDev |  Gen 0 |
 --------------- |-------------- |----------- |------- |-------------- |------- |
-        ForLoop |    92.7253 ns |  1.4805 ns |   0.99 |          0.02 | 0.0114 |
-      BlockCopy |    93.2930 ns |  0.3047 ns |   1.00 |          0.00 | 0.0109 |
-   ForLoopLarge | 2,216.8763 ns | 15.2380 ns |  23.76 |          0.17 |      - |
- BlockCopyLarge |   112.5041 ns |  0.5461 ns |   1.21 |          0.01 | 0.0114 |
+        ForLoop |    94.5811 ns |  0.5073 ns |   0.98 |          0.02 | 0.0114 |
+      BlockCopy |    96.0576 ns |  1.4434 ns |   1.00 |          0.00 | 0.0113 |
+   ForLoopLarge | 2,187.2455 ns | 34.7684 ns |  22.77 |          0.48 |      - |
+ BlockCopyLarge |   113.3799 ns |  0.5767 ns |   1.18 |          0.02 | 0.0112 |

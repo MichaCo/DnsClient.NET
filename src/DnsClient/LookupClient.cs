@@ -400,7 +400,7 @@ namespace DnsClient
                 do
                 {
                     tries++;
-
+                    
                     try
                     {
                         cancellationToken.ThrowIfCancellationRequested();
@@ -538,11 +538,11 @@ namespace DnsClient
             }
 
             throw new DnsResponseException(
-                DnsResponseCode.ConnectionTimeout, 
+                DnsResponseCode.ConnectionTimeout,
                 $"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.")
-                {
-                    AuditTrail = audit.Build()
-                };
+            {
+                AuditTrail = audit.Build()
+            };
         }
 
         private void HandleOptRecords(Audit audit, NameServer serverInfo, DnsResponseMessage response)

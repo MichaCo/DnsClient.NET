@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>AllocateVsPooledWriteHostName</title>
+<title>LoopupCachedAsyncVsSync</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -25,8 +25,12 @@ dotnet cli version=1.0.0-preview2-1-003177
 <table>
 <thead><tr><th>Method</th><th> Mean</th><th>StdDev</th><th>Scaled</th><th>Scaled-StdDev</th><th>Gen 0</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>Allocate</td><td>203.4379 ns</td><td>1.8158 ns</td><td>1.00</td><td>   0.00</td><td>0.2618</td><td>1.15 kB</td>
-</tr><tr><td>Pooled</td><td>219.2415 ns</td><td>0.8282 ns</td><td>1.08</td><td>   0.01</td><td>0.0176</td><td>127 B</td>
+</thead><tbody><tr><td>Async</td><td>406.9623 ns</td><td>3.7535 ns</td><td>1.00</td><td>   0.00</td><td>0.1207</td><td>598 B</td>
+</tr><tr><td>Sync</td><td>332.7869 ns</td><td>3.4209 ns</td><td>0.82</td><td>   0.01</td><td>0.0985</td><td>462 B</td>
+</tr></tbody></table>
+</body>
+</html>
+ns</td><td>1.8713 ns</td><td>0.85</td><td>   0.01</td><td>0.0980</td><td>462 B</td>
 </tr></tbody></table>
 </body>
 </html>

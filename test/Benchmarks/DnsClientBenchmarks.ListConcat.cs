@@ -9,24 +9,24 @@ namespace NetCoreApp
     {
         public class ListConcat
         {
-            public static ArraySegment<byte>[] sourceData;
-            public static List<ArraySegment<byte>> source;
+            public static ArraySegment<byte>[] _sourceData;
+            public static List<ArraySegment<byte>> _source;
 
             public ListConcat()
             {
                 byte[] bytes = Enumerable.Repeat((byte)192, 200).ToArray();
-                sourceData = Enumerable.Repeat(new ArraySegment<byte>(bytes), 10).ToArray();
-                source = new List<ArraySegment<byte>>(sourceData);
+                _sourceData = Enumerable.Repeat(new ArraySegment<byte>(bytes), 10).ToArray();
+                _source = new List<ArraySegment<byte>>(_sourceData);
             }
 
-            [Benchmark(Baseline = true)]
+            [Benchmark]
             public List<ArraySegment<byte>> List_Concat()
             {
-                var start = new List<ArraySegment<byte>>(source);
-                var concat = start.Concat(source);
+                var start = new List<ArraySegment<byte>>(_source);
+                var concat = start.Concat(_source);
 
                 var result = concat.ToList();
-                if (result.Count != source.Count * 2)
+                if (result.Count != _source.Count * 2)
                 {
                     throw new Exception();
                 }
@@ -36,42 +36,41 @@ namespace NetCoreApp
             [Benchmark]
             public List<ArraySegment<byte>> List_AddForEach()
             {
-                var result = new List<ArraySegment<byte>>(source);
-                foreach (var str in source)
+                var start = new List<ArraySegment<byte>>(_source);
+                foreach (var str in _source)
                 {
-                    result.Add(str);
+                    start.Add(str);
                 }
 
-                if (result.Count != source.Count * 2)
+                if (start.Count != _source.Count * 2)
                 {
                     throw new Exception();
                 }
-                return result;
+                return start;
             }
 
-            [Benchmark]
+            [Benchmark(Baseline = true)]
             public List<ArraySegment<byte>> List_AddRange()
             {
-                var result = new List<ArraySegment<byte>>(source);
+                var start = new List<ArraySegment<byte>>(_source);
+                start.AddRange(_source);
 
-                result.AddRange(source);
-
-                if (result.Count != source.Count * 2)
+                if (start.Count != _source.Count * 2)
                 {
                     throw new Exception();
                 }
-                return result.ToList();
+                return start;
             }
 
             [Benchmark]
             public List<ArraySegment<byte>> List_ArrayCopy()
             {
-                ArraySegment<byte>[] a = new ArraySegment<byte>[source.Count * 2];
-                Array.Copy(sourceData, a, source.Count);
-                Array.Copy(sourceData, a, source.Count);
+                ArraySegment<byte>[] a = new ArraySegment<byte>[_source.Count * 2];
+                Array.Copy(_sourceData, a, _source.Count);
+                Array.Copy(_sourceData, a, _source.Count);
 
                 var result = new List<ArraySegment<byte>>(a);
-                if (result.Count != source.Count * 2)
+                if (result.Count != _source.Count * 2)
                 {
                     throw new Exception();
                 }
