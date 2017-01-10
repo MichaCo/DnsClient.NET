@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using DnsClient;
 using DnsClient.Protocol;
@@ -43,7 +44,7 @@ namespace ApiDesign
                 WriteLongLine();
                 Console.WriteLine("Service Lookup");
                 var consul = new LookupClient(IPAddress.Parse("192.168.178.23"), 8600);
-                var services = consul.ResolveServiceAsync("consul", "service.consul").Result;
+                var services = consul.ResolveServiceAsync("service.consul", "dns").Result;
 
                 foreach (var service in services)
                 {

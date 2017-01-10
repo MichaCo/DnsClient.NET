@@ -22,7 +22,17 @@ namespace DnsClient
         /// <param name="baseDomain">The base domain, will be attached to the end of the query string.</param>
         /// <param name="names">List of tokens to identify the service. Will be concatinated in the given order.</param>
         /// <returns></returns>
-        public static async Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string serviceName, string baseDomain, ProtocolType protocol = ProtocolType.Unspecified)
+        public static Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, ProtocolType protocol)
+        {
+            if (protocol == ProtocolType.Unspecified || protocol == ProtocolType.Unknown)
+            {
+                return ResolveServiceAsync(query, baseDomain, serviceName, null);
+            }
+
+            return ResolveServiceAsync(query, baseDomain, serviceName, protocol.ToString());
+        }
+
+        public static async Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, string tag = null)
         {
             if (baseDomain == null)
             {
@@ -33,14 +43,14 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(serviceName));
             }
 
-            string queryString = ".";
-            if (protocol == ProtocolType.Unspecified)
+            string queryString;
+            if (string.IsNullOrWhiteSpace(tag))
             {
                 queryString = $"{serviceName}.{baseDomain}.";
             }
             else
             {
-                queryString = $"_{serviceName}._{protocol.ToString()}.{baseDomain}.";
+                queryString = $"_{serviceName}._{tag}.{baseDomain}.";
             }
 
             var hosts = new List<ServiceHostEntry>();
