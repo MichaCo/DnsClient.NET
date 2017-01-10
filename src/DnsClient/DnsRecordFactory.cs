@@ -41,6 +41,7 @@ namespace DnsClient
         /                                               /
         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
          * */
+
         public ResourceRecordInfo ReadRecordInfo()
         {
             return new ResourceRecordInfo(
@@ -139,6 +140,10 @@ namespace DnsClient
                     result = ResolveOptRecord(info);
                     break;
 
+                case ResourceRecordType.URI:
+                    result = ResolveUriRecord(info);
+                    break;
+
                 case ResourceRecordType.CAA:
                     result = ResolveCaaRecord(info);
                     break;
@@ -157,6 +162,14 @@ namespace DnsClient
             }
 
             return result;
+        }
+
+        private DnsResourceRecord ResolveUriRecord(ResourceRecordInfo info)
+        {
+            var prio = _reader.ReadUInt16NetworkOrder();
+            var weight = _reader.ReadUInt16NetworkOrder();
+            var target = _reader.ReadString(info.RawDataLength - 4);
+            return new UriRecord(info, prio, weight, target);
         }
 
         private DnsResourceRecord ResolveOptRecord(ResourceRecordInfo info)

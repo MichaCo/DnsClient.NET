@@ -25,7 +25,7 @@ namespace DnsClient.Protocol
     {
         public DnsName PtrDomainName { get; }
 
-        internal PtrRecord(ResourceRecordInfo info, DnsName ptrDName)
+        public PtrRecord(ResourceRecordInfo info, DnsName ptrDName)
             : base(info)
         {
             if (ptrDName == null)

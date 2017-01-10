@@ -31,7 +31,7 @@ namespace DnsClient.Protocol
 
         public string OS { get; }
 
-        internal HInfoRecord(ResourceRecordInfo info, string cpu, string os)
+        public HInfoRecord(ResourceRecordInfo info, string cpu, string os)
             : base(info)
         {
             Cpu = cpu;

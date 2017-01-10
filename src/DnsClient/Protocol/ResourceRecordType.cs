@@ -125,8 +125,10 @@ namespace DnsClient.Protocol
         RRSIG = 46,
 
         /// <summary>
-        /// TODO:impl
+        /// URI Record [RFC7553]
         /// </summary>
+        URI = 256,
+
         CAA = 257,
     }
 }

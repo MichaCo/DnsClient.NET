@@ -4,7 +4,7 @@ namespace DnsClient.Protocol
 {
     public abstract class DnsResourceRecord : ResourceRecordInfo
     {
-        internal DnsResourceRecord(ResourceRecordInfo info)
+        public DnsResourceRecord(ResourceRecordInfo info)
             : base(info.DomainName, info.RecordType, info.RecordClass, info.TimeToLive, info.RawDataLength)
         {
         }

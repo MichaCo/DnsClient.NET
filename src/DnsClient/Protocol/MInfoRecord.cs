@@ -41,7 +41,7 @@ namespace DnsClient.Protocol
 
         public DnsName EmailBox { get; }
 
-        internal MInfoRecord(ResourceRecordInfo info, DnsName rmailBox, DnsName emailBox)
+        public MInfoRecord(ResourceRecordInfo info, DnsName rmailBox, DnsName emailBox)
             : base(info)
         {
             RMailBox = rmailBox;

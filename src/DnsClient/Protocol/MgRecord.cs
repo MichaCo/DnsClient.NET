@@ -25,7 +25,7 @@ namespace DnsClient.Protocol
     {
         public DnsName MgName { get; }
 
-        internal MgRecord(ResourceRecordInfo info, DnsName name)
+        public MgRecord(ResourceRecordInfo info, DnsName name)
             : base(info)
         {
             if (name == null)

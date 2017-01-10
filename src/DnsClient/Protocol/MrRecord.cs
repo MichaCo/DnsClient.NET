@@ -25,7 +25,7 @@ namespace DnsClient.Protocol
     {
         public DnsName NewName { get; }
 
-        internal MrRecord(ResourceRecordInfo info, DnsName name)
+        public MrRecord(ResourceRecordInfo info, DnsName name)
             : base(info)
         {
             if (name == null)

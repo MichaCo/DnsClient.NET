@@ -26,7 +26,7 @@ namespace DnsClient.Protocol
     {
         public DnsName CanonicalName { get; }
 
-        internal CNameRecord(ResourceRecordInfo info, DnsName name)
+        public CNameRecord(ResourceRecordInfo info, DnsName name)
             : base(info)
         {
             if (name == null)

@@ -22,7 +22,7 @@ namespace DnsClient.Protocol
     {
         public DnsName MadName { get; }
 
-        internal MbRecord(ResourceRecordInfo info, DnsName name)
+        public MbRecord(ResourceRecordInfo info, DnsName name)
             : base(info)
         {
             if (name == null)

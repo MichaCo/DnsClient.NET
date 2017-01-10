@@ -32,7 +32,7 @@ namespace DnsClient.Protocol
     {
         public DnsName NSDName { get; }
 
-        internal NsRecord(ResourceRecordInfo info, DnsName name)
+        public NsRecord(ResourceRecordInfo info, DnsName name)
             : base(info)
         {
             if (name == null)

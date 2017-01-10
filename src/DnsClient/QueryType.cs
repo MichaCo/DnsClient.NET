@@ -116,6 +116,11 @@ namespace DnsClient
         /// </summary>
         ANY = 255,
 
+        /// <summary>
+        /// URI Record [RFC7553]
+        /// </summary>
+        URI = ResourceRecordType.URI,
+
         CAA = ResourceRecordType.CAA,
     }
 }

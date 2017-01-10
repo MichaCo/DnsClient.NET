@@ -47,7 +47,7 @@ namespace DnsClient.Protocol
         /// </summary>
         public ICollection<string> Text { get; }
 
-        internal TxtRecord(ResourceRecordInfo info, string[] values, string[] utf8Values)
+        public TxtRecord(ResourceRecordInfo info, string[] values, string[] utf8Values)
             : base(info)
         {
             if (values == null)

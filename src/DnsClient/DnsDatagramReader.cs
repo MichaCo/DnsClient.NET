@@ -46,6 +46,13 @@ namespace DnsClient
             return result;
         }
 
+        public string ReadString(int length)
+        {
+            var result = Encoding.ASCII.GetString(_data.Array, _data.Offset + _index, length);
+            _index += length;
+            return result;
+        }
+
         public string ParseString()
         {
             var length = ReadByte();

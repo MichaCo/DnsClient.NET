@@ -28,7 +28,7 @@ namespace DnsClient.Protocol
     {
         public byte[] Anything { get; }
 
-        internal NullRecord(ResourceRecordInfo info, byte[] anything)
+        public NullRecord(ResourceRecordInfo info, byte[] anything)
             : base(info)
         {
             Anything = anything;

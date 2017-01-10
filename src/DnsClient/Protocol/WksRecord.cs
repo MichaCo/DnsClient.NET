@@ -91,7 +91,7 @@ namespace DnsClient.Protocol
         /// </summary>
         public int[] Ports { get; }
 
-        internal WksRecord(ResourceRecordInfo info, IPAddress address, int protocol, byte[] bitmap)
+        public WksRecord(ResourceRecordInfo info, IPAddress address, int protocol, byte[] bitmap)
             : base(info)
         {
             Address = address;

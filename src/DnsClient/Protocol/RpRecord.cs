@@ -78,7 +78,7 @@ namespace DnsClient.Protocol
         /// </summary>
         public DnsName TextDomainName { get; }
 
-        internal RpRecord(ResourceRecordInfo info, DnsName mailbox, DnsName textName)
+        public RpRecord(ResourceRecordInfo info, DnsName mailbox, DnsName textName)
             : base(info)
         {
             if (mailbox == null)
