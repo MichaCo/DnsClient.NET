@@ -18,7 +18,7 @@ namespace ApiDesign
             try
             {
                 var result = lookup.QueryReverseAsync(IPAddress.Parse("216.239.32.10")).Result;
-                
+
                 Console.WriteLine(result.AuditTrail);
 
                 WriteLongLine();
@@ -39,6 +39,16 @@ namespace ApiDesign
                 Console.WriteLine(gResult.AuditTrail);
                 WriteLongLine();
                 Console.WriteLine(gResult.Answers.FirstOrDefault()?.ToString(-32));
+
+                WriteLongLine();
+                Console.WriteLine("Service Lookup");
+                var consul = new LookupClient(IPAddress.Parse("192.168.178.23"), 8600);
+                var services = consul.ResolveServiceAsync("consul", "service.consul").Result;
+
+                foreach (var service in services)
+                {
+                    Console.WriteLine($"Found service {service.HostName} at {string.Join(", ", service.AddressList.Select(p => p.ToString() + ":" + service.Port))}");
+                }
             }
             catch (DnsResponseException ex)
             {

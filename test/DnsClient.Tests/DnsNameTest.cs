@@ -117,6 +117,26 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void DnsName_Equals_QueryName()
+        {
+            var val = "awesome.example.com.";
+            DnsName name = val;
+            QueryName name2 = val;
+
+            Assert.True(name.Equals(name2));
+        }
+
+        [Fact]
+        public void DnsName_NotEquals_QueryName()
+        {
+            var val = "awesome.example.com.";
+            DnsName name = val;
+            QueryName name2 = "other.example.com.";
+
+            Assert.False(name.Equals(name2));
+        }
+
+        [Fact]
         public void DnsName_NotEquals()
         {
             DnsName name = "abc";

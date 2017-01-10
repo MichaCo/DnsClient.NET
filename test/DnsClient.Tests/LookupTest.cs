@@ -16,7 +16,7 @@ namespace DnsClient.Tests
         public void Lookup_Defaults()
         {
             var client = new LookupClient();
-
+            
             Assert.True(client.UseCache);
             Assert.False(client.EnableAuditTrail);
             Assert.Null(client.MimimumCacheTimeout);

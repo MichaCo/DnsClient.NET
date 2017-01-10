@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Threading;
 
 namespace DnsClient
 {
@@ -226,14 +225,14 @@ namespace DnsClient
 
         internal static DnsName FromBytes(ICollection<ArraySegment<byte>> labels)
         {
-            if(labels.Count == 0)
+            if (labels.Count == 0)
             {
                 return Root;
             }
 
             var result = new List<DnsNameLabel>();
 
-            foreach(var label in labels)
+            foreach (var label in labels)
             {
                 result.Add(ParseLabel(label));
             }
@@ -385,7 +384,7 @@ namespace DnsClient
             //  ASCI number 0 baseline => 48
             return new byte[] { (byte)(a + 48), (byte)(b + 48), (byte)(c + 48) };
         }
-        
+
         internal void WriteBytes(DnsDatagramWriter writer)
         {
             foreach (var label in _labels)
@@ -422,13 +421,7 @@ namespace DnsClient
                 return false;
             }
 
-            var otherName = obj as DnsName;
-            if (otherName == null)
-            {
-                return false;
-            }
-
-            return CompareTo(otherName) == 0;
+            return obj.ToString().Equals(Value);
         }
 
         public override int GetHashCode()
@@ -586,7 +579,6 @@ namespace DnsClient
 
     internal static class DnsNameExtentions
     {
-
         public static bool IsDigit(this char c)
         {
             return (c >= '0' && c <= '9');

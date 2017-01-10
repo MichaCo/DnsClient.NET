@@ -64,6 +64,27 @@ namespace DnsClient.Tests
             Assert.False(name.GetHashCode().Equals(name2.GetHashCode()));
         }
 
+
+        [Fact]
+        public void QuerName_Equals_DnsName()
+        {
+            var val = "awesome.example.com.";
+            QueryName name = val;
+            DnsName name2 = val;
+
+            Assert.True(name.Equals(name2));
+        }
+
+        [Fact]
+        public void QueryName_NotEquals_DnsName()
+        {
+            var val = "awesome.example.com.";
+            QueryName name = val;
+            DnsName name2 = "other.example.com.";
+
+            Assert.False(name.Equals(name2));
+        }
+
         [Fact]
         public void QueryName_Equals()
         {
@@ -144,6 +165,16 @@ namespace DnsClient.Tests
 
             // ending
             Assert.Equal(name, "abc.xyz.example.com.");
+        }
+
+        [Fact]
+        public void QueryName_ServiceValid()
+        {
+            var name = new QueryName("_abc._xyz._example.com");
+            var strValue = name.ToString();
+
+            // ending
+            Assert.Equal(name, "_abc._xyz._example.com.");
         }
 
         [Fact]

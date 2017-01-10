@@ -18,7 +18,7 @@ namespace DnsClient
         /// Gets the validated value.
         /// </summary>
         public string Name { get; }
-        
+
         /// <summary>
         /// Gets the original value used to construct the instance of <see cref="QueryName"/> initially.
         /// </summary>
@@ -39,10 +39,12 @@ namespace DnsClient
 
         public override bool Equals(object obj)
         {
-            if (obj == null) return false;
-            var o = obj as QueryName;
-            if (o == null) return false;
-            return Name.Equals(o.Name);
+            if (obj == null)
+            {
+                return false;
+            }
+
+            return obj.ToString().Equals(Name);
         }
 
         public override int GetHashCode()
@@ -70,7 +72,7 @@ namespace DnsClient
             bool valid = true;
             foreach (var c in name)
             {
-                if (!(c == '-' || c == '.' ||
+                if (!(c == '-' || c == '.' || c == '_' ||
                     c >= 'a' && c <= 'z' ||
                     c >= 'A' && c <= 'Z' ||
                     c >= '0' && c <= '9'))
