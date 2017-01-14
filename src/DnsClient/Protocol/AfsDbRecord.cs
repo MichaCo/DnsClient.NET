@@ -27,9 +27,9 @@ namespace DnsClient.Protocol
     {
         public AfsType SubType { get; }
 
-        public DnsName Hostname { get; }
+        public DnsString Hostname { get; }
 
-        public AfsDbRecord(ResourceRecordInfo info, AfsType type, DnsName name) : base(info)
+        public AfsDbRecord(ResourceRecordInfo info, AfsType type, DnsString name) : base(info)
         {
             SubType = type;
             Hostname = name;

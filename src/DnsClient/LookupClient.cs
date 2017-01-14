@@ -202,10 +202,10 @@ namespace DnsClient
             return QueryAsync(arpa, QueryType.PTR, QueryClass.IN, cancellationToken);
         }
 
-        public IDnsQueryResponse Query(QueryName query, QueryType queryType)
+        public IDnsQueryResponse Query(string query, QueryType queryType)
             => Query(query, queryType, QueryClass.IN);
 
-        public IDnsQueryResponse Query(QueryName query, QueryType queryType, QueryClass queryClass)
+        public IDnsQueryResponse Query(string query, QueryType queryType, QueryClass queryClass)
             => Query(new DnsQuestion(query, queryType, queryClass));
 
         private IDnsQueryResponse Query(DnsQuestion question)
@@ -348,16 +348,16 @@ namespace DnsClient
             };
         }
 
-        public Task<IDnsQueryResponse> QueryAsync(QueryName query, QueryType queryType)
+        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType)
             => QueryAsync(query, queryType, CancellationToken.None);
 
-        public Task<IDnsQueryResponse> QueryAsync(QueryName query, QueryType queryType, CancellationToken cancellationToken)
+        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken)
             => QueryAsync(query, queryType, QueryClass.IN, cancellationToken);
 
-        public Task<IDnsQueryResponse> QueryAsync(QueryName query, QueryType queryType, QueryClass queryClass)
+        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass)
             => QueryAsync(query, queryType, queryClass, CancellationToken.None);
 
-        public Task<IDnsQueryResponse> QueryAsync(QueryName query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
+        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
             => QueryAsync(new DnsQuestion(query, queryType, queryClass), cancellationToken);
 
         private async Task<IDnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)

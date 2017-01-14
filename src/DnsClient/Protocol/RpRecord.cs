@@ -71,14 +71,14 @@ namespace DnsClient.Protocol
         /// <summary>
         /// Gets a domain name that specifies the mailbox for the responsible person.
         /// </summary>
-        public DnsName MailboxDomainName { get; }
+        public DnsString MailboxDomainName { get; }
 
         /// <summary>
         /// Gets a domain name for which TXT RR's exist.
         /// </summary>
-        public DnsName TextDomainName { get; }
+        public DnsString TextDomainName { get; }
 
-        public RpRecord(ResourceRecordInfo info, DnsName mailbox, DnsName textName)
+        public RpRecord(ResourceRecordInfo info, DnsString mailbox, DnsString textName)
             : base(info)
         {
             if (mailbox == null)

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using BenchmarkDotNet.Attributes;
 
-namespace NetCoreApp
+namespace Benchmarks
 {
     public static partial class DnsClientBenchmarks
     {

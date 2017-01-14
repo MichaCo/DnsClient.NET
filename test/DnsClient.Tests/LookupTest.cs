@@ -303,7 +303,7 @@ namespace DnsClient.Tests
             var client = new LookupClient();
             var result = await client.QueryReverseAsync(IPAddress.Parse("127.0.0.1"));
 
-            Assert.Equal(result.Answers.PtrRecords().First().PtrDomainName, new DnsName("localhost"));
+            Assert.Equal(result.Answers.PtrRecords().First().PtrDomainName.Value, "localhost.");
         }
 
         [Fact]
@@ -312,7 +312,7 @@ namespace DnsClient.Tests
             var client = new LookupClient();
             var result = client.QueryReverse(IPAddress.Parse("127.0.0.1"));
 
-            Assert.Equal(result.Answers.PtrRecords().First().PtrDomainName, new DnsName("localhost"));
+            Assert.Equal(result.Answers.PtrRecords().First().PtrDomainName.Value, "localhost.");
         }
 
         [Fact]
@@ -481,16 +481,6 @@ namespace DnsClient.Tests
             Func<IDnsQueryResponse> act = () => client.QueryAsync("müsliiscool!.de", QueryType.A).Result;
 
             Assert.ThrowsAny<ArgumentException>(act);
-        }
-
-        [Fact(Skip = "Usually DNS Servers seem to time out/drop the request with invalid labels.")]
-        public async Task Lookup_Query_LabelTooLong()
-        {
-            var client = new LookupClient(IPAddress.Parse("8.8.8.8"));
-            var longName = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
-            var result = await client.QueryAsync(longName, QueryType.ANY);
-
-            Assert.Equal(longName + ".", result.Questions.First().QueryName);
         }
     }
 }

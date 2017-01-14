@@ -71,7 +71,7 @@ namespace DnsClient
                 hosts.Add(new ServiceHostEntry()
                 {
                     AddressList = addresses.ToArray(),
-                    HostName = entry.Target,
+                    HostName = entry.Target.Value,
                     Port = entry.Port
                 });
             }

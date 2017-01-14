@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 
@@ -51,12 +52,6 @@ namespace DnsClient
             var result = Encoding.ASCII.GetString(_data.Array, _data.Offset + _index, length);
             _index += length;
             return result;
-        }
-
-        public string ParseString()
-        {
-            var length = ReadByte();
-            return ParseString(this, length);
         }
 
         /// <summary>
@@ -176,14 +171,88 @@ namespace DnsClient
             return new IPAddress(ReadByteArray(IPv6Length));
         }
 
-        public DnsName ReadDnsName()
+        private static readonly byte[] ACEPrefixBytes = ACEPrefix.Select(p => (byte)p).ToArray();
+
+        private const string ACEPrefix = "xn--";
+
+        public DnsString ReadDnsName()
         {
-            var labels = ReadLabels();
-            var name = DnsName.FromBytes(labels);
-            return name;
+            var builder = new StringBuilder();
+            var original = new StringBuilder();
+
+            foreach (var labelArray in ReadLabels())
+            {
+                var bytesIndex = 0;
+
+                foreach (var current in labelArray)
+                {
+                    char chr = (char)current;
+
+                    byte a = labelArray.Array[labelArray.Offset + 1], b = labelArray.Array[labelArray.Offset + 2], c = labelArray.Array[labelArray.Offset + 3];
+                    if (current == ACEPrefixBytes[0] && a == ACEPrefixBytes[1] && b == ACEPrefixBytes[2] && c == ACEPrefixBytes[3])
+                    {
+                        var label = Encoding.UTF8.GetString(labelArray.Array, labelArray.Offset, labelArray.Count);
+                        var unicode = label;
+                        try
+                        {
+                            unicode = DnsString.IDN.GetUnicode(label);
+                        }
+                        catch { /* just do nothing in case the IDN is invalid, better to return something at least */ }
+
+                        builder.Append(label);
+                        original.Append(unicode);
+                        break;
+                    }
+
+                    if (current < 32 || current > 126)
+                    {
+                        builder.Append("\\" + current.ToString("000"));
+                    }
+                    else if (chr == ';')
+                    {
+                        builder.Append("\\;");
+                    }
+                    else if (chr == '\\')
+                    {
+                        builder.Append("\\\\");
+                    }
+                    else if (chr == '"')
+                    {
+                        builder.Append("\\\"");
+                    }
+                    else
+                    {
+                        builder.Append(chr);
+                    }
+
+                    bytesIndex++;
+                }
+
+                builder.Append(".");
+
+                var lbl = Encoding.UTF8.GetString(labelArray.Array, labelArray.Offset, labelArray.Count);
+
+                original.Append(lbl);
+                original.Append(".");
+            }
+
+            var value = builder.ToString();
+            if (value.Length == 0 || value[value.Length - 1] != '.')
+            {
+                value += '.';
+            }
+
+            var orig = original.ToString();
+            if (orig.Length == 0 || orig[orig.Length - 1] != '.')
+            {
+                orig += '.';
+            }
+
+            return new DnsString(value, orig);
         }
 
-        public QueryName ReadQueryName()
+        // only used by the DnsQuestion as we don't expect any escaped chars in the actual query posted to and send back from the DNS Server (not supported).
+        public DnsString ReadQuestionQueryString()
         {
             var result = new StringBuilder();
             foreach (var labelArray in ReadLabels())
@@ -193,7 +262,8 @@ namespace DnsClient
                 result.Append(".");
             }
 
-            return new QueryName(result.ToString());
+            string value = result.ToString();
+            return DnsString.FromResponseQueryString(value);
         }
 
         public ICollection<ArraySegment<byte>> ReadLabels()
@@ -284,7 +354,7 @@ namespace DnsClient
         {
             return new ArraySegment<T>(array.Array, array.Offset + startIndex, array.Count - startIndex);
         }
-        
+
         public static ArraySegment<T> SubArrayFromOriginal<T>(this ArraySegment<T> array, int startIndex)
         {
             return new ArraySegment<T>(array.Array, startIndex, array.Array.Length - startIndex);

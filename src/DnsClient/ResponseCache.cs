@@ -34,7 +34,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(question));
             }
 
-            return string.Concat(question.QueryName.Name, ":", (short)question.QuestionClass, ":", (short)question.QuestionType);
+            return string.Concat(question.QueryName.Value, ":", (short)question.QuestionClass, ":", (short)question.QuestionType);
         }
 
         public IDnsQueryResponse Get(string key)

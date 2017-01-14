@@ -88,7 +88,7 @@ namespace DnsClient
 
             for (int questionIndex = 0; questionIndex < questionCount; questionIndex++)
             {
-                var question = new DnsQuestion(reader.ReadQueryName(), (QueryType)reader.ReadUInt16NetworkOrder(), (QueryClass)reader.ReadUInt16NetworkOrder());
+                var question = new DnsQuestion(reader.ReadQuestionQueryString(), (QueryType)reader.ReadUInt16NetworkOrder(), (QueryClass)reader.ReadUInt16NetworkOrder());
                 response.AddQuestion(question);
             }
 

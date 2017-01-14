@@ -2,7 +2,7 @@
   "profiles": {
     "DigApp": {
       "commandName": "Project",
-      "commandLineArgs": " perf -s 192.168.178.22 localhost --time 10 -c 10 -r 100 -nr"
+      "commandLineArgs": " -s  localhost micha.mcnet.com any --time -1"
     },
     "MiniDig": {
       "commandName": "Project"

@@ -4,25 +4,25 @@ namespace DnsClient
 {
     public class DnsQuestion
     {
-        public QueryName QueryName { get; }
+        public DnsString QueryName { get; }
 
         public QueryClass QuestionClass { get; }
 
         public QueryType QuestionType { get; }
 
-        public DnsQuestion(string queryName, QueryType questionType, QueryClass questionClass)
-            : this(new QueryName(queryName), questionType, questionClass)
+        public DnsQuestion(string query, QueryType questionType, QueryClass questionClass)
+            : this(DnsString.ParseQueryString(query), questionType, questionClass)
         {
         }
 
-        public DnsQuestion(QueryName queryName, QueryType questionType, QueryClass questionClass)
+        public DnsQuestion(DnsString query, QueryType questionType, QueryClass questionClass)
         {
-            if (queryName == null)
+            if (query == null)
             {
-                throw new ArgumentNullException(nameof(queryName));
+                throw new ArgumentNullException(nameof(query));
             }
             
-            QueryName = queryName;
+            QueryName = query;
             QuestionType = questionType;
             QuestionClass = questionClass;
         }
@@ -34,7 +34,7 @@ namespace DnsClient
 
         public string ToString(int offset = -32)
         {
-            return string.Format("{0," + offset + "} \t{1} \t{2}", ((DnsName)QueryName).ValueUTF8, QuestionClass, QuestionType);
+            return string.Format("{0," + offset + "} \t{1} \t{2}", QueryName.Original, QuestionClass, QuestionType);
         }
     }
 }

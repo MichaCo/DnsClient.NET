@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using BenchmarkDotNet.Attributes;
 
-namespace NetCoreApp
+namespace Benchmarks
 {
     public static partial class DnsClientBenchmarks
     {

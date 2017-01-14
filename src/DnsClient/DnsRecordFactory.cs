@@ -45,7 +45,7 @@ namespace DnsClient
         public ResourceRecordInfo ReadRecordInfo()
         {
             return new ResourceRecordInfo(
-                _reader.ReadQueryName(),                                // name
+                _reader.ReadQuestionQueryString(),                      // name
                 (ResourceRecordType)_reader.ReadUInt16NetworkOrder(),   // type
                 (QueryClass)_reader.ReadUInt16NetworkOrder(),           // class
                 (int)_reader.ReadUInt32NetworkOrder(),                  // ttl - 32bit!!

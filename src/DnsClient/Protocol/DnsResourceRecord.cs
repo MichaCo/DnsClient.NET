@@ -45,7 +45,7 @@ namespace DnsClient.Protocol
         /// <summary>
         /// The domain name used to query.
         /// </summary>
-        public QueryName DomainName { get; }
+        public DnsString DomainName { get; }
 
         /// <summary>
         /// Specifies type of resource record.
@@ -67,7 +67,12 @@ namespace DnsClient.Protocol
         /// </summary>
         public int RawDataLength { get; }
 
-        public ResourceRecordInfo(QueryName queryName, ResourceRecordType recordType, QueryClass recordClass, int ttl, int length)
+        public ResourceRecordInfo(string query, ResourceRecordType recordType, QueryClass recordClass, int ttl, int length)
+            : this(DnsString.ParseQueryString(query), recordType, recordClass, ttl, length)
+        {
+        }
+
+        public ResourceRecordInfo(DnsString queryName, ResourceRecordType recordType, QueryClass recordClass, int ttl, int length)
         {
             if (queryName == null)
             {

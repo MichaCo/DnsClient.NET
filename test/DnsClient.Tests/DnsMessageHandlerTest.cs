@@ -29,7 +29,7 @@ namespace DnsClient.Tests
             Assert.Equal(result.Answers.Count, 1);
             var resultAnswer = result.Answers.OfType<ARecord>().First();
             Assert.Equal(resultAnswer.Address.ToString(), ip.ToString());
-            Assert.Equal(resultAnswer.DomainName, "query.");
+            Assert.Equal(resultAnswer.DomainName.Value, "query.");
             Assert.Equal(resultAnswer.RawDataLength, 4);
             Assert.Equal(resultAnswer.RecordClass, QueryClass.IN);
             Assert.Equal(resultAnswer.RecordType, ResourceRecordType.A);
@@ -53,11 +53,8 @@ namespace DnsClient.Tests
                 //writer.WriteUInt16Network((ushort)message.Header.AdditionalCount);
                 writer.WriteUInt16NetworkOrder(0);
 
-                var answer = message.Answers.First();
-                var q = new DnsName(answer.DomainName).GetBytes();
-                //writer.Extend(q.Count);    // the following query->length
-                writer.WriteBytes(q.ToArray(), q.Length);
-                //writer.Extend(10);  // the following 4x ushort
+                var answer = message.Answers.First();                
+                writer.WriteHostName(answer.DomainName.Value);                                
                 writer.WriteUInt16NetworkOrder((ushort)answer.RecordType);
                 writer.WriteUInt16NetworkOrder((ushort)answer.RecordClass);
                 writer.WriteUInt32NetworkOrder((uint)answer.TimeToLive);

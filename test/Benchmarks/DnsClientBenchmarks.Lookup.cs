@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
 using DnsClient;
 
-namespace NetCoreApp
+namespace Benchmarks
 {
     public static partial class DnsClientBenchmarks
     {

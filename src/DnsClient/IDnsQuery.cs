@@ -9,17 +9,17 @@ namespace DnsClient
     /// </summary>
     public interface IDnsQuery
     {
-        IDnsQueryResponse Query(QueryName query, QueryType queryType);
+        IDnsQueryResponse Query(string query, QueryType queryType);
 
-        IDnsQueryResponse Query(QueryName query, QueryType queryType, QueryClass queryClass);
+        IDnsQueryResponse Query(string query, QueryType queryType, QueryClass queryClass);
 
-        Task<IDnsQueryResponse> QueryAsync(QueryName query, QueryType queryType);
+        Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType);
 
-        Task<IDnsQueryResponse> QueryAsync(QueryName query, QueryType queryType, QueryClass queryClass);
+        Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass);
 
-        Task<IDnsQueryResponse> QueryAsync(QueryName query, QueryType queryType, CancellationToken cancellationToken);
+        Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken);
 
-        Task<IDnsQueryResponse> QueryAsync(QueryName query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken);
+        Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken);
 
         IDnsQueryResponse QueryReverse(IPAddress ipAddress);
 

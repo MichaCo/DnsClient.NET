@@ -37,11 +37,11 @@ namespace DnsClient.Protocol
 
     public class MInfoRecord : DnsResourceRecord
     {
-        public DnsName RMailBox { get; }
+        public DnsString RMailBox { get; }
 
-        public DnsName EmailBox { get; }
+        public DnsString EmailBox { get; }
 
-        public MInfoRecord(ResourceRecordInfo info, DnsName rmailBox, DnsName emailBox)
+        public MInfoRecord(ResourceRecordInfo info, DnsString rmailBox, DnsString emailBox)
             : base(info)
         {
             RMailBox = rmailBox;

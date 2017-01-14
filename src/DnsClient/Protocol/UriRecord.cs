@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace DnsClient.Protocol
@@ -37,7 +36,6 @@ namespace DnsClient.Protocol
     /// </summary>
     public class UriRecord : DnsResourceRecord
     {
-
         public string Target { get; set; }
 
         public int Priority { get; set; }
@@ -60,7 +58,7 @@ namespace DnsClient.Protocol
 
         public override string RecordToString()
         {
-            return $"{Priority} {Weigth} {Target}";
+            return $"{Priority} {Weigth} \"{Target}\"";
         }
     }
 }

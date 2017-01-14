@@ -20,9 +20,9 @@ namespace DnsClient.Protocol
 
     public class MbRecord : DnsResourceRecord
     {
-        public DnsName MadName { get; }
+        public DnsString MadName { get; }
 
-        public MbRecord(ResourceRecordInfo info, DnsName name)
+        public MbRecord(ResourceRecordInfo info, DnsString name)
             : base(info)
         {
             if (name == null)
@@ -35,7 +35,7 @@ namespace DnsClient.Protocol
 
         public override string RecordToString()
         {
-            return MadName;
+            return MadName.Value;
         }
     }
 }

@@ -24,9 +24,9 @@ namespace DnsClient.Protocol
 
     public class CNameRecord : DnsResourceRecord
     {
-        public DnsName CanonicalName { get; }
+        public DnsString CanonicalName { get; }
 
-        public CNameRecord(ResourceRecordInfo info, DnsName name)
+        public CNameRecord(ResourceRecordInfo info, DnsString name)
             : base(info)
         {
             if (name == null)
@@ -39,7 +39,7 @@ namespace DnsClient.Protocol
 
         public override string RecordToString()
         {
-            return CanonicalName;
+            return CanonicalName.Value;
         }
     }
 }

@@ -36,20 +36,36 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as PtrRecord;
 
-            Assert.Equal(result.PtrDomainName, ".");
+            Assert.Equal(result.PtrDomainName.Value, ".");
         }
 
         [Fact]
         public void DnsRecordFactory_PTRRecord()
         {
-            var name = new DnsName("result.example.com");
-            var data = name.GetBytes();
-            var factory = GetFactory(data.ToArray());
-            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.PTR, QueryClass.IN, 0, data.Length);
+            var name = DnsString.ParseQueryString("result.example.com");
+            var writer = new DnsDatagramWriter();
+            writer.WriteHostName(name.Value);
+            var factory = GetFactory(writer.Data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.PTR, QueryClass.IN, 0, writer.Data.Count);
 
             var result = factory.GetRecord(info) as PtrRecord;
 
             Assert.Equal(result.PtrDomainName, name);
+        }
+
+        [Fact]
+        public void DnsRecordFactory_MBRecord()
+        {
+            var name = DnsString.ParseQueryString("Müsli.de");
+            var writer = new DnsDatagramWriter();
+            writer.WriteHostName(name.Value);
+            var factory = GetFactory(writer.Data.ToArray());
+            var info = new ResourceRecordInfo("Müsli.de", ResourceRecordType.MB, QueryClass.IN, 0, writer.Data.Count);
+
+            var result = factory.GetRecord(info) as MbRecord;
+
+            Assert.Equal(result.MadName, name);
+            Assert.Equal(result.MadName.Original, "müsli.de.");
         }
 
         [Fact]
@@ -122,16 +138,17 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as NsRecord;
 
-            Assert.Equal(result.NSDName, ".");
+            Assert.Equal(result.NSDName.Value, ".");
         }
 
         [Fact]
         public void DnsRecordFactory_NSRecord()
         {
-            var name = new DnsName("result.example.com");
-            var data = name.GetBytes();
-            var factory = GetFactory(data.ToArray());
-            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.NS, QueryClass.IN, 0, data.Length);
+            var writer = new DnsDatagramWriter();
+            var name = DnsString.ParseQueryString("result.example.com");
+            writer.WriteHostName(name.Value);
+            var factory = GetFactory(writer.Data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.NS, QueryClass.IN, 0, writer.Data.Count);
 
             var result = factory.GetRecord(info) as NsRecord;
 
@@ -172,18 +189,20 @@ namespace DnsClient.Tests
             var result = factory.GetRecord(info) as MxRecord;
 
             Assert.Equal(result.Preference, 256);
-            Assert.Equal(result.Exchange, ".");
+            Assert.Equal(result.Exchange.Value, ".");
         }
 
         [Fact]
         public void DnsRecordFactory_MXRecord()
         {
-            var name = new DnsName("result.example.com");
-            var data = new List<byte>() { 0, 1 };
-            data.AddRange(name.GetBytes());
+            var name = DnsString.ParseQueryString("result.example.com");
+            var writer = new DnsDatagramWriter();
+            writer.WriteByte(0);
+            writer.WriteByte(1);
+            writer.WriteHostName(name.Value);
 
-            var factory = GetFactory(data.ToArray());
-            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.MX, QueryClass.IN, 0, data.Count);
+            var factory = GetFactory(writer.Data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.MX, QueryClass.IN, 0, writer.Data.Count);
 
             var result = factory.GetRecord(info) as MxRecord;
 
@@ -212,8 +231,8 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as SoaRecord;
 
-            Assert.Equal(result.MName, ".");
-            Assert.Equal(result.RName, ".");
+            Assert.Equal(result.MName.Value, ".");
+            Assert.Equal(result.RName.Value, ".");
             Assert.True(result.Serial == 1);
             Assert.True(result.Refresh == 2);
             Assert.True(result.Retry == 3);
@@ -236,12 +255,13 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_SRVRecord()
         {
-            var name = new DnsName("result.example.com");
-            var data = new List<byte>() { 0, 1, 1, 0, 2, 3 };
-            data.AddRange(name.GetBytes());
-            var factory = GetFactory(data.ToArray());
+            var name = DnsString.ParseQueryString("result.example.com");
+            var writer = new DnsDatagramWriter();
+            writer.WriteBytes(new byte[] { 0, 1, 1, 0, 2, 3 }, 6);
+            writer.WriteHostName(name.Value);
+            var factory = GetFactory(writer.Data.ToArray());
 
-            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.SRV, QueryClass.IN, 0, data.Count);
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.SRV, QueryClass.IN, 0, writer.Data.Count);
 
             var result = factory.GetRecord(info) as SrvRecord;
 

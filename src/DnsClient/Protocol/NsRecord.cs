@@ -30,9 +30,9 @@ namespace DnsClient.Protocol
 
     public class NsRecord : DnsResourceRecord
     {
-        public DnsName NSDName { get; }
+        public DnsString NSDName { get; }
 
-        public NsRecord(ResourceRecordInfo info, DnsName name)
+        public NsRecord(ResourceRecordInfo info, DnsString name)
             : base(info)
         {
             if (name == null)
@@ -45,7 +45,7 @@ namespace DnsClient.Protocol
 
         public override string RecordToString()
         {
-            return NSDName;
+            return NSDName.Value;
         }
     }
 }

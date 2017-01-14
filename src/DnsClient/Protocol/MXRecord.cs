@@ -44,9 +44,9 @@ namespace DnsClient.Protocol
         /// <summary>
         /// A <domain-name> which specifies a host willing to act as a mail exchange.
         /// </summary>
-        public DnsName Exchange { get; }
+        public DnsString Exchange { get; }
 
-        public MxRecord(ResourceRecordInfo info, ushort preference, DnsName domainName)
+        public MxRecord(ResourceRecordInfo info, ushort preference, DnsString domainName)
             : base(info)
         {
             if (domainName == null)

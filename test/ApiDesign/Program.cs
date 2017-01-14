@@ -29,7 +29,7 @@ namespace ApiDesign
 
                 if (answer != null)
                 {
-                    var mResult = lookup.QueryAsync(answer.PtrDomainName, QueryType.A, QueryClass.IN).Result;
+                    var mResult = lookup.QueryAsync(answer.PtrDomainName.Value, QueryType.A, QueryClass.IN).Result;
 
                     Console.WriteLine(mResult.AuditTrail);
                     WriteLongLine();

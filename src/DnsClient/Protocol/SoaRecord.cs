@@ -76,17 +76,17 @@ namespace DnsClient.Protocol
 
         public uint Minimum { get; }
 
-        public DnsName MName { get; }
+        public DnsString MName { get; }
 
         public uint Refresh { get; }
 
         public uint Retry { get; }
 
-        public DnsName RName { get; }
+        public DnsString RName { get; }
 
         public uint Serial { get; }
 
-        public SoaRecord(ResourceRecordInfo info, DnsName mName, DnsName rName, uint serial, uint refresh, uint retry, uint expire, uint minimum)
+        public SoaRecord(ResourceRecordInfo info, DnsString mName, DnsString rName, uint serial, uint refresh, uint retry, uint expire, uint minimum)
             : base(info)
         {
             MName = mName;

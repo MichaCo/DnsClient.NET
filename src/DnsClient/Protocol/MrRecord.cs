@@ -23,9 +23,9 @@ namespace DnsClient.Protocol
 
     public class MrRecord : DnsResourceRecord
     {
-        public DnsName NewName { get; }
+        public DnsString NewName { get; }
 
-        public MrRecord(ResourceRecordInfo info, DnsName name)
+        public MrRecord(ResourceRecordInfo info, DnsString name)
             : base(info)
         {
             if (name == null)
@@ -38,7 +38,7 @@ namespace DnsClient.Protocol
 
         public override string RecordToString()
         {
-            return NewName;
+            return NewName.Value;
         }
     }
 }

@@ -30,7 +30,7 @@ namespace DnsClient.Tests
             //        .Returns(new DnsResourceRecord[] { aRecord });
             
             Task<IDnsQueryResponse> response = Task.FromResult(dnsResponse);
-            lookupMock.Setup(f => f.QueryAsync(It.IsAny<QueryName>(), QueryType.A)).Returns(response);
+            lookupMock.Setup(f => f.QueryAsync(It.IsAny<string>(), QueryType.A)).Returns(response);
             var lookup = lookupMock.Object;
 
             // act
@@ -38,7 +38,7 @@ namespace DnsClient.Tests
 
             // assert
             Assert.Equal(1, result.Header.AnswerCount);
-            Assert.Equal("query.", result.Answers.First().DomainName);
+            Assert.Equal("query.", result.Answers.First().DomainName.Value);
             Assert.Equal(IPAddress.Any, result.Answers.ARecords().First().Address);
         }
     }

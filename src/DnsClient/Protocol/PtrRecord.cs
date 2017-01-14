@@ -23,9 +23,9 @@ namespace DnsClient.Protocol
     */
     public class PtrRecord : DnsResourceRecord
     {
-        public DnsName PtrDomainName { get; }
+        public DnsString PtrDomainName { get; }
 
-        public PtrRecord(ResourceRecordInfo info, DnsName ptrDName)
+        public PtrRecord(ResourceRecordInfo info, DnsString ptrDName)
             : base(info)
         {
             if (ptrDName == null)
@@ -38,7 +38,7 @@ namespace DnsClient.Protocol
 
         public override string RecordToString()
         {
-            return PtrDomainName;
+            return PtrDomainName.Value;
         }
     }
 }

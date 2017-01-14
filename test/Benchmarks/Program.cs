@@ -6,7 +6,7 @@ using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
 
-namespace NetCoreApp
+namespace Benchmarks
 {
     public class Program
     {
