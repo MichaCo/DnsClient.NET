@@ -171,6 +171,7 @@ namespace DnsClient
             return new IPAddress(ReadByteArray(IPv6Length));
         }
 
+
         private static readonly byte[] ACEPrefixBytes = ACEPrefix.Select(p => (byte)p).ToArray();
 
         private const string ACEPrefix = "xn--";
@@ -179,60 +180,47 @@ namespace DnsClient
         {
             var builder = new StringBuilder();
             var original = new StringBuilder();
-
             foreach (var labelArray in ReadLabels())
             {
-                var bytesIndex = 0;
-
-                foreach (var current in labelArray)
+                foreach (var b in labelArray)
                 {
-                    char chr = (char)current;
+                    char c = (char)b;
 
-                    byte a = labelArray.Array[labelArray.Offset + 1], b = labelArray.Array[labelArray.Offset + 2], c = labelArray.Array[labelArray.Offset + 3];
-                    if (current == ACEPrefixBytes[0] && a == ACEPrefixBytes[1] && b == ACEPrefixBytes[2] && c == ACEPrefixBytes[3])
+                    if (b < 32 || b > 126)
                     {
-                        var label = Encoding.UTF8.GetString(labelArray.Array, labelArray.Offset, labelArray.Count);
-                        var unicode = label;
-                        try
-                        {
-                            unicode = DnsString.IDN.GetUnicode(label);
-                        }
-                        catch { /* just do nothing in case the IDN is invalid, better to return something at least */ }
-
-                        builder.Append(label);
-                        original.Append(unicode);
-                        break;
+                        builder.Append("\\" + b.ToString("000"));
                     }
-
-                    if (current < 32 || current > 126)
-                    {
-                        builder.Append("\\" + current.ToString("000"));
-                    }
-                    else if (chr == ';')
+                    else if (c == ';')
                     {
                         builder.Append("\\;");
                     }
-                    else if (chr == '\\')
+                    else if (c == '\\')
                     {
                         builder.Append("\\\\");
                     }
-                    else if (chr == '"')
+                    else if (c == '"')
                     {
                         builder.Append("\\\"");
                     }
                     else
                     {
-                        builder.Append(chr);
+                        builder.Append(c);
                     }
-
-                    bytesIndex++;
                 }
 
                 builder.Append(".");
 
-                var lbl = Encoding.UTF8.GetString(labelArray.Array, labelArray.Offset, labelArray.Count);
+                var label = Encoding.UTF8.GetString(labelArray.Array, labelArray.Offset, labelArray.Count);
+                if (label.Contains(ACEPrefix))
+                {
+                    try
+                    {
+                        label = DnsString.IDN.GetUnicode(label);
+                    }
+                    catch { /* just do nothing in case the IDN is invalid, better to return something at least */ }
+                }
 
-                original.Append(lbl);
+                original.Append(label);
                 original.Append(".");
             }
 
@@ -248,7 +236,7 @@ namespace DnsClient
                 orig += '.';
             }
 
-            return new DnsString(value, orig);
+            return new DnsString(orig, value);
         }
 
         // only used by the DnsQuestion as we don't expect any escaped chars in the actual query posted to and send back from the DNS Server (not supported).
