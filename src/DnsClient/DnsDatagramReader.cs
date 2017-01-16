@@ -11,6 +11,7 @@ namespace DnsClient
         public const int IPv6Length = 16;
         public const int IPv4Length = 4;
         private const byte ReferenceByte = 0xc0;
+        private const string ACEPrefix = "xn--";
 
         private readonly ArraySegment<byte> _data;
         private int _index;
@@ -96,21 +97,9 @@ namespace DnsClient
             return builder.ToString();
         }
 
-        public string ReadUTF8String()
-        {
-            var length = ReadByte();
-            return ReadUTF8String(this, length);
-        }
-
         public static string ReadUTF8String(ArraySegment<byte> data)
         {
             return Encoding.UTF8.GetString(data.Array, data.Offset, data.Count);
-        }
-
-        public static string ReadUTF8String(DnsDatagramReader reader, int length)
-        {
-            var data = reader.ReadBytes(length);
-            return ReadUTF8String(data);
         }
 
         public byte ReadByte()
@@ -170,11 +159,6 @@ namespace DnsClient
 
             return new IPAddress(ReadByteArray(IPv6Length));
         }
-
-
-        private static readonly byte[] ACEPrefixBytes = ACEPrefix.Select(p => (byte)p).ToArray();
-
-        private const string ACEPrefix = "xn--";
 
         public DnsString ReadDnsName()
         {
@@ -336,11 +320,6 @@ namespace DnsClient
         public static ArraySegment<T> SubArray<T>(this ArraySegment<T> array, int startIndex, int length)
         {
             return new ArraySegment<T>(array.Array, array.Offset + startIndex, length);
-        }
-
-        public static ArraySegment<T> SubArray<T>(this ArraySegment<T> array, int startIndex)
-        {
-            return new ArraySegment<T>(array.Array, array.Offset + startIndex, array.Count - startIndex);
         }
 
         public static ArraySegment<T> SubArrayFromOriginal<T>(this ArraySegment<T> array, int startIndex)

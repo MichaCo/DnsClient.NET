@@ -102,7 +102,7 @@ namespace DnsClient.Protocol
 
         public override string RecordToString()
         {
-            return $"{Flags} {Tag} {Value}";
+            return $"{Flags} {Tag} \"{Value}\"";
         }
     }
 }
