@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
@@ -12,11 +13,16 @@ namespace DigApp
         {
             var loggerFactory = new LoggerFactory().WithFilter(new FilterLoggerSettings()
             {
-                { "Default", LogLevel.Warning }
+                { "Default", LogLevel.Information }
             });
             //loggerFactory.AddConsole();
 
             var logFilename = $"Log/dig.log";
+
+            if (File.Exists(logFilename))
+            {
+                File.Delete(logFilename);
+            }
 
             loggerFactory.AddSerilog(new LoggerConfiguration()
                 .Enrich.FromLogContext()
