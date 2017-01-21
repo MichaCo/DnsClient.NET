@@ -126,11 +126,11 @@ namespace DigApp
                     IDnsQueryResponse response;
                     if (!_runSync)
                     {
-                        response = await _lookup.QueryAsync(query, QueryType.A);
+                        response = await _lookup.QueryAsync(query, QueryType.ANY);
                     }
                     else
                     {
-                        response = await Task.Run(() => _lookup.Query(query, QueryType.A));
+                        response = await Task.Run(() => _lookup.Query(query, QueryType.ANY));
                         await Task.Delay(0);
                     }
 
