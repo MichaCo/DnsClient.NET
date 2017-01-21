@@ -1,5 +1,5 @@
 {
-  "version": "1.0.2-*",
+  "version": "1.0.3-*",
   "authors": [ "MichaCo" ],
   "packOptions": {
     "licenseUrl": "https://github.com/MichaCo/DnsClient.NET/blob/master/LICENSE",
@@ -18,7 +18,7 @@
     "xmlDoc": false,
     "keyFile": "../../tools/key.snk"
   },
-  "copyright": "Copyright (c) 2016 MichaConrad",
+  "copyright": "Copyright (c) 2017 MichaConrad",
   "configurations": {
     "Debug": {
       "buildOptions": {
