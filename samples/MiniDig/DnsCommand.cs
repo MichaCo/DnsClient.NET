@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using DnsClient;
 using DnsClient.Protocol;
 using Microsoft.Extensions.CommandLineUtils;
+using Microsoft.Extensions.Logging;
 
 namespace DigApp
 {
@@ -50,8 +51,14 @@ namespace DigApp
 
         public CommandOption NoTcpArg { get; set; }
 
-        public DnsCommand(CommandLineApplication app, string[] originalArgs)
+        public ILogger Logger { get; }
+
+        public DnsCommand(CommandLineApplication app, ILoggerFactory loggerFactory, string[] originalArgs)
         {
+            if (app == null) throw new ArgumentNullException(nameof(app));
+            if (loggerFactory == null) throw new ArgumentNullException(nameof(loggerFactory));
+
+            Logger = loggerFactory.CreateLogger(GetType());
             App = app;
             OriginalArgs = originalArgs;
             App.OnExecute(() => Execute());

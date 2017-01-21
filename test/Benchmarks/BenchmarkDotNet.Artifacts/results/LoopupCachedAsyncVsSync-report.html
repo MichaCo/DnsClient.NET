@@ -15,7 +15,7 @@
 <pre><code>
 BenchmarkDotNet=v0.10.1, OS=Windows
 Processor=?, ProcessorCount=8
-Frequency=3328125 Hz, Resolution=300.4695 ns, Timer=TSC
+Frequency=3328116 Hz, Resolution=300.4703 ns, Timer=TSC
 dotnet cli version=1.0.0-preview2-1-003177
   [Host]     : .NET Core 4.6.24628.01, 64bit RyuJIT
   DefaultJob : .NET Core 4.6.24628.01, 64bit RyuJIT
@@ -25,12 +25,12 @@ dotnet cli version=1.0.0-preview2-1-003177
 <table>
 <thead><tr><th>Method</th><th> Mean</th><th>StdDev</th><th>Scaled</th><th>Scaled-StdDev</th><th>Gen 0</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>Async</td><td>406.9623 ns</td><td>3.7535 ns</td><td>1.00</td><td>   0.00</td><td>0.1207</td><td>598 B</td>
-</tr><tr><td>Sync</td><td>332.7869 ns</td><td>3.4209 ns</td><td>0.82</td><td>   0.01</td><td>0.0985</td><td>462 B</td>
+</thead><tbody><tr><td>Async</td><td>461.2052 ns</td><td>2.2493 ns</td><td>1.00</td><td>   0.00</td><td>0.1264</td><td>630 B</td>
+</tr><tr><td>Sync</td><td>377.4521 ns</td><td>2.4785 ns</td><td>0.82</td><td>   0.01</td><td>0.1068</td><td>494 B</td>
 </tr></tbody></table>
 </body>
 </html>
-ns</td><td>1.8713 ns</td><td>0.85</td><td>   0.01</td><td>0.0980</td><td>462 B</td>
+5</td><td>   0.01</td><td>0.0980</td><td>462 B</td>
 </tr></tbody></table>
 </body>
 </html>

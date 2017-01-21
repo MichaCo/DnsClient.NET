@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq;
-using System.Net;
 using Microsoft.Extensions.CommandLineUtils;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace DigApp
 {
@@ -9,32 +10,25 @@ namespace DigApp
     {
         public static void Main(string[] args)
         {
-            //var queryResult = Interop.DNSQueryer.QueryDNSForRecordTypeSpecificNameServers(
-            //                "consul.service.consul", new[] { new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8600) } , Interop.DNSQueryer.DnsRecordTypes.DNS_TYPE_A);
+            var loggerFactory = new LoggerFactory().WithFilter(new FilterLoggerSettings()
+            {
+                { "Default", LogLevel.Warning }
+            });
+            //loggerFactory.AddConsole();
 
-            //var result = Interop.DNSQueryer.QueryDNSForRecordTypeSpecificNameServers(
-            //    "google.com",
-            //    new[] { new IPEndPoint(IPAddress.Parse("127.0.0.1"), 53) },
-            //    Interop.DNSQueryer.DnsRecordTypes.DNS_TYPE_A);
+            var logFilename = $"Log/dig.log";
 
-            //Console.WriteLine(result.Length + "Results");
-            //if (result.Length > 0)
-            //{
-            //    foreach (var val in result)
-            //    {
-            //        foreach (var kv in val)
-            //        {
-            //            Console.WriteLine(kv.Key + "=" + kv.Value);
-            //        }
-            //    }
-            //}
-            //return;
-            
+            loggerFactory.AddSerilog(new LoggerConfiguration()
+                .Enrich.FromLogContext()
+                .WriteTo.File(logFilename)
+                .CreateLogger());
+
             var app = new CommandLineApplication(throwOnUnexpectedArg: true);
 
-            var perfApplication = app.Command("perf", (perfApp) => new PerfCommand2(perfApp, args), throwOnUnexpectedArg: true);
+            app.Command("perf", (perfApp) => new PerfCommand(perfApp, loggerFactory, args), throwOnUnexpectedArg: true);
+            app.Command("random", (randApp) => new RandomCommand(randApp, loggerFactory, args), throwOnUnexpectedArg: true);
 
-            var defaultCommand = new DigCommand(app, args);
+            var defaultCommand = new DigCommand(app, loggerFactory, args);
 
             try
             {
