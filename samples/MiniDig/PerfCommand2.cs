@@ -88,7 +88,7 @@ namespace DigApp
             var avgExec = _allAvgExec / _runtime;
             Console.WriteLine($";; {execPerSec:N2} queries per second.");
 
-            Console.WriteLine($";;Log: clients created: {StaticLog.CreatedUdpClients} arraysAllocated: {StaticLog.ByteArrayAllocations} arraysReleased: {StaticLog.ByteArrayReleases} queries: {StaticLog.SyncResolveQueryCount} queryTries: {StaticLog.SyncResolveQueryTries}");
+            Console.WriteLine($";;Log: clients created: {StaticLog.CreatedUdpClients} arraysAllocated: {StaticLog.ByteArrayAllocations} arraysReleased: {StaticLog.ByteArrayReleases} queries: {StaticLog.ResolveQueryCount} queryTries: {StaticLog.ResolveQueryTries}");
             return 0;
         }
 

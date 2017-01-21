@@ -16,7 +16,7 @@ namespace DnsClient.Tests
         public void Lookup_Defaults()
         {
             var client = new LookupClient();
-            
+
             Assert.True(client.UseCache);
             Assert.False(client.EnableAuditTrail);
             Assert.Null(client.MimimumCacheTimeout);
@@ -95,6 +95,117 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void Lookup_IPv4_Works()
+        {
+            var client = new LookupClient(NameServer.GooglePublicDns);
+
+            // force both requests
+            client.UseCache = false;
+
+            // both should use the same server/udp client
+            var resultA = client.Query("google.com", QueryType.ANY);
+            var resultB = client.Query("google.com", QueryType.ANY);
+
+            Assert.Equal(NameServer.GooglePublicDns, resultA.NameServer.Endpoint);
+            Assert.Equal(NameServer.GooglePublicDns, resultB.NameServer.Endpoint);
+            Assert.True(resultA.Answers.Count > 0);
+            Assert.True(resultB.Answers.Count > 0);
+        }
+
+        [Fact]
+        public void Lookup_IPv4_TcpOnly_Works()
+        {
+            var client = new LookupClient(NameServer.GooglePublicDns);
+
+            // force both requests
+            client.UseCache = false;
+            client.UseTcpOnly = true;
+
+            // both should use the same server/udp client
+            var resultA = client.Query("google.com", QueryType.ANY);
+            var resultB = client.Query("google.com", QueryType.ANY);
+
+            Assert.Equal(NameServer.GooglePublicDns, resultA.NameServer.Endpoint);
+            Assert.Equal(NameServer.GooglePublicDns, resultB.NameServer.Endpoint);
+            Assert.True(resultA.Answers.Count > 0);
+            Assert.True(resultB.Answers.Count > 0);
+        }
+
+        [Fact]
+        public void Lookup_IPv6_Works()
+        {
+            var client = new LookupClient(NameServer.GooglePublicDnsIPv6);
+
+            // force both requests
+            client.UseCache = false;
+
+            // both should use the same server/udp client
+            var resultA = client.Query("google.com", QueryType.ANY);
+            var resultB = client.Query("google.com", QueryType.ANY);
+
+            Assert.Equal(NameServer.GooglePublicDnsIPv6, resultA.NameServer.Endpoint);
+            Assert.Equal(NameServer.GooglePublicDnsIPv6, resultB.NameServer.Endpoint);
+            Assert.True(resultA.Answers.Count > 0);
+            Assert.True(resultB.Answers.Count > 0);
+        }
+
+        [Fact]
+        public void Lookup_IPv6_TcpOnly_Works()
+        {
+            var client = new LookupClient(NameServer.GooglePublicDnsIPv6);
+
+            // force both requests
+            client.UseCache = false;
+            client.UseTcpOnly = true;
+
+            // both should use the same server/udp client
+            var resultA = client.Query("google.com", QueryType.ANY);
+            var resultB = client.Query("google.com", QueryType.ANY);
+
+            Assert.Equal(NameServer.GooglePublicDnsIPv6, resultA.NameServer.Endpoint);
+            Assert.Equal(NameServer.GooglePublicDnsIPv6, resultB.NameServer.Endpoint);
+            Assert.True(resultA.Answers.Count > 0);
+            Assert.True(resultB.Answers.Count > 0);
+        }
+
+        [Fact]
+        public void Lookup_MultiServer_IPv4_and_IPv6()
+        {
+            var client = new LookupClient(NameServer.GooglePublicDns, NameServer.GooglePublicDnsIPv6);
+
+            // force both requests
+            client.UseCache = false;
+
+            // server rotation should use both defined dns servers
+            var resultA = client.Query("google.com", QueryType.ANY);
+            var resultB = client.Query("google.com", QueryType.ANY);
+
+            Assert.Equal(NameServer.GooglePublicDnsIPv6, resultA.NameServer.Endpoint);
+            Assert.Equal(NameServer.GooglePublicDns, resultB.NameServer.Endpoint);
+            Assert.True(resultA.Answers.Count > 0);
+            Assert.True(resultB.Answers.Count > 0);
+        }
+        
+        [Fact]
+        public void Lookup_MultiServer_IPv4_and_IPv6_TCP()
+        {
+            var client = new LookupClient(NameServer.GooglePublicDns, NameServer.GooglePublicDnsIPv6);
+
+            // force both requests
+            client.UseCache = false;
+            client.UseTcpOnly = true;
+
+            // server rotation should use both defined dns servers
+            var resultA = client.Query("google.com", QueryType.ANY);
+            var resultB = client.Query("google.com", QueryType.ANY);
+
+            Assert.Equal(NameServer.GooglePublicDnsIPv6, resultA.NameServer.Endpoint);
+            Assert.Equal(NameServer.GooglePublicDns, resultB.NameServer.Endpoint);
+            Assert.True(resultA.Answers.Count > 0);
+            Assert.True(resultB.Answers.Count > 0);
+        }
+
+        [Fact]
         public void Lookup_ThrowDnsErrors()
         {
             var client = new LookupClient();
@@ -119,7 +230,7 @@ namespace DnsClient.Tests
 
             Assert.Equal(ex.Code, DnsResponseCode.NotExistentDomain);
         }
-        
+
         [Fact]
         public async Task Lookup_QueryTimesOut_Udp_Async()
         {

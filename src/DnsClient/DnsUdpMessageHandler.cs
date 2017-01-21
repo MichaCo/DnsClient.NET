@@ -12,6 +12,7 @@ namespace DnsClient
     {
         private const int MaxSize = 4096;
         private static ConcurrentQueue<UdpClient> _clients = new ConcurrentQueue<UdpClient>();
+        private static ConcurrentQueue<UdpClient> _clientsIPv6 = new ConcurrentQueue<UdpClient>();
         private readonly bool _enableClientQueue;
 
         public DnsUdpMessageHandler(bool enableClientQueue)
@@ -30,7 +31,7 @@ namespace DnsClient
             DnsRequestMessage request,
             TimeSpan timeout)
         {
-            UdpClient udpClient = GetNextUdpClient();
+            UdpClient udpClient = GetNextUdpClient(server.AddressFamily);
 
             // -1 indicates infinite
             int timeoutInMillis = timeout.TotalMilliseconds >= int.MaxValue ? -1 : (int)timeout.TotalMilliseconds;
@@ -58,10 +59,7 @@ namespace DnsClient
                         throw new DnsResponseException("Header id missmatch.");
                     }
 
-                    if (_enableClientQueue)
-                    {
-                        _clients.Enqueue(udpClient);
-                    }
+                    Enqueue(server.AddressFamily, udpClient);
 
                     return response;
                 }
@@ -96,7 +94,7 @@ namespace DnsClient
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            UdpClient udpClient = GetNextUdpClient();
+            UdpClient udpClient = GetNextUdpClient(server.AddressFamily);
 
             bool mustDispose = false;
             try
@@ -136,10 +134,7 @@ namespace DnsClient
                         throw new DnsResponseException("Header id missmatch.");
                     }
 
-                    if (_enableClientQueue)
-                    {
-                        _clients.Enqueue(udpClient);
-                    }
+                    Enqueue(server.AddressFamily, udpClient);
 
                     return response;
                 }
@@ -172,24 +167,49 @@ namespace DnsClient
             }
         }
 
-        private UdpClient GetNextUdpClient()
+        private UdpClient GetNextUdpClient(AddressFamily family)
         {
             UdpClient udpClient = null;
             if (_enableClientQueue)
             {
-                while (udpClient == null && !_clients.TryDequeue(out udpClient))
+                while (udpClient == null && !TryDequeue(family, out udpClient))
                 {
                     Interlocked.Increment(ref StaticLog.CreatedUdpClients);
-                    udpClient = new UdpClient();
+                    udpClient = new UdpClient(family);
                 }
             }
             else
             {
                 Interlocked.Increment(ref StaticLog.CreatedUdpClients);
-                udpClient = new UdpClient();
+                udpClient = new UdpClient(family);
             }
 
             return udpClient;
+        }
+
+        private void Enqueue(AddressFamily family, UdpClient client)
+        {
+            if (_enableClientQueue)
+            {
+                if (family == AddressFamily.InterNetwork)
+                {
+                    _clients.Enqueue(client);
+                }
+                else
+                {
+                    _clientsIPv6.Enqueue(client);
+                }
+            }
+        }
+
+        private bool TryDequeue(AddressFamily family, out UdpClient client)
+        {
+            if (family == AddressFamily.InterNetwork)
+            {
+                return _clients.TryDequeue(out client);
+            }
+
+            return _clientsIPv6.TryDequeue(out client);
         }
     }
 }

@@ -10,15 +10,15 @@ namespace DnsClient
 {
     public class NameServer
     {
-        public static readonly IPAddress GooglePublicDns = IPAddress.Parse("8.8.4.4");
-        public static readonly IPAddress GooglePublicDns2 = IPAddress.Parse("8.8.8.8");
-        public static readonly IPAddress GooglePublicDnsIPv6 = IPAddress.Parse("2001:4860:4860::8844");
-        public static readonly IPAddress GooglePublicDns2IPv6 = IPAddress.Parse("2001:4860:4860::8888");
-
         /// <summary>
         /// The default DNS server port.
         /// </summary>
         public const int DefaultPort = 53;
+
+        public static readonly IPEndPoint GooglePublicDns = new IPEndPoint(IPAddress.Parse("8.8.4.4"), DefaultPort);
+        public static readonly IPEndPoint GooglePublicDns2 = new IPEndPoint(IPAddress.Parse("8.8.8.8"), DefaultPort);
+        public static readonly IPEndPoint GooglePublicDnsIPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8844"), DefaultPort);
+        public static readonly IPEndPoint GooglePublicDns2IPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8888"), DefaultPort);
 
         internal const string EtcResolvConfFile = "/etc/resolv.conf";
 
@@ -59,10 +59,10 @@ namespace DnsClient
             {
                 return new[]
                 {
-                    new IPEndPoint(GooglePublicDnsIPv6, DefaultPort),
-                    new IPEndPoint(GooglePublicDns2IPv6, DefaultPort),
-                    new IPEndPoint(GooglePublicDns, DefaultPort),
-                    new IPEndPoint(GooglePublicDns2, DefaultPort),
+                    GooglePublicDnsIPv6,
+                    GooglePublicDns2IPv6,
+                    GooglePublicDns,
+                    GooglePublicDns2,
                 };
             }
 

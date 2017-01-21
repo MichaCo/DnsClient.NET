@@ -45,6 +45,8 @@ namespace WebApi
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, LookupClient dnsClient)
         {
+            loggerFactory.AddConsole();
+
             app.Use(async (ctx, next) =>
             {
                 if (ctx.Request.Path.StartsWithSegments("/test"))

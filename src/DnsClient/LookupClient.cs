@@ -303,8 +303,8 @@ namespace DnsClient
                             queryResponse.AuditTrail = audit.Build();
                         }
 
-                        Interlocked.Increment(ref StaticLog.SyncResolveQueryCount);
-                        Interlocked.Add(ref StaticLog.SyncResolveQueryTries, tries);
+                        Interlocked.Increment(ref StaticLog.ResolveQueryCount);
+                        Interlocked.Add(ref StaticLog.ResolveQueryTries, tries);
                         return queryResponse;
                     }
                     catch (DnsResponseException ex)
@@ -481,8 +481,8 @@ namespace DnsClient
                             queryResponse.AuditTrail = audit.Build();
                         }
 
-                        Interlocked.Increment(ref StaticLog.SyncResolveQueryCount);
-                        Interlocked.Add(ref StaticLog.SyncResolveQueryTries, tries);
+                        Interlocked.Increment(ref StaticLog.ResolveQueryCount);
+                        Interlocked.Add(ref StaticLog.ResolveQueryTries, tries);
                         return queryResponse;
                     }
                     catch (DnsResponseException ex)
