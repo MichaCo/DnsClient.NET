@@ -134,7 +134,10 @@ namespace DigApp
                         await Task.Delay(0);
                     }
 
-                    Logger.LogInformation("Response received for {0} {1}", _query, response.Header);
+                    if (Logger.IsEnabled(LogLevel.Information))
+                    {
+                        Logger.LogInformation("Response received for {0} {1}", _query, response.Header);
+                    }
 
                     Interlocked.Increment(ref _allExcecutions);
                     Interlocked.Increment(ref _reportExcecutions);
