@@ -9,7 +9,7 @@
     "Microsoft.Extensions.Logging.Console": "1.0.0",
     "Microsoft.Extensions.Logging.Debug": "1.0.0",
     "Moq": "4.6.38-alpha"
-  },    
+  },
   "testRunner": "xunit",
   "buildOptions": {
     "keyFile": "../../tools/key.snk",
@@ -19,6 +19,19 @@
     "compile": {
       "includeFiles": [
       ]
+    }
+  },
+  "configurations": {
+    "Debug": {
+      "buildOptions": {
+        "define": [ "DEBUG", "ENABLE_REMOTE_DNS" ]
+      }
+    },
+    "Release": {
+      "buildOptions": {
+        "define": [ "RELEASE" ],
+        "optimize": true
+      }
     }
   },
   "frameworks": {

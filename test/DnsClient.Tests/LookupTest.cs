@@ -94,6 +94,7 @@ namespace DnsClient.Tests
             Assert.True(result.Header.AnswerCount == 0);
         }
 
+#if ENABLE_REMOTE_DNS
         [Fact]
         public void Lookup_IPv4_Works()
         {
@@ -185,7 +186,7 @@ namespace DnsClient.Tests
             Assert.True(resultA.Answers.Count > 0);
             Assert.True(resultB.Answers.Count > 0);
         }
-        
+
         [Fact]
         public void Lookup_MultiServer_IPv4_and_IPv6_TCP()
         {
@@ -204,6 +205,7 @@ namespace DnsClient.Tests
             Assert.True(resultA.Answers.Count > 0);
             Assert.True(resultB.Answers.Count > 0);
         }
+#endif
 
         [Fact]
         public void Lookup_ThrowDnsErrors()
