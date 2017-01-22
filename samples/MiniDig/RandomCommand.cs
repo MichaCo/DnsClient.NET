@@ -70,7 +70,7 @@ namespace DigApp
             _running = true;
             _settings = GetLookupSettings();
 
-            Console.WriteLine($"; <<>> Starting perf run with {_clients} clients and {_runtime} queries per client <<>>");
+            Console.WriteLine($"; <<>> Starting random run with {_clients} clients running for {_runtime} seconds <<>>");
             Console.WriteLine($"; ({_settings.Endpoints.Length} Servers, caching:{_settings.UseCache}, minttl:{_settings.MinTTL.TotalMilliseconds})");
             _spinner = new Spiner();
             _spinner.Start();
@@ -110,7 +110,7 @@ namespace DigApp
             var avgExec = _allAvgExec / _runtime;
             Console.WriteLine($";; {execPerSec:N2} queries per second.");
 
-            Console.WriteLine($";;Log: clients created: {StaticLog.CreatedUdpClients} arraysAllocated: {StaticLog.ByteArrayAllocations} arraysReleased: {StaticLog.ByteArrayReleases} queries: {StaticLog.ResolveQueryCount} queryTries: {StaticLog.ResolveQueryTries}");
+            Console.WriteLine($";;Log: clients created: {StaticLog.CreatedClients} arraysAllocated: {StaticLog.ByteArrayAllocations} arraysReleased: {StaticLog.ByteArrayReleases} queries: {StaticLog.ResolveQueryCount} queryTries: {StaticLog.ResolveQueryTries}");
             return 0;
         }
 

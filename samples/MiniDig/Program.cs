@@ -13,7 +13,7 @@ namespace DigApp
         {
             var loggerFactory = new LoggerFactory().WithFilter(new FilterLoggerSettings()
             {
-                { "Default", LogLevel.Information }
+                { "Default", LogLevel.Warning }
             });
             //loggerFactory.AddConsole();
 

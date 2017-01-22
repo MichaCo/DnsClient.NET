@@ -9,7 +9,6 @@ namespace Benchmarks
     {
         public class SetBytesComparision
         {
-            public const string domainName = "www.hello.world.fcking.funny.com";
             public static byte[] sourceSmall = new byte[] { 192, 168, 178, 23 };
             public static byte[] sourceBig = Enumerable.Repeat((byte)150, 1000).ToArray();
 

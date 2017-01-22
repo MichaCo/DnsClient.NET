@@ -174,13 +174,13 @@ namespace DnsClient
             {
                 while (udpClient == null && !TryDequeue(family, out udpClient))
                 {
-                    Interlocked.Increment(ref StaticLog.CreatedUdpClients);
+                    Interlocked.Increment(ref StaticLog.CreatedClients);
                     udpClient = new UdpClient(family);
                 }
             }
             else
             {
-                Interlocked.Increment(ref StaticLog.CreatedUdpClients);
+                Interlocked.Increment(ref StaticLog.CreatedClients);
                 udpClient = new UdpClient(family);
             }
 

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -9,6 +11,8 @@ namespace DnsClient
 {
     internal class DnsTcpMessageHandler : DnsMessageHandler
     {
+        private readonly ConcurrentDictionary<IPEndPoint, ClientPool> _pools = new ConcurrentDictionary<IPEndPoint, ClientPool>();
+
         public override bool IsTransientException<T>(T exception)
         {
             //if (exception is SocketException) return true;
@@ -39,68 +43,230 @@ namespace DnsClient
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            using (var client = new TcpClient(server.AddressFamily))
+            ClientPool pool;
+            ClientPool.ClientEntry entry = null;
+            while (!_pools.TryGetValue(server, out pool))
             {
-                cancelationCallback(() =>
-                {
-#if PORTABLE
-                    client.Dispose();
-#else
-                    client.Close();
-#endif
-                });
+                _pools.TryAdd(server, new ClientPool(true, server));
+            }
+
+            cancelationCallback(() =>
+            {
+                if (entry == null) return;
+                entry.DisposeClient();
+            });
+
+            DnsResponseMessage response = null;
+
+            while (response == null)
+            {
+                entry = await pool.GetNexClient();
 
                 cancellationToken.ThrowIfCancellationRequested();
-                await client.ConnectAsync(server.Address, server.Port).ConfigureAwait(false);
-                using (var stream = client.GetStream())
+
+                response = await QueryAsyncInternal(entry.Client, entry.Client.GetStream(), request, cancellationToken);
+                if (response != null)
                 {
-                    // use a pooled buffer to writer the data + the length of the data later into the frist two bytes
-                    using (var memory = new PooledBytes(DnsDatagramWriter.BufferSize + 2))
-                    using (var writer = new DnsDatagramWriter(new ArraySegment<byte>(memory.Buffer, 2, memory.Buffer.Length - 2)))
-                    {
-                        GetRequestData(request, writer);
-                        int dataLength = writer.Index;
-                        memory.Buffer[0] = (byte)((dataLength >> 8) & 0xff);
-                        memory.Buffer[1] = (byte)(dataLength & 0xff);
-
-                        //var sendData = new byte[dataLength + 2];
-                        //sendData[0] = (byte)((dataLength >> 8) & 0xff);
-                        //sendData[1] = (byte)(dataLength & 0xff);
-                        //Array.Copy(data, 0, sendData, 2, dataLength);
-
-                        await stream.WriteAsync(memory.Buffer, 0, dataLength + 2, cancellationToken).ConfigureAwait(false);
-                        await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
-                    }
-
-                    int length = stream.ReadByte() << 8 | stream.ReadByte();
-                    if (length <= 0)
-                    {
-                        throw new DnsResponseException("Received no answer.");
-                    }
-
-                    var resultData = new byte[length];
-                    int bytesReceived = 0;
-                    while (bytesReceived < length)
-                    {
-                        int read = await stream.ReadAsync(resultData, bytesReceived, length - bytesReceived, cancellationToken).ConfigureAwait(false);
-                        bytesReceived += read;
-
-                        if (read == 0 && bytesReceived < length)
-                        {
-                            // disconnected
-                            throw new SocketException(-1);
-                        }
-                    }
-
-                    var response = GetResponseMessage(new ArraySegment<byte>(resultData, 0, bytesReceived));
-
-                    if (request.Header.Id != response.Header.Id)
-                    {
-                        throw new DnsResponseException("Header id missmatch.");
-                    }
-
-                    return response;
+                    pool.Enqueue(entry);
                 }
+                else
+                {
+                    entry.DisposeClient();
+                }
+            }
+
+            return response;
+        }
+
+        private async Task<DnsResponseMessage> QueryAsyncInternal(TcpClient client, NetworkStream stream, DnsRequestMessage request, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            // use a pooled buffer to writer the data + the length of the data later into the frist two bytes
+            using (var memory = new PooledBytes(DnsDatagramWriter.BufferSize + 2))
+            using (var writer = new DnsDatagramWriter(new ArraySegment<byte>(memory.Buffer, 2, memory.Buffer.Length - 2)))
+            {
+                GetRequestData(request, writer);
+                int dataLength = writer.Index;
+                memory.Buffer[0] = (byte)((dataLength >> 8) & 0xff);
+                memory.Buffer[1] = (byte)(dataLength & 0xff);
+
+                //await client.Client.SendAsync(new ArraySegment<byte>(memory.Buffer, 0, dataLength + 2), SocketFlags.None).ConfigureAwait(false);
+                await stream.WriteAsync(memory.Buffer, 0, dataLength + 2, cancellationToken).ConfigureAwait(false);
+                await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            if (!stream.CanRead)
+            {
+                return null;
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            int length = 0;
+            try
+            {
+                length = stream.ReadByte() << 8 | stream.ReadByte();
+            }
+            catch (Exception ex) when (ex is IOException || ex is SocketException)
+            {
+                return null;
+            }
+
+            if (length <= 0)
+            {
+                // server signals close/disconnecting
+                return null;
+            }
+
+            using (var memory = new PooledBytes(length))
+            {
+                int bytesReceived = 0;
+                while ((bytesReceived += await stream.ReadAsync(memory.Buffer, bytesReceived, length)) < length)
+                {
+                    if (bytesReceived <= 0)
+                    {
+                        // disconnected
+                        return null;
+                    }
+                }
+
+                DnsResponseMessage response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, bytesReceived));
+                if (request.Header.Id != response.Header.Id)
+                {
+                    throw new DnsResponseException("Header id missmatch.");
+                }
+
+                return response;
+            }
+        }
+
+        private class ClientPool : IDisposable
+        {
+            private bool disposedValue = false;
+            private readonly bool _enablePool;
+            private ConcurrentQueue<ClientEntry> _clients = new ConcurrentQueue<ClientEntry>();
+            private readonly IPEndPoint _endpoint;
+
+            public ClientPool(bool enablePool, IPEndPoint endpoint)
+            {
+                _enablePool = enablePool;
+                _endpoint = endpoint;
+            }
+
+            public async Task<ClientEntry> GetNexClient()
+            {
+                if (disposedValue) throw new ObjectDisposedException(nameof(ClientPool));
+
+                ClientEntry entry = null;
+                if (_enablePool)
+                {
+                    while (entry == null && !TryDequeue(out entry))
+                    {
+                        Interlocked.Increment(ref StaticLog.CreatedClients);
+                        entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily) { LingerState = new LingerOption(true, 0) }, _endpoint);
+                        await entry.Client.ConnectAsync(_endpoint.Address, _endpoint.Port).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    Interlocked.Increment(ref StaticLog.CreatedClients);
+                    entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily), _endpoint);
+                    await entry.Client.ConnectAsync(_endpoint.Address, _endpoint.Port).ConfigureAwait(false);
+                }
+
+                return entry;
+            }
+
+            public void Enqueue(ClientEntry entry)
+            {
+                if (disposedValue) throw new ObjectDisposedException(nameof(ClientPool));
+                if (entry == null) throw new ArgumentNullException(nameof(entry));
+                if (!entry.Client.Client.RemoteEndPoint.Equals(_endpoint)) throw new ArgumentException("Invalid endpoint.");
+
+                // TickCount swap will be fine here as the entry just gets disposed and we'll create a new one starting at 0+ again, totall fine...
+                if (_enablePool && entry.Client.Connected && entry.StartMillis + entry.MaxLiveTime >= (Environment.TickCount & int.MaxValue))
+                {
+                    _clients.Enqueue(entry);
+                }
+                else
+                {
+                    // dispose the client and don't keep a reference
+                    entry.DisposeClient();
+                }
+            }
+
+            public bool TryDequeue(out ClientEntry entry)
+            {
+                if (disposedValue) throw new ObjectDisposedException(nameof(ClientPool));
+
+                bool result;
+                while (result = _clients.TryDequeue(out entry))
+                {
+                    // validate the client before returning it
+                    if (entry.Client.Connected && entry.StartMillis + entry.MaxLiveTime >= (Environment.TickCount & int.MaxValue))
+                    {
+                        break;
+                    }
+                    else
+                    {
+                        entry.DisposeClient();
+                    }
+                }
+
+                return result;
+            }
+
+            protected virtual void Dispose(bool disposing)
+            {
+                if (!disposedValue)
+                {
+                    if (disposing)
+                    {
+                        foreach (var entry in _clients)
+                        {
+                            entry.DisposeClient();
+                        }
+
+                        _clients = new ConcurrentQueue<ClientEntry>();
+                    }
+
+                    disposedValue = true;
+                }
+            }
+
+            public void Dispose()
+            {
+                Dispose(true);
+            }
+
+            public class ClientEntry
+            {
+                public ClientEntry(TcpClient client, IPEndPoint endpoint)
+                {
+                    Client = client;
+                    Endpoint = endpoint;
+                }
+
+                public void DisposeClient()
+                {
+                    try
+                    {
+#if PORTABLE
+                        Client.Dispose();
+#else
+                        Client.Close();
+#endif
+                    }
+                    catch { }
+                }
+
+                public TcpClient Client { get; }
+
+                public IPEndPoint Endpoint { get; }
+
+                public int StartMillis { get; set; } = Environment.TickCount & int.MaxValue;
+
+                public int MaxLiveTime { get; set; } = 5000;
             }
         }
     }
