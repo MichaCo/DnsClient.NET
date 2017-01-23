@@ -8,8 +8,10 @@ namespace DigApp
 {
     public class Spiner
     {
-        private int _maxLength = 4;
+        private int _msgLength = 4;
         private string _msg = string.Empty;
+        private int _statusLength = 4;
+        private string _status = string.Empty;
         private ConsoleColor _oldColor;
         private CancellationTokenSource _source;
         private CancellationToken _token;
@@ -21,10 +23,24 @@ namespace DigApp
             {
                 if (value != null)
                 {
-                    _maxLength = _maxLength > value.Length ? _maxLength : value.Length;
+                    _msgLength = _msgLength > value.Length ? _msgLength : value.Length;
                 }
 
                 _msg = value;
+            }
+        }
+
+        public string Status
+        {
+            get { return _status; }
+            set
+            {
+                if (value != null)
+                {
+                    _statusLength = _statusLength > value.Length ? _statusLength : value.Length;
+                }
+
+                _status = value;
             }
         }
 
@@ -44,7 +60,7 @@ namespace DigApp
             _source.Cancel();
 
             Console.SetCursorPosition(0, Console.CursorTop);
-            Console.Write(Enumerable.Repeat(" ", _maxLength * 2));
+            Console.Write(Enumerable.Repeat(" ", (_msgLength + _statusLength) * 2));
             Console.SetCursorPosition(0, Console.CursorTop);
             Console.CursorVisible = true;
             Console.ForegroundColor = _oldColor;
@@ -61,7 +77,7 @@ namespace DigApp
                 chars.Enqueue(chr);
                 Console.CursorVisible = false;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write("{{{0}}} {1,-" + _maxLength + "}", chr, Message);
+                Console.Write("{{{0}}} {1,-" + _msgLength + "}{2,-"+_statusLength+"}", chr, Message, Status);
                 Console.SetCursorPosition(0, Console.CursorTop);
                 Console.ForegroundColor = _oldColor;
                 Console.CursorVisible = true;

@@ -89,7 +89,7 @@ namespace DigApp
                 tasks.Add(ExcecuteRun());
             }
 
-            //tasks.Add(CollectPrint());
+            tasks.Add(CollectPrint());
 
             await Task.WhenAny(tasks.ToArray());
 
@@ -112,6 +112,20 @@ namespace DigApp
 
             Console.WriteLine($";;Log: clients created: {StaticLog.CreatedClients} arraysAllocated: {StaticLog.ByteArrayAllocations} arraysReleased: {StaticLog.ByteArrayReleases} queries: {StaticLog.ResolveQueryCount} queryTries: {StaticLog.ResolveQueryTries}");
             return 0;
+        }
+
+        private async Task CollectPrint()
+        {
+            var waitCount = 0;
+            while (_running && waitCount < _runtime)
+            {
+                waitCount++;
+                await Task.Delay(1000);
+
+                _spinner.Status = $"{_reportExcecutions:N2} req/sec";
+                Interlocked.Exchange(ref _reportExcecutions, 0);
+            }
+            _running = false;
         }
 
         private async Task ExcecuteRun()

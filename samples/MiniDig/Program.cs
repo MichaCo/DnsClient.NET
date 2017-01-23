@@ -19,14 +19,18 @@ namespace DigApp
 
             var logFilename = $"Log/dig.log";
 
-            if (File.Exists(logFilename))
+            try
             {
-                File.Delete(logFilename);
+                if (File.Exists(logFilename))
+                {
+                    File.Delete(logFilename);
+                }
             }
+            catch { }
 
             loggerFactory.AddSerilog(new LoggerConfiguration()
                 .Enrich.FromLogContext()
-                .WriteTo.File(logFilename)
+                .WriteTo.File(logFilename, shared: true)
                 .CreateLogger());
 
             var app = new CommandLineApplication(throwOnUnexpectedArg: true);

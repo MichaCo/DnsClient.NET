@@ -2,7 +2,7 @@
   "profiles": {
     "DigApp": {
       "commandName": "Project",
-      "commandLineArgs": "perf  --tcp -s localhost --time -1 -c 1 -r 100 ."
+      "commandLineArgs": "perf -c 1 -r 3600 -s localhost -s 192.168.178.1   --time -1  --tcp"
     },
     "MiniDig": {
       "commandName": "Project"
