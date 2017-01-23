@@ -91,8 +91,8 @@ namespace DigApp
             Console.WriteLine(string.Join("-", Enumerable.Repeat("-", 50)));
             Console.WriteLine($";; run for {elapsedSeconds}sec {_clients} clients.");
 
-            var successPercent = _errors == 0 ? 100 : _success == 0 ? 0 : (100 - (double)_success / (_errors * (double)_success));
-            Console.WriteLine($";; {_errors:N0} errors {_success:N0} ok {successPercent:N5}% success.");
+            var successPercent = _errors == 0 ? 100 : _success == 0 ? 0 : (100 - ((double)_errors / (_success) * 100));
+            Console.WriteLine($";; {_errors:N0} errors {_success:N0} ok {successPercent:N2}% success.");
 
             var execPerSec = _allExcecutions / elapsedSeconds;
             var avgExec = _allAvgExec / _runtime;
