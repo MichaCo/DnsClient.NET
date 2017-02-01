@@ -37,8 +37,7 @@
 
         "System.Threading.Thread": "4.3.0"
       }
-    },
-    "net461": {}
+    }
   },
   "publishOptions": {
     "include": "names.txt"

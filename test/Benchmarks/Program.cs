@@ -14,12 +14,22 @@ namespace Benchmarks
         {
             do
             {
-                BenchmarkSwitcher.FromAssembly(typeof(DnsClientBenchmarks).GetTypeInfo().Assembly)
+                BenchmarkSwitcher
+                    .FromAssembly(typeof(DnsClientBenchmarks).GetTypeInfo().Assembly)
                     .Run(args);
 
                 Console.WriteLine("done!");
                 Console.WriteLine("Press escape to exit or any key to continue...");
             } while (Console.ReadKey().Key != ConsoleKey.Escape);
+        }
+    }
+
+    public class MediumConfiguration : ManualConfig
+    {
+        public MediumConfiguration()
+        {
+            Add(Job.MediumRun
+                .With(Platform.X64));
         }
     }
 
