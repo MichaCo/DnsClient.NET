@@ -68,10 +68,15 @@ namespace DnsClient
                     .Where(p => p.DomainName.Equals(entry.Target))
                     .Select(p => p.Address);
 
+                var hostName = result.Additionals
+                    .OfType<CNameRecord>()
+                    .Where(p => p.DomainName.Equals(entry.Target))
+                    .Select(p => p.CanonicalName).FirstOrDefault();
+
                 hosts.Add(new ServiceHostEntry()
                 {
                     AddressList = addresses.ToArray(),
-                    HostName = entry.Target.Value,
+                    HostName = hostName,
                     Port = entry.Port
                 });
             }

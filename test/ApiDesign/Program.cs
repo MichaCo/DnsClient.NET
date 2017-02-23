@@ -42,8 +42,8 @@ namespace ApiDesign
 
                 WriteLongLine();
                 Console.WriteLine("Service Lookup");
-                var consul = new LookupClient(IPAddress.Parse("192.168.178.23"), 8600);
-                var services = consul.ResolveServiceAsync("service.consul", "dns").Result;
+                var consul = new LookupClient(IPAddress.Parse("127.0.0.1"), 8600);
+                var services = consul.ResolveServiceAsync("service.consul", "redis").Result;
 
                 foreach (var service in services)
                 {

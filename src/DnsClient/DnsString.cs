@@ -26,7 +26,7 @@ namespace DnsClient
             Value = value;
         }
 
-        public static implicit operator string(DnsString name) => name.Value;
+        public static implicit operator string(DnsString name) => name?.Value;
 
         public override string ToString()
         {
