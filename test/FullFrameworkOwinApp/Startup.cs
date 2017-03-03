@@ -32,19 +32,21 @@ namespace FullFrameworkOwinApp
             });
         }
 
-        private static async Task<IPAddress> GetService(string query)
+        private static async Task<string> GetService(string query)
         {
-            var dnsClient = new LookupClient();
-            dnsClient.UseTcpOnly = true;
-            var dnsResult = await dnsClient.QueryAsync(query, QueryType.ANY).ConfigureAwait(false);
+            var dnsClient = new LookupClient(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8600));
+            //dnsClient.UseTcpOnly = true;
+            //var dnsResult = await dnsClient.QueryAsync(query, QueryType.ANY).ConfigureAwait(false);
 
-            var aRecord = dnsResult.Answers.ARecords().FirstOrDefault();
-            if (aRecord == null)
-            {
-                throw new InvalidOperationException($"Record not found for {query}");
-            }
+            //var aRecord = dnsResult.Answers.ARecords().FirstOrDefault();
+            //if (aRecord == null)
+            //{
+            //    throw new InvalidOperationException($"Record not found for {query}");
+            //}
 
-            return aRecord.Address;
+            var service = await dnsClient.ResolveServiceAsync("consul.service", "consul");
+
+            return service.FirstOrDefault()?.HostName;
         }
     }
 }
