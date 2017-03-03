@@ -1,14 +1,23 @@
-version: 1.0.0-beta-{build}
+version: 1.0.5-beta-{build}
 skip_tags: true
 image: Visual Studio 2015
 clone_folder: C:\projects\DnsClient.NET
 build_script:
 - cmd: >-
-    SET DOTNET_BUILD_VERSION=beta-%APPVEYOR_BUILD_NUMBER%
+    dotnet restore
 
-    SET CONFIGURATION=Release
+    dotnet build src\DnsClient -c Release
 
-    C:\projects\DnsClient.NET\build.cmd --quiet verify
+    dotnet test test\DnsClient.Tests -c Release
+
+    dotnet pack -o artifacts -c Release src\DnsClient --version-suffix beta-%APPVEYOR_BUILD_NUMBER%
+test_script:
+- cmd: dotnet test test\DnsClient.Tests -c Release
 artifacts:
-- path: artifacts\build\*.nupkg
+- path: artifacts\*.nupkg
   name: nugets
+deploy:
+- provider: NuGet
+  server: https://www.myget.org/F/dnsclient/api/v2/package
+  symbol_server: https://www.myget.org/F/dnsclient/api/v2/package
+  artifact: nugets
