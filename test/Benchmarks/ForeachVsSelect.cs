@@ -26,6 +26,17 @@ namespace Benchmarks
             }
 
             [Benchmark]
+            public void ForTransform()
+            {
+                var result = new ModelB[Source.Count];
+                for (int i = 0; i < Source.Count; i++)
+                {
+                    var model = Source[i];
+                    result[i] = new ModelB() { Id = model.Id, SomeInt = model.SomeInt };
+                }
+            }
+
+            [Benchmark]
             public void SelectTransform()
             {
                 var result = Source.Select(p => new ModelB() { Id = p.Id, SomeInt = p.SomeInt }).ToList();

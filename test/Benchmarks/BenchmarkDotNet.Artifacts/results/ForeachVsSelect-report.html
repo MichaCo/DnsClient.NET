@@ -23,10 +23,11 @@ dotnet cli version=1.0.0-preview2-1-003177
 <pre><code></code></pre>
 
 <table>
-<thead><tr><th>    Method</th><th> Mean</th><th>StdErr</th><th>StdDev</th><th>Scaled</th><th>Scaled-StdDev</th><th>Gen 0</th><th>Gen 1</th><th>Allocated</th>
+<thead><tr><th>    Method</th><th> Mean</th><th>StdDev</th><th>Scaled</th><th>Scaled-StdDev</th><th>Gen 0</th><th>Gen 1</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>ForeachTransform</td><td>202.6711 us</td><td>0.6228 us</td><td>2.3304 us</td><td>1.00</td><td>   0.00</td><td>69.9870</td><td>22.1354</td><td>399.1 kB</td>
-</tr><tr><td>SelectTransform</td><td>215.0337 us</td><td>3.2331 us</td><td>15.5056 us</td><td>1.06</td><td>   0.08</td><td>68.4245</td><td>20.5729</td><td>399.18 kB</td>
+</thead><tbody><tr><td>ForeachTransform</td><td>202.6234 us</td><td>1.8825 us</td><td>1.00</td><td>   0.00</td><td>68.6849</td><td>20.8333</td><td>399.1 kB</td>
+</tr><tr><td>ForTransform</td><td>142.1287 us</td><td>1.3339 us</td><td>0.70</td><td>   0.01</td><td>74.1536</td><td>26.3021</td><td>399.06 kB</td>
+</tr><tr><td>SelectTransform</td><td>208.7250 us</td><td>9.2663 us</td><td>1.03</td><td>   0.05</td><td>69.7266</td><td>21.8750</td><td>399.18 kB</td>
 </tr></tbody></table>
 </body>
 </html>

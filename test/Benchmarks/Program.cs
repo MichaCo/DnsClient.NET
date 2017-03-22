@@ -12,7 +12,7 @@ namespace Benchmarks
     {
         public static void Main(string[] args)
         {
-            new DnsClientBenchmarks.ForeachVsSelect().ForeachTransform();
+            new DnsClientBenchmarks.ForeachVsSelect().ForTransform();
 
             do
             {
