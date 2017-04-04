@@ -60,11 +60,13 @@ namespace DnsClient
 
             while (response == null)
             {
-                entry = await pool.GetNexClient();
+                entry = await pool.GetNexClient().ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                response = await QueryAsyncInternal(entry.Client, entry.Client.GetStream(), request, cancellationToken);
+                response = await QueryAsyncInternal(entry.Client, entry.Client.GetStream(), request, cancellationToken)
+                    .ConfigureAwait(false);
+
                 if (response != null)
                 {
                     pool.Enqueue(entry);
@@ -121,7 +123,7 @@ namespace DnsClient
             using (var memory = new PooledBytes(length))
             {
                 int bytesReceived = 0;
-                while ((bytesReceived += await stream.ReadAsync(memory.Buffer, bytesReceived, length)) < length)
+                while ((bytesReceived += await stream.ReadAsync(memory.Buffer, bytesReceived, length).ConfigureAwait(false)) < length)
                 {
                     if (bytesReceived <= 0)
                     {

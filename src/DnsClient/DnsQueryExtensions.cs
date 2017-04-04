@@ -54,7 +54,7 @@ namespace DnsClient
             }
 
             var hosts = new List<ServiceHostEntry>();
-            var result = await query.QueryAsync(queryString, QueryType.SRV);
+            var result = await query.QueryAsync(queryString, QueryType.SRV).ConfigureAwait(false);
 
             if (result.HasError)
             {

@@ -12,6 +12,8 @@ namespace Benchmarks
     {
         public static void Main(string[] args)
         {
+            new DnsClientBenchmarks.ForeachVsSelect().ForTransform();
+
             do
             {
                 BenchmarkSwitcher
