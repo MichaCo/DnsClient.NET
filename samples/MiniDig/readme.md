@@ -1,6 +1,6 @@
 ﻿# MiniDig 
-MiniDig is an example implementation of a dns lookup command line utility which uses the DnsClient library.
-It is supposed to work similar to the well known `dig` command line tool on Linux, with a lot fewer options of course.
+MiniDig is an example implementation of a DNS lookup command line utility which uses the DnsClient library.
+It is supposed to work similar to the well-known `dig` command line tool on Linux, with a lot fewer options of course.
 
 ## How to Build/Run it
 To run it, open a command line windows, or bash, navigate to \Samples\MiniDig and run `dotnet restore` and `dotnet run`.
