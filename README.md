@@ -11,7 +11,7 @@ categories: DnsClient
 DnsClient.NET is a simple yet very powerful and high performant open source library for the .NET Framework to do DNS lookups.
 
 ## Usage
-See [http://dnsclient.michaco.net](http://dnsclient.michaco.net) for more details and documentation.
+See http://dnsclient.michaco.net for more details and documentation.
 
 The following example instantiates a new `LookupClient` without specifying a DNS endpoint. 
 DnsClient.NET will query your system network adapters to determine available DNS servers.
@@ -29,7 +29,7 @@ var address = record?.Address;
 
 [![Build status](https://ci.appveyor.com/api/projects/status/y1nlxim8tkv7w3f4?svg=true)](https://ci.appveyor.com/project/MichaCo/dnsclient-net)
 
-Get it via NuGet [https://www.nuget.org/packages/DnsClient/](https://www.nuget.org/packages/DnsClient/)
+Get it via NuGet https://www.nuget.org/packages/DnsClient/
 
 Get beta builds from [MyGet](https://www.myget.org/feed/dnsclient/package/nuget/DnsClient).
 
