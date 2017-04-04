@@ -8,9 +8,10 @@
       "type": "git",
       "url": "https://github.com/MichaCo/DnsClient.NET"
     },
-    "summary": "A simple DNS client written in C#.",
+    "summary": "DnsClient is a DNS lookups and query library for .NET",
     "tags": [ "DNS", "Name Server", "CSharp", ".NET", ".NET Core" ]
   },
+  "description": "DnsClient.NET is a simple yet very powerful and high performant open source library for the .NET Framework to do DNS lookups",
   "buildOptions": {
     "allowUnsafe": false,
     "languageVersion": "csharp6",
