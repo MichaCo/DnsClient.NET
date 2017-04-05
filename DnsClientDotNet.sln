@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26228.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3D3BE1AD-F551-420A-A81D-4CB88286C8CD}"
 EndProject
@@ -11,29 +11,28 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		build.cmd = build.cmd
 		build.ps1 = build.ps1
 		build.sh = build.sh
-		global.json = global.json
 		LICENSE = LICENSE
 		Performance1.psess = Performance1.psess
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Dig", "samples\MiniDig\Dig.xproj", "{CEC9D7AD-8000-4FC6-8EB3-AC1417B9808A}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{A1BE93CF-0106-495B-9720-008046657391}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{34E43CED-3DF4-49CE-8556-69225ABD84E6}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "DnsClient.Tests", "test\DnsClient.Tests\DnsClient.Tests.xproj", "{01902674-53A3-4E81-B08F-CFAA7CA62F56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniDig", "samples\MiniDig\MiniDig.csproj", "{CEC9D7AD-8000-4FC6-8EB3-AC1417B9808A}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ApiDesign", "test\ApiDesign\ApiDesign.xproj", "{2F789CAA-31E5-4394-96B9-1B06A1AA5EA0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnsClient.Tests", "test\DnsClient.Tests\DnsClient.Tests.csproj", "{01902674-53A3-4E81-B08F-CFAA7CA62F56}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "DnsClient", "src\DnsClient\DnsClient.xproj", "{493E6161-7F71-4A59-AB28-B4A5E45A5E27}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiDesign", "test\ApiDesign\ApiDesign.csproj", "{2F789CAA-31E5-4394-96B9-1B06A1AA5EA0}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "WebApi", "test\WebApi\WebApi.xproj", "{512A1DA0-B959-4EC7-A707-0A40598AB0AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnsClient", "src\DnsClient\DnsClient.csproj", "{493E6161-7F71-4A59-AB28-B4A5E45A5E27}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi", "test\WebApi\WebApi.csproj", "{512A1DA0-B959-4EC7-A707-0A40598AB0AF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FullFrameworkOwinApp", "test\FullFrameworkOwinApp\FullFrameworkOwinApp.csproj", "{2D72FF00-3B2F-4C8F-A7ED-CA7BFB88A009}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "Benchmarks", "test\Benchmarks\Benchmarks.xproj", "{7461E2C7-008E-4E61-ABC3-AF85DE37084B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks", "test\Benchmarks\Benchmarks.csproj", "{7461E2C7-008E-4E61-ABC3-AF85DE37084B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

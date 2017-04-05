@@ -19,8 +19,8 @@ namespace FullFrameworkOwinApp
                 // if QueryAsync produces a deadlock.
                 try
                 {
-                    var ip = GetService(query).Result;
-                    ctx.Response.Write($"{{ \"answer\": \"{ip.ToString()}\"}}");
+                    var entry = GetService(query).Result;
+                    ctx.Response.Write(entry.AddressList.FirstOrDefault()?.ToString());
                 }
                 catch(Exception ex)
                 {
@@ -32,7 +32,7 @@ namespace FullFrameworkOwinApp
             });
         }
 
-        private static async Task<string> GetService(string query)
+        private static async Task<ServiceHostEntry> GetService(string query)
         {
             var dnsClient = new LookupClient(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8600));
             //dnsClient.UseTcpOnly = true;
@@ -44,9 +44,9 @@ namespace FullFrameworkOwinApp
             //    throw new InvalidOperationException($"Record not found for {query}");
             //}
 
-            var service = await dnsClient.ResolveServiceAsync("consul.service", "consul");
+            var service = await dnsClient.ResolveServiceAsync("service.consul", "consul").ConfigureAwait(false);
 
-            return service.FirstOrDefault()?.HostName;
+            return service.FirstOrDefault();
         }
     }
 }

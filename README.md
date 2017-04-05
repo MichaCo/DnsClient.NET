@@ -25,7 +25,7 @@ var record = result.Answers.ARecords().FirstOrDefault();
 var address = record?.Address;
 ``` 
 
-## Build
+## Builds
 
 [![Build status](https://ci.appveyor.com/api/projects/status/y1nlxim8tkv7w3f4?svg=true)](https://ci.appveyor.com/project/MichaCo/dnsclient-net)
 
@@ -34,9 +34,14 @@ Get it via NuGet https://www.nuget.org/packages/DnsClient/
 Get beta builds from [MyGet](https://www.myget.org/feed/dnsclient/package/nuget/DnsClient).
 
 ### Build from Code
-Just clone the repository and open the solution in Visual Studio.
+Just clone the repository and open the solution in Visual Studio 2017.
+Or use dotnet commandlind...
 
-(Only VS2015 is supported right now until the project is migrated to VS2017).
+The unit tests don't require any additional setup right now
+
+If you want to test the different record types, there are config files for Bind under tools. 
+Just download Bind and copy the bins into tools/BIND, then run bind.cmd
+
 
 ## Features
 ### General

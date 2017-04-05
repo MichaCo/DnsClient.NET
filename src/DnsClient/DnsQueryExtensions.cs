@@ -83,10 +83,10 @@ namespace DnsClient
 
             return hosts.ToArray();
         }
+    }
 
-        public class ServiceHostEntry : IPHostEntry
-        {
-            public int Port { get; set; }
-        }
+    public class ServiceHostEntry : IPHostEntry
+    {
+        public int Port { get; set; }
     }
 }
