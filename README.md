@@ -2,7 +2,7 @@
 slug: readme
 title: Readme
 author: Michael Conrad
-lastModified: 2017-04-04 12:00:00
+lastModified: 2017-04-05 12:00:00
 pubDate: 2017-03-26 12:00:00
 categories: DnsClient
 ---
@@ -40,7 +40,14 @@ Or use dotnet commandlind...
 The unit tests don't require any additional setup right now
 
 If you want to test the different record types, there are config files for Bind under tools. 
-Just download Bind and copy the bins into tools/BIND, then run bind.cmd
+Just download Bind and copy the bins into tools/BIND, then run bind.cmd.
+Now, you can use samples/MiniDig to query the local dns server:
+
+    samples\MiniDig>dotnet run -s localhost micha.mcnet.com any
+
+To test some random domain names, run (works also without Bind of course).
+
+    samples\MiniDig>dotnet run random -s localhost
 
 
 ## Features
