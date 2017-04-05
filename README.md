@@ -35,20 +35,26 @@ Get beta builds from [MyGet](https://www.myget.org/feed/dnsclient/package/nuget/
 
 ### Build from Code
 Just clone the repository and open the solution in Visual Studio 2017.
-Or use dotnet commandlind...
+Or use the dotnet client via command line.
 
-The unit tests don't require any additional setup right now
+The unit tests don't require any additional setup right now.
 
 If you want to test the different record types, there are config files for Bind under tools. 
-Just download Bind and copy the bins into tools/BIND, then run bind.cmd.
-Now, you can use samples/MiniDig to query the local dns server:
+Just [download Bind](https://www.isc.org/downloads/) for Windows and copy the binaries to tools/BIND, then run bind.cmd.
+If you are running this on Linux, you can use my config files and replace the default ones if you want.
 
-    samples\MiniDig>dotnet run -s localhost micha.mcnet.com any
+Now, you can use **samples/MiniDig** to query the local DNS server. 
+The following should return many different resource records:
 
-To test some random domain names, run (works also without Bind of course).
+``` cmd
+dotnet run -s localhost micha.mcnet.com any
+```
 
-    samples\MiniDig>dotnet run random -s localhost
+To test some random domain names, run MiniDig with the `random` sub command (works without setting up Bind, too).
 
+``` cmd
+dotnet run random -s localhost
+```
 
 ## Features
 ### General
