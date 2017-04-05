@@ -71,39 +71,33 @@ namespace DnsClient
 
         private static ICollection<IPEndPoint> ResolveNameServersInternal(bool skipIPv6SiteLocal)
         {
+            Exception frameworkEx = null;
+
             try
             {
                 return QueryNetworkInterfaces(skipIPv6SiteLocal);
             }
-            catch (Exception ex) when (ex is PlatformNotSupportedException || ex is NotImplementedException)
-            {
-                // well... hope this never happens on NET45 ^^
 #if !PORTABLE
-                throw;
-#endif
-            }
-#if PORTABLE
-            catch (NetworkInformationException ex)
+            catch (Exception ex)
             {
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-                {
-                    // continue, try reading the resolv.conf...
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Error resolving name servers.\n{ex.Message} Code: {ex.ErrorCode} HResult: {ex.HResult}.", ex);
-                }
+                throw new InvalidOperationException($"Error resolving name servers: {ex.Message} HResult: {ex.HResult}.", ex);
+            }
+#endif
+#if PORTABLE
+            catch (Exception ex)
+            {
+                // lets try native
+                frameworkEx = ex;
             }
 
-            //
             try
             {
                 return GetDnsEndpointsNative();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 // log etc?
-                throw;
+                throw new AggregateException("Could not resolve name servers via .NET Framework nor native. See inner exceptions for details.", frameworkEx, ex);
             }
 #endif
         }
