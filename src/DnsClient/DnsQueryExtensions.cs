@@ -20,6 +20,7 @@ namespace DnsClient
         /// </para>
         /// </summary>
         /// <example>
+        /// The following code example uses the <see cref="GetHostEntry(IDnsQuery, string)"/> method to resolve an IP address or hostname to an <see cref="IPHostEntry"/> instance.
         /// <code>
         /// <![CDATA[
         /// public static void PrintHostEntry(string hostOrIp)
@@ -79,6 +80,75 @@ namespace DnsClient
         }
 
         /// <summary>
+        /// The <c>GetHostEntryAsync</c> method queries a DNS server for the IP addresses and aliases associated with the <paramref name="hostNameOrAddress"/>.
+        /// In case <paramref name="hostNameOrAddress"/> is an <see cref="IPAddress"/>, <c>GetHostEntry</c> does a reverse lookup on that first to determine the hostname.
+        /// <para>
+        /// IP addresses found are returned in <see cref="IPHostEntry.AddressList"/>.
+        /// <c>CNAME</c> records are used to populate the <see cref="IPHostEntry.Aliases"/>.<br/>
+        /// The <see cref="IPHostEntry.HostName"/> property will be set to the resolved hostname of the <paramref name="address"/>.
+        /// </para>
+        /// </summary>
+        /// <example>
+        /// The following code example uses the <see cref="GetHostEntryAsync(IDnsQuery, string)"/> method to resolve an IP address or hostname to an <see cref="IPHostEntry"/> instance.
+        /// <code>
+        /// <![CDATA[
+        /// public static async Task PrintHostEntry(string hostOrIp)
+        /// {
+        ///     var lookup = new LookupClient();
+        ///
+        ///     IPHostEntry hostEntry = await lookup.GetHostEntryAsync(hostOrIp);
+        ///
+        ///     Console.WriteLine(hostEntry.HostName);
+        ///
+        ///     foreach (var ip in hostEntry.AddressList)
+        ///     {
+        ///         Console.WriteLine(ip);
+        ///     }
+        ///     foreach (var alias in hostEntry.Aliases)
+        ///     {
+        ///         Console.WriteLine(alias);
+        ///     }
+        /// }
+        /// ]]>
+        /// </code>
+        /// </example>
+        /// <remarks>
+        /// <list type="bullet"><item>
+        /// In case of sub-domain queries or similar, there might be multiple <c>CNAME</c> records for one <see cref="IPAddress"/>,
+        /// if only one <see cref="IPAddress"/> is in the result set, the returned <see cref="IPHostEntry"/> will contain all the aliases.
+        /// </item><item>
+        /// If all <see cref="IPAddress"/> found by this query do not have any unique aliases / <c>CNAME</c> records, the <see cref="IPHostEntry.Aliases"/> list will be empty.
+        /// </item></list>
+        /// </remarks>
+        /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
+        /// <param name="address">The <see cref="IPAddress"/> to query for.</param>
+        /// <returns>
+        /// An <see cref="IPHostEntry"/> instance that contains address information about the host specified in <paramref name="address"/>.
+        /// In case the <paramref name="address"/> could not be resolved to a domain name, this method returns <c>null</c>,
+        /// unless <see cref="ILookupClient.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="address"/>address is null.</exception>
+        /// <exception cref="DnsResponseException">In case <see cref="ILookupClient.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
+        public static Task<IPHostEntry> GetHostEntryAsync(this IDnsQuery query, string hostNameOrAddress)
+        {
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+            if (string.IsNullOrWhiteSpace(hostNameOrAddress))
+            {
+                throw new ArgumentNullException(nameof(hostNameOrAddress));
+            }
+
+            if (IPAddress.TryParse(hostNameOrAddress, out IPAddress address))
+            {
+                return query.GetHostEntryAsync(address);
+            }
+
+            return GetHostEntryFromNameAsync(query, hostNameOrAddress);
+        }
+
+        /// <summary>
         /// The <c>GetHostEntry</c> method does a reverse lookup on the IP <paramref name="address"/>,
         /// and queries a DNS server for the IP addresses and aliases associated with the resolved hostname.
         /// <para>
@@ -88,6 +158,7 @@ namespace DnsClient
         /// </para>
         /// </summary>
         /// <example>
+        /// The following code example uses the <see cref="GetHostEntry(IDnsQuery, IPAddress)"/> method to resolve an IP address to an <see cref="IPHostEntry"/> instance.
         /// <code>
         /// <![CDATA[
         /// public static void PrintHostEntry(IPAddress address)
@@ -147,6 +218,76 @@ namespace DnsClient
             return GetHostEntryFromName(query, hostName);
         }
 
+        /// <summary>
+        /// The <c>GetHostEntryAsync</c> method does a reverse lookup on the IP <paramref name="address"/>,
+        /// and queries a DNS server for the IP addresses and aliases associated with the resolved hostname.
+        /// <para>
+        /// IP addresses found are returned in <see cref="IPHostEntry.AddressList"/>.
+        /// <c>CNAME</c> records are used to populate the <see cref="IPHostEntry.Aliases"/>.<br/>
+        /// The <see cref="IPHostEntry.HostName"/> property will be set to the resolved hostname of the <paramref name="address"/>.
+        /// </para>
+        /// </summary>
+        /// <example>
+        /// The following code example uses the <see cref="GetHostEntryAsync(IDnsQuery, IPAddress)"/> method to resolve an IP address to an <see cref="IPHostEntry"/> instance.
+        /// <code>
+        /// <![CDATA[
+        /// public static async Task PrintHostEntry(IPAddress address)
+        /// {
+        ///     var lookup = new LookupClient();
+        ///
+        ///     IPHostEntry hostEntry = await lookup.GetHostEntryAsync(address);
+        ///
+        ///     Console.WriteLine(hostEntry.HostName);
+        ///
+        ///     foreach (var ip in hostEntry.AddressList)
+        ///     {
+        ///         Console.WriteLine(ip);
+        ///     }
+        ///     foreach (var alias in hostEntry.Aliases)
+        ///     {
+        ///         Console.WriteLine(alias);
+        ///     }
+        /// }
+        /// ]]>
+        /// </code>
+        /// </example>
+        /// <remarks>
+        /// <list type="bullet"><item>
+        /// In case of sub-domain queries or similar, there might be multiple <c>CNAME</c> records for one <see cref="IPAddress"/>,
+        /// if only one <see cref="IPAddress"/> is in the result set, the returned <see cref="IPHostEntry"/> will contain all the aliases.
+        /// </item><item>
+        /// If all <see cref="IPAddress"/> found by this query do not have any unique aliases / <c>CNAME</c> records, the <see cref="IPHostEntry.Aliases"/> list will be empty.
+        /// </item></list>
+        /// </remarks>
+        /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
+        /// <param name="address">The <see cref="IPAddress"/> to query for.</param>
+        /// <returns>
+        /// An <see cref="IPHostEntry"/> instance that contains address information about the host specified in <paramref name="address"/>.
+        /// In case the <paramref name="address"/> could not be resolved to a domain name, this method returns <c>null</c>,
+        /// unless <see cref="ILookupClient.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="address"/>address is null.</exception>
+        /// <exception cref="DnsResponseException">In case <see cref="ILookupClient.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
+        public static async Task<IPHostEntry> GetHostEntryAsync(this IDnsQuery query, IPAddress address)
+        {
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+            if (address == null)
+            {
+                throw new ArgumentNullException(nameof(address));
+            }
+
+            var hostName = await query.GetHostNameAsync(address).ConfigureAwait(false);
+            if (string.IsNullOrWhiteSpace(hostName))
+            {
+                return null;
+            }
+
+            return await GetHostEntryFromNameAsync(query, hostName).ConfigureAwait(false);
+        }
+
         private static IPHostEntry GetHostEntryFromName(IDnsQuery query, string hostName)
         {
             if (string.IsNullOrWhiteSpace(hostName))
@@ -162,9 +303,39 @@ namespace DnsClient
                 .Answers.Concat(ipv6Result.Answers)
                 .ToArray();
 
+            return GetHostEntryProcessResult(hostString, allRecords);
+        }
+
+        private static async Task<IPHostEntry> GetHostEntryFromNameAsync(IDnsQuery query, string hostName)
+        {
+            if (string.IsNullOrWhiteSpace(hostName))
+            {
+                throw new ArgumentNullException(nameof(hostName));
+            }
+
+            var hostString = DnsString.FromResponseQueryString(hostName);
+            var ipv4Result = query.QueryAsync(hostString, QueryType.A);
+            var ipv6Result = query.QueryAsync(hostString, QueryType.AAAA);
+
+            await Task.WhenAll(ipv4Result, ipv6Result).ConfigureAwait(false);
+
+            var allRecords = ipv4Result.Result
+                .Answers.Concat(ipv6Result.Result.Answers)
+                .ToArray();
+
+            return GetHostEntryProcessResult(hostString, allRecords);
+        }
+
+        private static IPHostEntry GetHostEntryProcessResult(DnsString hostString, DnsResourceRecord[] allRecords)
+        {
             var addressRecords = allRecords
-                .OfType<AddressRecord>()
-                .Select(p => new { Address = p.Address, Alias = DnsString.FromResponseQueryString(p.DomainName) }).ToArray();
+                            .OfType<AddressRecord>()
+                            .Select(p => new
+                            {
+                                Address = p.Address,
+                                Alias = DnsString.FromResponseQueryString(p.DomainName)
+                            })
+                            .ToArray();
 
             var hostEntry = new IPHostEntry()
             {
@@ -225,6 +396,37 @@ namespace DnsClient
             }
 
             var result = query.QueryReverse(address);
+            return GetHostNameAsyncProcessResult(result);
+        }
+
+        /// <summary>
+        /// The <c>GetHostNameAsync</c> method queries a DNS server to resolve the hostname of the <paramref name="address"/> via reverse lookup.
+        /// </summary>
+        /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
+        /// <param name="address">The <see cref="IPAddress"/> to resolve.</param>
+        /// <returns>
+        /// The hostname if the reverse lookup was successful or <c>null</c>, in case the host was not found.
+        /// If <see cref="ILookupClient.ThrowDnsErrors"/> is set to <c>true</c>, this method will throw an <see cref="DnsResponseException"/> instead of returning <c>null</c>!
+        /// </returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="address"/>is null.</exception>
+        /// <exception cref="DnsResponseException">If no host has been found and <see cref="ILookupClient.ThrowDnsErrors"/> is <c>true</c>.</exception>
+        public static async Task<string> GetHostNameAsync(this IDnsQuery query, IPAddress address)
+        {
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+            if (address == null)
+            {
+                throw new ArgumentNullException(nameof(address));
+            }
+
+            var result = await query.QueryReverseAsync(address).ConfigureAwait(false);
+            return GetHostNameAsyncProcessResult(result);
+        }
+
+        private static string GetHostNameAsyncProcessResult(IDnsQueryResponse result)
+        {
             if (result.HasError)
             {
                 return null;
@@ -241,25 +443,55 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Creates a <c>SRV</c> lookup for <c>_{serviceName}[._{protocol}].{baseDomain}.</c> and aggregates the results
-        /// of returned hostname, port and list of <see cref="IPAddress"/>s.
+        /// The <c>ResolveService</c> method does  a <see cref="QueryType.SRV"/> lookup for <c>_{serviceName}[._{protocol}].{baseDomain}.</c>
+        /// and aggregates the result (hostname, port and list of <see cref="IPAddress"/>s) to a <see cref="ServiceHostEntry"/>.
         /// <para>
         /// This method expects matching A or AAAA records to populate the <see cref="IPHostEntry.AddressList"/>,
-        /// and/or a <c>CNAME</c> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
+        /// and/or a <see cref="QueryType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
         /// </para>
         /// </summary>
         /// <remarks>
-        /// List of IPAddresses and/or hostname can be empty if no matching additional records are returned.
-        /// In case no result was found, an empty list will be returned.
+        /// The returned list of <see cref="IPAddress"/>s and/or the hostname can be empty if no matching additional records are found.
         /// </remarks>
-        /// <param name="query">The lookup instance.</param>
-        /// <param name="baseDomain">The base domain, will be attached to the end of the query string.</param>
-        /// <param name="serviceName">The name of the service to look for, without any prefix.</param>
+        /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
+        /// <param name="baseDomain">The base domain, which will be appended to the end of the query string.</param>
+        /// <param name="serviceName">The name of the service to look for. Must not have any <c>_</c> prefix.</param>
         /// <param name="protocol">
         /// The protocol of the service to query for.
         /// Set it to <see cref="ProtocolType.Unknown"/> or <see cref="ProtocolType.Unspecified"/> to not pass any protocol.
         /// </param>
-        /// <returns>Collection of <see cref="ServiceHostEntry"/>s.</returns>
+        /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
+        public static ServiceHostEntry[] ResolveService(this IDnsQuery query, string baseDomain, string serviceName, ProtocolType protocol)
+        {
+            if (protocol == ProtocolType.Unspecified || protocol == ProtocolType.Unknown)
+            {
+                return ResolveService(query, baseDomain, serviceName, null);
+            }
+
+            return ResolveService(query, baseDomain, serviceName, protocol.ToString());
+        }
+
+        /// <summary>
+        /// The <c>ResolveServiceAsync</c> method does  a <see cref="QueryType.SRV"/> lookup for <c>_{serviceName}[._{protocol}].{baseDomain}.</c>
+        /// and aggregates the result (hostname, port and list of <see cref="IPAddress"/>s) to a <see cref="ServiceHostEntry"/>.
+        /// <para>
+        /// This method expects matching A or AAAA records to populate the <see cref="IPHostEntry.AddressList"/>,
+        /// and/or a <see cref="QueryType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
+        /// </para>
+        /// </summary>
+        /// <remarks>
+        /// The returned list of <see cref="IPAddress"/>s and/or the hostname can be empty if no matching additional records are found.
+        /// </remarks>
+        /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
+        /// <param name="baseDomain">The base domain, which will be appended to the end of the query string.</param>
+        /// <param name="serviceName">The name of the service to look for. Must not have any <c>_</c> prefix.</param>
+        /// <param name="protocol">
+        /// The protocol of the service to query for.
+        /// Set it to <see cref="ProtocolType.Unknown"/> or <see cref="ProtocolType.Unspecified"/> to not pass any protocol.
+        /// </param>
+        /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
         public static Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, ProtocolType protocol)
         {
             if (protocol == ProtocolType.Unspecified || protocol == ProtocolType.Unknown)
@@ -271,24 +503,28 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Creates a <c>SRV</c> lookup for <c>_{serviceName}[._{tag}].{baseDomain}.</c> and aggregates the results
-        /// of returned hostname, port and list of <see cref="IPAddress"/>s.
+        /// The <c>ResolveService</c> method does a <see cref="QueryType.SRV"/> lookup for <c>_{serviceName}[._{tag}].{baseDomain}.</c>
+        /// and aggregates the result (hostname, port and list of <see cref="IPAddress"/>s) to a <see cref="ServiceHostEntry"/>.
         /// <para>
         /// This method expects matching A or AAAA records to populate the <see cref="IPHostEntry.AddressList"/>,
-        /// and/or a <c>CNAME</c> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
+        /// and/or a <see cref="QueryType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
         /// </para>
         /// </summary>
         /// <remarks>
-        /// List of IPAddresses and/or hostname can be empty if no matching additional records are returned.
-        /// In case no result was found, an empty list will be returned.
+        /// The returned list of <see cref="IPAddress"/>s and/or the hostname can be empty if no matching additional records are found.
         /// </remarks>
-        /// <param name="query">The lookup instance.</param>
-        /// <param name="baseDomain">The base domain, will be attached to the end of the query string.</param>
-        /// <param name="serviceName">The name of the service to look for, without any prefix.</param>
-        /// <param name="tag">An optional tag.</param>
-        /// <returns>Collection of <see cref="ServiceHostEntry"/>s.</returns>
-        public static async Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, string tag = null)
+        /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
+        /// <param name="baseDomain">The base domain, which will be appended to the end of the query string.</param>
+        /// <param name="serviceName">The name of the service to look for. Must not have any <c>_</c> prefix.</param>
+        /// <param name="tag">An optional tag. Must not have any <c>_</c> prefix.</param>
+        /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
+        public static ServiceHostEntry[] ResolveService(this IDnsQuery query, string baseDomain, string serviceName, string tag = null)
         {
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
             if (baseDomain == null)
             {
                 throw new ArgumentNullException(nameof(baseDomain));
@@ -298,19 +534,62 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(serviceName));
             }
 
-            string queryString;
-            if (string.IsNullOrWhiteSpace(tag))
+            var queryString = ConcatResolveServiceName(baseDomain, serviceName, tag);
+
+            var result = query.Query(queryString, QueryType.SRV);
+
+            return ResolveServiceProcessResult(result);
+        }
+
+        /// <summary>
+        /// The <c>ResolveServiceAsync</c> method does a <see cref="QueryType.SRV"/> lookup for <c>_{serviceName}[._{tag}].{baseDomain}.</c>
+        /// and aggregates the result (hostname, port and list of <see cref="IPAddress"/>s) to a <see cref="ServiceHostEntry"/>.
+        /// <para>
+        /// This method expects matching A or AAAA records to populate the <see cref="IPHostEntry.AddressList"/>,
+        /// and/or a <see cref="QueryType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
+        /// </para>
+        /// </summary>
+        /// <remarks>
+        /// The returned list of <see cref="IPAddress"/>s and/or the hostname can be empty if no matching additional records are found.
+        /// </remarks>
+        /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
+        /// <param name="baseDomain">The base domain, which will be appended to the end of the query string.</param>
+        /// <param name="serviceName">The name of the service to look for. Must not have any <c>_</c> prefix.</param>
+        /// <param name="tag">An optional tag. Must not have any <c>_</c> prefix.</param>
+        /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
+        public static async Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, string tag = null)
+        {
+            if (query == null)
             {
-                queryString = $"{serviceName}.{baseDomain}.";
+                throw new ArgumentNullException(nameof(query));
             }
-            else
+            if (baseDomain == null)
             {
-                queryString = $"_{serviceName}._{tag}.{baseDomain}.";
+                throw new ArgumentNullException(nameof(baseDomain));
+            }
+            if (string.IsNullOrWhiteSpace(serviceName))
+            {
+                throw new ArgumentNullException(nameof(serviceName));
             }
 
-            var hosts = new List<ServiceHostEntry>();
+            var queryString = ConcatResolveServiceName(baseDomain, serviceName, tag);
+
             var result = await query.QueryAsync(queryString, QueryType.SRV).ConfigureAwait(false);
 
+            return ResolveServiceProcessResult(result);
+        }
+
+        private static string ConcatResolveServiceName(string baseDomain, string serviceName, string tag)
+        {
+            return string.IsNullOrWhiteSpace(tag) ?
+                $"{serviceName}.{baseDomain}." :
+                $"_{serviceName}._{tag}.{baseDomain}.";
+        }
+
+        private static ServiceHostEntry[] ResolveServiceProcessResult(IDnsQueryResponse result)
+        {
+            var hosts = new List<ServiceHostEntry>();
             if (result.HasError)
             {
                 return hosts.ToArray();

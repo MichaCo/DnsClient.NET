@@ -767,5 +767,143 @@ namespace DnsClient.Tests
                 Assert.Equal(server.NSDName.Value.Substring(0, server.NSDName.Value.Length - 1), result.HostName);
             }
         }
+
+        [Fact]
+        public async Task GetHostEntryAsync_ByName_ManyIps_NoAlias()
+        {
+            var client = new LookupClient();
+
+            var result = await client.GetHostEntryAsync("google.com");
+
+            Assert.True(result.AddressList.Length > 1);
+            Assert.True(result.Aliases.Length == 0);
+            Assert.Equal("google.com", result.HostName);
+        }
+
+        [Fact]
+        public async Task GetHostEntryAsync_ByName_OneIp_ManyAliases()
+        {
+            var client = new LookupClient();
+
+            var result = await client.GetHostEntryAsync("dnsclient.michaco.net");
+
+            Assert.True(result.AddressList.Length == 1);
+            Assert.True(result.Aliases.Length > 1);
+            Assert.Equal("dnsclient.michaco.net", result.HostName);
+        }
+
+#if ENABLE_REMOTE_DNS
+
+        [Fact]
+        public async Task GetHostEntryAsync_ByName_OneIp_NoAlias()
+        {
+            var client = new LookupClient();
+
+            var result = await client.GetHostEntryAsync("localhost");
+
+            Assert.True(result.AddressList.Length == 1);
+            Assert.True(result.Aliases.Length == 0);
+            Assert.Equal("localhost", result.HostName);
+        }
+
+#endif
+
+        [Fact]
+        public async Task GetHostEntryAsync_ByName_EmptyString()
+        {
+            var client = new LookupClient();
+
+            Func<Task> act = async () => await client.GetHostEntryAsync("");
+
+            var ex = await Record.ExceptionAsync(act);
+            Assert.NotNull(ex);
+            Assert.Contains("hostNameOrAddress", ex.Message);
+        }
+
+        [Fact]
+        public async Task GetHostEntryAsync_ByName_HostDoesNotExist()
+        {
+            var client = new LookupClient();
+
+            var result = await client.GetHostEntryAsync("lolhost");
+
+            Assert.True(result.AddressList.Length == 0);
+            Assert.True(result.Aliases.Length == 0);
+            Assert.Equal("lolhost", result.HostName);
+        }
+
+        [Fact]
+        public async Task GetHostEntryAsync_ByName_HostDoesNotExist_WithThrow()
+        {
+            var client = new LookupClient();
+            client.ThrowDnsErrors = true;
+
+            Func<Task> act = async () => await client.GetHostEntryAsync("lolhost");
+
+            var ex = await Record.ExceptionAsync(act) as DnsResponseException;
+            Assert.NotNull(ex);
+            Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
+        }
+
+        [Fact]
+        public async Task GetHostEntryAsync_ByIp_NoHost()
+        {
+            var client = new LookupClient();
+
+            var result = await client.GetHostEntryAsync("1.0.0.0");
+
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public async Task GetHostEntryAsync_ByIp_NoHost_WithThrow()
+        {
+            var client = new LookupClient();
+            client.ThrowDnsErrors = true;
+
+            Func<Task> act = async () => await client.GetHostEntryAsync("1.0.0.0");
+
+            var ex = await Record.ExceptionAsync(act) as DnsResponseException;
+
+            Assert.NotNull(ex);
+            Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
+        }
+
+#if ENABLE_REMOTE_DNS
+
+        [Fact]
+        public async Task GetHostEntryAsync_ByIp()
+        {
+            var source = Dns.GetHostEntryAsync("localhost").Result;
+            var client = new LookupClient();
+            var result = await client.GetHostEntryAsync(source.AddressList.First());
+
+            Assert.True(result.AddressList.Length == 1);
+            Assert.True(result.Aliases.Length == 0);
+        }
+
+#endif
+
+        [Fact]
+        public async Task GetHostEntryAsync_ByManyIps()
+        {
+            var client = new LookupClient();
+            var nsServers = client.Query("google.com", QueryType.NS).Answers.NsRecords().ToArray();
+
+            Assert.True(nsServers.Length > 0);
+
+            foreach (var server in nsServers)
+            {
+                var ipAddress = (await client.GetHostEntryAsync(server.NSDName)).AddressList.First();
+                var result = await client.GetHostEntryAsync(ipAddress);
+
+                Assert.True(result.AddressList.Length >= 1);
+                Assert.True(result.AddressList.Contains(ipAddress));
+                Assert.True(result.Aliases.Length == 0);
+
+                // expecting always the name without . at the end!
+                Assert.Equal(server.NSDName.Value.Substring(0, server.NSDName.Value.Length - 1), result.HostName);
+            }
+        }
     }
 }
