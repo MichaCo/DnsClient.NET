@@ -9,15 +9,42 @@ namespace ApiDesign
 {
     public class Program
     {
+        public static void PrintHostEntry(string hostOrIp)
+        {
+            var lookup = new LookupClient();
+
+            IPHostEntry hostEntry = lookup.GetHostEntry(hostOrIp);
+
+            Console.WriteLine(hostEntry.HostName);
+
+            foreach(var ip in hostEntry.AddressList)
+            {
+                Console.WriteLine(ip);
+            }
+            foreach (var alias in hostEntry.Aliases)
+            {
+                Console.WriteLine(alias);
+            }
+        }
+
         public static void Main(string[] args)
         {
             var lookup = new LookupClient();
             lookup.Timeout = Timeout.InfiniteTimeSpan;
             lookup.EnableAuditTrail = true;
 
+            var nsServers = lookup.Query("google.com", QueryType.NS).Answers.NsRecords();
+
+            foreach(var server in nsServers)
+            {
+                PrintHostEntry(server.NSDName);
+            }
+
             try
             {
-                var result = lookup.QueryReverseAsync(IPAddress.Parse("216.239.32.10")).Result;
+                var address = IPAddress.Parse("216.239.32.10");
+                var result = lookup.QueryReverseAsync(address).Result;
+                Console.WriteLine($"Reverse query for arpa: {address.GetArpaName()}");
 
                 Console.WriteLine(result.AuditTrail);
 
@@ -41,14 +68,14 @@ namespace ApiDesign
                 Console.WriteLine(gResult.Answers.FirstOrDefault()?.ToString(-32));
 
                 WriteLongLine();
-                Console.WriteLine("Service Lookup");
-                var consul = new LookupClient(IPAddress.Parse("127.0.0.1"), 8600);
-                var services = consul.ResolveServiceAsync("service.consul", "redis").Result;
+                ////Console.WriteLine("Service Lookup");
+                ////var consul = new LookupClient(IPAddress.Parse("127.0.0.1"), 8600);
+                ////var services = consul.ResolveServiceAsync("service.consul", "redis").Result;
 
-                foreach (var service in services)
-                {
-                    Console.WriteLine($"Found service {service.HostName} at {string.Join(", ", service.AddressList.Select(p => p.ToString() + ":" + service.Port))}");
-                }
+                ////foreach (var service in services)
+                ////{
+                ////    Console.WriteLine($"Found service {service.HostName} at {string.Join(", ", service.AddressList.Select(p => p.ToString() + ":" + service.Port))}");
+                ////}
             }
             catch (DnsResponseException ex)
             {

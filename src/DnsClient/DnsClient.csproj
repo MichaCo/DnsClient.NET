@@ -5,7 +5,7 @@
     <Copyright>Copyright (c) 2017 MichaConrad</Copyright>
     <Authors>MichaCo</Authors>
     <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
-    <LangVersion>6</LangVersion>
+    <LangVersion>7</LangVersion>
     <AssemblyName>DnsClient</AssemblyName>
     <AssemblyOriginatorKeyFile>../../tools/key.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>

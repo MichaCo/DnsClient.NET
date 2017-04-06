@@ -103,7 +103,7 @@ namespace DnsClient
                         }
                         catch (Exception ex)
                         {
-                            throw new ArgumentException($"'{query}' is not a valid host name.", nameof(query), ex);
+                            throw new ArgumentException($"'{query}' is not a valid hostname.", nameof(query), ex);
                         }
                     }
                 }

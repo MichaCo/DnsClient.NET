@@ -100,7 +100,7 @@ namespace DnsClient.Tests
             Action act = () => DnsString.ParseQueryString("abc.zy\\.z.com");
 
             var ex = Record.Exception(act);
-            Assert.Contains("not a valid host name", ex.Message);
+            Assert.Contains("not a valid hostname", ex.Message);
         }
 
         [Fact]

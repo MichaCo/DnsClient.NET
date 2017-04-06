@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -148,35 +149,6 @@ namespace DnsClient
             _tcpFallbackHandler = new DnsTcpMessageHandler();
         }
 
-        /// <summary>
-        /// Translates the IPV4 or IPV6 address into an arpa address.
-        /// </summary>
-        /// <param name="ip">IP address to get the arpa address form</param>
-        /// <returns>The mirrored IPV4 or IPV6 arpa address</returns>
-        public static string GetArpaName(IPAddress ip)
-        {
-            var bytes = ip.GetAddressBytes();
-            Array.Reverse(bytes);
-
-            // check IP6
-            if (ip.AddressFamily == AddressFamily.InterNetworkV6)
-            {
-                // reveresed bytes need to be split into 4 bit parts and separated by '.'
-                var newBytes = bytes
-                    .SelectMany(b => new[] { (b >> 0) & 0xf, (b >> 4) & 0xf })
-                    .Aggregate(new StringBuilder(), (s, b) => s.Append(b.ToString("x")).Append(".")) + "ip6.arpa.";
-
-                return newBytes;
-            }
-            else if (ip.AddressFamily == AddressFamily.InterNetwork)
-            {
-                // else IP4
-                return string.Join(".", bytes) + ".in-addr.arpa.";
-            }
-
-            throw new InvalidOperationException("Not a valid IP4 or IP6 address.");
-        }
-
         public IDnsQueryResponse QueryReverse(IPAddress ipAddress)
         {
             if (ipAddress == null)
@@ -184,7 +156,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(ipAddress));
             }
 
-            var arpa = GetArpaName(ipAddress);
+            var arpa = ipAddress.GetArpaName();
             return Query(arpa, QueryType.PTR, QueryClass.IN);
         }
 
@@ -198,7 +170,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(ipAddress));
             }
 
-            var arpa = GetArpaName(ipAddress);
+            var arpa = ipAddress.GetArpaName();
             return QueryAsync(arpa, QueryType.PTR, QueryClass.IN, cancellationToken);
         }
 
@@ -724,7 +696,7 @@ namespace DnsClient
                 var elapsed = _swatch.ElapsedMilliseconds;
                 _auditWriter.AppendLine($";; Query time: {elapsed} msec");
                 _auditWriter.AppendLine($";; SERVER: {queryResponse.NameServer.Endpoint.Address}#{queryResponse.NameServer.Endpoint.Port}");
-                _auditWriter.AppendLine($";; WHEN: {DateTime.Now.ToString("R")}");
+                _auditWriter.AppendLine($";; WHEN: {DateTime.UtcNow.ToString("ddd MMM dd HH:mm:ss K yyyy", CultureInfo.InvariantCulture)}");
                 _auditWriter.AppendLine($";; MSG SIZE  rcvd: {queryResponse.MessageSize}");
             }
 

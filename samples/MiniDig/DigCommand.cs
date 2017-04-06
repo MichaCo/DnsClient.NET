@@ -90,7 +90,7 @@ namespace DigApp
                     return 1;
                 }
 
-                useDomain = LookupClient.GetArpaName(ip);
+                useDomain = ip.GetArpaName();
             }
 
             if (useQType == 0)

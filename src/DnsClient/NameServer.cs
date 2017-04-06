@@ -71,8 +71,9 @@ namespace DnsClient
 
         private static ICollection<IPEndPoint> ResolveNameServersInternal(bool skipIPv6SiteLocal)
         {
+#if PORTABLE
             Exception frameworkEx = null;
-
+#endif
             try
             {
                 return QueryNetworkInterfaces(skipIPv6SiteLocal);
