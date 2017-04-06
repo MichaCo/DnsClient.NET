@@ -671,7 +671,7 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient();
 
-            Action act = ()=> client.GetHostEntry("");
+            Action act = () => client.GetHostEntry("");
 
             var ex = Record.Exception(act);
             Assert.NotNull(ex);
@@ -727,6 +727,8 @@ namespace DnsClient.Tests
             Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
         }
 
+#if ENABLE_REMOTE_DNS
+
         [Fact]
         public void GetHostEntry_ByIp()
         {
@@ -737,6 +739,8 @@ namespace DnsClient.Tests
             Assert.True(result.AddressList.Length == 1);
             Assert.True(result.Aliases.Length == 0);
         }
+
+#endif
 
         [Fact]
         public void GetHostEntry_ByManyIps()
