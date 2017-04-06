@@ -64,9 +64,10 @@ dotnet run random -s localhost
   * Query result cache based on provided TTL 
   * Minimum TTL setting to overrule the result's TTL and always cache the responses for at least that time. (Even very low value, like a few milliseconds, do make a huge difference if used in high traffic low latency scenarios)
   * Cache can be disabled altogether
-* Supports multiple DNS endpoints to be configured.
+* Supports multiple DNS endpoints to be configured
 * Retry logic in case of timeouts and errors (configurable)
 * Audit trail of each response
+* Configurable error handling. Throwing DNS errors, like `NotExistentDomain` is turned off by default
 
 ### Supported resource records
 * PTR for reverse lookups

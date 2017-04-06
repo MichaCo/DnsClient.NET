@@ -8,6 +8,12 @@ using DnsClient.Protocol;
 
 namespace DnsClient
 {
+    /// <summary>
+    /// Extension methods for the <see cref="IDnsQuery"/> contract.
+    /// <para>
+    /// The methods implement common queries which are more complex and have some business logic.
+    /// </para>
+    /// </summary>
     public static class DnsQueryExtensions
     {
         /// <summary>
@@ -15,8 +21,8 @@ namespace DnsClient
         /// In case <paramref name="hostNameOrAddress"/> is an <see cref="IPAddress"/>, <c>GetHostEntry</c> does a reverse lookup on that first to determine the hostname.
         /// <para>
         /// IP addresses found are returned in <see cref="IPHostEntry.AddressList"/>.
-        /// <c>CNAME</c> records are used to populate the <see cref="IPHostEntry.Aliases"/>.<br/>
-        /// The <see cref="IPHostEntry.HostName"/> property will be set to the resolved hostname of the <paramref name="address"/>.
+        /// <see cref="ResourceRecordType.CNAME"/> records are used to populate the <see cref="IPHostEntry.Aliases"/>.<br/>
+        /// The <see cref="IPHostEntry.HostName"/> property will be set to the resolved hostname or <paramref name="hostNameOrAddress"/>.
         /// </para>
         /// </summary>
         /// <example>
@@ -26,11 +32,8 @@ namespace DnsClient
         /// public static void PrintHostEntry(string hostOrIp)
         /// {
         ///     var lookup = new LookupClient();
-        ///
         ///     IPHostEntry hostEntry = lookup.GetHostEntry(hostOrIp);
-        ///
         ///     Console.WriteLine(hostEntry.HostName);
-        ///
         ///     foreach (var ip in hostEntry.AddressList)
         ///     {
         ///         Console.WriteLine(ip);
@@ -44,12 +47,22 @@ namespace DnsClient
         /// </code>
         /// </example>
         /// <remarks>
-        /// <list type="bullet"><item>
-        /// In case of sub-domain queries or similar, there might be multiple <c>CNAME</c> records for one <see cref="IPAddress"/>,
-        /// if only one <see cref="IPAddress"/> is in the result set, the returned <see cref="IPHostEntry"/> will contain all the aliases.
+        /// The method has some logic to populate the <see cref="IPHostEntry.Aliases"/> list:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>
+        /// In case of sub-domain queries or similar, there might be multiple <see cref="ResourceRecordType.CNAME"/> records for one <see cref="IPAddress"/>,
+        /// </term>
         /// </item><item>
-        /// If all <see cref="IPAddress"/> found by this query do not have any unique aliases / <c>CNAME</c> records, the <see cref="IPHostEntry.Aliases"/> list will be empty.
-        /// </item></list>
+        /// <term>
+        /// If only one <see cref="IPAddress"/> is in the result set, all the aliases found will be returned.
+        /// </term>
+        /// </item><item>
+        /// <term>
+        /// If more than one <see cref="IPAddress"/> is in the result set, aliases are returned only if at least one doesn't match the queried hostname.
+        /// </term>
+        /// </item>
+        /// </list>
         /// </remarks>
         /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
         /// <param name="address">The <see cref="IPAddress"/> to query for.</param>
@@ -58,7 +71,7 @@ namespace DnsClient
         /// In case the <paramref name="address"/> could not be resolved to a domain name, this method returns <c>null</c>,
         /// unless <see cref="ILookupClient.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
         /// </returns>
-        /// <exception cref="ArgumentNullException">If <paramref name="address"/>address is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="address"/> is null.</exception>
         /// <exception cref="DnsResponseException">In case <see cref="ILookupClient.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
         public static IPHostEntry GetHostEntry(this IDnsQuery query, string hostNameOrAddress)
         {
@@ -84,8 +97,8 @@ namespace DnsClient
         /// In case <paramref name="hostNameOrAddress"/> is an <see cref="IPAddress"/>, <c>GetHostEntry</c> does a reverse lookup on that first to determine the hostname.
         /// <para>
         /// IP addresses found are returned in <see cref="IPHostEntry.AddressList"/>.
-        /// <c>CNAME</c> records are used to populate the <see cref="IPHostEntry.Aliases"/>.<br/>
-        /// The <see cref="IPHostEntry.HostName"/> property will be set to the resolved hostname of the <paramref name="address"/>.
+        /// <see cref="ResourceRecordType.CNAME"/> records are used to populate the <see cref="IPHostEntry.Aliases"/>.<br/>
+        /// The <see cref="IPHostEntry.HostName"/> property will be set to the resolved hostname or <paramref name="hostNameOrAddress"/>.
         /// </para>
         /// </summary>
         /// <example>
@@ -95,11 +108,8 @@ namespace DnsClient
         /// public static async Task PrintHostEntry(string hostOrIp)
         /// {
         ///     var lookup = new LookupClient();
-        ///
         ///     IPHostEntry hostEntry = await lookup.GetHostEntryAsync(hostOrIp);
-        ///
         ///     Console.WriteLine(hostEntry.HostName);
-        ///
         ///     foreach (var ip in hostEntry.AddressList)
         ///     {
         ///         Console.WriteLine(ip);
@@ -113,12 +123,22 @@ namespace DnsClient
         /// </code>
         /// </example>
         /// <remarks>
-        /// <list type="bullet"><item>
-        /// In case of sub-domain queries or similar, there might be multiple <c>CNAME</c> records for one <see cref="IPAddress"/>,
-        /// if only one <see cref="IPAddress"/> is in the result set, the returned <see cref="IPHostEntry"/> will contain all the aliases.
+        /// The method has some logic to populate the <see cref="IPHostEntry.Aliases"/> list:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>
+        /// In case of sub-domain queries or similar, there might be multiple <see cref="ResourceRecordType.CNAME"/> records for one <see cref="IPAddress"/>,
+        /// </term>
         /// </item><item>
-        /// If all <see cref="IPAddress"/> found by this query do not have any unique aliases / <c>CNAME</c> records, the <see cref="IPHostEntry.Aliases"/> list will be empty.
-        /// </item></list>
+        /// <term>
+        /// If only one <see cref="IPAddress"/> is in the result set, all the aliases found will be returned.
+        /// </term>
+        /// </item><item>
+        /// <term>
+        /// If more than one <see cref="IPAddress"/> is in the result set, aliases are returned only if at least one doesn't match the queried hostname.
+        /// </term>
+        /// </item>
+        /// </list>
         /// </remarks>
         /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
         /// <param name="address">The <see cref="IPAddress"/> to query for.</param>
@@ -127,7 +147,7 @@ namespace DnsClient
         /// In case the <paramref name="address"/> could not be resolved to a domain name, this method returns <c>null</c>,
         /// unless <see cref="ILookupClient.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
         /// </returns>
-        /// <exception cref="ArgumentNullException">If <paramref name="address"/>address is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="address"/> is null.</exception>
         /// <exception cref="DnsResponseException">In case <see cref="ILookupClient.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
         public static Task<IPHostEntry> GetHostEntryAsync(this IDnsQuery query, string hostNameOrAddress)
         {
@@ -153,7 +173,7 @@ namespace DnsClient
         /// and queries a DNS server for the IP addresses and aliases associated with the resolved hostname.
         /// <para>
         /// IP addresses found are returned in <see cref="IPHostEntry.AddressList"/>.
-        /// <c>CNAME</c> records are used to populate the <see cref="IPHostEntry.Aliases"/>.<br/>
+        /// <see cref="ResourceRecordType.CNAME"/> records are used to populate the <see cref="IPHostEntry.Aliases"/>.<br/>
         /// The <see cref="IPHostEntry.HostName"/> property will be set to the resolved hostname of the <paramref name="address"/>.
         /// </para>
         /// </summary>
@@ -164,11 +184,8 @@ namespace DnsClient
         /// public static void PrintHostEntry(IPAddress address)
         /// {
         ///     var lookup = new LookupClient();
-        ///
         ///     IPHostEntry hostEntry = lookup.GetHostEntry(address);
-        ///
         ///     Console.WriteLine(hostEntry.HostName);
-        ///
         ///     foreach (var ip in hostEntry.AddressList)
         ///     {
         ///         Console.WriteLine(ip);
@@ -182,12 +199,22 @@ namespace DnsClient
         /// </code>
         /// </example>
         /// <remarks>
-        /// <list type="bullet"><item>
-        /// In case of sub-domain queries or similar, there might be multiple <c>CNAME</c> records for one <see cref="IPAddress"/>,
-        /// if only one <see cref="IPAddress"/> is in the result set, the returned <see cref="IPHostEntry"/> will contain all the aliases.
+        /// The method has some logic to populate the <see cref="IPHostEntry.Aliases"/> list:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>
+        /// In case of sub-domain queries or similar, there might be multiple <see cref="ResourceRecordType.CNAME"/> records for one <see cref="IPAddress"/>,
+        /// </term>
         /// </item><item>
-        /// If all <see cref="IPAddress"/> found by this query do not have any unique aliases / <c>CNAME</c> records, the <see cref="IPHostEntry.Aliases"/> list will be empty.
-        /// </item></list>
+        /// <term>
+        /// If only one <see cref="IPAddress"/> is in the result set, all the aliases found will be returned.
+        /// </term>
+        /// </item><item>
+        /// <term>
+        /// If more than one <see cref="IPAddress"/> is in the result set, aliases are returned only if at least one doesn't match the queried hostname.
+        /// </term>
+        /// </item>
+        /// </list>
         /// </remarks>
         /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
         /// <param name="address">The <see cref="IPAddress"/> to query for.</param>
@@ -196,7 +223,7 @@ namespace DnsClient
         /// In case the <paramref name="address"/> could not be resolved to a domain name, this method returns <c>null</c>,
         /// unless <see cref="ILookupClient.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
         /// </returns>
-        /// <exception cref="ArgumentNullException">If <paramref name="address"/>address is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="address"/> is null.</exception>
         /// <exception cref="DnsResponseException">In case <see cref="ILookupClient.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
         public static IPHostEntry GetHostEntry(this IDnsQuery query, IPAddress address)
         {
@@ -223,7 +250,7 @@ namespace DnsClient
         /// and queries a DNS server for the IP addresses and aliases associated with the resolved hostname.
         /// <para>
         /// IP addresses found are returned in <see cref="IPHostEntry.AddressList"/>.
-        /// <c>CNAME</c> records are used to populate the <see cref="IPHostEntry.Aliases"/>.<br/>
+        /// <see cref="ResourceRecordType.CNAME"/> records are used to populate the <see cref="IPHostEntry.Aliases"/>.<br/>
         /// The <see cref="IPHostEntry.HostName"/> property will be set to the resolved hostname of the <paramref name="address"/>.
         /// </para>
         /// </summary>
@@ -234,11 +261,8 @@ namespace DnsClient
         /// public static async Task PrintHostEntry(IPAddress address)
         /// {
         ///     var lookup = new LookupClient();
-        ///
         ///     IPHostEntry hostEntry = await lookup.GetHostEntryAsync(address);
-        ///
         ///     Console.WriteLine(hostEntry.HostName);
-        ///
         ///     foreach (var ip in hostEntry.AddressList)
         ///     {
         ///         Console.WriteLine(ip);
@@ -252,12 +276,22 @@ namespace DnsClient
         /// </code>
         /// </example>
         /// <remarks>
-        /// <list type="bullet"><item>
-        /// In case of sub-domain queries or similar, there might be multiple <c>CNAME</c> records for one <see cref="IPAddress"/>,
-        /// if only one <see cref="IPAddress"/> is in the result set, the returned <see cref="IPHostEntry"/> will contain all the aliases.
+        /// The method has some logic to populate the <see cref="IPHostEntry.Aliases"/> list:
+        /// <list type="bullet">
+        /// <item>
+        /// <term>
+        /// In case of sub-domain queries or similar, there might be multiple <see cref="ResourceRecordType.CNAME"/> records for one <see cref="IPAddress"/>,
+        /// </term>
         /// </item><item>
-        /// If all <see cref="IPAddress"/> found by this query do not have any unique aliases / <c>CNAME</c> records, the <see cref="IPHostEntry.Aliases"/> list will be empty.
-        /// </item></list>
+        /// <term>
+        /// If only one <see cref="IPAddress"/> is in the result set, all the aliases found will be returned.
+        /// </term>
+        /// </item><item>
+        /// <term>
+        /// If more than one <see cref="IPAddress"/> is in the result set, aliases are returned only if at least one doesn't match the queried hostname.
+        /// </term>
+        /// </item>
+        /// </list>
         /// </remarks>
         /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
         /// <param name="address">The <see cref="IPAddress"/> to query for.</param>
@@ -266,7 +300,7 @@ namespace DnsClient
         /// In case the <paramref name="address"/> could not be resolved to a domain name, this method returns <c>null</c>,
         /// unless <see cref="ILookupClient.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
         /// </returns>
-        /// <exception cref="ArgumentNullException">If <paramref name="address"/>address is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="address"/> is null.</exception>
         /// <exception cref="DnsResponseException">In case <see cref="ILookupClient.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
         public static async Task<IPHostEntry> GetHostEntryAsync(this IDnsQuery query, IPAddress address)
         {
@@ -443,11 +477,11 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// The <c>ResolveService</c> method does  a <see cref="QueryType.SRV"/> lookup for <c>_{serviceName}[._{protocol}].{baseDomain}.</c>
+        /// The <c>ResolveService</c> method does a <see cref="QueryType.SRV"/> lookup for <c>_{<paramref name="serviceName"/>}[._{<paramref name="protocol"/>}].{<paramref name="baseDomain"/>}</c>
         /// and aggregates the result (hostname, port and list of <see cref="IPAddress"/>s) to a <see cref="ServiceHostEntry"/>.
         /// <para>
         /// This method expects matching A or AAAA records to populate the <see cref="IPHostEntry.AddressList"/>,
-        /// and/or a <see cref="QueryType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
+        /// and/or a <see cref="ResourceRecordType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
         /// </para>
         /// </summary>
         /// <remarks>
@@ -462,6 +496,7 @@ namespace DnsClient
         /// </param>
         /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
+        /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
         public static ServiceHostEntry[] ResolveService(this IDnsQuery query, string baseDomain, string serviceName, ProtocolType protocol)
         {
             if (protocol == ProtocolType.Unspecified || protocol == ProtocolType.Unknown)
@@ -473,11 +508,11 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// The <c>ResolveServiceAsync</c> method does  a <see cref="QueryType.SRV"/> lookup for <c>_{serviceName}[._{protocol}].{baseDomain}.</c>
+        /// The <c>ResolveServiceAsync</c> method does  a <see cref="QueryType.SRV"/> lookup for <c>_{<paramref name="serviceName"/>}[._{<paramref name="protocol"/>}].{<paramref name="baseDomain"/>}</c>
         /// and aggregates the result (hostname, port and list of <see cref="IPAddress"/>s) to a <see cref="ServiceHostEntry"/>.
         /// <para>
         /// This method expects matching A or AAAA records to populate the <see cref="IPHostEntry.AddressList"/>,
-        /// and/or a <see cref="QueryType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
+        /// and/or a <see cref="ResourceRecordType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
         /// </para>
         /// </summary>
         /// <remarks>
@@ -492,6 +527,7 @@ namespace DnsClient
         /// </param>
         /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
+        /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
         public static Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, ProtocolType protocol)
         {
             if (protocol == ProtocolType.Unspecified || protocol == ProtocolType.Unknown)
@@ -503,11 +539,11 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// The <c>ResolveService</c> method does a <see cref="QueryType.SRV"/> lookup for <c>_{serviceName}[._{tag}].{baseDomain}.</c>
+        /// The <c>ResolveService</c> method does a <see cref="QueryType.SRV"/> lookup for <c>_{<paramref name="serviceName"/>}[._{<paramref name="tag"/>}].{<paramref name="baseDomain"/>}</c>
         /// and aggregates the result (hostname, port and list of <see cref="IPAddress"/>s) to a <see cref="ServiceHostEntry"/>.
         /// <para>
         /// This method expects matching A or AAAA records to populate the <see cref="IPHostEntry.AddressList"/>,
-        /// and/or a <see cref="QueryType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
+        /// and/or a <see cref="ResourceRecordType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
         /// </para>
         /// </summary>
         /// <remarks>
@@ -519,6 +555,7 @@ namespace DnsClient
         /// <param name="tag">An optional tag. Must not have any <c>_</c> prefix.</param>
         /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
+        /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
         public static ServiceHostEntry[] ResolveService(this IDnsQuery query, string baseDomain, string serviceName, string tag = null)
         {
             if (query == null)
@@ -542,11 +579,11 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// The <c>ResolveServiceAsync</c> method does a <see cref="QueryType.SRV"/> lookup for <c>_{serviceName}[._{tag}].{baseDomain}.</c>
+        /// The <c>ResolveServiceAsync</c> method does a <see cref="QueryType.SRV"/> lookup for <c>_{<paramref name="serviceName"/>}[._{<paramref name="tag"/>}].{<paramref name="baseDomain"/>}</c>
         /// and aggregates the result (hostname, port and list of <see cref="IPAddress"/>s) to a <see cref="ServiceHostEntry"/>.
         /// <para>
         /// This method expects matching A or AAAA records to populate the <see cref="IPHostEntry.AddressList"/>,
-        /// and/or a <see cref="QueryType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
+        /// and/or a <see cref="ResourceRecordType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
         /// </para>
         /// </summary>
         /// <remarks>
@@ -558,6 +595,7 @@ namespace DnsClient
         /// <param name="tag">An optional tag. Must not have any <c>_</c> prefix.</param>
         /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
+        /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
         public static async Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, string tag = null)
         {
             if (query == null)

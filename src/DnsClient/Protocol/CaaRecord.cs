@@ -76,7 +76,9 @@ namespace DnsClient.Protocol
     * */
 
     /// <summary>
-    /// Record type 257
+    /// <para>
+    /// Defined in <see href="https://tools.ietf.org/html/rfc6844">RFC 6844</see>
+    /// </para>
     /// The Certification Authority Authorization (CAA) DNS Resource Record
     /// allows a DNS domain name holder to specify one or more Certification
     /// Authorities(CAs) authorized to issue certificates for that domain.
@@ -85,12 +87,23 @@ namespace DnsClient.Protocol
     /// certificate mis-issue.This document defines the syntax of the CAA
     /// record and rules for processing CAA records by certificate issuers.
     /// </summary>
+    /// <seealso href="https://tools.ietf.org/html/rfc6844">RFC 6844</seealso>
     public class CaaRecord : DnsResourceRecord
     {
+        /// <summary>
+        /// One octet containing the flags.
+        /// </summary>
         public byte Flags { get; }
 
+        /// <summary>
+        /// The property identifier, a sequence of US-ASCII characters.
+        /// </summary>
         public string Tag { get; }
 
+        /// <summary>
+        /// A sequence of octets representing the property value.
+        /// Property values are encoded as binary values and MAY employ sub-formats.
+        /// </summary>
         public string Value { get; }
 
         public CaaRecord(ResourceRecordInfo info, byte flags, string tag, string value) : base(info)
@@ -100,6 +113,7 @@ namespace DnsClient.Protocol
             Value = value;
         }
 
+        /// <inheritdoc />
         public override string RecordToString()
         {
             return $"{Flags} {Tag} \"{Value}\"";
