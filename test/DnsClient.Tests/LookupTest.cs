@@ -654,6 +654,8 @@ namespace DnsClient.Tests
             Assert.Equal("dnsclient.michaco.net", result.HostName);
         }
 
+#if ENABLE_REMOTE_DNS
+
         [Fact]
         public void GetHostEntry_ByName_OneIp_NoAlias()
         {
@@ -665,6 +667,8 @@ namespace DnsClient.Tests
             Assert.True(result.Aliases.Length == 0);
             Assert.Equal("localhost", result.HostName);
         }
+
+#endif
 
         [Fact]
         public void GetHostEntry_ByName_EmptyString()
