@@ -671,11 +671,11 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient();
 
-            var result = client.GetHostEntry("");
+            Action act = ()=> client.GetHostEntry("");
 
-            Assert.True(result.AddressList.Length == 1);
-            Assert.True(result.Aliases.Length == 0);
-            Assert.Equal("localhost", result.HostName);
+            var ex = Record.Exception(act);
+            Assert.NotNull(ex);
+            Assert.Contains("hostNameOrAddress", ex.Message);
         }
 
         [Fact]
@@ -730,12 +730,12 @@ namespace DnsClient.Tests
         [Fact]
         public void GetHostEntry_ByIp()
         {
+            var source = Dns.GetHostEntryAsync("localhost").Result;
             var client = new LookupClient();
-            var result = client.GetHostEntry(IPAddress.Parse("127.0.0.1"));
+            var result = client.GetHostEntry(source.AddressList.First());
 
             Assert.True(result.AddressList.Length == 1);
             Assert.True(result.Aliases.Length == 0);
-            Assert.Equal("localhost", result.HostName);
         }
 
         [Fact]

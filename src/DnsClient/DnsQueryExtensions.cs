@@ -10,8 +10,6 @@ namespace DnsClient
 {
     public static class DnsQueryExtensions
     {
-        private const string Localhost = "localhost";
-
         /// <summary>
         /// The <c>GetHostEntry</c> method queries a DNS server for the IP addresses and aliases associated with the <paramref name="hostNameOrAddress"/>.
         /// In case <paramref name="hostNameOrAddress"/> is an <see cref="IPAddress"/>, <c>GetHostEntry</c> does a reverse lookup on that first to determine the hostname.
@@ -69,7 +67,7 @@ namespace DnsClient
             }
             if (string.IsNullOrWhiteSpace(hostNameOrAddress))
             {
-                hostNameOrAddress = Localhost;
+                throw new ArgumentNullException(nameof(hostNameOrAddress));
             }
 
             if (IPAddress.TryParse(hostNameOrAddress, out IPAddress address))
