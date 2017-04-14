@@ -86,6 +86,12 @@ dotnet run random -s localhost
 * More RRs parsing
 
 ## Motivation and Thanks!
+Thanks to 
+
+[<img src="tools/browserstack-logo.svg" width="300">](https://www.browserstack.com) 
+
+for supporting me to test my websites and projects!
+
 I used [Heijden.Dns](https://github.com/ghuntley/Heijden.Dns) as a baseline for my first steps into the world of DNS RFCs. A big thanks to the original author of the code, Alphons van der Heijden and also Geoffrey Huntley who created a great package out of that. This was a great resource to learn from it and start building this API!
 
 In the end, I decided to write my own API to make it easy to use, more robust, extensible and build on .NET Core for xplat support.
