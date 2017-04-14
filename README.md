@@ -88,7 +88,7 @@ dotnet run random -s localhost
 ## Motivation and Thanks!
 Thanks to 
 
-[<img src="tools/browserstack-logo.svg" width="300">](https://www.browserstack.com) 
+[<img src="https://www.browserstack.com/images/layout/browserstack-logo-600x315.png" width="300">](https://www.browserstack.com) 
 
 for supporting me to test my websites and projects!
 
