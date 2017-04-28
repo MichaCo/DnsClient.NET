@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -25,6 +26,7 @@ namespace DigApp
         private LookupSettings _settings;
         private LookupClient _lookup;
         private int _errors;
+        private ConcurrentDictionary<string, int> _errorsPerCode = new ConcurrentDictionary<string, int>();
         private int _success;
         private Spiner _spinner;
         private bool _runSync;
@@ -103,13 +105,19 @@ namespace DigApp
             Console.WriteLine(string.Join("-", Enumerable.Repeat("-", 50)));
             Console.WriteLine($";; run for {elapsedSeconds}sec {_clients} clients.");
 
-            var successPercent = _errors == 0 ? 100 : _success == 0 ? 0 : (100 - (double)_success / (_errors * (double)_success));
-            Console.WriteLine($";; {_errors:N0} errors {_success:N0} ok {successPercent:N5}% success.");
+            //var successPercent = _errors == 0 ? 100 : _success == 0 ? 0 : (100 - (double)_success / (_errors * (double)_success));
+
+            var successPercent = _errors == 0 ? 100 : _success == 0 ? 0 : (100 - ((double)_errors / (_success) * 100));
+            Console.WriteLine($";; {_errors:N0} errors {_success:N0} ok {successPercent:N2}% success.");
+            foreach(var code in _errorsPerCode.Keys)
+            {
+                Console.WriteLine($"{code,30}:\t {_errorsPerCode[code]}");
+            }
 
             var execPerSec = _allExcecutions / elapsedSeconds;
             var avgExec = _allAvgExec / _runtime;
             Console.WriteLine($";; {execPerSec:N2} queries per second.");
-
+            
             Console.WriteLine($";;Log: clients created: {StaticLog.CreatedClients} arraysAllocated: {StaticLog.ByteArrayAllocations} arraysReleased: {StaticLog.ByteArrayReleases} queries: {StaticLog.ResolveQueryCount} queryTries: {StaticLog.ResolveQueryTries}");
             return 0;
         }
@@ -158,6 +166,7 @@ namespace DigApp
                     if (response.HasError)
                     {
                         Logger.LogWarning("Response has error.\n{0}", response.AuditTrail);
+                        _errorsPerCode.AddOrUpdate(response.Header.ResponseCode.ToString(), 1, (c, v) => v + 1);
                         Interlocked.Increment(ref _errors);
                     }
                     else
@@ -165,8 +174,15 @@ namespace DigApp
                         Interlocked.Increment(ref _success);
                     }
                 }
+                catch (DnsResponseException ex)
+                {
+                    _errorsPerCode.AddOrUpdate(ex.Code.ToString(), 1, (c, v) => v + 1);
+                    Logger.LogError(101, ex, "Error running query {0}.", query);
+                    Interlocked.Increment(ref _errors);
+                }
                 catch (Exception ex)
                 {
+                    _errorsPerCode.AddOrUpdate(ex.GetType().Name, 1, (c, v) => v + 1);
                     Logger.LogError(101, ex, "Error running query {0}.", query);
                     Interlocked.Increment(ref _errors);
                 }
