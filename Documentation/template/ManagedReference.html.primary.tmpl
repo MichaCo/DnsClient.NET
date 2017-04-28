@@ -1,0 +1,49 @@
+{{!include(search-stopwords.json)}}
+{{#item}}
+
+  
+    <div id="wrapper">
+      <header>
+        {{^_disableBreadcrumb}}
+        {{>partials/breadcrumb}}
+        {{/_disableBreadcrumb}}
+      </header>
+      {{#_enableSearch}}
+      <div role="main" class="container body-content">
+        {{>partials/searchResults}}
+      </div>
+      {{/_enableSearch}}
+      <div role="main" class="container body-content hide-when-search">
+      {{^_disableToc}}
+        {{>partials/toc}}
+        <div class="article row grid-right">
+      {{/_disableToc}}
+      {{#_disableToc}}
+        <div class="article row grid">
+      {{/_disableToc}}
+          {{#_disableAffix}}
+          <div class="col-md-12">
+          {{/_disableAffix}}
+          {{^_disableAffix}}
+          <div class="col-md-10">
+          {{/_disableAffix}}
+            <article class="content wrap" id="_content">
+            {{#isNamespace}}
+              {{>partials/namespace}}
+            {{/isNamespace}}
+            {{#isClass}}
+              {{>partials/class}}
+            {{/isClass}}
+            {{#isEnum}}
+              {{>partials/enum}}
+            {{/isEnum}}
+            {{>partials/customMREFContent}}
+            </article>
+          </div>
+          {{^_disableAffix}}
+          {{>partials/affix}}
+          {{/_disableAffix}}
+        </div>
+      </div>
+    </div>
+{{/item}}

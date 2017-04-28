@@ -1,12 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.0
+VisualStudioVersion = 15.0.26403.7
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3D3BE1AD-F551-420A-A81D-4CB88286C8CD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B5380A3E-7532-46C4-A510-694D2612B71F}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		appveyor.yml = appveyor.yml
 		tools\browserstack-logo.svg = tools\browserstack-logo.svg
 		build.cmd = build.cmd

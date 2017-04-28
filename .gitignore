@@ -252,3 +252,10 @@ paket-files/
 *.sln.iml
 /.build
 /tools/BIND
+
+# documentation
+.nuget
+DocFxBin
+msdn.*
+_exported_templates
+docfx.zip
