@@ -67,10 +67,10 @@ namespace DnsClient.Protocol
         /// </summary>
         public int RawDataLength { get; }
 
-        public ResourceRecordInfo(string query, ResourceRecordType recordType, QueryClass recordClass, int ttl, int length)
-            : this(DnsString.ParseQueryString(query), recordType, recordClass, ttl, length)
-        {
-        }
+        //public ResourceRecordInfo(string query, ResourceRecordType recordType, QueryClass recordClass, int ttl, int length)
+        //    : this(DnsString.Parse(query), recordType, recordClass, ttl, length)
+        //{
+        //}
 
         public ResourceRecordInfo(DnsString queryName, ResourceRecordType recordType, QueryClass recordClass, int ttl, int length)
         {

@@ -42,7 +42,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_PTRRecord()
         {
-            var name = DnsString.ParseQueryString("result.example.com");
+            var name = DnsString.Parse("result.example.com");
             var writer = new DnsDatagramWriter();
             writer.WriteHostName(name.Value);
             var factory = GetFactory(writer.Data.ToArray());
@@ -56,7 +56,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_MBRecord()
         {
-            var name = DnsString.ParseQueryString("Müsli.de");
+            var name = DnsString.Parse("Müsli.de");
             var writer = new DnsDatagramWriter();
             writer.WriteHostName(name.Value);
             var factory = GetFactory(writer.Data.ToArray());
@@ -145,7 +145,7 @@ namespace DnsClient.Tests
         public void DnsRecordFactory_NSRecord()
         {
             var writer = new DnsDatagramWriter();
-            var name = DnsString.ParseQueryString("result.example.com");
+            var name = DnsString.Parse("result.example.com");
             writer.WriteHostName(name.Value);
             var factory = GetFactory(writer.Data.ToArray());
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.NS, QueryClass.IN, 0, writer.Data.Count);
@@ -195,7 +195,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_MXRecord()
         {
-            var name = DnsString.ParseQueryString("result.example.com");
+            var name = DnsString.Parse("result.example.com");
             var writer = new DnsDatagramWriter();
             writer.WriteByte(0);
             writer.WriteByte(1);
@@ -255,7 +255,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_SRVRecord()
         {
-            var name = DnsString.ParseQueryString("result.example.com");
+            var name = DnsString.Parse("result.example.com");
             var writer = new DnsDatagramWriter();
             writer.WriteBytes(new byte[] { 0, 1, 1, 0, 2, 3 }, 6);
             writer.WriteHostName(name.Value);

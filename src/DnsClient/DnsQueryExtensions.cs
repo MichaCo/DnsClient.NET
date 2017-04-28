@@ -65,13 +65,13 @@ namespace DnsClient
         /// </list>
         /// </remarks>
         /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
-        /// <param name="address">The <see cref="IPAddress"/> to query for.</param>
+        /// <param name="hostNameOrAddress">The <see cref="IPAddress"/> or host name to query for.</param>
         /// <returns>
-        /// An <see cref="IPHostEntry"/> instance that contains address information about the host specified in <paramref name="address"/>.
-        /// In case the <paramref name="address"/> could not be resolved to a domain name, this method returns <c>null</c>,
+        /// An <see cref="IPHostEntry"/> instance that contains address information about the host specified in <paramref name="hostNameOrAddress"/>.
+        /// In case the <paramref name="hostNameOrAddress"/> could not be resolved to a domain name, this method returns <c>null</c>,
         /// unless <see cref="ILookupClient.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
         /// </returns>
-        /// <exception cref="ArgumentNullException">If <paramref name="address"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="hostNameOrAddress"/> is null.</exception>
         /// <exception cref="DnsResponseException">In case <see cref="ILookupClient.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
         public static IPHostEntry GetHostEntry(this IDnsQuery query, string hostNameOrAddress)
         {
@@ -141,13 +141,13 @@ namespace DnsClient
         /// </list>
         /// </remarks>
         /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
-        /// <param name="address">The <see cref="IPAddress"/> to query for.</param>
+        /// <param name="hostNameOrAddress">The <see cref="IPAddress"/> or host name to query for.</param>
         /// <returns>
-        /// An <see cref="IPHostEntry"/> instance that contains address information about the host specified in <paramref name="address"/>.
-        /// In case the <paramref name="address"/> could not be resolved to a domain name, this method returns <c>null</c>,
+        /// An <see cref="IPHostEntry"/> instance that contains address information about the host specified in <paramref name="hostNameOrAddress"/>.
+        /// In case the <paramref name="hostNameOrAddress"/> could not be resolved to a domain name, this method returns <c>null</c>,
         /// unless <see cref="ILookupClient.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
         /// </returns>
-        /// <exception cref="ArgumentNullException">If <paramref name="address"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="hostNameOrAddress"/> is null.</exception>
         /// <exception cref="DnsResponseException">In case <see cref="ILookupClient.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
         public static Task<IPHostEntry> GetHostEntryAsync(this IDnsQuery query, string hostNameOrAddress)
         {

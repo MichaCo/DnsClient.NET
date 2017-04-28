@@ -7,7 +7,7 @@ namespace DnsClient
      * Reference RFC6895#section-2.3
      */
 
-    // <summary>
+    /// <summary>
     /// RFCs 1035, 2136, 2671, 2845, 2930, 4635.
     /// </summary>
     public enum DnsResponseCode : short

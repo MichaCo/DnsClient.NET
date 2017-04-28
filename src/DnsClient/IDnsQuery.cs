@@ -9,6 +9,12 @@ namespace DnsClient
     /// </summary>
     public interface IDnsQuery
     {
+        /// <summary>
+        /// Performs a DNS lookup by <paramref name="query"/> and <paramref name="queryType"/>.
+        /// </summary>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType"/>.</param>
+        /// <returns>The <see cref="IDnsQueryResponse"/> which contains the response headers and lists of resource records.</returns>
         IDnsQueryResponse Query(string query, QueryType queryType);
 
         IDnsQueryResponse Query(string query, QueryType queryType, QueryClass queryClass);

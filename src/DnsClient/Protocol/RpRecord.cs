@@ -64,7 +64,7 @@ namespace DnsClient.Protocol
 
     /// <summary>
     /// Responsible Person RR.
-    /// <see cref="https://tools.ietf.org/html/rfc1183#section-2.2"/>.
+    /// <see href="https://tools.ietf.org/html/rfc1183#section-2.2"/>.
     /// </summary>
     public class RpRecord : DnsResourceRecord
     {

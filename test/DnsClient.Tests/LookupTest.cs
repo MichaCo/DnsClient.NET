@@ -610,7 +610,7 @@ namespace DnsClient.Tests
             var ip = IPAddress.Parse("127.0.0.1");
             var client = new LookupClient();
 
-            var result = DnsString.ParseQueryString(ip.GetArpaName());
+            var result = DnsString.Parse(ip.GetArpaName());
             var queryResult = client.QueryReverse(ip);
 
             Assert.Equal("1.0.0.127.in-addr.arpa.", result);
@@ -623,7 +623,7 @@ namespace DnsClient.Tests
             var ip = NameServer.GooglePublicDns2IPv6.Address;
             var client = new LookupClient();
 
-            var result = DnsString.ParseQueryString(ip.GetArpaName());
+            var result = DnsString.Parse(ip.GetArpaName());
             var queryResult = client.QueryReverse(ip);
 
             Assert.Equal("8.8.8.8.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.6.8.4.0.6.8.4.1.0.0.2.ip6.arpa.", result);

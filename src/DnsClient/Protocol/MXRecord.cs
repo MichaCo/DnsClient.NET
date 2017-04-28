@@ -42,7 +42,7 @@ namespace DnsClient.Protocol
         public ushort Preference { get; }
 
         /// <summary>
-        /// A <domain-name> which specifies a host willing to act as a mail exchange.
+        /// A domain name which specifies a host willing to act as a mail exchange.
         /// </summary>
         public DnsString Exchange { get; }
 

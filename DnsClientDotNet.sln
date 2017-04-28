@@ -34,6 +34,15 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebApi", "test\WebApi\WebAp
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks", "test\Benchmarks\Benchmarks.csproj", "{7461E2C7-008E-4E61-ABC3-AF85DE37084B}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentation", "{5352F4A6-D88E-43E8-B0D1-E90CBB162613}"
+	ProjectSection(SolutionItems) = preProject
+		Documentation\build.cmd = Documentation\build.cmd
+		Documentation\docfx.json = Documentation\docfx.json
+		Documentation\GetMsdn.cmd = Documentation\GetMsdn.cmd
+		Documentation\index.md = Documentation\index.md
+		Documentation\toc.yml = Documentation\toc.yml
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

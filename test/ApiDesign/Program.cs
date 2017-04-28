@@ -12,11 +12,8 @@ namespace ApiDesign
         public static void PrintHostEntry(string hostOrIp)
         {
             var lookup = new LookupClient();
-
             IPHostEntry hostEntry = lookup.GetHostEntry(hostOrIp);
-
             Console.WriteLine(hostEntry.HostName);
-
             foreach (var ip in hostEntry.AddressList)
             {
                 Console.WriteLine(ip);
@@ -32,6 +29,8 @@ namespace ApiDesign
             var client = new LookupClient();
             client.Timeout = Timeout.InfiniteTimeSpan;
             client.EnableAuditTrail = true;
+
+            PrintHostEntry("localhost");
 
             var nsServers = client.Query("google.com", QueryType.NS).Answers.NsRecords();
 

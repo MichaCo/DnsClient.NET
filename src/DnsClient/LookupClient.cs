@@ -13,6 +13,29 @@ using DnsClient.Protocol.Options;
 
 namespace DnsClient
 {
+    /// <summary>
+    /// The <see cref="LookupClient"/> is the main query class of this library and should be used for any kind of DNS lookup query.
+    /// <para>
+    /// It implements <see cref="ILookupClient"/> and <see cref="IDnsQuery"/> which contains a number of extension methods, too.
+    /// The extension methods internally all invoke the standard <see cref="IDnsQuery"/> queries though.
+    /// </para>
+    /// </summary>
+    /// <seealso cref="IDnsQuery"/>
+    /// <seealso cref="ILookupClient"/>
+    /// <example>
+    /// A basic example wihtout specifying any DNS server, which will use the DNS server configured by your local network.
+    /// <code>
+    /// <![CDATA[
+    /// var client = new LookupClient();
+    /// var result = client.Query("google.com", QueryType.A);
+    ///
+    /// foreach (var aRecord in result.Answers.ARecords())
+    /// {
+    ///     Console.WriteLine(aRecord);
+    /// }
+    /// ]]>
+    /// </code>
+    /// </example>
     public class LookupClient : ILookupClient, IDnsQuery
     {
         private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(5);
@@ -27,48 +50,28 @@ namespace DnsClient
         private readonly Random _random = new Random();
         private TimeSpan _timeout = s_defaultTimeout;
 
-        /// <summary>
-        /// Gets or sets a flag indicating if Tcp should not be used in case a Udp response is truncated.
-        /// If <c>True</c>, truncated results will potentially yield no answers.
-        /// </summary>
+        /// <inheritdoc />
         public bool UseTcpFallback { get; set; } = true;
 
-        /// <summary>
-        /// Gets or sets a flag indicating if Udp should not be used at all.
-        /// </summary>
+        /// <inheritdoc />
         public bool UseTcpOnly { get; set; }
 
-        /// <summary>
-        /// Gets the list of configured name servers.
-        /// </summary>
+        /// <inheritdoc />
         public IReadOnlyCollection<NameServer> NameServers { get; }
 
-        /// <summary>
-        /// If enabled, each response will contain a full documentation of the lookup chain
-        /// </summary>
+        /// <inheritdoc />
         public bool EnableAuditTrail { get; set; } = false;
 
-        /// <summary>
-        /// Gets or set a flag indicating if recursion should be enabled for DNS queries.
-        /// </summary>
+        /// <inheritdoc />
         public bool Recursion { get; set; } = true;
 
-        /// <summary>
-        /// Gets or sets number of tries to connect to one name server before trying the next one or throwing an exception.
-        /// </summary>
+        /// <inheritdoc />
         public int Retries { get; set; } = 5;
 
-        /// <summary>
-        /// Gets or sets a flag indicating if the <see cref="LookupClient"/> should throw an <see cref="DnsResponseException"/>
-        /// if the returned result contains an error flag other than <see cref="DnsResponseCode.NoError"/>.
-        /// (The default behavior is <c>False</c>).
-        /// </summary>
+        /// <inheritdoc />
         public bool ThrowDnsErrors { get; set; } = false;
 
-        /// <summary>
-        /// Gets or sets timeout in milliseconds.
-        /// Timeout must be greater than zero and less than <see cref="int.MaxValue"/>.
-        /// </summary>
+        /// <inheritdoc />
         public TimeSpan Timeout
         {
             get { return _timeout; }
@@ -83,10 +86,7 @@ namespace DnsClient
             }
         }
 
-        /// <summary>
-        /// Gets or sets a flag indicating if the <see cref="LookupClient"/> should use caching or not.
-        /// The TTL of cached results is defined by each resource record individually.
-        /// </summary>
+        /// <inheritdoc />
         public bool UseCache
         {
             get
@@ -99,14 +99,7 @@ namespace DnsClient
             }
         }
 
-        /// <summary>
-        /// Gets or sets a <see cref="TimeSpan"/> which can override the TTL of a resource record in case the
-        /// TTL of the record is lower than this minimum value.
-        /// This is useful in cases where the server retruns a zero TTL and the record should be cached for a
-        /// very short duration anyways.
-        ///
-        /// This setting gets igonred in case <see cref="UseCache"/> is set to <c>False</c>.
-        /// </summary>
+        /// <inheritdoc />
         public TimeSpan? MinimumCacheTimeout
         {
             get
@@ -119,21 +112,94 @@ namespace DnsClient
             }
         }
 
+        /// <summary>
+        /// Creates a new instance of <see cref="LookupClient"/> without specifying any name server.
+        /// This will implicitly use the name server(s) configured by the local network adapter.
+        /// </summary>
+        /// <remarks>
+        /// This uses <see cref="NameServer.ResolveNameServers(bool)"/>.
+        /// The resulting list of name servers is highly dependent on the local network configuration and OS.
+        /// </remarks>
+        /// <example>
+        /// In the following example, we will create a new <see cref="LookupClient"/> without explicitly defining any DNS server. 
+        /// This will use the DNS server configured by your local network.
+        /// <code>
+        /// <![CDATA[
+        /// var client = new LookupClient();
+        /// var result = client.Query("google.com", QueryType.A);
+        ///
+        /// foreach (var aRecord in result.Answers.ARecords())
+        /// {
+        ///     Console.WriteLine(aRecord);
+        /// }
+        /// ]]>
+        /// </code>
+        /// </example>
         public LookupClient()
             : this(NameServer.ResolveNameServers()?.ToArray())
         {
         }
 
+        /// <summary>
+        /// Creates a new instance of <see cref="LookupClient"/> with one or more DNS servers identified by their <see cref="IPAddress"/>.
+        /// The default port <c>53</c> will be used for all <see cref="IPAddress"/>s provided.
+        /// </summary>
+        /// <param name="nameServers">The <see cref="IPAddress"/>(s) to be used by this <see cref="LookupClient"/> instance.</param>
+        /// <example>
+        /// To connect to one or more DNS server using the default port, we can use this overload:
+        /// <code>
+        /// <![CDATA[
+        /// // configuring the client to use google's public IPv4 DNS servers.
+        /// var client = new LookupClient(IPAddress.Parse("8.8.8.8"), IPAddress.Parse("8.8.4.4"));
+        /// ]]>
+        /// </code>
+        /// </example>
         public LookupClient(params IPAddress[] nameServers)
             : this(nameServers?.Select(p => new IPEndPoint(p, NameServer.DefaultPort)).ToArray())
         {
         }
 
+        /// <summary>
+        /// Create a new instance of <see cref="LookupClient"/> with one DNS server defined by <paramref name="address"/> and <paramref name="port"/>.
+        /// </summary>
+        /// <param name="address">The <see cref="IPAddress"/> of the DNS server.</param>
+        /// <param name="port">The port of the DNS server.</param>
+        /// <example>
+        /// In case you want to connect to one specific DNS server which does not run on the default port <c>53</c>, you can do so like in the following example:
+        /// <code>
+        /// <![CDATA[
+        /// var client = new LookupClient(IPAddress.Parse("127.0.0.1"), 8600);
+        /// ]]>
+        /// </code>
+        /// </example>
         public LookupClient(IPAddress address, int port)
            : this(new IPEndPoint(address, port))
         {
         }
 
+        /// <summary>
+        /// Creates a new instance of <see cref="LookupClient"/> with one or more <see cref="IPAddress"/> and port combination
+        /// stored in <see cref="IPEndPoint"/>(s).
+        /// </summary>
+        /// <param name="nameServers">The <see cref="IPEndPoint"/>(s) to be used by this <see cref="LookupClient"/> instance.</param>
+        /// <example>
+        /// In this example, we instantiate a new <see cref="IPEndPoint"/> using an <see cref="IPAddress"/> and custom port which is different than the default port <c>53</c>.
+        /// <code>
+        /// <![CDATA[
+        /// // Using localhost and port 8600 to connect to a Consul agent.
+        /// var endpoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8600);
+        /// var client = new LookupClient(endpoint);
+        /// ]]>
+        /// </code>
+        /// <para>
+        /// The <see cref="NameServer"/> class also contains pre defined <see cref="IPEndPoint"/>s for the public google DNS servers, which can be used as follows:
+        /// <code>
+        /// <![CDATA[
+        /// var client = new LookupClient(NameServer.GooglePublicDns, NameServer.GooglePublicDnsIPv6);
+        /// ]]>
+        /// </code>
+        /// </para>
+        /// </example>
         public LookupClient(params IPEndPoint[] nameServers)
         {
             if (nameServers == null || nameServers.Length == 0)
@@ -142,13 +208,13 @@ namespace DnsClient
             }
 
             // TODO validate ip endpoints
-
             NameServers = nameServers.Select(p => new NameServer(p)).ToArray();
             _endpoints = new ConcurrentQueue<NameServer>(NameServers);
             _messageHandler = new DnsUdpMessageHandler(true);
             _tcpFallbackHandler = new DnsTcpMessageHandler();
         }
 
+        /// <inheritdoc />
         public IDnsQueryResponse QueryReverse(IPAddress ipAddress)
         {
             if (ipAddress == null)
@@ -160,9 +226,11 @@ namespace DnsClient
             return Query(arpa, QueryType.PTR, QueryClass.IN);
         }
 
+        /// <inheritdoc />
         public Task<IDnsQueryResponse> QueryReverseAsync(IPAddress ipAddress)
             => QueryReverseAsync(ipAddress, CancellationToken.None);
 
+        /// <inheritdoc />
         public Task<IDnsQueryResponse> QueryReverseAsync(IPAddress ipAddress, CancellationToken cancellationToken)
         {
             if (ipAddress == null)
@@ -174,9 +242,15 @@ namespace DnsClient
             return QueryAsync(arpa, QueryType.PTR, QueryClass.IN, cancellationToken);
         }
 
+        /// <inheritdoc />
+        /// <remarks>
+        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
+        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
+        /// </remarks>
         public IDnsQueryResponse Query(string query, QueryType queryType)
             => Query(query, queryType, QueryClass.IN);
 
+        /// <inheritdoc />
         public IDnsQueryResponse Query(string query, QueryType queryType, QueryClass queryClass)
             => Query(new DnsQuestion(query, queryType, queryClass));
 
@@ -320,15 +394,19 @@ namespace DnsClient
             };
         }
 
+        /// <inheritdoc />
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType)
             => QueryAsync(query, queryType, CancellationToken.None);
 
+        /// <inheritdoc />
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken)
             => QueryAsync(query, queryType, QueryClass.IN, cancellationToken);
 
+        /// <inheritdoc />
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass)
             => QueryAsync(query, queryType, queryClass, CancellationToken.None);
 
+        /// <inheritdoc />
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
             => QueryAsync(new DnsQuestion(query, queryType, queryClass), cancellationToken);
 

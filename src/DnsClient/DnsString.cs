@@ -4,11 +4,30 @@ using System.Linq;
 
 namespace DnsClient
 {
+    /// <summary>
+    /// The <see cref="DnsString"/> type is used to normalize and validate domain names and labels.
+    /// </summary>
     public class DnsString
     {
+        /// <summary>
+        /// The ACE prefix indicates that the domain name label contains not normally supported characters and that the label has been endoded.
+        /// </summary>
         public const string ACEPrefix = "xn--";
+
+        /// <summary>
+        /// The maximum lenght in bytes for one label.
+        /// </summary>
         public const int LabelMaxLength = 63;
+
+        /// <summary>
+        /// The maximum supported total length in bytes for a domain nanme. The calculation of the actual 
+        /// bytes this <see cref="DnsString"/> consumes includes all bytes used for to encode it as octet string.
+        /// </summary>
         public const int QueryMaxLength = 255;
+
+        /// <summary>
+        /// The root label ".".
+        /// </summary>
         public static readonly DnsString RootLabel = new DnsString(".", ".");
         internal static readonly IdnMapping IDN = new IdnMapping() { UseStd3AsciiRules = true };
         private const char Dot = '.';
@@ -16,8 +35,14 @@ namespace DnsClient
 
         private string[] _labels = new string[0];
 
+        /// <summary>
+        /// Gets the orginal value.
+        /// </summary>
         public string Original { get; }
 
+        /// <summary>
+        /// Gets the validated and eventually modified value.
+        /// </summary>
         public string Value { get; }
 
         internal DnsString(string original, string value)
@@ -28,16 +53,19 @@ namespace DnsClient
 
         public static implicit operator string(DnsString name) => name?.Value;
 
+        /// <inheritdoc />
         public override string ToString()
         {
             return Value;
         }
 
+        /// <inheritdoc />
         public override int GetHashCode()
         {
             return Value.GetHashCode();
         }
 
+        /// <inheritdoc />
         public override bool Equals(object obj)
         {
             if (obj == null)
@@ -48,7 +76,12 @@ namespace DnsClient
             return obj.ToString().Equals(Value);
         }
 
-        public static DnsString ParseQueryString(string query)
+        /// <summary>
+        /// Parses the given <paramref name="query"/> and validates all labels.
+        /// </summary>
+        /// <param name="query">The query, a domain name.</param>
+        /// <returns></returns>
+        public static DnsString Parse(string query)
         {
             if (query == null)
             {
@@ -135,6 +168,15 @@ namespace DnsClient
             return new DnsString(query, query);
         }
 
+        /// <summary>
+        /// Transforms names with the <see cref="ACEPrefix"/> to the unicode variant and adds a trailing '.' at the end if not present.
+        /// The original value will be kept in this instance in case it is needed.        
+        /// </summary>
+        /// <remarks>
+        /// The method does not parse the domain name unless it contains a <see cref="ACEPrefix"/>.
+        /// </remarks>
+        /// <param name="query">The value to check.</param>
+        /// <returns>The <see cref="DnsString"/> representation.</returns>
         public static DnsString FromResponseQueryString(string query)
         {
             if (query.Length == 0 || query[query.Length - 1] != Dot)
