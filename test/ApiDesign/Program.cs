@@ -17,7 +17,7 @@ namespace ApiDesign
 
             Console.WriteLine(hostEntry.HostName);
 
-            foreach(var ip in hostEntry.AddressList)
+            foreach (var ip in hostEntry.AddressList)
             {
                 Console.WriteLine(ip);
             }
@@ -29,13 +29,13 @@ namespace ApiDesign
 
         public static void Main(string[] args)
         {
-            var lookup = new LookupClient();
-            lookup.Timeout = Timeout.InfiniteTimeSpan;
-            lookup.EnableAuditTrail = true;
+            var client = new LookupClient();
+            client.Timeout = Timeout.InfiniteTimeSpan;
+            client.EnableAuditTrail = true;
 
-            var nsServers = lookup.Query("google.com", QueryType.NS).Answers.NsRecords();
+            var nsServers = client.Query("google.com", QueryType.NS).Answers.NsRecords();
 
-            foreach(var server in nsServers)
+            foreach (var server in nsServers)
             {
                 PrintHostEntry(server.NSDName);
             }
@@ -43,7 +43,7 @@ namespace ApiDesign
             try
             {
                 var address = IPAddress.Parse("216.239.32.10");
-                var result = lookup.QueryReverseAsync(address).Result;
+                var result = client.QueryReverseAsync(address).Result;
                 Console.WriteLine($"Reverse query for arpa: {address.GetArpaName()}");
 
                 Console.WriteLine(result.AuditTrail);
@@ -55,13 +55,13 @@ namespace ApiDesign
 
                 if (answer != null)
                 {
-                    var mResult = lookup.QueryAsync(answer.PtrDomainName.Value, QueryType.A, QueryClass.IN).Result;
+                    var mResult = client.QueryAsync(answer.PtrDomainName.Value, QueryType.A, QueryClass.IN).Result;
 
                     Console.WriteLine(mResult.AuditTrail);
                     WriteLongLine();
                 }
 
-                var gResult = lookup.QueryAsync("google.com", QueryType.ANY).GetAwaiter().GetResult();
+                var gResult = client.QueryAsync("google.com", QueryType.ANY).GetAwaiter().GetResult();
 
                 Console.WriteLine(gResult.AuditTrail);
                 WriteLongLine();

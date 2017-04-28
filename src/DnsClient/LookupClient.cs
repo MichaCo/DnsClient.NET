@@ -107,7 +107,7 @@ namespace DnsClient
         ///
         /// This setting gets igonred in case <see cref="UseCache"/> is set to <c>False</c>.
         /// </summary>
-        public TimeSpan? MimimumCacheTimeout
+        public TimeSpan? MinimumCacheTimeout
         {
             get
             {

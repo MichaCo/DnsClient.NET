@@ -19,7 +19,7 @@ namespace DnsClient.Tests
 
             Assert.True(client.UseCache);
             Assert.False(client.EnableAuditTrail);
-            Assert.Null(client.MimimumCacheTimeout);
+            Assert.Null(client.MinimumCacheTimeout);
             Assert.True(client.Recursion);
             Assert.False(client.ThrowDnsErrors);
             Assert.Equal(client.Retries, 5);

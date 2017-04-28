@@ -73,7 +73,7 @@ namespace DigApp
                 Recursion = settings.Recursion,
                 Retries = settings.Retries,
                 Timeout = settings.Timeout,
-                MimimumCacheTimeout = settings.MinTTL,
+                MinimumCacheTimeout = settings.MinTTL,
                 UseCache = settings.UseCache,
                 UseTcpFallback = !settings.NoTcp,
                 UseTcpOnly = settings.TcpOnly

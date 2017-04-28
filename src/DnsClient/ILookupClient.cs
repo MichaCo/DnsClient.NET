@@ -10,7 +10,7 @@ namespace DnsClient
     {
         bool EnableAuditTrail { get; set; }
 
-        TimeSpan? MimimumCacheTimeout { get; set; }
+        TimeSpan? MinimumCacheTimeout { get; set; }
 
         IReadOnlyCollection<NameServer> NameServers { get; }
 

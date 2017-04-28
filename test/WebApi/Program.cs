@@ -37,7 +37,7 @@ namespace WebApi
             var endpoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8600);
             var lookup = new LookupClient(endpoint);
             lookup.UseCache = true;
-            lookup.MimimumCacheTimeout = TimeSpan.FromMilliseconds(1);
+            lookup.MinimumCacheTimeout = TimeSpan.FromMilliseconds(1);
             services.AddSingleton(lookup);
         }
 
