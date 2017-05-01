@@ -1,22 +1,30 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <VersionPrefix>1.0.7</VersionPrefix>
+    <VersionSuffix Condition="'$(VersionSuffix)'!='' AND '$(BuildNumber)' != ''">$(VersionSuffix)-$(BuildNumber)</VersionSuffix>
+
+    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
+    
+    <Product>DnsClient.NET</Product>
     <Description>DnsClient.NET is a simple yet very powerful and high performant open source library for the .NET Framework to do DNS lookups</Description>
     <Copyright>Copyright (c) 2017 MichaConrad</Copyright>
-    <Authors>MichaCo</Authors>
-    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
-    <LangVersion>7</LangVersion>
+    <Authors>MichaCo</Authors>    
     <AssemblyName>DnsClient</AssemblyName>
+    
     <AssemblyOriginatorKeyFile>../../tools/key.snk</AssemblyOriginatorKeyFile>
-    <SignAssembly>true</SignAssembly>    
-    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <SignAssembly>true</SignAssembly>
+    <PublicSign Condition="'$(OS)' != 'Windows_NT'">true</PublicSign>
+    
     <PackageId>DnsClient</PackageId>
     <PackageTags>DNS;Name Server;CSharp;.NET;.NET Core</PackageTags>
+    
     <PackageProjectUrl>https://github.com/MichaCo/DnsClient.NET</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/MichaCo/DnsClient.NET/blob/master/LICENSE</PackageLicenseUrl>
     <WebPage>http://dnsclient.michaco.net</WebPage>
+    
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/MichaCo/DnsClient.NET</RepositoryUrl>
+    
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
