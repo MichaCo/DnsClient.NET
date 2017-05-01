@@ -1,18 +1,21 @@
-version: 1.0.5-beta-{build}
+version: 1.0.7-beta-{build}
 skip_tags: true
-image: Visual Studio 2015
+image: Visual Studio 2017
+configuration: Release
 clone_folder: C:\projects\DnsClient.NET
-build_script:
-- cmd: >-
-    dotnet restore
-
-    dotnet build src\DnsClient -c Release
-
-    dotnet test test\DnsClient.Tests -c Release
-
-    dotnet pack -o artifacts -c Release src\DnsClient --version-suffix beta-%APPVEYOR_BUILD_NUMBER%
+init:
+- cmd: if "%APPVEYOR_REPO_BRANCH%" == "master" (set VersionSuffix=) else (set VersionSuffix=beta)
+environment:
+  BuildNumber: $(APPVEYOR_BUILD_NUMBER)
+before_build:
+- cmd: dotnet restore
+build:
+  project: DnsClientDotNet.sln
+  verbosity: minimal
+after_build:
+- cmd: dotnet pack -o C:\projects\DnsClient.NET\artifacts -c Release src\DnsClient
 test_script:
-- cmd: dotnet test test\DnsClient.Tests -c Release
+- cmd: dotnet test test\DnsClient.Tests\DnsClient.Tests.csproj -c Release --no-build
 artifacts:
 - path: artifacts\*.nupkg
   name: nugets

@@ -34,10 +34,14 @@ namespace WebApi
             {
             });
 
-            var endpoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 8600);
-            var lookup = new LookupClient(endpoint);
-            lookup.UseCache = true;
-            lookup.MinimumCacheTimeout = TimeSpan.FromMilliseconds(1);
+            var endpoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 53);
+            var lookup = new LookupClient(endpoint)
+            {
+                UseCache = false,
+                EnableAuditTrail = false,
+                ThrowDnsErrors = false                
+            };
+
             services.AddSingleton(lookup);
         }
 
@@ -45,7 +49,7 @@ namespace WebApi
 
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, LookupClient dnsClient)
         {
-            loggerFactory.AddConsole();
+            loggerFactory.AddConsole(LogLevel.Warning);
 
             app.Use(async (ctx, next) =>
             {
@@ -63,7 +67,7 @@ namespace WebApi
             {
                 if (ctx.Request.Path.StartsWithSegments("/dns"))
                 {
-                    var result = await dnsClient.QueryAsync("consul.service.consul", QueryType.SRV);
+                    var result = await dnsClient.QueryAsync("mcnet.com", QueryType.A);
                     await ctx.Response.WriteAsync("Answers: " + result.Answers.Count);
                 }
                 else
