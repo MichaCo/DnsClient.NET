@@ -5,19 +5,11 @@ using DnsClient.Protocol;
 
 namespace DnsClient
 {
-    /// <summary>
-    /// A simple response message which gets returned by the <see cref="LookupClient"/>.
-    /// </summary>
-    public class DnsResponseMessage
+    internal class DnsResponseMessage
     {
         public DnsResponseMessage(DnsResponseHeader header, int messageSize)
         {
-            if (header == null)
-            {
-                throw new ArgumentNullException(nameof(header));
-            }
-
-            Header = header;
+            Header = header ?? throw new ArgumentNullException(nameof(header));
             MessageSize = messageSize;
         }
 

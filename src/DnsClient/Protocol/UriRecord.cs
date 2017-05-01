@@ -31,31 +31,53 @@ namespace DnsClient.Protocol
     */
 
     /// <summary>
-    /// TXT RRs are used to hold descriptive text.  The semantics of the text
-    /// depends on the domain where it is found.
+    /// A <see cref="DnsResourceRecord"/> represending a Uniform Resource Identifier (URI) resource.
     /// </summary>
+    /// <seealso href="https://tools.ietf.org/html/rfc7553">RFC 7553</seealso>
     public class UriRecord : DnsResourceRecord
     {
+        /// <summary>
+        /// Gets or sets the target Uri.
+        /// </summary>
+        /// <value>
+        /// The target.
+        /// </value>
         public string Target { get; set; }
 
+        /// <summary>
+        /// Gets or sets the priority.
+        /// </summary>
+        /// <value>
+        /// The priority.
+        /// </value>
         public int Priority { get; set; }
 
+        /// <summary>
+        /// Gets or sets the weigth.
+        /// </summary>
+        /// <value>
+        /// The weigth.
+        /// </value>
         public int Weigth { get; set; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UriRecord"/> class.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <param name="priority">The priority.</param>
+        /// <param name="weight">The weight.</param>
+        /// <param name="target">The target.</param>
+        /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="target"/> is null.</exception>
         [CLSCompliant(false)]
         public UriRecord(ResourceRecordInfo info, ushort priority, ushort weight, string target)
             : base(info)
         {
-            if (string.IsNullOrWhiteSpace(target))
-            {
-                throw new ArgumentNullException(nameof(target));
-            }
-
-            Target = target;
+            Target = target ?? throw new ArgumentNullException(nameof(target));
             Priority = priority;
             Weigth = weight;
         }
 
+        /// <inheritdoc />
         public override string RecordToString()
         {
             return $"{Priority} {Weigth} \"{Target}\"";

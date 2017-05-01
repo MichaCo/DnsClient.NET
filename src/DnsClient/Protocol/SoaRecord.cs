@@ -69,28 +69,92 @@ namespace DnsClient.Protocol
     change the SOA RR with known semantics.
     */
 
+    /// <summary>
+    /// A <see cref="DnsResourceRecord"/> represending a SOA (Start Of Authority) record.
+    /// </summary>
+    /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.13">RFC 1035</seealso>
     [CLSCompliant(false)]
     public class SoaRecord : DnsResourceRecord
     {
+        /// <summary>
+        /// Gets a 32 bit time value that specifies the upper limit on
+        /// the time interval that can elapse before the zone is no
+        /// longer authoritative.
+        /// </summary>
+        /// <value>
+        /// The expiration.
+        /// </value>
         public uint Expire { get; }
 
+        /// <summary>
+        /// Gets the unsigned 32 bit minimum TTL field that should be
+        /// exported with any RR from this zone.
+        /// </summary>
+        /// <value>
+        /// The minimum TTL.
+        /// </value>
         public uint Minimum { get; }
 
+        /// <summary>
+        /// Gets the domain name of the name server that was the original or primary source of data for this zone.
+        /// </summary>
+        /// <value>
+        /// The doman name.
+        /// </value>
         public DnsString MName { get; }
 
+        /// <summary>
+        /// Gets a 32 bit time interval before the zone should be refreshed.
+        /// </summary>
+        /// <value>
+        /// The refresh time.
+        /// </value>
         public uint Refresh { get; }
 
+        /// <summary>
+        /// Gets a 32 bit time interval that should elapse before a failed refresh should be retried.
+        /// </summary>
+        /// <value>
+        /// The retry time.
+        /// </value>
         public uint Retry { get; }
 
+        /// <summary>
+        /// Gets a domain name which specifies the mailbox of the person responsible for this zone.
+        /// </summary>
+        /// <value>
+        /// The responsible mailbox domain name.
+        /// </value>
         public DnsString RName { get; }
 
+        /// <summary>
+        /// Gets the unsigned 32 bit version number of the original copy
+        /// of the zone.Zone transfers preserve this value. This value wraps and should be compared using sequence space arithmetic.
+        /// </summary>
+        /// <value>
+        /// The serial number.
+        /// </value>
         public uint Serial { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SoaRecord" /> class.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <param name="mName">Name original domain name.</param>
+        /// <param name="rName">Name responsible domain name.</param>
+        /// <param name="serial">The serial number.</param>
+        /// <param name="refresh">The refresh time.</param>
+        /// <param name="retry">The retry time.</param>
+        /// <param name="expire">The expire time.</param>
+        /// <param name="minimum">The minimum TTL.</param>
+        /// <exception cref="System.ArgumentNullException">
+        /// If <paramref name="info"/> or <paramref name="mName"/> or <paramref name="rName"/> is null.
+        /// </exception>
         public SoaRecord(ResourceRecordInfo info, DnsString mName, DnsString rName, uint serial, uint refresh, uint retry, uint expire, uint minimum)
             : base(info)
         {
-            MName = mName;
-            RName = rName;
+            MName = mName ?? throw new ArgumentNullException(nameof(mName));
+            RName = rName ?? throw new ArgumentNullException(nameof(rName));
             Serial = serial;
             Refresh = refresh;
             Retry = retry;
@@ -98,6 +162,7 @@ namespace DnsClient.Protocol
             Minimum = minimum;
         }
 
+        /// <inheritdoc />
         public override string RecordToString()
         {
             return string.Format(

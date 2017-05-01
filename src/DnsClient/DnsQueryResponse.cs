@@ -6,22 +6,21 @@ using DnsClient.Protocol;
 namespace DnsClient
 {
     /// <summary>
-    /// Immutable version of the <see cref="DnsResponseMessage"/>.
+    /// The response returned by any query performed by <see cref="IDnsQuery"/> with all answer sections, header and message information.
     /// </summary>
+    /// <seealso cref="IDnsQuery"/>
+    /// <seealso cref="ILookupClient"/>
     public class DnsQueryResponse : IDnsQueryResponse
     {
         private int? _hashCode;
 
+        /// <inheritdoc />
         public NameServer NameServer { get; }
 
-        /// <summary>
-        /// Gets a list of additional records.
-        /// </summary>
+        /// <inheritdoc />
         public ICollection<DnsResourceRecord> Additionals { get; }
 
-        /// <summary>
-        /// Gets a list of all answers, addtional and authority records.
-        /// </summary>
+        /// <inheritdoc />
         public IEnumerable<DnsResourceRecord> AllRecords
         {
             get
@@ -30,38 +29,28 @@ namespace DnsClient
             }
         }
 
+        /// <inheritdoc />
         public string AuditTrail { get; internal set; }
 
-        /// <summary>
-        /// Gets a list of answer records.
-        /// </summary>
+        /// <inheritdoc />
         public ICollection<DnsResourceRecord> Answers { get; }
 
-        /// <summary>
-        /// Gets a list of authority records.
-        /// </summary>
+        /// <inheritdoc />
         public ICollection<DnsResourceRecord> Authorities { get; }
 
-        /// <summary>
-        /// Returns a string value representing the error response code in case an error occured, otherwise 'No Error'.
-        /// </summary>
+        /// <inheritdoc />
         public string ErrorMessage => DnsResponseCodeText.GetErrorText(Header.ResponseCode);
 
-        /// <summary>
-        /// A flag indicating if the header contains a response codde other than <see cref="DnsResponseCode.NoError"/>.
-        /// </summary>
+        /// <inheritdoc />
         public bool HasError => Header?.ResponseCode != DnsResponseCode.NoError;
 
-        /// <summary>
-        /// Gets the header of the response.
-        /// </summary>
+        /// <inheritdoc />
         public DnsResponseHeader Header { get; }
 
-        /// <summary>
-        /// Gets the list of questions.
-        /// </summary>
+        /// <inheritdoc />
         public ICollection<DnsQuestion> Questions { get; }
 
+        /// <inheritdoc />
         public int MessageSize { get; }
 
         internal DnsQueryResponse(DnsResponseMessage dnsResponseMessage, NameServer nameServer)

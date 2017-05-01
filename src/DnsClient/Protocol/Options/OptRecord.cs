@@ -123,7 +123,7 @@ namespace DnsClient.Protocol.Options
             : base(new ResourceRecordInfo(DnsString.RootLabel, ResourceRecordType.OPT, (QueryClass)size, version, length))
         {
         }
-
+        /// <inheritdoc />
         public override string RecordToString()
         {
             return $"OPT {RecordClass}.";

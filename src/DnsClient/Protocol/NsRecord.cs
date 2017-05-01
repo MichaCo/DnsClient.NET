@@ -28,21 +28,33 @@ namespace DnsClient.Protocol
     class information are normally queried using IN class protocols.
      */
 
+    /// <summary>
+    /// A <see cref="DnsResourceRecord"/> represending an authoritative name server.
+    /// </summary>
+    /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.11">RFC 1035</seealso>
     public class NsRecord : DnsResourceRecord
     {
+        /// <summary>
+        /// Gets the domain name which specifies a host which should be authoritative for the specified class and domain.
+        /// </summary>
+        /// <value>
+        /// The domain name.
+        /// </value>
         public DnsString NSDName { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NsRecord"/> class.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <param name="name">The name.</param>
+        /// <exception cref="System.ArgumentNullException">If <paramref name="name"/> or <paramref name="info"/> is null.</exception>
         public NsRecord(ResourceRecordInfo info, DnsString name)
             : base(info)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            NSDName = name;
+            NSDName = name ?? throw new ArgumentNullException(nameof(name));
         }
 
+        /// <inheritdoc />
         public override string RecordToString()
         {
             return NSDName.Value;

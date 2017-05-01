@@ -61,10 +61,21 @@ namespace DnsClient.Protocol
     */
 
     /// <summary>
-    /// See http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml.
+    /// A <see cref="DnsResourceRecord"/> represending a Well Known Service description.
     /// </summary>
+    /// <remarks>
+    /// Instead of describing the supported protocols in RFCs, the list is now published on http://www.iana.org/.
+    /// </remarks>
+    /// <seealso href="http://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml"/>
+    /// <seealso href="https://tools.ietf.org/html/rfc3232">RFC 3232, the most current update.</seealso>
     public class WksRecord : DnsResourceRecord
     {
+        /// <summary>
+        /// Gets the address.
+        /// </summary>
+        /// <value>
+        /// The address.
+        /// </value>
         public IPAddress Address { get; }
 
         /// <summary>
@@ -82,24 +93,36 @@ namespace DnsClient.Protocol
         public byte[] Bitmap { get; }
 
         /// <summary>
-        /// Gets the list of assigned ports. See http://www.iana.org/assignments/port-numbers.
+        /// Gets the list of assigned ports.
         /// <para>
-        /// For example if this list contains port 25, which is assigned to
+        /// For example, if this list contains port 25, which is assigned to
         /// the <c>SMTP</c> service. This means that a SMTP services
         /// is running on <see cref="Address"/> with transport <see cref="Protocol"/>.
         /// </para>
         /// </summary>
+        /// <seealso href="http://www.iana.org/assignments/port-numbers">Port numbers</seealso>
         public int[] Ports { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="WksRecord" /> class.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <param name="address">The address.</param>
+        /// <param name="protocol">The protocol.</param>
+        /// <param name="bitmap">The raw data.</param>
+        /// <exception cref="System.ArgumentNullException">
+        /// If <paramref name="address"/> or <paramref name="info"/> or <paramref name="bitmap"/> is null.
+        /// </exception>
         public WksRecord(ResourceRecordInfo info, IPAddress address, int protocol, byte[] bitmap)
             : base(info)
         {
-            Address = address;
+            Address = address ?? throw new ArgumentNullException(nameof(address));
             Protocol = (ProtocolType)protocol;
-            Bitmap = bitmap;
+            Bitmap = bitmap ?? throw new ArgumentNullException(nameof(bitmap));
             Ports = GetPorts(bitmap);
         }
 
+        /// <inheritdoc />
         public override string RecordToString()
         {
             return $"{Address} {Protocol} {string.Join(" ", Ports)}";

@@ -99,10 +99,11 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_IPv4_Works()
         {
-            var client = new LookupClient(NameServer.GooglePublicDns);
-
-            // force both requests
-            client.UseCache = false;
+            var client = new LookupClient(NameServer.GooglePublicDns)
+            {
+                // force both requests
+                UseCache = false
+            };
 
             // both should use the same server/udp client
             var resultA = client.Query("google.com", QueryType.ANY);
@@ -117,11 +118,12 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_IPv4_TcpOnly_Works()
         {
-            var client = new LookupClient(NameServer.GooglePublicDns);
-
-            // force both requests
-            client.UseCache = false;
-            client.UseTcpOnly = true;
+            var client = new LookupClient(NameServer.GooglePublicDns)
+            {
+                // force both requests
+                UseCache = false,
+                UseTcpOnly = true
+            };
 
             // both should use the same server/udp client
             var resultA = client.Query("google.com", QueryType.ANY);
@@ -136,10 +138,11 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_IPv6_Works()
         {
-            var client = new LookupClient(NameServer.GooglePublicDnsIPv6);
-
-            // force both requests
-            client.UseCache = false;
+            var client = new LookupClient(NameServer.GooglePublicDnsIPv6)
+            {
+                // force both requests
+                UseCache = false
+            };
 
             // both should use the same server/udp client
             var resultA = client.Query("google.com", QueryType.ANY);
@@ -154,11 +157,12 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_IPv6_TcpOnly_Works()
         {
-            var client = new LookupClient(NameServer.GooglePublicDnsIPv6);
-
-            // force both requests
-            client.UseCache = false;
-            client.UseTcpOnly = true;
+            var client = new LookupClient(NameServer.GooglePublicDnsIPv6)
+            {
+                // force both requests
+                UseCache = false,
+                UseTcpOnly = true
+            };
 
             // both should use the same server/udp client
             var resultA = client.Query("google.com", QueryType.ANY);
@@ -173,10 +177,11 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_MultiServer_IPv4_and_IPv6()
         {
-            var client = new LookupClient(NameServer.GooglePublicDns, NameServer.GooglePublicDnsIPv6);
-
-            // force both requests
-            client.UseCache = false;
+            var client = new LookupClient(NameServer.GooglePublicDns, NameServer.GooglePublicDnsIPv6)
+            {
+                // force both requests
+                UseCache = false
+            };
 
             // server rotation should use both defined dns servers
             var resultA = client.Query("google.com", QueryType.ANY);
@@ -191,11 +196,12 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_MultiServer_IPv4_and_IPv6_TCP()
         {
-            var client = new LookupClient(NameServer.GooglePublicDns, NameServer.GooglePublicDnsIPv6);
-
-            // force both requests
-            client.UseCache = false;
-            client.UseTcpOnly = true;
+            var client = new LookupClient(NameServer.GooglePublicDns, NameServer.GooglePublicDnsIPv6)
+            {
+                // force both requests
+                UseCache = false,
+                UseTcpOnly = true
+            };
 
             // server rotation should use both defined dns servers
             var resultA = client.Query("google.com", QueryType.ANY);
@@ -212,8 +218,10 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_ThrowDnsErrors()
         {
-            var client = new LookupClient();
-            client.ThrowDnsErrors = true;
+            var client = new LookupClient()
+            {
+                ThrowDnsErrors = true
+            };
 
             Action act = () => client.QueryAsync("lalacom", (QueryType)12345).GetAwaiter().GetResult();
 
@@ -225,8 +233,10 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_ThrowDnsErrors_Sync()
         {
-            var client = new LookupClient();
-            client.ThrowDnsErrors = true;
+            var client = new LookupClient()
+            {
+                ThrowDnsErrors = true
+            };
 
             Action act = () => client.Query("lalacom", (QueryType)12345);
 
@@ -240,10 +250,12 @@ namespace DnsClient.Tests
             [Fact]
             public async Task Lookup_QueryTimesOut_Udp_Async()
             {
-                var client = new LookupClient(DoesNotExist);
-                client.Timeout = TimeSpan.FromMilliseconds(200);
-                client.Retries = 0;
-                client.UseTcpFallback = false;
+                var client = new LookupClient(DoesNotExist)
+                {
+                    Timeout = TimeSpan.FromMilliseconds(200),
+                    Retries = 0,
+                    UseTcpFallback = false
+                };
 
                 var exe = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A));
 
@@ -256,10 +268,12 @@ namespace DnsClient.Tests
             [Fact]
             public void Lookup_QueryTimesOut_Udp_Sync()
             {
-                var client = new LookupClient(DoesNotExist);
-                client.Timeout = TimeSpan.FromMilliseconds(200);
-                client.Retries = 0;
-                client.UseTcpFallback = false;
+                var client = new LookupClient(DoesNotExist)
+                {
+                    Timeout = TimeSpan.FromMilliseconds(200),
+                    Retries = 0,
+                    UseTcpFallback = false
+                };
 
                 var exe = Record.Exception(() => client.Query("lala.com", QueryType.A));
 
@@ -272,10 +286,12 @@ namespace DnsClient.Tests
             [Fact]
             public async Task Lookup_QueryTimesOut_Tcp_Async()
             {
-                var client = new LookupClient(DoesNotExist);
-                client.Timeout = TimeSpan.FromMilliseconds(200);
-                client.Retries = 0;
-                client.UseTcpOnly = true;
+                var client = new LookupClient(DoesNotExist)
+                {
+                    Timeout = TimeSpan.FromMilliseconds(200),
+                    Retries = 0,
+                    UseTcpOnly = true
+                };
 
                 var exe = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A));
 
@@ -288,10 +304,12 @@ namespace DnsClient.Tests
             [Fact]
             public void Lookup_QueryTimesOut_Tcp_Sync()
             {
-                var client = new LookupClient(DoesNotExist);
-                client.Timeout = TimeSpan.FromMilliseconds(200);
-                client.Retries = 0;
-                client.UseTcpOnly = true;
+                var client = new LookupClient(DoesNotExist)
+                {
+                    Timeout = TimeSpan.FromMilliseconds(200),
+                    Retries = 0,
+                    UseTcpOnly = true
+                };
 
                 var exe = Record.Exception(() => client.Query("lala.com", QueryType.A));
 
@@ -305,8 +323,10 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_QueryCanceled_Udp()
         {
-            var client = new LookupClient();
-            client.UseTcpFallback = false;
+            var client = new LookupClient()
+            {
+                UseTcpFallback = false
+            };
 
             var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
@@ -322,8 +342,10 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_QueryCanceled_Tcp()
         {
-            var client = new LookupClient();
-            client.UseTcpOnly = true;
+            var client = new LookupClient()
+            {
+                UseTcpOnly = true
+            };
 
             var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
@@ -341,9 +363,11 @@ namespace DnsClient.Tests
             [Fact]
             public async Task Lookup_QueryDelayCanceled_Udp()
             {
-                var client = new LookupClient(DoesNotExist);
-                client.Timeout = TimeSpan.FromMilliseconds(1000);
-                client.UseTcpFallback = false;
+                var client = new LookupClient(DoesNotExist)
+                {
+                    Timeout = TimeSpan.FromMilliseconds(1000),
+                    UseTcpFallback = false
+                };
 
                 // should hit the cancelation timeout, not the 1sec timeout
                 var tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
@@ -358,9 +382,11 @@ namespace DnsClient.Tests
             [Fact]
             public async Task Lookup_QueryDelayCanceled_Tcp()
             {
-                var client = new LookupClient(DoesNotExist);
-                client.Timeout = TimeSpan.FromMilliseconds(1000);
-                client.UseTcpOnly = true;
+                var client = new LookupClient(DoesNotExist)
+                {
+                    Timeout = TimeSpan.FromMilliseconds(1000),
+                    UseTcpOnly = true
+                };
 
                 // should hit the cancelation timeout, not the 1sec timeout
                 var tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
@@ -375,9 +401,11 @@ namespace DnsClient.Tests
             [Fact]
             public async Task Lookup_QueryDelayCanceledWithUnlimitedTimeout_Udp()
             {
-                var client = new LookupClient(DoesNotExist);
-                client.Timeout = Timeout.InfiniteTimeSpan;
-                client.UseTcpFallback = false;
+                var client = new LookupClient(DoesNotExist)
+                {
+                    Timeout = Timeout.InfiniteTimeSpan,
+                    UseTcpFallback = false
+                };
 
                 // should hit the cancelation timeout, not the 1sec timeout
                 var tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
@@ -392,9 +420,11 @@ namespace DnsClient.Tests
             [Fact]
             public async Task Lookup_QueryDelayCanceledWithUnlimitedTimeout_Tcp()
             {
-                var client = new LookupClient(DoesNotExist);
-                client.Timeout = Timeout.InfiniteTimeSpan;
-                client.UseTcpOnly = true;
+                var client = new LookupClient(DoesNotExist)
+                {
+                    Timeout = Timeout.InfiniteTimeSpan,
+                    UseTcpOnly = true
+                };
 
                 // should hit the cancelation timeout, not the 1sec timeout
                 var tokenSource = new CancellationTokenSource(TimeSpan.FromMilliseconds(200));
@@ -416,6 +446,15 @@ namespace DnsClient.Tests
             // find the actual IP of the adapter used for inter networking
             var ip = hostIp.Where(p => p.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork).First();
             return ip;
+        }
+
+        [Fact]
+        public async Task GetHostName()
+        {
+            var client = new LookupClient();
+            string hostName = await client.GetHostNameAsync(IPAddress.Parse("8.8.8.8"));
+
+            Assert.Equal("google-public-dns-a.google.com", hostName);
         }
 
         [Fact]
@@ -631,6 +670,16 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public async Task GetHostEntry_ExampleSub()
+        {
+            var client = new LookupClient();
+            var hostEntry = await client.GetHostEntryAsync("mail.google.com");
+            Assert.EndsWith("google.com", hostEntry.Aliases.First());
+            Assert.Equal("mail.google.com", hostEntry.HostName);
+            Assert.True(hostEntry.AddressList.Length > 0);
+        }
+
+        [Fact]
         public void GetHostEntry_ByName_ManyIps_NoAlias()
         {
             var client = new LookupClient();
@@ -697,8 +746,10 @@ namespace DnsClient.Tests
         [Fact]
         public void GetHostEntry_ByName_HostDoesNotExist_WithThrow()
         {
-            var client = new LookupClient();
-            client.ThrowDnsErrors = true;
+            var client = new LookupClient()
+            {
+                ThrowDnsErrors = true
+            };
 
             Action act = () => client.GetHostEntry("lolhost");
 
@@ -720,8 +771,10 @@ namespace DnsClient.Tests
         [Fact]
         public void GetHostEntry_ByIp_NoHost_WithThrow()
         {
-            var client = new LookupClient();
-            client.ThrowDnsErrors = true;
+            var client = new LookupClient()
+            {
+                ThrowDnsErrors = true
+            };
 
             Action act = () => client.GetHostEntry("1.0.0.0");
 
@@ -835,8 +888,10 @@ namespace DnsClient.Tests
         [Fact]
         public async Task GetHostEntryAsync_ByName_HostDoesNotExist_WithThrow()
         {
-            var client = new LookupClient();
-            client.ThrowDnsErrors = true;
+            var client = new LookupClient()
+            {
+                ThrowDnsErrors = true
+            };
 
             Func<Task> act = async () => await client.GetHostEntryAsync("lolhost");
 
@@ -858,8 +913,10 @@ namespace DnsClient.Tests
         [Fact]
         public async Task GetHostEntryAsync_ByIp_NoHost_WithThrow()
         {
-            var client = new LookupClient();
-            client.ThrowDnsErrors = true;
+            var client = new LookupClient()
+            {
+                ThrowDnsErrors = true
+            };
 
             Func<Task> act = async () => await client.GetHostEntryAsync("1.0.0.0");
 

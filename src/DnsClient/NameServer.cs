@@ -8,6 +8,10 @@ using System.Runtime.InteropServices;
 
 namespace DnsClient
 {
+    /// <summary>
+    /// Represents a name server instance used by <see cref="ILookupClient"/>.
+    /// Also, comes with some static methods to resolve name servers from the local network configuration.
+    /// </summary>
     public class NameServer
     {
         /// <summary>
@@ -15,34 +19,83 @@ namespace DnsClient
         /// </summary>
         public const int DefaultPort = 53;
 
+        /// <summary>
+        /// The public google DNS IPv4 endpoint.
+        /// </summary>
         public static readonly IPEndPoint GooglePublicDns = new IPEndPoint(IPAddress.Parse("8.8.4.4"), DefaultPort);
+
+        /// <summary>
+        /// The second public google DNS IPv6 endpoint.
+        /// </summary>
         public static readonly IPEndPoint GooglePublicDns2 = new IPEndPoint(IPAddress.Parse("8.8.8.8"), DefaultPort);
+
+        /// <summary>
+        /// The public google DNS IPv6 endpoint.
+        /// </summary>
         public static readonly IPEndPoint GooglePublicDnsIPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8844"), DefaultPort);
+
+        /// <summary>
+        /// The second public google DNS IPv6 endpoint.
+        /// </summary>
         public static readonly IPEndPoint GooglePublicDns2IPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8888"), DefaultPort);
 
         internal const string EtcResolvConfFile = "/etc/resolv.conf";
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NameServer"/> class.
+        /// </summary>
+        /// <param name="endpoint">The endpoint.</param>
         public NameServer(IPAddress endpoint)
             : this(new IPEndPoint(endpoint, DefaultPort))
         {
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NameServer"/> class.
+        /// </summary>
+        /// <param name="endpoint">The endpoint.</param>
+        /// <exception cref="System.ArgumentNullException">If <paramref name="endpoint"/> is null.</exception>
         public NameServer(IPEndPoint endpoint)
         {
-            if (endpoint == null)
-            {
-                throw new ArgumentNullException(nameof(endpoint));
-            }
-
-            Endpoint = endpoint;
+            Endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
         }
 
+        /// <summary>
+        /// Gets a value indicating whether this <see cref="NameServer"/> is enabled.
+        /// <para>
+        /// The instance might get disabled if <see cref="ILookupClient"/> encounters problems to connect to it.
+        /// </para>
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if enabled; otherwise, <c>false</c>.
+        /// </value>
         public bool Enabled { get; internal set; } = true;
 
+        /// <summary>
+        /// Gets the endpoint of this instance.
+        /// </summary>
+        /// <value>
+        /// The endpoint.
+        /// </value>
         public IPEndPoint Endpoint { get; }
 
+        /// <summary>
+        /// Gets the size of the supported UDP payload.
+        /// <para>
+        /// This value might get updated by <see cref="ILookupClient"/> by reading the options records returned by a query.
+        /// </para>
+        /// </summary>
+        /// <value>
+        /// The size of the supported UDP payload.
+        /// </value>
         public int? SupportedUdpPayloadSize { get; internal set; }
 
+        /// <summary>
+        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// </summary>
+        /// <returns>
+        /// A <see cref="System.String" /> that represents this instance.
+        /// </returns>
         public override string ToString()
         {
             return $"{Endpoint} (Udp: {SupportedUdpPayloadSize ?? 512})";
@@ -50,9 +103,17 @@ namespace DnsClient
 
         /// <summary>
         /// Gets a list of name servers by iterating over the available network interfaces.
+        /// <para>
+        /// If <paramref name="fallbackToGooglePublicDns" /> is enabled, this method will return the google public dns endpoints if no
+        /// local DNS server was found.
+        /// </para>
         /// </summary>
-        /// <returns>The list of name servers.</returns>
-        public static ICollection<IPEndPoint> ResolveNameServers(bool skipIPv6SiteLocal = true)
+        /// <param name="skipIPv6SiteLocal">If set to <c>true</c> local IPv6 sites are skiped.</param>
+        /// <param name="fallbackToGooglePublicDns">If set to <c>true</c> the public Google DNS servers are returned if no other servers could be found.</param>
+        /// <returns>
+        /// The list of name servers.
+        /// </returns>
+        public static ICollection<IPEndPoint> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true)
         {
             var endpoints = ResolveNameServersInternal(skipIPv6SiteLocal);
             if (endpoints.Count == 0)

@@ -105,38 +105,63 @@ namespace DnsClient.Protocol
     */
 
     /// <summary>
-    /// The SRV RR allows administrators to use several servers for a single
-    /// domain, to move services from host to host with little fuss, and to
-    /// designate some hosts as primary servers for a service and others as
-    /// backups.
-    ///
-    /// Clients ask for a specific service/protocol for a specific domain
-    /// (the word domain is used here in the strict RFC 1034 sense), and get
-    /// back the names of any available servers.
-    ///
-    /// Note that where this document refers to "address records", it means A
-    /// RR's, AAAA RR's, or their most modern equivalent.
+    /// A <see cref="DnsResourceRecord"/> represending a location of the server(s) for a specific protocol and domain.
     /// </summary>
+    /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
     [CLSCompliant(false)]
     public class SrvRecord : DnsResourceRecord
     {
+        /// <summary>
+        /// Gets the port.
+        /// </summary>
+        /// <value>
+        /// The port.
+        /// </value>
         public ushort Port { get; }
 
+        /// <summary>
+        /// Gets the priority.
+        /// </summary>
+        /// <value>
+        /// The priority.
+        /// </value>
         public ushort Priority { get; }
 
+        /// <summary>
+        /// Gets the target domain name.
+        /// </summary>
+        /// <value>
+        /// The target.
+        /// </value>
         public DnsString Target { get; }
 
+        /// <summary>
+        /// Gets the weight.
+        /// </summary>
+        /// <value>
+        /// The weight.
+        /// </value>
         public ushort Weight { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SrvRecord" /> class.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <param name="priority">The priority.</param>
+        /// <param name="weigth">The weigth.</param>
+        /// <param name="port">The port.</param>
+        /// <param name="target">The target.</param>
+        /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="target"/> is null.</exception>
         public SrvRecord(ResourceRecordInfo info, ushort priority, ushort weigth, ushort port, DnsString target)
             : base(info)
         {
             Priority = priority;
             Weight = weigth;
             Port = port;
-            Target = target;
+            Target = target ?? throw new ArgumentNullException(nameof(target));
         }
 
+        /// <inheritdoc />
         public override string RecordToString()
         {
             return string.Format(

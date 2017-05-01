@@ -51,6 +51,13 @@ namespace DnsClient
             Value = value;
         }
 
+        /// <summary>
+        /// Performs an implicit conversion from <see cref="DnsString"/> to <see cref="System.String"/>.
+        /// </summary>
+        /// <param name="name">The name.</param>
+        /// <returns>
+        /// The result of the conversion.
+        /// </returns>
         public static implicit operator string(DnsString name) => name?.Value;
 
         /// <inheritdoc />
@@ -79,8 +86,12 @@ namespace DnsClient
         /// <summary>
         /// Parses the given <paramref name="query"/> and validates all labels.
         /// </summary>
-        /// <param name="query">The query, a domain name.</param>
-        /// <returns></returns>
+        /// <remarks>
+        /// An empty string will be interpreted as root label.
+        /// </remarks>
+        /// <param name="query">A domain name.</param>
+        /// <returns>The <see cref="DnsString"/> representing the given <paramref name="query"/>.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="query"/> is null.</exception>
         public static DnsString Parse(string query)
         {
             if (query == null)

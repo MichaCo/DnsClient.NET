@@ -76,16 +76,18 @@ namespace DnsClient.Protocol
     * */
 
     /// <summary>
+    /// A <see cref="DnsResourceRecord"/> representing a certification authority authorization.
     /// <para>
-    /// Defined in <see href="https://tools.ietf.org/html/rfc6844">RFC 6844</see>
-    /// </para>
     /// The Certification Authority Authorization (CAA) DNS Resource Record
     /// allows a DNS domain name holder to specify one or more Certification
     /// Authorities(CAs) authorized to issue certificates for that domain.
+    /// </para>
+    /// <para>
     /// CAA Resource Records allow a public Certification Authority to
     /// implement additional controls to reduce the risk of unintended
     /// certificate mis-issue.This document defines the syntax of the CAA
     /// record and rules for processing CAA records by certificate issuers.
+    /// </para>
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc6844">RFC 6844</seealso>
     public class CaaRecord : DnsResourceRecord
@@ -106,11 +108,19 @@ namespace DnsClient.Protocol
         /// </summary>
         public string Value { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CaaRecord"/> class.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <param name="flags">The flags.</param>
+        /// <param name="tag">The tag.</param>
+        /// <param name="value">The value.</param>
+        /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="tag"/> or <paramref name="value"/> is null.</exception>
         public CaaRecord(ResourceRecordInfo info, byte flags, string tag, string value) : base(info)
         {
             Flags = flags;
-            Tag = tag;
-            Value = value;
+            Tag = tag ?? throw new ArgumentNullException(nameof(tag));
+            Value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
         /// <inheritdoc />

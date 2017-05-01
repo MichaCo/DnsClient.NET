@@ -2,10 +2,24 @@
 
 namespace DnsClient.Protocol
 {
+    /// <summary>
+    /// Base class for all resource records.
+    /// </summary>
+    /// <seealso cref="DnsClient.Protocol.ResourceRecordInfo" />
     public abstract class DnsResourceRecord : ResourceRecordInfo
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="DnsResourceRecord" /> class.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="info"/> is null.</exception>
         public DnsResourceRecord(ResourceRecordInfo info)
-            : base(info.DomainName, info.RecordType, info.RecordClass, info.TimeToLive, info.RawDataLength)
+            : base(
+                  info?.DomainName ?? throw new ArgumentNullException(nameof(info)), 
+                  info?.RecordType ?? throw new ArgumentNullException(nameof(info)), 
+                  info?.RecordClass ?? throw new ArgumentNullException(nameof(info)), 
+                  info?.TimeToLive ?? throw new ArgumentNullException(nameof(info)), 
+                  info?.RawDataLength ?? throw new ArgumentNullException(nameof(info)))
         {
         }
 
@@ -14,9 +28,9 @@ namespace DnsClient.Protocol
         {
             return ToString(0);
         }
-        
+
         /// <summary>
-        /// Same as <c>ToString</c> but offsets the <see cref="ResourceRecordInfo.DomainName"/> 
+        /// Same as <c>ToString</c> but offsets the <see cref="ResourceRecordInfo.DomainName"/>
         /// by <paramref name="offset"/>.
         /// Set the offset to -32 for example to make it print nicely in consols.
         /// </summary>
@@ -40,6 +54,9 @@ namespace DnsClient.Protocol
         public abstract string RecordToString();
     }
 
+    /// <summary>
+    /// The type represents a <see cref="DnsResourceRecord"/>.
+    /// </summary>
     public class ResourceRecordInfo
     {
         /// <summary>
@@ -67,23 +84,36 @@ namespace DnsClient.Protocol
         /// </summary>
         public int RawDataLength { get; }
 
-        //public ResourceRecordInfo(string query, ResourceRecordType recordType, QueryClass recordClass, int ttl, int length)
-        //    : this(DnsString.Parse(query), recordType, recordClass, ttl, length)
-        //{
-        //}
-
-        public ResourceRecordInfo(DnsString queryName, ResourceRecordType recordType, QueryClass recordClass, int ttl, int length)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ResourceRecordInfo" /> class.
+        /// </summary>
+        /// <param name="domainName">The domain name used by the query.</param>
+        /// <param name="recordType">Type of the record.</param>
+        /// <param name="recordClass">The record class.</param>
+        /// <param name="timeToLive">The time to live.</param>
+        /// <param name="rawDataLength">Length of the raw data.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="domainName"/> is null.</exception>
+        public ResourceRecordInfo(string domainName, ResourceRecordType recordType, QueryClass recordClass, int timeToLive, int rawDataLength)
+            : this(DnsString.Parse(domainName), recordType, recordClass, timeToLive, rawDataLength)
         {
-            if (queryName == null)
-            {
-                throw new ArgumentNullException(nameof(queryName));
-            }
+        }
 
-            DomainName = queryName;
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ResourceRecordInfo" /> class.
+        /// </summary>
+        /// <param name="domainName">The <see cref="DnsString" /> used by the query.</param>
+        /// <param name="recordType">Type of the record.</param>
+        /// <param name="recordClass">The record class.</param>
+        /// <param name="timeToLive">The time to live.</param>
+        /// <param name="rawDataLength">Length of the raw data.</param>
+        /// <exception cref="System.ArgumentNullException">If <paramref name="domainName" /> is null or empty.</exception>
+        public ResourceRecordInfo(DnsString domainName, ResourceRecordType recordType, QueryClass recordClass, int timeToLive, int rawDataLength)
+        {
+            DomainName = domainName ?? throw new ArgumentNullException(nameof(domainName));
             RecordType = recordType;
             RecordClass = recordClass;
-            TimeToLive = ttl;
-            RawDataLength = length;
+            TimeToLive = timeToLive;
+            RawDataLength = rawDataLength;
         }
     }
 }

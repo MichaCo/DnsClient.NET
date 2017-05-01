@@ -63,37 +63,44 @@ namespace DnsClient.Protocol
     */
 
     /// <summary>
-    /// Responsible Person RR.
-    /// <see href="https://tools.ietf.org/html/rfc1183#section-2.2"/>.
+    /// A <see cref="DnsResourceRecord"/> represending a responsible person.
     /// </summary>
+    /// <seealso href="https://tools.ietf.org/html/rfc1183#section-2.2">RFC 1183</seealso>
     public class RpRecord : DnsResourceRecord
     {
         /// <summary>
         /// Gets a domain name that specifies the mailbox for the responsible person.
         /// </summary>
+        /// <value>
+        /// The mailbox domain.
+        /// </value>
         public DnsString MailboxDomainName { get; }
 
         /// <summary>
         /// Gets a domain name for which TXT RR's exist.
         /// </summary>
+        /// <value>
+        /// The text domain.
+        /// </value>
         public DnsString TextDomainName { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RpRecord"/> class.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <param name="mailbox">The mailbox domain.</param>
+        /// <param name="textName">The text domain.</param>
+        /// <exception cref="System.ArgumentNullException">
+        /// If <paramref name="info"/> or <paramref name="mailbox"/> or <paramref name="textName"/> is null.
+        /// </exception>
         public RpRecord(ResourceRecordInfo info, DnsString mailbox, DnsString textName)
             : base(info)
         {
-            if (mailbox == null)
-            {
-                throw new ArgumentNullException(nameof(mailbox));
-            }
-            if (textName == null)
-            {
-                throw new ArgumentNullException(nameof(textName));
-            }
-
-            MailboxDomainName = mailbox;
-            TextDomainName = textName;
+            MailboxDomainName = mailbox ?? throw new ArgumentNullException(nameof(mailbox));
+            TextDomainName = textName ?? throw new ArgumentNullException(nameof(textName));
         }
 
+        /// <inheritdoc />
         public override string RecordToString()
         {
             return $"{MailboxDomainName} {TextDomainName}";

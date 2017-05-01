@@ -22,21 +22,33 @@ namespace DnsClient.Protocol
 
      */
 
+    /// <summary>
+    /// A <see cref="DnsResourceRecord"/> repesenting the canonical name for an alias.
+    /// </summary>
+    /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.1">RFC 1035</seealso>
     public class CNameRecord : DnsResourceRecord
     {
+        /// <summary>
+        /// Gets the canonical name for an alias.
+        /// </summary>
+        /// <value>
+        /// The canonical name.
+        /// </value>
         public DnsString CanonicalName { get; }
 
-        public CNameRecord(ResourceRecordInfo info, DnsString name)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="CNameRecord"/> class.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <param name="canonicalName">The canonical name.</param>
+        /// <exception cref="System.ArgumentNullException">If <paramref name="canonicalName"/> or <paramref name="info"/> is null.</exception>
+        public CNameRecord(ResourceRecordInfo info, DnsString canonicalName)
             : base(info)
         {
-            if (name == null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            CanonicalName = name;
+            CanonicalName = canonicalName ?? throw new ArgumentNullException(nameof(canonicalName));
         }
 
+        /// <inheritdoc />
         public override string RecordToString()
         {
             return CanonicalName.Value;

@@ -23,27 +23,62 @@ namespace DnsClient.Protocol
        <owner> <ttl> <class> AFSDB <subtype> <hostname>
     */
 
+    /// <summary>
+    /// A <see cref="DnsResourceRecord"/> representing an AFS database location.
+    /// </summary>
+    /// <seealso href="https://tools.ietf.org/html/rfc1183#section-1">RFC 1183</seealso>
+    /// <seealso href="https://tools.ietf.org/html/rfc5864">RFC 5864</seealso>
     public class AfsDbRecord : DnsResourceRecord
     {
+        /// <summary>
+        /// Gets the <see cref="AfsType"/>.
+        /// </summary>
+        /// <value>
+        /// The sub type.
+        /// </value>
         public AfsType SubType { get; }
 
+        /// <summary>
+        /// Gets the hostname.
+        /// </summary>
+        /// <value>
+        /// The hostname.
+        /// </value>
         public DnsString Hostname { get; }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="AfsDbRecord"/> class.
+        /// </summary>
+        /// <param name="info">The information.</param>
+        /// <param name="type">The type.</param>
+        /// <param name="name">The name.</param>
+        /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="name"/> is null.</exception>
         public AfsDbRecord(ResourceRecordInfo info, AfsType type, DnsString name) : base(info)
         {
             SubType = type;
-            Hostname = name;
+            Hostname = name ?? throw new ArgumentNullException(nameof(name));
         }
 
+        /// <inheritdoc />
         public override string RecordToString()
         {
             return $"{(int)SubType} {Hostname}";
         }
     }
 
+    /// <summary>
+    /// Type used by <see cref="AfsDbRecord"/>.
+    /// </summary>
     public enum AfsType
     {
+        /// <summary>
+        /// AFS is a registered trademark of Transarc Corporation
+        /// </summary>
         Afs = 1,
+
+        /// <summary>
+        /// The Distributed Computing Environment
+        /// </summary>
         Dce = 2
     }
 }

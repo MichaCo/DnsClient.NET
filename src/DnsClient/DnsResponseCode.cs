@@ -8,125 +8,128 @@ namespace DnsClient
      */
 
     /// <summary>
-    /// RFCs 1035, 2136, 2671, 2845, 2930, 4635.
+    /// Response codes of the <see cref="IDnsQueryResponse"/>.
     /// </summary>
+    /// <seealso href="https://tools.ietf.org/html/rfc6895#section-2.3">RFC 6895</seealso>
     public enum DnsResponseCode : short
     {
         /// <summary>
-        /// RFC 1035.
         /// No error condition
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc1035">RFC 1035</seealso>
         NoError = 0,
 
         /// <summary>
-        /// RFC 1035.
         /// Format error. The name server was unable to interpret the query.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc1035">RFC 1035</seealso>
         FormatError = 1,
 
         /// <summary>
-        /// RFC 1035.
         /// Server failure. The name server was unable to process this query due to a problem with the name server.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc1035">RFC 1035</seealso>
         ServerFailure = 2,
 
         /// <summary>
-        /// RFC 1035.
         /// Name Error. Meaningful only for responses from an authoritative name server,
         /// this code signifies that the domain name referenced in the query does not exist.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc1035">RFC 1035</seealso>
         NotExistentDomain = 3,
 
         /// <summary>
-        /// RFC 1035.
         /// Not Implemented. The name server does not support the requested kind of query.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc1035">RFC 1035</seealso>
         NotImplemented = 4,
 
         /// <summary>
-        /// RFC 1035.
         /// Refused. The name server refuses to perform the specified operation for policy reasons.
         /// For example, a name server may not wish to provide the information to the particular requester,
         /// or a name server may not wish to perform a particular operation (e.g., zone transfer) for particular data.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc1035">RFC 1035</seealso>
         Refused = 5,
 
         /// <summary>
-        /// RFC 2136.
         /// Name Exists when it should not.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2136">RFC 2136</seealso>
         ExistingDomain = 6,
 
         /// <summary>
-        /// RFC 2136.
         /// Resource record set exists when it should not.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2136">RFC 2136</seealso>
         ExistingResourceRecordSet = 7,
 
         /// <summary>
-        /// RFC 2136.
         /// Resource record set that should exist but does not.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2136">RFC 2136</seealso>
         MissingResourceRecordSet = 8,
 
         /// <summary>
-        /// RFC 2136 / RFC2845
         /// Server Not Authoritative for zone / Not Authorized.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2136">RFC 2136</seealso>
+        /// <seealso href="https://tools.ietf.org/html/rfc2845">RFC 2845</seealso>
         NotAuthorized = 9,
 
         /// <summary>
-        /// RFC 2136.
         /// Name not contained in zone.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2136">RFC 2136</seealso>
         NotZone = 10,
 
         /// <summary>
-        /// RFCs 2671 / 2845.
         /// Bad OPT Version or TSIG Signature Failure.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2671">RFC 2671</seealso>
+        /// <seealso href="https://tools.ietf.org/html/rfc2845">RFC 2845</seealso>
         BadVersionOrBadSignature = 16,
 
         /// <summary>
-        /// RFC 2845.
         /// Key not recognized.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2845">RFC 2845</seealso>
         BadKey = 17,
 
         /// <summary>
-        /// RFC 2845.
         /// Signature out of time window.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2845">RFC 2845</seealso>
         BadTime = 18,
 
         /// <summary>
-        /// RFC 2930.
         /// Bad TKEY Mode.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2930">RFC 2930</seealso>
         BadMode = 19,
 
         /// <summary>
-        /// RFC 2930.
         /// Duplicate key name.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2930">RFC 2930</seealso>
         BadName = 20,
 
         /// <summary>
-        /// RFC 2930.
         /// Algorithm not supported.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2930">RFC 2930</seealso>
         BadAlgorithm = 21,
 
         /// <summary>
-        /// RFC 4635.
-        /// BADTRUNC - Bad Truncation.
+        /// Bad Truncation.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4635">RFC 4635</seealso>
         BadTruncation = 22,
 
         /// <summary>
-        /// RFC 7873
         /// Bad/missing Server Cookie
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc7873">RFC 7873</seealso>
         BadCookie = 23,
 
         /// <summary>
@@ -140,16 +143,39 @@ namespace DnsClient
         ConnectionTimeout = 999
     }
 
+    /// <summary>
+    /// A DnsClient specific exception transporting additional information about the query causing this exception.
+    /// </summary>
+    /// <seealso cref="System.Exception" />
     public class DnsResponseException : Exception
     {
+        /// <summary>
+        /// Gets the response code.
+        /// </summary>
+        /// <value>
+        /// The response code.
+        /// </value>
         public DnsResponseCode Code { get; }
 
+        /// <summary>
+        /// Gets the audit trail if <see cref="ILookupClient.EnableAuditTrail"/>. as set to <c>true</c>, <c>null</c> otherwise.
+        /// </summary>
+        /// <value>
+        /// The audit trail.
+        /// </value>
         public string AuditTrail { get; internal set; }
 
+        /// <summary>
+        /// Gets a human readable error message.
+        /// </summary>
+        /// <value>
+        /// The error message.
+        /// </value>
         public string DnsError { get; }
 
         /// <summary>
-        /// Creates an instance of <see cref="DnsResponseException"/> with <see cref="DnsResponseCode.Unassigned"/>.
+        /// Initializes a new instance of the <see cref="DnsResponseException"/> class 
+        /// with <see cref="Code"/> set to <see cref="DnsResponseCode.Unassigned"/>.
         /// </summary>
         public DnsResponseException() : base(DnsResponseCodeText.Unassigned)
         {
@@ -158,8 +184,9 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Creates an instance of <see cref="DnsResponseException"/> with <see cref="DnsResponseCode.Unassigned"/>
-        /// and a custom message.
+        /// Initializes a new instance of the <see cref="DnsResponseException"/> class 
+        /// with <see cref="Code"/> set to <see cref="DnsResponseCode.Unassigned"/>
+        /// and a custom <paramref name="message"/>.
         /// </summary>
         public DnsResponseException(string message) : base(message)
         {
@@ -168,8 +195,8 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Creates an instance of <see cref="DnsResponseException"/> with
-        /// the standard error text for this <paramref name="code"/>.
+        /// Initializes a new instance of the <see cref="DnsResponseException"/> class 
+        /// with the standard error text for the given <paramref name="code"/>.
         /// </summary>
         public DnsResponseException(DnsResponseCode code) : base(DnsResponseCodeText.GetErrorText(code))
         {
@@ -178,8 +205,9 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Creates an instance of <see cref="DnsResponseException"/> with <see cref="DnsResponseCode.Unassigned"/>
-        /// and a custom message.
+        /// Initializes a new instance of the <see cref="DnsResponseException"/> class 
+        /// with <see cref="Code"/> set to <see cref="DnsResponseCode.Unassigned"/>
+        /// and a custom <paramref name="message"/> and inner <see cref="Exception"/>.
         /// </summary>
         public DnsResponseException(string message, Exception innerException) : base(message, innerException)
         {
@@ -188,8 +216,8 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Creates an instance of <see cref="DnsResponseException"/> with a custom message
-        /// and the given <paramref name="code"/>.
+        /// Initializes a new instance of the <see cref="DnsResponseException"/> class 
+        /// with a custom <paramref name="message"/> and the given <paramref name="code"/>.
         /// </summary>
         public DnsResponseException(DnsResponseCode code, string message) : base(message)
         {
@@ -198,8 +226,8 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Creates an instance of <see cref="DnsResponseException"/> with a custom message
-        /// and the given <paramref name="code"/>.
+        /// Initializes a new instance of the <see cref="DnsResponseException"/> class 
+        /// with a custom <paramref name="message"/> and the given <paramref name="code"/>.
         /// </summary>
         public DnsResponseException(DnsResponseCode code, string message, Exception innerException) : base(message, innerException)
         {

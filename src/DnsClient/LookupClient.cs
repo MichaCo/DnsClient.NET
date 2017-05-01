@@ -117,11 +117,11 @@ namespace DnsClient
         /// This will implicitly use the name server(s) configured by the local network adapter.
         /// </summary>
         /// <remarks>
-        /// This uses <see cref="NameServer.ResolveNameServers(bool)"/>.
+        /// This uses <see cref="NameServer.ResolveNameServers(bool, bool)"/>.
         /// The resulting list of name servers is highly dependent on the local network configuration and OS.
         /// </remarks>
         /// <example>
-        /// In the following example, we will create a new <see cref="LookupClient"/> without explicitly defining any DNS server. 
+        /// In the following example, we will create a new <see cref="LookupClient"/> without explicitly defining any DNS server.
         /// This will use the DNS server configured by your local network.
         /// <code>
         /// <![CDATA[
@@ -227,10 +227,18 @@ namespace DnsClient
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
+        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
+        /// </remarks>
         public Task<IDnsQueryResponse> QueryReverseAsync(IPAddress ipAddress)
             => QueryReverseAsync(ipAddress, CancellationToken.None);
 
         /// <inheritdoc />
+        /// <remarks>
+        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
+        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
+        /// </remarks>
         public Task<IDnsQueryResponse> QueryReverseAsync(IPAddress ipAddress, CancellationToken cancellationToken)
         {
             if (ipAddress == null)
@@ -251,6 +259,10 @@ namespace DnsClient
             => Query(query, queryType, QueryClass.IN);
 
         /// <inheritdoc />
+        /// <remarks>
+        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
+        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
+        /// </remarks>
         public IDnsQueryResponse Query(string query, QueryType queryType, QueryClass queryClass)
             => Query(new DnsQuestion(query, queryType, queryClass));
 
@@ -395,18 +407,34 @@ namespace DnsClient
         }
 
         /// <inheritdoc />
+        /// <remarks>
+        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
+        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
+        /// </remarks>
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType)
             => QueryAsync(query, queryType, CancellationToken.None);
 
         /// <inheritdoc />
+        /// <remarks>
+        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
+        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
+        /// </remarks>
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken)
             => QueryAsync(query, queryType, QueryClass.IN, cancellationToken);
 
         /// <inheritdoc />
+        /// <remarks>
+        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
+        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
+        /// </remarks>
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass)
             => QueryAsync(query, queryType, queryClass, CancellationToken.None);
 
         /// <inheritdoc />
+        /// <remarks>
+        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
+        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
+        /// </remarks>
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
             => QueryAsync(new DnsQuestion(query, queryType, queryClass), cancellationToken);
 
@@ -562,8 +590,7 @@ namespace DnsClient
                         DisableServer(serverInfo);
 
                         var handleEx = ex;
-                        var agg = ex as AggregateException;
-                        if (agg != null)
+                        if (ex is AggregateException agg)
                         {
                             if (agg.InnerExceptions.Any(e => e is TimeoutException || handler.IsTransientException(e)))
                             {
@@ -629,8 +656,7 @@ namespace DnsClient
             {
                 servers = _endpoints.Where(p => p.Enabled);
 
-                NameServer server = null;
-                if (_endpoints.TryDequeue(out server))
+                if (_endpoints.TryDequeue(out NameServer server))
                 {
                     _endpoints.Enqueue(server);
                 }
