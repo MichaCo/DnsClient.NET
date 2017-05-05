@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using DnsClient.Internal;
 
 namespace DnsClient
 {
@@ -164,14 +165,14 @@ namespace DnsClient
                 {
                     while (entry == null && !TryDequeue(out entry))
                     {
-                        Interlocked.Increment(ref StaticLog.CreatedClients);
+                        ////Interlocked.Increment(ref StaticLog.CreatedClients);
                         entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily) { LingerState = new LingerOption(true, 0) }, _endpoint);
                         await entry.Client.ConnectAsync(_endpoint.Address, _endpoint.Port).ConfigureAwait(false);
                     }
                 }
                 else
                 {
-                    Interlocked.Increment(ref StaticLog.CreatedClients);
+                    ////Interlocked.Increment(ref StaticLog.CreatedClients);
                     entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily), _endpoint);
                     await entry.Client.ConnectAsync(_endpoint.Address, _endpoint.Port).ConfigureAwait(false);
                 }

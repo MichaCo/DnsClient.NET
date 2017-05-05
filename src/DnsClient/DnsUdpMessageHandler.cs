@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using DnsClient.Internal;
 
 namespace DnsClient
 {
@@ -174,13 +175,13 @@ namespace DnsClient
             {
                 while (udpClient == null && !TryDequeue(family, out udpClient))
                 {
-                    Interlocked.Increment(ref StaticLog.CreatedClients);
+                    ////Interlocked.Increment(ref StaticLog.CreatedClients);
                     udpClient = new UdpClient(family);
                 }
             }
             else
             {
-                Interlocked.Increment(ref StaticLog.CreatedClients);
+                ////Interlocked.Increment(ref StaticLog.CreatedClients);
                 udpClient = new UdpClient(family);
             }
 

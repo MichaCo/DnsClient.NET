@@ -361,8 +361,8 @@ namespace DnsClient
                             queryResponse.AuditTrail = audit.Build();
                         }
 
-                        Interlocked.Increment(ref StaticLog.ResolveQueryCount);
-                        Interlocked.Add(ref StaticLog.ResolveQueryTries, tries);
+                        ////Interlocked.Increment(ref StaticLog.ResolveQueryCount);
+                        ////Interlocked.Add(ref StaticLog.ResolveQueryTries, tries);
                         return queryResponse;
                     }
                     catch (DnsResponseException ex)
@@ -438,7 +438,7 @@ namespace DnsClient
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
             => QueryAsync(new DnsQuestion(query, queryType, queryClass), cancellationToken);
 
-        private Task<IDnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)
+        private async Task<IDnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)
         {
             if (question == null)
             {
@@ -455,21 +455,15 @@ namespace DnsClient
                 var item = _cache.Get(cacheKey);
                 if (item == null)
                 {
-                    return ResolveQueryAsync(handler, request, cancellationToken)
-                        .ContinueWith((resultTask) =>
-                        {
-                            var result = resultTask.Result;
-                            _cache.Add(cacheKey, result);
-                            return result;
-                        });
-                    // _cache.Add(cacheKey, item);
+                    item = await ResolveQueryAsync(handler, request, cancellationToken).ConfigureAwait(false);
+                    _cache.Add(cacheKey, item);
                 }
 
-                return Task.FromResult(item);
+                return item;
             }
             else
             {
-                return ResolveQueryAsync(handler, request, cancellationToken);
+                return await ResolveQueryAsync(handler, request, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -565,8 +559,8 @@ namespace DnsClient
                             queryResponse.AuditTrail = audit.Build();
                         }
 
-                        Interlocked.Increment(ref StaticLog.ResolveQueryCount);
-                        Interlocked.Add(ref StaticLog.ResolveQueryTries, tries);
+                        ////Interlocked.Increment(ref StaticLog.ResolveQueryCount);
+                        ////Interlocked.Add(ref StaticLog.ResolveQueryTries, tries);
                         return queryResponse;
                     }
                     catch (DnsResponseException ex)

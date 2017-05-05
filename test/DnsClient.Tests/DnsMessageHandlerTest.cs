@@ -10,8 +10,6 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_ResolveARecord()
         {
-            var x = DnsHeaderFlag.FutureUse;
-
             var header = new DnsResponseHeader(42, 256, 0, 1, 0, 0);
             var responseMessage = new DnsResponseMessage(header, 0);
 

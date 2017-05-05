@@ -16,7 +16,7 @@ namespace DnsClient.PerfTestHost
             var server = new StaticDnsServer(
                 printStats: false,
                 port: port,
-                workers: 1);
+                workers: 2);
 
             server.Start();
 
@@ -31,14 +31,25 @@ namespace DnsClient.PerfTestHost
                 Timeout = Timeout.InfiniteTimeSpan
             };
 
-            double runTime = 5;
-            RunSync(client, runTime);
-            RunAsync(client, runTime).Wait();
+            var tasksCount = 16;
+            //Console.WriteLine("warmup");
+            //RunSync(client, 5, tasksCount);
+            //RunAsync(client, 5, tasksCount).Wait();
+            Console.WriteLine("running...");
+            double runTime = 2;
+            for (var i = 1; i <= 3; i++)
+            {
+                for (var run = 0; run < 5; run++)
+                {
+                    RunSync(client, runTime, tasksCount * i);
+                    RunAsync(client, runTime, tasksCount * i).Wait();
+                }
+            }
 
             server.Stop();
         }
 
-        private static void RunSync(LookupClient client, double runTime)
+        private static void RunSync(LookupClient client, double runTime, int tasksCount = 8)
         {
             var swatch = Stopwatch.StartNew();
             var swatchInner = Stopwatch.StartNew();
@@ -63,23 +74,20 @@ namespace DnsClient.PerfTestHost
                 }
             };
 
-            var tasks = 8;
-
-            Console.WriteLine($"Running sync with {tasks} parallel tasks.");
             Parallel.Invoke(new ParallelOptions()
             {
-                MaxDegreeOfParallelism = tasks
+                MaxDegreeOfParallelism = tasksCount
             },
-            Enumerable.Repeat(act, tasks).ToArray());
+            Enumerable.Repeat(act, tasksCount).ToArray());
 
             double tookInMs = (double)tookOverall / (Stopwatch.Frequency / 1000);
             double msPerExec = tookInMs / execCount;
             double execPerSec = execCount / runTime;
 
-            Console.WriteLine($"Sync: {execCount} hits, {execPerSec:N0} query/sec with {msPerExec:N3} ms/query.");
+            Console.WriteLine($"{tasksCount,-5};{"sync",5};{execCount,10};\t{execPerSec,10:N0};\t{msPerExec,10:N5}");
         }
 
-        private static async Task RunAsync(LookupClient client, double runTime)
+        private static async Task RunAsync(LookupClient client, double runTime, int tasksCount = 8)
         {
             var swatch = Stopwatch.StartNew();
             var swatchInner = Stopwatch.StartNew();
@@ -103,10 +111,7 @@ namespace DnsClient.PerfTestHost
                     Interlocked.Increment(ref execCount);
                 }
             };
-            
 
-            var tasksCount = 16;
-            Console.WriteLine($"Running async with {tasksCount} parallel tasks.");
             var tasks = new List<Task>();
             for (var i = 0; i < tasksCount; i++)
             {
@@ -119,7 +124,7 @@ namespace DnsClient.PerfTestHost
             double msPerExec = tookInMs / execCount;
             double execPerSec = execCount / runTime;
 
-            Console.WriteLine($"Async: {execCount} hits, {execPerSec:N0} query/sec with {msPerExec:N3} ms/query.");
+            Console.WriteLine($"{tasksCount,-5};{"async",5};{execCount,10};\t{execPerSec,10:N0};\t{msPerExec,10:N5}");
         }
     }
 }
