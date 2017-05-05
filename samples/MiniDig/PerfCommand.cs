@@ -70,8 +70,11 @@ namespace DigApp
                 _running = false;
             });
 
-            var tasks = new List<Task>();
-            tasks.Add(timeoutTask);
+            var tasks = new List<Task>
+            {
+                timeoutTask
+            };
+
             for (var clientIndex = 0; clientIndex < _clients; clientIndex++)
             {
                 tasks.Add(ExcecuteRun());

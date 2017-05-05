@@ -438,7 +438,7 @@ namespace DnsClient
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
             => QueryAsync(new DnsQuestion(query, queryType, queryClass), cancellationToken);
 
-        private async Task<IDnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)
+        private Task<IDnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)
         {
             if (question == null)
             {
@@ -455,15 +455,21 @@ namespace DnsClient
                 var item = _cache.Get(cacheKey);
                 if (item == null)
                 {
-                    item = await ResolveQueryAsync(handler, request, cancellationToken).ConfigureAwait(false);
-                    _cache.Add(cacheKey, item);
+                    return ResolveQueryAsync(handler, request, cancellationToken)
+                        .ContinueWith((resultTask) =>
+                        {
+                            var result = resultTask.Result;
+                            _cache.Add(cacheKey, result);
+                            return result;
+                        });
+                    // _cache.Add(cacheKey, item);
                 }
 
-                return item;
+                return Task.FromResult(item);
             }
             else
             {
-                return await ResolveQueryAsync(handler, request, cancellationToken).ConfigureAwait(false);
+                return ResolveQueryAsync(handler, request, cancellationToken);
             }
         }
 

@@ -10,6 +10,8 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_ResolveARecord()
         {
+            var x = DnsHeaderFlag.FutureUse;
+
             var header = new DnsResponseHeader(42, 256, 0, 1, 0, 0);
             var responseMessage = new DnsResponseMessage(header, 0);
 
@@ -44,7 +46,7 @@ namespace DnsClient.Tests
             {
                 writer.WriteUInt16NetworkOrder((ushort)message.Header.Id);
                 writer.WriteUInt16NetworkOrder((ushort)message.Header.HeaderFlags);
-                // lets iterate answers only, makse it easier
+                // lets iterate answers only, makes it easier
                 //writer.WriteUInt16Network((ushort)message.Header.QuestionCount);
                 writer.WriteUInt16NetworkOrder(0);
                 writer.WriteUInt16NetworkOrder(1);

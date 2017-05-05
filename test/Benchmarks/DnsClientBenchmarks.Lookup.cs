@@ -19,9 +19,11 @@ namespace Benchmarks
                 _lookup = new LookupClient();
                 _lookup.UseCache = false;
 
-                _lookupNoTtl = new LookupClient();
-                _lookupNoTtl.UseCache = false;
-                _lookupNoTtl.Timeout = TimeSpan.FromMilliseconds(Timeout.Infinite);
+                _lookupNoTtl = new LookupClient()
+                {
+                    UseCache = false,
+                    Timeout = TimeSpan.FromMilliseconds(Timeout.Infinite)
+                };
             }
 
             [Benchmark(Baseline = true)]

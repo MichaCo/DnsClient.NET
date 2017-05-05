@@ -5,6 +5,7 @@ using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Environments;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Running;
+using DnsClient;
 
 namespace Benchmarks
 {
@@ -12,49 +13,63 @@ namespace Benchmarks
     {
         public static void Main(string[] args)
         {
-            new DnsClientBenchmarks.ForeachVsSelect().ForTransform();
+            var port = 5053;
+            var server = new StaticDnsServer(
+                printStats: false,
+                port: port,
+                workers: 1);
+
+            server.Start();
+
+            new DnsClientBenchmarks.StaticServerQuery().RequestSync();
 
             do
             {
+                var config = ManualConfig.Create(DefaultConfig.Instance)
+                    //.With(exporters: BenchmarkDotNet.Exporters.DefaultExporters.)
+                    .With(BenchmarkDotNet.Analysers.EnvironmentAnalyser.Default)
+                    .With(BenchmarkDotNet.Exporters.MarkdownExporter.GitHub)
+                    .With(BenchmarkDotNet.Exporters.MarkdownExporter.StackOverflow)
+                    .With(BenchmarkDotNet.Diagnosers.MemoryDiagnoser.Default)
+                    .With(Job.Core
+                        .WithTargetCount(10)
+                        .WithWarmupCount(5)
+                        .WithLaunchCount(1))
+                    .With(Job.Clr
+                        .WithTargetCount(10)
+                        .WithWarmupCount(5)
+                        .WithLaunchCount(1));
+
                 BenchmarkSwitcher
                     .FromAssembly(typeof(DnsClientBenchmarks).GetTypeInfo().Assembly)
-                    .Run(args);
+                    .Run(args, config);
 
                 Console.WriteLine("done!");
                 Console.WriteLine("Press escape to exit or any key to continue...");
             } while (Console.ReadKey().Key != ConsoleKey.Escape);
+
+            server.Stop();
         }
     }
 
-    public class MediumConfiguration : ManualConfig
+    //[MarkdownExporter, AsciiDocExporter, HtmlExporter, CsvExporter, RPlotExporter]
+    //[MinColumn, MaxColumn]
+    //[ClrJob, CoreJob, MediumRunJob]
+    public class CustomConfiguration : ManualConfig
     {
-        public MediumConfiguration()
+        public CustomConfiguration()
         {
-            Add(Job.MediumRun
-                .With(Platform.X64));
-        }
-    }
+            Add(new Job(EnvMode.Clr)
+            {
+                Env = { Runtime = Runtime.Clr },
+                Run = { LaunchCount = 3, WarmupCount = 5, TargetCount = 10 },
+            });
 
-    public class ShortConfiguration : BenchmarkDotNet.Configs.ManualConfig
-    {
-        public ShortConfiguration()
-        {
-            // The same, using the .With() factory methods:
-            Add(
-                Job.Dry
-                .With(Platform.X64)
-                .With(Jit.RyuJit)
-                .With(Runtime.Clr)
-                .With(Runtime.Core)
-                .WithLaunchCount(5)
-                .WithId("ShortRun"));
-
-            Add(DefaultConfig.Instance.GetLoggers().ToArray());
-            Add(DefaultConfig.Instance.GetAnalysers().ToArray());
-            Add(DefaultConfig.Instance.GetColumnProviders().ToArray());
-            Add(DefaultConfig.Instance.GetDiagnosers().ToArray());
-            Add(DefaultConfig.Instance.GetExporters().ToArray());
-            Add(DefaultConfig.Instance.GetValidators().ToArray());
+            Add(new Job(EnvMode.Core)
+            {
+                Env = { Runtime = Runtime.Core },
+                Run = { LaunchCount = 3, WarmupCount = 5, TargetCount = 10 },
+            });
         }
     }
 }

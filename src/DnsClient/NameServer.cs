@@ -116,7 +116,7 @@ namespace DnsClient
         public static ICollection<IPEndPoint> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true)
         {
             var endpoints = ResolveNameServersInternal(skipIPv6SiteLocal);
-            if (endpoints.Count == 0)
+            if (endpoints.Count == 0 && fallbackToGooglePublicDns)
             {
                 return new[]
                 {
@@ -132,25 +132,19 @@ namespace DnsClient
 
         private static ICollection<IPEndPoint> ResolveNameServersInternal(bool skipIPv6SiteLocal)
         {
-#if PORTABLE
-            Exception frameworkEx = null;
-#endif
+#if !PORTABLE
             try
             {
                 return QueryNetworkInterfaces(skipIPv6SiteLocal);
             }
-#if !PORTABLE
             catch (Exception ex)
             {
                 throw new InvalidOperationException($"Error resolving name servers: {ex.Message} HResult: {ex.HResult}.", ex);
             }
 #endif
 #if PORTABLE
-            catch (Exception ex)
-            {
-                // lets try native
-                frameworkEx = ex;
-            }
+
+            Exception frameworkEx = null;
 
             try
             {
@@ -158,7 +152,19 @@ namespace DnsClient
             }
             catch (Exception ex)
             {
-                // log etc?
+                // lets try native first now...
+                // TODO: remove if https://github.com/dotnet/corefx/issues/12969 is finally fixed/released
+                frameworkEx = ex;
+            }
+
+            try
+            {
+                return QueryNetworkInterfaces(skipIPv6SiteLocal);
+            }
+            catch (Exception ex)
+            {
+                // on linux, with 4.3.0, this might not even catch as the bug in dotnet core is that this just throws anyways...
+                // waiting for 2.0 it seems... https://github.com/dotnet/corefx/issues/12969
                 throw new AggregateException("Could not resolve name servers via .NET Framework nor native. See inner exceptions for details.", frameworkEx, ex);
             }
 #endif

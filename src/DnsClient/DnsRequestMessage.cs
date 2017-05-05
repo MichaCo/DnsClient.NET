@@ -14,17 +14,8 @@ namespace DnsClient
 
         public DnsRequestMessage(DnsRequestHeader header, DnsQuestion question)
         {
-            if (header == null)
-            {
-                throw new ArgumentNullException(nameof(header));
-            }
-            if (question == null )
-            {
-                throw new ArgumentNullException(nameof(question));
-            }
-
-            Header = header;
-            Question = question;
+            Header = header ?? throw new ArgumentNullException(nameof(header));
+            Question = question ?? throw new ArgumentNullException(nameof(question));
         }
     }
 }
