@@ -944,19 +944,19 @@ namespace DnsClient.Tests
         [Fact]
         public async Task GetHostEntryAsync_ByManyIps()
         {
-            var client = new LookupClient();
+            var client = new LookupClient(NameServer.GooglePublicDns);
             var nsServers = client.Query("google.com", QueryType.NS).Answers.NsRecords().ToArray();
 
-            Assert.True(nsServers.Length > 0);
+            Assert.True(nsServers.Length > 0, "Should have more than 0 NS servers");
 
             foreach (var server in nsServers)
             {
                 var ipAddress = (await client.GetHostEntryAsync(server.NSDName)).AddressList.First();
                 var result = await client.GetHostEntryAsync(ipAddress);
 
-                Assert.True(result.AddressList.Length >= 1);
-                Assert.True(result.AddressList.Contains(ipAddress));
-                Assert.True(result.Aliases.Length == 0);
+                Assert.True(result.AddressList.Length >= 1, "Revers should have found at least one ip");
+                Assert.True(result.AddressList.Contains(ipAddress), "Result should contain the NSDName address");
+                Assert.True(result.Aliases.Length == 0, "There shouldn't be an alias");
 
                 // expecting always the name without . at the end!
                 Assert.Equal(server.NSDName.Value.Substring(0, server.NSDName.Value.Length - 1), result.HostName);
