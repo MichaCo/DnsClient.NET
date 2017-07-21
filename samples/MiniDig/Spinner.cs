@@ -60,7 +60,7 @@ namespace DigApp
             _source.Cancel();
 
             Console.SetCursorPosition(0, Console.CursorTop);
-            Console.Write(Enumerable.Repeat(" ", (_msgLength + _statusLength) * 2));
+            Console.Write(string.Join("", Enumerable.Repeat(" ", Console.BufferWidth)));
             Console.SetCursorPosition(0, Console.CursorTop);
             Console.CursorVisible = true;
             Console.ForegroundColor = _oldColor;
@@ -77,7 +77,12 @@ namespace DigApp
                 chars.Enqueue(chr);
                 Console.CursorVisible = false;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.Write("{{{0}}} {1,-" + _msgLength + "}{2,-"+_statusLength+"}", chr, Message, Status);
+                var msg = string.Format("{{{0}}} {1,-" + _msgLength + "}{2,-" + _statusLength + "}", chr, Message, Status);
+                if (msg.Length >= Console.BufferWidth)
+                {
+                    msg = msg.Substring(0, Console.BufferWidth - 1);
+                }
+                Console.Write(msg);
                 Console.SetCursorPosition(0, Console.CursorTop);
                 Console.ForegroundColor = _oldColor;
                 Console.CursorVisible = true;
