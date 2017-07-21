@@ -63,6 +63,7 @@ namespace DnsClient
             * */
 
             var opt = new OptRecord();
+            opt.IsDnsSecOk = request.Header.RequestDnsSecRecords;
 
             writer.WriteHostName("");
             writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);

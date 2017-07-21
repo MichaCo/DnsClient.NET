@@ -68,16 +68,24 @@ namespace DnsClient
             }
         }
 
+        public bool RequestDnsSecRecords { get; set; }
+
         public DnsRequestHeader(int id, DnsOpCode queryKind)
-            : this(id, true, queryKind)
+            : this(id, true, queryKind, false)
         {
         }
 
         public DnsRequestHeader(int id, bool useRecursion, DnsOpCode queryKind)
+            : this(id, useRecursion, queryKind, false)
+        {
+        }
+
+        public DnsRequestHeader(int id, bool useRecursion, DnsOpCode queryKind, bool requestDnsSecRecords)
         {
             Id = id;
             OpCode = queryKind;
-            UseRecursion = useRecursion;            
+            UseRecursion = useRecursion;
+            RequestDnsSecRecords = requestDnsSecRecords;
         }
 
         public override string ToString()

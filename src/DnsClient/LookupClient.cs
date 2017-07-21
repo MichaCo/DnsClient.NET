@@ -71,6 +71,8 @@ namespace DnsClient
         /// <inheritdoc />
         public bool ThrowDnsErrors { get; set; } = false;
 
+        public bool RequestDnsSecRecords { get; set; } = false;
+
         /// <inheritdoc />
         public TimeSpan Timeout
         {
@@ -273,7 +275,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(question));
             }
 
-            var head = new DnsRequestHeader(GetNextUniqueId(), Recursion, DnsOpCode.Query);
+            var head = new DnsRequestHeader(GetNextUniqueId(), Recursion, DnsOpCode.Query, RequestDnsSecRecords);
             var request = new DnsRequestMessage(head, question);
             var handler = UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
 
@@ -445,7 +447,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(question));
             }
 
-            var head = new DnsRequestHeader(GetNextUniqueId(), Recursion, DnsOpCode.Query);
+            var head = new DnsRequestHeader(GetNextUniqueId(), Recursion, DnsOpCode.Query, RequestDnsSecRecords);
             var request = new DnsRequestMessage(head, question);
             var handler = UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
 
