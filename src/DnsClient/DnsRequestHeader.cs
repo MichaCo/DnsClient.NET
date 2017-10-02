@@ -8,9 +8,9 @@ namespace DnsClient
         public const int HeaderLength = 12;
 
         private ushort _flags = 0;
-        
+
         public ushort RawFlags => _flags;
-        
+
         internal DnsHeaderFlag HeaderFlags
         {
             get
@@ -45,7 +45,7 @@ namespace DnsClient
                 _flags |= (ushort)(((ushort)value << DnsHeader.OPCodeShift) & DnsHeader.OPCodeMask);
             }
         }
-        
+
         public ushort RCode
         {
             get
@@ -61,10 +61,26 @@ namespace DnsClient
 
         public bool UseRecursion
         {
-            get { return (HeaderFlags | DnsHeaderFlag.RecursionDesired) != 0; }
+            get
+            {
+                return HeaderFlags.HasFlag(DnsHeaderFlag.RecursionDesired);
+            }
             set
             {
-                HeaderFlags |= DnsHeaderFlag.RecursionDesired;
+                if (value)
+                {
+                    if (!HeaderFlags.HasFlag(DnsHeaderFlag.RecursionDesired))
+                    {
+                        HeaderFlags |= DnsHeaderFlag.RecursionDesired;
+                    }
+                }
+                else
+                {
+                    if (HeaderFlags.HasFlag(DnsHeaderFlag.RecursionDesired))
+                    {
+                        HeaderFlags |= DnsHeaderFlag.RecursionDesired;
+                    }
+                }
             }
         }
 
@@ -77,7 +93,7 @@ namespace DnsClient
         {
             Id = id;
             OpCode = queryKind;
-            UseRecursion = useRecursion;            
+            UseRecursion = useRecursion;
         }
 
         public override string ToString()
