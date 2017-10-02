@@ -69,17 +69,11 @@ namespace DnsClient
             {
                 if (value)
                 {
-                    if (!HeaderFlags.HasFlag(DnsHeaderFlag.RecursionDesired))
-                    {
-                        HeaderFlags |= DnsHeaderFlag.RecursionDesired;
-                    }
+                    _flags |= (ushort)DnsHeaderFlag.RecursionDesired;
                 }
                 else
                 {
-                    if (HeaderFlags.HasFlag(DnsHeaderFlag.RecursionDesired))
-                    {
-                        HeaderFlags |= DnsHeaderFlag.RecursionDesired;
-                    }
+                    _flags &= (ushort)~(DnsHeaderFlag.RecursionDesired);
                 }
             }
         }
