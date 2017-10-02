@@ -124,12 +124,23 @@ namespace DnsClient
             using (var memory = new PooledBytes(length))
             {
                 int bytesReceived = 0;
-                while ((bytesReceived += await stream.ReadAsync(memory.Buffer, bytesReceived, length).ConfigureAwait(false)) < length)
+                int readSize = length > 4096 ? 4096 : length;
+
+                while ((bytesReceived += await stream.ReadAsync(memory.Buffer, bytesReceived, readSize).ConfigureAwait(false)) < length)
                 {
                     if (bytesReceived <= 0)
                     {
                         // disconnected
                         return null;
+                    }
+                    if (bytesReceived + readSize > length)
+                    {
+                        readSize = length - bytesReceived;
+
+                        if (readSize <= 0)
+                        {
+                            break;
+                        }
                     }
                 }
 
