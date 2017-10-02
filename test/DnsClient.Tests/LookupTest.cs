@@ -96,6 +96,17 @@ namespace DnsClient.Tests
 
 #if ENABLE_REMOTE_DNS
 
+        // see #10, wrong TCP result handling if the result contains like 1000 answers
+        [Fact]
+        public void Lookup_LargeResultWithTCP()
+        {
+            var dns = new LookupClient();
+
+            var result = dns.Query("big.basic.caatestsuite.com", QueryType.CAA);
+
+            Assert.True(result.Answers.Count > 0);
+        }
+
         [Fact]
         public void Lookup_IPv4_Works()
         {
