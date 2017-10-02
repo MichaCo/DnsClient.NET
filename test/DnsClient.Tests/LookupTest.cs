@@ -797,8 +797,6 @@ namespace DnsClient.Tests
             Assert.True(result.Aliases.Length == 0);
         }
 
-#endif
-
         [Fact]
         public void GetHostEntry_ByManyIps()
         {
@@ -820,8 +818,6 @@ namespace DnsClient.Tests
                 Assert.Equal(server.NSDName.Value.Substring(0, server.NSDName.Value.Length - 1), result.HostName);
             }
         }
-
-#if ENABLE_REMOTE_DNS
 
         [Fact]
         public async Task GetHostEntryAsync_ByName_ManyIps_NoAlias()
