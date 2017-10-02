@@ -679,6 +679,8 @@ namespace DnsClient.Tests
             Assert.True(hostEntry.AddressList.Length > 0);
         }
 
+#if ENABLE_REMOTE_DNS
+
         [Fact]
         public void GetHostEntry_ByName_ManyIps_NoAlias()
         {
@@ -702,8 +704,6 @@ namespace DnsClient.Tests
             Assert.True(result.Aliases.Length > 1);
             Assert.Equal("dnsclient.michaco.net", result.HostName);
         }
-
-#if ENABLE_REMOTE_DNS
 
         [Fact]
         public void GetHostEntry_ByName_OneIp_NoAlias()
