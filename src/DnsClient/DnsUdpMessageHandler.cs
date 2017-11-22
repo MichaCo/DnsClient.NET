@@ -57,7 +57,7 @@ namespace DnsClient
                     var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
                     if (request.Header.Id != response.Header.Id)
                     {
-                        throw new DnsResponseException("Header id missmatch.");
+                        throw new DnsResponseException("Header id mismatch.");
                     }
 
                     Enqueue(server.AddressFamily, udpClient);
@@ -132,7 +132,7 @@ namespace DnsClient
 #endif
                     if (request.Header.Id != response.Header.Id)
                     {
-                        throw new DnsResponseException("Header id missmatch.");
+                        throw new DnsResponseException("Header id mismatch.");
                     }
 
                     Enqueue(server.AddressFamily, udpClient);
