@@ -685,7 +685,7 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient();
             var hostEntry = await client.GetHostEntryAsync("mail.google.com");
-            Assert.EndsWith("google.com", hostEntry.Aliases.First());
+            Assert.EndsWith("google.com", hostEntry.Aliases.First(), StringComparison.OrdinalIgnoreCase);
             Assert.Equal("mail.google.com", hostEntry.HostName);
             Assert.True(hostEntry.AddressList.Length > 0);
         }
