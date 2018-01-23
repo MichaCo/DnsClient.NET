@@ -41,6 +41,34 @@ namespace DnsClient.Windows.IpHlpApi
                         {
                             fixedInfo = Marshal.PtrToStructure<Interop.IpHlpApi.FIXED_INFO>(buffer.Ptr);
                         }
+                        else
+                        {
+                            throw new Win32Exception((int)result);
+                        }
+
+                        var dnsAddresses = new List<IPAddress>();
+                        Interop.IpHlpApi.IP_ADDR_STRING addr = fixedInfo.DnsServerList;
+                        IPAddress ip;
+
+                        if (IPAddress.TryParse(addr.IpAddress, out ip))
+                        {
+                            dnsAddresses.Add(ip);
+
+                            while (addr.Next != IntPtr.Zero)
+                            {
+                                addr = Marshal.PtrToStructure<Interop.IpHlpApi.IP_ADDR_STRING>(addr.Next);
+                                if (IPAddress.TryParse(addr.IpAddress, out ip))
+                                {
+                                    dnsAddresses.Add(ip);
+                                }
+                            }
+                        }
+
+                        info.HostName = fixedInfo.hostName;
+                        info.DomainName = fixedInfo.domainName;
+                        info.DnsAddresses = dnsAddresses.ToArray();
+
+                        return info;
                     }
                     else
                     {
@@ -48,33 +76,6 @@ namespace DnsClient.Windows.IpHlpApi
                     }
                 }
             }
-
-            if (result != Interop.IpHlpApi.ERROR_SUCCESS)
-            {
-                throw new Win32Exception((int)result);
-            }
-
-            var dnsAddresses = new List<IPAddress>();
-            Interop.IpHlpApi.IP_ADDR_STRING addr = fixedInfo.DnsServerList;
-            IPAddress ip;
-
-            if (IPAddress.TryParse(addr.IpAddress, out ip))
-            {
-                dnsAddresses.Add(ip);
-
-                while (addr.Next != IntPtr.Zero)
-                {
-                    addr = Marshal.PtrToStructure<Interop.IpHlpApi.IP_ADDR_STRING>(addr.Next);
-                    if (IPAddress.TryParse(addr.IpAddress, out ip))
-                    {
-                        dnsAddresses.Add(ip);
-                    }
-                }
-            }
-
-            info.HostName = fixedInfo.hostName;
-            info.DomainName = fixedInfo.domainName;
-            info.DnsAddresses = dnsAddresses.ToArray();
 
             return info;
         }
