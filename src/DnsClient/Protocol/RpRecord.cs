@@ -100,8 +100,7 @@ namespace DnsClient.Protocol
             TextDomainName = textName ?? throw new ArgumentNullException(nameof(textName));
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return $"{MailboxDomainName} {TextDomainName}";
         }

@@ -17,7 +17,6 @@ namespace DigApp
         private int _runtime;
         private long _reportExcecutions = 0;
         private long _allExcecutions = 0;
-        private long _allAvgExec = 0;
         private bool _running;
         private LookupSettings _settings;
         private LookupClient _lookup;
@@ -98,10 +97,7 @@ namespace DigApp
             Console.WriteLine($";; {_errors:N0} errors {_success:N0} ok {successPercent:N2}% success.");
 
             var execPerSec = _allExcecutions / elapsedSeconds;
-            var avgExec = _allAvgExec / _runtime;
             Console.WriteLine($";; {execPerSec:N2} queries per second.");
-
-            //Console.WriteLine($";;Log: clients created: {StaticLog.CreatedClients} arraysAllocated: {StaticLog.ByteArrayAllocations} arraysReleased: {StaticLog.ByteArrayReleases} queries: {StaticLog.ResolveQueryCount} queryTries: {StaticLog.ResolveQueryTries}");
             return 0;
         }
 

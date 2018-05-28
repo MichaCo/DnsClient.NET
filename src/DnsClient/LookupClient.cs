@@ -77,6 +77,7 @@ namespace DnsClient
 
         /// <summary>
         /// If enabled, each <see cref="IDnsQueryResponse"/> will contain a full documentation of the response(s).
+        /// Default is <c>False</c>.
         /// </summary>
         /// <seealso cref="IDnsQueryResponse.AuditTrail"/>
         public bool EnableAuditTrail { get; set; } = false;
@@ -153,6 +154,7 @@ namespace DnsClient
         /// <summary>
         /// Gets or sets a flag indicating if the <see cref="LookupClient"/> should use response caching or not.
         /// The cache duration is calculated by the resource record of the response. Usually, the lowest TTL is used.
+        /// Default is <c>True</c>.
         /// </summary>
         /// <remarks>
         /// In case the DNS Server returns records with a TTL of zero. The response cannot be cached.
@@ -332,7 +334,13 @@ namespace DnsClient
             _tcpFallbackHandler = new DnsTcpMessageHandler();
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Does a reverse lookup of the <paramref name="ipAddress"/>.
+        /// </summary>
+        /// <param name="ipAddress">The <see cref="IPAddress"/>.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which should contain the <see cref="DnsClient.Protocol.PtrRecord"/>.
+        /// </returns>
         public IDnsQueryResponse QueryReverse(IPAddress ipAddress)
         {
             if (ipAddress == null)
@@ -344,7 +352,13 @@ namespace DnsClient
             return Query(arpa, QueryType.PTR, QueryClass.IN);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Does a reverse lookup of the <paramref name="ipAddress"/>.
+        /// </summary>
+        /// <param name="ipAddress">The <see cref="IPAddress"/>.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which should contain the <see cref="DnsClient.Protocol.PtrRecord"/>.
+        /// </returns>
         /// <remarks>
         /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
         /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
@@ -352,7 +366,14 @@ namespace DnsClient
         public Task<IDnsQueryResponse> QueryReverseAsync(IPAddress ipAddress)
             => QueryReverseAsync(ipAddress, CancellationToken.None);
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Does a reverse lookup of the <paramref name="ipAddress" />.
+        /// </summary>
+        /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which should contain the <see cref="DnsClient.Protocol.PtrRecord" />.
+        /// </returns>
         /// <remarks>
         /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
         /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
@@ -368,7 +389,14 @@ namespace DnsClient
             return QueryAsync(arpa, QueryType.PTR, QueryClass.IN, cancellationToken);
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Performs a DNS lookup for <paramref name="query" /> and <paramref name="queryType" />.
+        /// </summary>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
+        /// </returns>
         /// <remarks>
         /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
         /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
@@ -376,7 +404,15 @@ namespace DnsClient
         public IDnsQueryResponse Query(string query, QueryType queryType)
             => Query(query, queryType, QueryClass.IN);
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Performs a DNS lookup for <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass"/>.
+        /// </summary>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <param name="queryClass">The <see cref="QueryClass"/>.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
+        /// </returns>
         /// <remarks>
         /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
         /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
@@ -563,7 +599,14 @@ namespace DnsClient
             };
         }
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Performs a DNS lookup for <paramref name="query" /> and <paramref name="queryType" />.
+        /// </summary>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
+        /// </returns>
         /// <remarks>
         /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
         /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
@@ -571,7 +614,15 @@ namespace DnsClient
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType)
             => QueryAsync(query, queryType, CancellationToken.None);
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Performs a DNS lookup for <paramref name="query" /> and <paramref name="queryType" />.
+        /// </summary>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
+        /// </returns>
         /// <remarks>
         /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
         /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
@@ -579,7 +630,15 @@ namespace DnsClient
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken)
             => QueryAsync(query, queryType, QueryClass.IN, cancellationToken);
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Performs a DNS lookup for <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass"/>.
+        /// </summary>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <param name="queryClass">The <see cref="QueryClass"/>.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
+        /// </returns>
         /// <remarks>
         /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
         /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
@@ -587,7 +646,16 @@ namespace DnsClient
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass)
             => QueryAsync(query, queryType, queryClass, CancellationToken.None);
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Performs a DNS lookup for <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />.
+        /// </summary>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <param name="queryClass">The <see cref="QueryClass" />.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
+        /// </returns>
         /// <remarks>
         /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
         /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
@@ -1004,9 +1072,8 @@ namespace DnsClient
 
             public void AuditException(Exception ex)
             {
-                var dnsEx = ex as DnsResponseException;
                 var aggEx = ex as AggregateException;
-                if (dnsEx != null)
+                if (ex is DnsResponseException dnsEx)
                 {
                     _auditWriter.AppendLine($";; Error: {DnsResponseCodeText.GetErrorText(dnsEx.Code)} {dnsEx.InnerException?.Message ?? dnsEx.Message}");
                 }

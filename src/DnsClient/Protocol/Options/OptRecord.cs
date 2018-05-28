@@ -71,7 +71,7 @@ namespace DnsClient.Protocol.Options
         private const int ResponseCodeShift = 20;
         private const uint VersionMask = 0x00ff0000;
         private const int VersionShift = 16;
-        
+
         public DnsResponseCode ResponseCodeEx
         {
             get
@@ -123,8 +123,8 @@ namespace DnsClient.Protocol.Options
             : base(new ResourceRecordInfo(DnsString.RootLabel, ResourceRecordType.OPT, (QueryClass)size, version, length))
         {
         }
-        /// <inheritdoc />
-        public override string RecordToString()
+
+        private protected override string RecordToString()
         {
             return $"OPT {RecordClass}.";
         }

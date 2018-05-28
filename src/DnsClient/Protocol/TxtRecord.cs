@@ -68,8 +68,7 @@ namespace DnsClient.Protocol
             Text = utf8Values ?? throw new ArgumentNullException(nameof(utf8Values));
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return string.Join(" ", EscapedText.Select(p => "\"" + p + "\"")).Trim();
         }

@@ -21,6 +21,7 @@ namespace DnsClient.Protocol
     similar to that performed by CNAME, which identifies aliases.  See the
     description of the IN-ADDR.ARPA domain for an example.
     */
+
     /// <summary>
     /// A <see cref="DnsResourceRecord"/> represending a pointer. These RRs are used
     /// in special domains to point to some other location in the domain space.
@@ -49,8 +50,7 @@ namespace DnsClient.Protocol
             PtrDomainName = ptrDomainName ?? throw new ArgumentNullException(nameof(ptrDomainName));
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return PtrDomainName.Value;
         }

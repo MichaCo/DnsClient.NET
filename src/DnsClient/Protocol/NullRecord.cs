@@ -46,8 +46,7 @@ namespace DnsClient.Protocol
             Anything = anything ?? throw new ArgumentNullException(nameof(anything));
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return $"byte[{Anything.Length}]";
         }

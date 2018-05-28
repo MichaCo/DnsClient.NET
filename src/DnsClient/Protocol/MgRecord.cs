@@ -46,8 +46,7 @@ namespace DnsClient.Protocol
             MgName = domainName ?? throw new ArgumentNullException(nameof(domainName));
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return MgName.Value;
         }

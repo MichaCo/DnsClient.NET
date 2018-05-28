@@ -42,8 +42,7 @@ namespace DnsClient
             if (key == null) throw new ArgumentNullException(key);
             if (!Enabled) return null;
 
-            ResponseEntry entry;
-            if (_cache.TryGetValue(key, out entry))
+            if (_cache.TryGetValue(key, out ResponseEntry entry))
             {
                 if (entry.IsExpiredFor(DateTimeOffset.UtcNow))
                 {
@@ -98,8 +97,7 @@ namespace DnsClient
             {
                 if (entry.Value.IsExpiredFor(now))
                 {
-                    ResponseEntry o;
-                    cache._cache.TryRemove(entry.Key, out o);
+                    cache._cache.TryRemove(entry.Key, out ResponseEntry o);
                 }
             }
 

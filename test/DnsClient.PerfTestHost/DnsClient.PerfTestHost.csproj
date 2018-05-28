@@ -3,11 +3,11 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net462</TargetFramework>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DnsClient\DnsClient.csproj" />
     <ProjectReference Include="..\DnsClient.TestsCommon\DnsClient.TestsCommon.csproj" />
   </ItemGroup>
-
 </Project>

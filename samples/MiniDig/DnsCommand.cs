@@ -55,11 +55,13 @@ namespace DigApp
 
         public DnsCommand(CommandLineApplication app, ILoggerFactory loggerFactory, string[] originalArgs)
         {
-            if (app == null) throw new ArgumentNullException(nameof(app));
-            if (loggerFactory == null) throw new ArgumentNullException(nameof(loggerFactory));
+            if (loggerFactory == null)
+            {
+                throw new ArgumentNullException(nameof(loggerFactory));
+            }
 
             Logger = loggerFactory.CreateLogger(GetType());
-            App = app;
+            App = app ?? throw new ArgumentNullException(nameof(app));
             OriginalArgs = originalArgs;
             App.OnExecute(() => Execute());
             Configure();
@@ -94,8 +96,7 @@ namespace DigApp
                     var server = serverPair[0];
                     var port = serverPair.Length > 1 ? int.Parse(serverPair[1]) : 53;
 
-                    IPAddress ip;
-                    if (!IPAddress.TryParse(server, out ip))
+                    if (!IPAddress.TryParse(server, out IPAddress ip))
                     {
                         var lookup = new LookupClient();
                         var lResult = lookup.QueryAsync(server, QueryType.A).Result;

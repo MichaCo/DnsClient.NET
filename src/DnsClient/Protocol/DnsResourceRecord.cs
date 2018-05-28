@@ -15,10 +15,10 @@ namespace DnsClient.Protocol
         /// <exception cref="ArgumentNullException">If <paramref name="info"/> is null.</exception>
         public DnsResourceRecord(ResourceRecordInfo info)
             : base(
-                  info?.DomainName ?? throw new ArgumentNullException(nameof(info)), 
-                  info?.RecordType ?? throw new ArgumentNullException(nameof(info)), 
-                  info?.RecordClass ?? throw new ArgumentNullException(nameof(info)), 
-                  info?.TimeToLive ?? throw new ArgumentNullException(nameof(info)), 
+                  info?.DomainName ?? throw new ArgumentNullException(nameof(info)),
+                  info?.RecordType ?? throw new ArgumentNullException(nameof(info)),
+                  info?.RecordClass ?? throw new ArgumentNullException(nameof(info)),
+                  info?.TimeToLive ?? throw new ArgumentNullException(nameof(info)),
                   info?.RawDataLength ?? throw new ArgumentNullException(nameof(info)))
         {
         }
@@ -47,11 +47,11 @@ namespace DnsClient.Protocol
         }
 
         /// <summary>
-        /// Returns the actual record's value only and not the full object representation.
+        /// Returns a string representation of the record's value only.
         /// <see cref="ToString(int)"/> uses this to compose the full string value of this instance.
         /// </summary>
         /// <returns>A string representing this record.</returns>
-        public abstract string RecordToString();
+        private protected abstract string RecordToString();
     }
 
     /// <summary>

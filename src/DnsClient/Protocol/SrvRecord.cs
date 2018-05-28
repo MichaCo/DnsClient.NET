@@ -161,8 +161,7 @@ namespace DnsClient.Protocol
             Target = target ?? throw new ArgumentNullException(nameof(target));
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return string.Format(
                 "{0} {1} {2} {3}",

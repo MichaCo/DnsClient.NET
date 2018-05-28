@@ -28,6 +28,7 @@
     <RepositoryUrl>https://github.com/MichaCo/DnsClient.NET</RepositoryUrl>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

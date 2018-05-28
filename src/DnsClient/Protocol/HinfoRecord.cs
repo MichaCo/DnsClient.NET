@@ -56,8 +56,7 @@ namespace DnsClient.Protocol
             OS = os;
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return $"\"{Cpu}\" \"{OS}\"";
         }

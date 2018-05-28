@@ -15,13 +15,12 @@ namespace DigApp
     public class RandomCommand : DnsCommand
     {
         private static string[] _domainNames;
-        private static object _nameLock = new object();
+        private static readonly object _nameLock = new object();
         private static Random _randmom = new Random();
         private int _clients;
         private int _runtime;
         private long _reportExcecutions = 0;
         private long _allExcecutions = 0;
-        private long _allAvgExec = 0;
         private bool _running;
         private LookupSettings _settings;
         private LookupClient _lookup;
@@ -84,8 +83,11 @@ namespace DigApp
                 _running = false;
             });
 
-            var tasks = new List<Task>();
-            tasks.Add(timeoutTask);
+            var tasks = new List<Task>
+            {
+                timeoutTask
+            };
+
             for (var clientIndex = 0; clientIndex < _clients; clientIndex++)
             {
                 tasks.Add(ExcecuteRun());
@@ -109,16 +111,13 @@ namespace DigApp
 
             var successPercent = _errors == 0 ? 100 : _success == 0 ? 0 : (100 - ((double)_errors / (_success) * 100));
             Console.WriteLine($";; {_errors:N0} errors {_success:N0} ok {successPercent:N2}% success.");
-            foreach(var code in _errorsPerCode.Keys)
+            foreach (var code in _errorsPerCode.Keys)
             {
                 Console.WriteLine($"{code,30}:\t {_errorsPerCode[code]}");
             }
 
             var execPerSec = _allExcecutions / elapsedSeconds;
-            var avgExec = _allAvgExec / _runtime;
             Console.WriteLine($";; {execPerSec:N2} queries per second.");
-            
-            //Console.WriteLine($";;Log: clients created: {StaticLog.CreatedClients} arraysAllocated: {StaticLog.ByteArrayAllocations} arraysReleased: {StaticLog.ByteArrayReleases} queries: {StaticLog.ResolveQueryCount} queryTries: {StaticLog.ResolveQueryTries}");
             return 0;
         }
 

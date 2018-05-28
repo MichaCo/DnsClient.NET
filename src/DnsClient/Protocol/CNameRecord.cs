@@ -48,8 +48,7 @@ namespace DnsClient.Protocol
             CanonicalName = canonicalName ?? throw new ArgumentNullException(nameof(canonicalName));
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return CanonicalName.Value;
         }

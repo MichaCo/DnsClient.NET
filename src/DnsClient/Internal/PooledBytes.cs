@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Buffers;
 using System.Linq;
-using System.Threading;
 
 namespace DnsClient.Internal
 {
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
     public class PooledBytes : IDisposable
     {
         private static readonly ArrayPool<byte> _pool = ArrayPool<byte>.Create(4096 * 2, 200);
@@ -18,7 +18,7 @@ namespace DnsClient.Internal
             {
                 throw new ArgumentOutOfRangeException(nameof(length));
             }
-            
+
             _buffer = _pool.Rent(length);
         }
 

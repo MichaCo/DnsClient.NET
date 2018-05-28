@@ -1,7 +1,7 @@
 ﻿namespace DnsClient.Protocol
 {
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> not representing any specifc resource record. 
+    /// A <see cref="DnsResourceRecord"/> not representing any specifc resource record.
     /// Used if unsupported <see cref="ResourceRecordType"/>s are found in the result.
     /// </summary>
     /// <seealso cref="DnsClient.Protocol.DnsResourceRecord" />
@@ -16,8 +16,7 @@
         {
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return string.Empty;
         }

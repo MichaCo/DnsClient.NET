@@ -14,6 +14,7 @@ namespace DnsClient
     {
         /// <summary>
         /// If enabled, each <see cref="IDnsQueryResponse"/> will contain a full documentation of the response(s).
+        /// Default is <c>False</c>.
         /// </summary>
         /// <seealso cref="IDnsQueryResponse.AuditTrail"/>
         bool EnableAuditTrail { get; set; }
@@ -21,6 +22,7 @@ namespace DnsClient
         /// <summary>
         /// Gets or sets a flag indicating if the <see cref="LookupClient"/> should use response caching or not.
         /// The cache duration is calculated by the resource record of the response. Usually, the lowest TTL is used.
+        /// Default is <c>True</c>.
         /// </summary>
         /// <remarks>
         /// In case the DNS Server returns records with a TTL of zero. The response cannot be cached.

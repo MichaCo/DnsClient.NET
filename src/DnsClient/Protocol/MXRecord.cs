@@ -60,8 +60,7 @@ namespace DnsClient.Protocol
             Exchange = domainName ?? throw new ArgumentNullException(nameof(domainName));
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return string.Format("{0} {1}", Preference, Exchange);
         }

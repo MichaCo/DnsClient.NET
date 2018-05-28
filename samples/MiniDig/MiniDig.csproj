@@ -5,6 +5,7 @@
     <AssemblyName>MiniDig</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>MiniDig</PackageId>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

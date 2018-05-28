@@ -83,8 +83,7 @@ namespace DigApp
             {
                 useQType = QueryType.PTR;
                 useQClass = QueryClass.IN;
-                IPAddress ip;
-                if (!IPAddress.TryParse(useDomain, out ip))
+                if (!IPAddress.TryParse(useDomain, out IPAddress ip))
                 {
                     Console.WriteLine($";; Error: Reverse lookup for invalid ip {useDomain}.");
                     return 1;

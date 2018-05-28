@@ -123,8 +123,7 @@ namespace DnsClient.Protocol
             Value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return $"{Flags} {Tag} \"{Value}\"";
         }

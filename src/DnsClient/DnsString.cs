@@ -20,7 +20,7 @@ namespace DnsClient
         public const int LabelMaxLength = 63;
 
         /// <summary>
-        /// The maximum supported total length in bytes for a domain nanme. The calculation of the actual 
+        /// The maximum supported total length in bytes for a domain nanme. The calculation of the actual
         /// bytes this <see cref="DnsString"/> consumes includes all bytes used for to encode it as octet string.
         /// </summary>
         public const int QueryMaxLength = 255;
@@ -29,11 +29,10 @@ namespace DnsClient
         /// The root label ".".
         /// </summary>
         public static readonly DnsString RootLabel = new DnsString(".", ".");
+
         internal static readonly IdnMapping IDN = new IdnMapping() { UseStd3AsciiRules = true };
         private const char Dot = '.';
         private const string DotStr = ".";
-
-        private string[] _labels = new string[0];
 
         /// <summary>
         /// Gets the orginal value.
@@ -181,7 +180,7 @@ namespace DnsClient
 
         /// <summary>
         /// Transforms names with the <see cref="ACEPrefix"/> to the unicode variant and adds a trailing '.' at the end if not present.
-        /// The original value will be kept in this instance in case it is needed.        
+        /// The original value will be kept in this instance in case it is needed.
         /// </summary>
         /// <remarks>
         /// The method does not parse the domain name unless it contains a <see cref="ACEPrefix"/>.

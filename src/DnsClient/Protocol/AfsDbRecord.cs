@@ -59,8 +59,7 @@ namespace DnsClient.Protocol
             Hostname = name ?? throw new ArgumentNullException(nameof(name));
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return $"{(int)SubType} {Hostname}";
         }

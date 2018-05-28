@@ -122,8 +122,7 @@ namespace DnsClient.Protocol
             Ports = GetPorts(bitmap);
         }
 
-        /// <inheritdoc />
-        public override string RecordToString()
+        private protected override string RecordToString()
         {
             return $"{Address} {Protocol} {string.Join(" ", Ports)}";
         }
