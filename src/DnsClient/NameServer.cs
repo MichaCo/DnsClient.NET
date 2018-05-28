@@ -115,7 +115,17 @@ namespace DnsClient
         /// </returns>
         public static ICollection<IPEndPoint> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true)
         {
-            var endpoints = ResolveNameServersInternal(skipIPv6SiteLocal);
+            ICollection<IPEndPoint> endpoints = new IPEndPoint[0];
+
+            try
+            {
+                endpoints = QueryNetworkInterfaces(skipIPv6SiteLocal);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error resolving name servers: {ex.Message} HResult: {ex.HResult}.", ex);
+            }
+
             if (endpoints.Count == 0 && fallbackToGooglePublicDns)
             {
                 return new[]
@@ -130,49 +140,23 @@ namespace DnsClient
             return endpoints;
         }
 
-        private static ICollection<IPEndPoint> ResolveNameServersInternal(bool skipIPv6SiteLocal)
-        {
-#if !PORTABLE
-            try
-            {
-                return QueryNetworkInterfaces(skipIPv6SiteLocal);
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException($"Error resolving name servers: {ex.Message} HResult: {ex.HResult}.", ex);
-            }
-#endif
 #if PORTABLE
 
-            Exception frameworkEx = null;
-
-            try
-            {
-                return GetDnsEndpointsNative();
-            }
-            catch (Exception ex)
-            {
-                // lets try native first now...
-                // TODO: remove if https://github.com/dotnet/corefx/issues/12969 is finally fixed/released
-                frameworkEx = ex;
-            }
-
-            try
-            {
-                return QueryNetworkInterfaces(skipIPv6SiteLocal);
-            }
-            catch (Exception ex)
-            {
-                // on linux, with 4.3.0, this might not even catch as the bug in dotnet core is that this just throws anyways...
-                // waiting for 2.0 it seems... https://github.com/dotnet/corefx/issues/12969
-                throw new AggregateException("Could not resolve name servers via .NET Framework nor native. See inner exceptions for details.", frameworkEx, ex);
-            }
-#endif
-        }
-
-#if PORTABLE
-
-        private static IPEndPoint[] GetDnsEndpointsNative()
+        /// <summary>
+        /// Using my custom native implementation to support UWP apps and such until <see cref="NetworkInterface.GetAllNetworkInterfaces"/>
+        /// gets an implementation in netstandard2.1.
+        /// <para>
+        /// DnsClient has been changed in version 1.1.0.
+        /// It will not invoke this when resolving default DNS servers. It is up to the user to decide what to do based on what platform the code is running on.
+        /// </para>
+        /// <para>
+        /// Also, this method might get removed in later versions.
+        /// </para>
+        /// </summary>
+        /// <returns>
+        /// The list of name servers.
+        /// </returns>
+        public static ICollection<IPEndPoint> ResolveNameServersNative()
         {
             IPAddress[] addresses = null;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -183,7 +167,6 @@ namespace DnsClient
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                // TODO: Remove if fixed in dotnet core runtim 1.2.x?
                 addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(EtcResolvConfFile).ToArray();
             }
 

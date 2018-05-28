@@ -76,7 +76,10 @@ namespace DigApp
                 MinimumCacheTimeout = settings.MinTTL,
                 UseCache = settings.UseCache,
                 UseTcpFallback = !settings.NoTcp,
-                UseTcpOnly = settings.TcpOnly
+                UseTcpOnly = settings.TcpOnly,
+                PreserveNameServerOrder = true,
+                ContinueOnDnsError = true,
+                ThrowDnsErrors = false
             };
         }
 

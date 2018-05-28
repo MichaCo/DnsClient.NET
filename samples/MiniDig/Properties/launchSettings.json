@@ -1,11 +1,8 @@
 {
   "profiles": {
-    "DigApp": {
-      "commandName": "Project",
-      "commandLineArgs": ""
-    },
     "MiniDig": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "commandLineArgs": "-s 8.8.8.8 -s 8.8.4.4 -s 8.8.8.8 -s 8.8.4.4 -s 1.1.1.1 lalala"
     }
   }
 }

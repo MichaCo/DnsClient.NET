@@ -198,8 +198,8 @@ namespace DnsClient.Tests
             var resultA = client.Query("google.com", QueryType.ANY);
             var resultB = client.Query("google.com", QueryType.ANY);
 
-            Assert.Equal(NameServer.GooglePublicDnsIPv6, resultA.NameServer.Endpoint);
-            Assert.Equal(NameServer.GooglePublicDns, resultB.NameServer.Endpoint);
+            Assert.Equal(NameServer.GooglePublicDns, resultA.NameServer.Endpoint);
+            Assert.Equal(NameServer.GooglePublicDnsIPv6, resultB.NameServer.Endpoint);
             Assert.True(resultA.Answers.Count > 0);
             Assert.True(resultB.Answers.Count > 0);
         }
@@ -218,8 +218,8 @@ namespace DnsClient.Tests
             var resultA = client.Query("google.com", QueryType.ANY);
             var resultB = client.Query("google.com", QueryType.ANY);
 
-            Assert.Equal(NameServer.GooglePublicDnsIPv6, resultA.NameServer.Endpoint);
-            Assert.Equal(NameServer.GooglePublicDns, resultB.NameServer.Endpoint);
+            Assert.Equal(NameServer.GooglePublicDns, resultA.NameServer.Endpoint);
+            Assert.Equal(NameServer.GooglePublicDnsIPv6, resultB.NameServer.Endpoint);
             Assert.True(resultA.Answers.Count > 0);
             Assert.True(resultB.Answers.Count > 0);
         }
