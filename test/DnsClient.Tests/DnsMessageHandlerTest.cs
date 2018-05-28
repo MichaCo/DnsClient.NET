@@ -26,13 +26,13 @@ namespace DnsClient.Tests
             var handle = new DnsUdpMessageHandler(true);
             var result = handle.GetResponseMessage(new System.ArraySegment<byte>(raw)).AsQueryResponse(new NameServer(ip));
 
-            Assert.Equal(result.Answers.Count, 1);
+            Assert.Equal(1, result.Answers.Count);
             var resultAnswer = result.Answers.OfType<ARecord>().First();
             Assert.Equal(resultAnswer.Address.ToString(), ip.ToString());
-            Assert.Equal(resultAnswer.DomainName.Value, "query.");
-            Assert.Equal(resultAnswer.RawDataLength, 4);
-            Assert.Equal(resultAnswer.RecordClass, QueryClass.IN);
-            Assert.Equal(resultAnswer.RecordType, ResourceRecordType.A);
+            Assert.Equal("query.", resultAnswer.DomainName.Value);
+            Assert.Equal(4, resultAnswer.RawDataLength);
+            Assert.Equal(QueryClass.IN, resultAnswer.RecordClass);
+            Assert.Equal(ResourceRecordType.A, resultAnswer.RecordType);
             Assert.True(resultAnswer.TimeToLive == 100);
             Assert.True(result.Header.Id == 42);
             Assert.True(result.Header.AnswerCount == 1);

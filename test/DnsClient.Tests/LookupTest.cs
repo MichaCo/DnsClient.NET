@@ -22,7 +22,7 @@ namespace DnsClient.Tests
             Assert.Null(client.MinimumCacheTimeout);
             Assert.True(client.Recursion);
             Assert.False(client.ThrowDnsErrors);
-            Assert.Equal(client.Retries, 5);
+            Assert.Equal(5, client.Retries);
             Assert.Equal(client.Timeout, TimeSpan.FromSeconds(5));
             Assert.True(client.UseTcpFallback);
             Assert.False(client.UseTcpOnly);
@@ -238,7 +238,7 @@ namespace DnsClient.Tests
 
             var ex = Record.Exception(act) as DnsResponseException;
 
-            Assert.Equal(ex.Code, DnsResponseCode.NotExistentDomain);
+            Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
         }
 
         [Fact]
@@ -253,7 +253,7 @@ namespace DnsClient.Tests
 
             var ex = Record.Exception(act) as DnsResponseException;
 
-            Assert.Equal(ex.Code, DnsResponseCode.NotExistentDomain);
+            Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
         }
 
         public class QueryTimesOutTests
@@ -474,7 +474,7 @@ namespace DnsClient.Tests
             var client = new LookupClient();
             var result = await client.QueryReverseAsync(IPAddress.Parse("127.0.0.1"));
 
-            Assert.Equal(result.Answers.PtrRecords().First().PtrDomainName.Value, "localhost.");
+            Assert.Equal("localhost.", result.Answers.PtrRecords().First().PtrDomainName.Value);
         }
 
         [Fact]
@@ -483,7 +483,7 @@ namespace DnsClient.Tests
             var client = new LookupClient();
             var result = client.QueryReverse(IPAddress.Parse("127.0.0.1"));
 
-            Assert.Equal(result.Answers.PtrRecords().First().PtrDomainName.Value, "localhost.");
+            Assert.Equal("localhost.", result.Answers.PtrRecords().First().PtrDomainName.Value);
         }
 
         [Fact]
@@ -822,7 +822,7 @@ namespace DnsClient.Tests
                 var result = client.GetHostEntry(ipAddress);
 
                 Assert.True(result.AddressList.Length >= 1);
-                Assert.True(result.AddressList.Contains(ipAddress));
+                Assert.Contains(ipAddress, result.AddressList);
                 Assert.True(result.Aliases.Length == 0);
 
                 // expecting always the name without . at the end!

@@ -20,7 +20,7 @@ namespace DnsClient.Tests
         {
             var name = DnsString.Parse("abc.xyz.example.com.");
 
-            Assert.Equal(name.Value, "abc.xyz.example.com.");
+            Assert.Equal("abc.xyz.example.com.", name.Value);
         }
 
         [Fact]
@@ -119,7 +119,6 @@ namespace DnsClient.Tests
             DnsString name = DnsString.Parse(val);
             DnsString name2 = DnsString.Parse(val);
 
-            Assert.NotNull(name.GetHashCode());
             Assert.True(name.GetHashCode().Equals(name2.GetHashCode()));
         }
 
@@ -129,8 +128,6 @@ namespace DnsClient.Tests
             var val = "Aäb.bÜlöb.cscöälüpqläö.d.com.";
             DnsString name = DnsString.Parse(val);
             DnsString name2 = DnsString.Parse("asdasd");
-
-            Assert.NotNull(name.GetHashCode());
             Assert.False(name.GetHashCode().Equals(name2.GetHashCode()));
         }
 

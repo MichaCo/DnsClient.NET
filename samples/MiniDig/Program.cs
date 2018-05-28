@@ -11,10 +11,7 @@ namespace DigApp
     {
         public static void Main(string[] args)
         {
-            var loggerFactory = new LoggerFactory().WithFilter(new FilterLoggerSettings()
-            {
-                { "Default", LogLevel.Warning }
-            });
+            var loggerFactory = new LoggerFactory();
             //loggerFactory.AddConsole();
 
             var logFilename = $"Log/dig.log";
@@ -30,6 +27,7 @@ namespace DigApp
 
             loggerFactory.AddSerilog(new LoggerConfiguration()
                 .Enrich.FromLogContext()
+                .Filter.ByExcluding(e => e.Level < Serilog.Events.LogEventLevel.Information)
                 .WriteTo.File(logFilename, shared: true)
                 .CreateLogger());
 

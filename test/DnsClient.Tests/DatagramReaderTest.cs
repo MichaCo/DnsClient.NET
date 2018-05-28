@@ -47,7 +47,7 @@ namespace DnsClient.Tests
 
             reader.Index = 36;
             DnsString name = reader.ReadDnsName();
-            Assert.Equal(name.Value, "aa.com.");
+            Assert.Equal("aa.com.", name.Value);
         }
 
         [Fact]
@@ -58,9 +58,8 @@ namespace DnsClient.Tests
 
             reader.Index = 36;
             DnsString name = reader.ReadDnsName();
-            Assert.Equal(name.Value, "eeeee.dd.c.aa.com.");
+            Assert.Equal("eeeee.dd.c.aa.com.", name.Value);
         }
-
 
         [Fact]
         public void DatagramReader_DnsName_FromBytesValid()
@@ -128,8 +127,8 @@ namespace DnsClient.Tests
 
             var result = reader.ReadUInt16();
 
-            Assert.Equal(result, 1);
-            Assert.Equal(reader.Index, 2);
+            Assert.Equal(1, result);
+            Assert.Equal(2, reader.Index);
         }
 
         [Fact]
@@ -139,8 +138,8 @@ namespace DnsClient.Tests
 
             var result = reader.ReadUInt16NetworkOrder();
 
-            Assert.Equal(result, 1);
-            Assert.Equal(reader.Index, 2);
+            Assert.Equal(1, result);
+            Assert.Equal(2, reader.Index);
         }
 
         [Fact]

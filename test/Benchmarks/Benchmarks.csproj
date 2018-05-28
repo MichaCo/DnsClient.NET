@@ -3,13 +3,13 @@
   <PropertyGroup>
     <TargetFrameworks>netcoreapp1.1;net46</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    
+
     <AssemblyName>Benchmarks</AssemblyName>
     <OutputType>Exe</OutputType>
     <AssemblyOriginatorKeyFile>../../tools/key.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
-    
-    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>    
+
+    <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp1.1|AnyCPU'">
@@ -23,7 +23,5 @@
 
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.10.5" />
-    <PackageReference Include="System.Buffers" Version="4.3.0" />
   </ItemGroup>
-
 </Project>

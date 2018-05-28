@@ -36,7 +36,7 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as PtrRecord;
 
-            Assert.Equal(result.PtrDomainName.Value, ".");
+            Assert.Equal(".", result.PtrDomainName.Value);
         }
 
         [Fact]
@@ -65,7 +65,7 @@ namespace DnsClient.Tests
             var result = factory.GetRecord(info) as MbRecord;
 
             Assert.Equal(result.MadName, name);
-            Assert.Equal(result.MadName.Original, "müsli.de.");
+            Assert.Equal("müsli.de.", result.MadName.Original);
         }
 
         [Fact]
@@ -138,7 +138,7 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as NsRecord;
 
-            Assert.Equal(result.NSDName.Value, ".");
+            Assert.Equal(".", result.NSDName.Value);
         }
 
         [Fact]
@@ -188,8 +188,8 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as MxRecord;
 
-            Assert.Equal(result.Preference, 256);
-            Assert.Equal(result.Exchange.Value, ".");
+            Assert.Equal(256, result.Preference);
+            Assert.Equal(".", result.Exchange.Value);
         }
 
         [Fact]
@@ -206,7 +206,7 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as MxRecord;
 
-            Assert.Equal(result.Preference, 1);
+            Assert.Equal(1, result.Preference);
             Assert.Equal(result.Exchange, name);
         }
 
@@ -231,8 +231,8 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as SoaRecord;
 
-            Assert.Equal(result.MName.Value, ".");
-            Assert.Equal(result.RName.Value, ".");
+            Assert.Equal(".", result.MName.Value);
+            Assert.Equal(".", result.RName.Value);
             Assert.True(result.Serial == 1);
             Assert.True(result.Refresh == 2);
             Assert.True(result.Retry == 3);
@@ -318,7 +318,7 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as TxtRecord;
 
-            Assert.Equal(result.EscapedText.Count, 2);
+            Assert.Equal(2, result.EscapedText.Count);
             Assert.Equal(result.EscapedText.ElementAt(0), textA);
             Assert.Equal(result.EscapedText.ElementAt(1), textB);
         }
@@ -341,9 +341,9 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as TxtRecord;
 
-            Assert.Equal(result.EscapedText.Count, 2);
+            Assert.Equal(2, result.EscapedText.Count);
             Assert.Equal(result.Text.ElementAt(0), textA);
-            Assert.Equal(result.EscapedText.ElementAt(0), "\\\"\\195\\164\\195\\182\\195\\188 \\\\slash/! @bla.com \\\"");
+            Assert.Equal("\\\"\\195\\164\\195\\182\\195\\188 \\\\slash/! @bla.com \\\"", result.EscapedText.ElementAt(0));
             Assert.Equal(result.Text.ElementAt(1), textB);
             Assert.Equal(result.EscapedText.ElementAt(1), textB);
         }
