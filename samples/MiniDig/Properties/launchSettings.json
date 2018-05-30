@@ -2,7 +2,7 @@
   "profiles": {
     "MiniDig": {
       "commandName": "Project",
-      "commandLineArgs": "random -s localhost -s localhost -s localhost -s localhost -s localhost -r 60 -c 20"
+      "commandLineArgs": " -s l.root-servers.net. google.com"
     }
   }
 }

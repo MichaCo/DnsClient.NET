@@ -28,7 +28,7 @@ namespace Benchmarks
             [Benchmark(Baseline = true)]
             public void RequestAndResponse()
             {
-                var result = _lookup.ResolveQuery(_handler, _request);
+                var result = _lookup.ResolveQuery(_lookup.NameServers, _handler, _request);
                 if (result.Answers.Count != 11)
                 {
                     throw new InvalidOperationException();
@@ -46,13 +46,13 @@ namespace Benchmarks
             [Benchmark]
             public void Request()
             {
-                var result = _lookup.ResolveQuery(_handlerRequest, _request);
+                var result = _lookup.ResolveQuery(_lookup.NameServers, _handlerRequest, _request);
             }
 
             [Benchmark]
             public void Response()
             {
-                var result = _lookup.ResolveQuery(_handlerResponse, _request);
+                var result = _lookup.ResolveQuery(_lookup.NameServers, _handlerResponse, _request);
             }
         }
     }

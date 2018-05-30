@@ -118,6 +118,8 @@ namespace DigApp
         private async Task ExcecuteRun()
         {
             //var swatch = Stopwatch.StartNew();
+            var lookup = GetDnsLookup();
+            lookup.EnableAuditTrail = false;
             while (_running)
             {
                 try
@@ -125,11 +127,11 @@ namespace DigApp
                     IDnsQueryResponse response;
                     if (!_runSync)
                     {
-                        response = await _lookup.QueryAsync(_query, QueryType.A);
+                        response = await lookup.QueryAsync(_query, QueryType.A);
                     }
                     else
                     {
-                        response = await Task.Run(() => _lookup.Query(_query, QueryType.A));
+                        response = await Task.Run(() => lookup.Query(_query, QueryType.A));
                         await Task.Delay(0);
                     }
 

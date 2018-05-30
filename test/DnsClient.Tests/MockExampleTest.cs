@@ -29,7 +29,7 @@ namespace DnsClient.Tests
             //        .Returns(new DnsResourceRecord[] { aRecord });
 
             Task<IDnsQueryResponse> response = Task.FromResult(dnsResponse);
-            lookupMock.Setup(f => f.QueryAsync(It.IsAny<string>(), QueryType.A)).Returns(response);
+            lookupMock.Setup(f => f.QueryAsync(It.IsAny<string>(), QueryType.A, QueryClass.IN, new System.Threading.CancellationToken())).Returns(response);
             var lookup = lookupMock.Object;
 
             // act

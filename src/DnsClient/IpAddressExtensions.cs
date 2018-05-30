@@ -17,7 +17,7 @@ namespace System.Net
         /// <param name="ip">The address to translate.</param>
         /// <returns>The arpa representation of the address.</returns>
         /// <seealso cref="DnsClient.IDnsQuery.QueryReverse(IPAddress)"/>
-        /// <seealso cref="DnsClient.IDnsQuery.QueryReverseAsync(IPAddress)"/>
+        /// <seealso cref="DnsClient.IDnsQuery.QueryReverseAsync(IPAddress, Threading.CancellationToken)"/>
         /// <seealso href="https://en.wikipedia.org/wiki/.arpa"/>
         public static string GetArpaName(this IPAddress ip)
         {

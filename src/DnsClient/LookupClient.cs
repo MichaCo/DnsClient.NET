@@ -273,7 +273,7 @@ namespace DnsClient
         /// </code>
         /// </example>
         public LookupClient(params IPAddress[] nameServers)
-            : this(nameServers?.Select(p => new IPEndPoint(p, NameServer.DefaultPort)).ToArray())
+            : this(nameServers?.Select(p => new IPEndPoint(p, NameServer.DefaultPort))?.ToArray())
         {
         }
 
@@ -339,12 +339,14 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Does a reverse lookup of the <paramref name="ipAddress"/>.
+        /// Does a reverse lookup for the <paramref name="ipAddress"/>.
         /// </summary>
         /// <param name="ipAddress">The <see cref="IPAddress"/>.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which should contain the <see cref="DnsClient.Protocol.PtrRecord"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="ipAddress"/> is null.</exception>
+        /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
         public IDnsQueryResponse QueryReverse(IPAddress ipAddress)
         {
             if (ipAddress == null)
@@ -357,32 +359,17 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Does a reverse lookup of the <paramref name="ipAddress"/>.
-        /// </summary>
-        /// <param name="ipAddress">The <see cref="IPAddress"/>.</param>
-        /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which should contain the <see cref="DnsClient.Protocol.PtrRecord"/>.
-        /// </returns>
-        /// <remarks>
-        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
-        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
-        /// </remarks>
-        public Task<IDnsQueryResponse> QueryReverseAsync(IPAddress ipAddress)
-            => QueryReverseAsync(ipAddress, CancellationToken.None);
-
-        /// <summary>
-        /// Does a reverse lookup of the <paramref name="ipAddress" />.
+        /// Does a reverse lookup for the <paramref name="ipAddress" />.
         /// </summary>
         /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which should contain the <see cref="DnsClient.Protocol.PtrRecord" />.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
-        /// <remarks>
-        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
-        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
-        /// </remarks>
-        public Task<IDnsQueryResponse> QueryReverseAsync(IPAddress ipAddress, CancellationToken cancellationToken)
+        /// <exception cref="ArgumentNullException">If <paramref name="ipAddress"/> is null.</exception>
+        /// <exception cref="OperationCanceledException">If cancellation has been requested for the passed in <paramref name="cancellationToken"/>.</exception>
+        /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
+        public Task<IDnsQueryResponse> QueryReverseAsync(IPAddress ipAddress, CancellationToken cancellationToken = default)
         {
             if (ipAddress == null)
             {
@@ -394,22 +381,87 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Performs a DNS lookup for <paramref name="query" /> and <paramref name="queryType" />.
+        /// Does a reverse lookup for the <paramref name="ipAddress" />
+        /// using only the passed in <paramref name="servers"/> with the <see cref="NameServer.DefaultPort"/>.
         /// </summary>
-        /// <param name="query">The domain name query.</param>
-        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <param name="servers">The list of one or more server(s) which should be used for the lookup.</param>
+        /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
-        /// <remarks>
-        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
-        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
-        /// </remarks>
-        public IDnsQueryResponse Query(string query, QueryType queryType)
-            => Query(query, queryType, QueryClass.IN);
+        /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="ipAddress"/> is null.</exception>
+        /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
+        public IDnsQueryResponse QueryServerReverse(IReadOnlyCollection<IPAddress> servers, IPAddress ipAddress)
+            => QueryServerReverse(servers?.Select(p => new IPEndPoint(p, NameServer.DefaultPort))?.ToArray(), ipAddress);
 
         /// <summary>
-        /// Performs a DNS lookup for <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass"/>.
+        /// Does a reverse lookup for the <paramref name="ipAddress" />
+        /// using only the passed in <paramref name="servers"/>.
+        /// </summary>
+        /// <param name="servers">The list of one or more server(s) which should be used for the lookup.</param>
+        /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="ipAddress"/> is null.</exception>
+        /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
+        public IDnsQueryResponse QueryServerReverse(IReadOnlyCollection<IPEndPoint> servers, IPAddress ipAddress)
+        {
+            if (ipAddress == null)
+            {
+                throw new ArgumentNullException(nameof(ipAddress));
+            }
+
+            var arpa = ipAddress.GetArpaName();
+            return QueryServer(servers, arpa, QueryType.PTR, QueryClass.IN);
+        }
+
+        /// <summary>
+        /// Does a reverse lookup for the <paramref name="ipAddress" />
+        /// using only the passed in <paramref name="servers"/> with the <see cref="NameServer.DefaultPort"/>.
+        /// </summary>
+        /// <param name="servers">The list of one or more server(s) which should be used for the lookup.</param>
+        /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="ipAddress"/> is null.</exception>
+        /// <exception cref="OperationCanceledException">If cancellation has been requested for the passed in <paramref name="cancellationToken"/>.</exception>
+        /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
+        public Task<IDnsQueryResponse> QueryServerReverseAsync(IReadOnlyCollection<IPAddress> servers, IPAddress ipAddress, CancellationToken cancellationToken = default)
+            => QueryServerReverseAsync(servers?.Select(p => new IPEndPoint(p, NameServer.DefaultPort))?.ToArray(), ipAddress, cancellationToken);
+
+        /// <summary>
+        /// Does a reverse lookup for the <paramref name="ipAddress" />
+        /// using only the passed in <paramref name="servers"/>.
+        /// </summary>
+        /// <param name="servers">The list of one or more server(s) which should be used for the lookup.</param>
+        /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="ipAddress"/> is null.</exception>
+        /// <exception cref="OperationCanceledException">If cancellation has been requested for the passed in <paramref name="cancellationToken"/>.</exception>
+        /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
+        public Task<IDnsQueryResponse> QueryServerReverseAsync(IReadOnlyCollection<IPEndPoint> servers, IPAddress ipAddress, CancellationToken cancellationToken = default)
+        {
+            if (ipAddress == null)
+            {
+                throw new ArgumentNullException(nameof(ipAddress));
+            }
+
+            var arpa = ipAddress.GetArpaName();
+            return QueryServerAsync(servers, arpa, QueryType.PTR, QueryClass.IN);
+        }
+
+        /// <summary>
+        /// Performs a DNS lookup for the given <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />
         /// </summary>
         /// <param name="query">The domain name query.</param>
         /// <param name="queryType">The <see cref="QueryType" />.</param>
@@ -417,14 +469,124 @@ namespace DnsClient
         /// <returns>
         /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
         /// </returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="query"/> is null.</exception>
+        /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
         /// <remarks>
         /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
         /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
         /// </remarks>
-        public IDnsQueryResponse Query(string query, QueryType queryType, QueryClass queryClass)
-            => Query(new DnsQuestion(query, queryType, queryClass));
+        public IDnsQueryResponse Query(string query, QueryType queryType, QueryClass queryClass = QueryClass.IN)
+            => QueryInternal(GetNextServers(), new DnsQuestion(query, queryType, queryClass));
 
-        private IDnsQueryResponse Query(DnsQuestion question)
+        /// <summary>
+        /// Performs a DNS lookup for the given <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />
+        /// </summary>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <param name="queryClass">The <see cref="QueryClass" />.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
+        /// </returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="query"/> is null.</exception>
+        /// <exception cref="OperationCanceledException">If cancellation has been requested for the passed in <paramref name="cancellationToken"/>.</exception>
+        /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
+        /// <remarks>
+        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
+        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
+        /// </remarks>
+        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass = QueryClass.IN, CancellationToken cancellationToken = default)
+            => QueryInternalAsync(GetNextServers(), new DnsQuestion(query, queryType, queryClass), cancellationToken);
+
+        /// <summary>
+        /// Performs a DNS lookup for the given <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />
+        /// using only the passed in <paramref name="servers"/> with the <see cref="NameServer.DefaultPort"/>.
+        /// </summary>
+        /// <remarks>
+        /// To query specific servers can be useful in cases where you have to use a different DNS server than initially configured
+        /// (without creating a new instance of <see cref="ILookupClient"/> for example).
+        /// </remarks>
+        /// <param name="servers">The list of one or more server(s) which should be used for the lookup.</param>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <param name="queryClass">The <see cref="QueryClass" />.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="query"/> is null.</exception>
+        /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
+        public IDnsQueryResponse QueryServer(IReadOnlyCollection<IPAddress> servers, string query, QueryType queryType, QueryClass queryClass = QueryClass.IN)
+            => QueryServer(servers?.Select(p => new IPEndPoint(p, NameServer.DefaultPort))?.ToArray(), query, queryType, queryClass);
+
+        /// <summary>
+        /// Performs a DNS lookup for the given <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />
+        /// using only the passed in <paramref name="servers"/>.
+        /// </summary>
+        /// <remarks>
+        /// To query specific servers can be useful in cases where you have to use a different DNS server than initially configured
+        /// (without creating a new instance of <see cref="ILookupClient"/> for example).
+        /// </remarks>
+        /// <param name="servers">The list of one or more server(s) which should be used for the lookup.</param>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <param name="queryClass">The <see cref="QueryClass" />.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="query"/> is null.</exception>
+        /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
+        public IDnsQueryResponse QueryServer(IReadOnlyCollection<IPEndPoint> servers, string query, QueryType queryType, QueryClass queryClass = QueryClass.IN)
+            => QueryInternal(servers?.Select(p => new NameServer(p))?.ToArray(), new DnsQuestion(query, queryType, queryClass));
+
+        /// <summary>
+        /// Performs a DNS lookup for the given <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />
+        /// using only the passed in <paramref name="servers"/> with the <see cref="NameServer.DefaultPort"/>.
+        /// </summary>
+        /// <remarks>
+        /// To query specific servers can be useful in cases where you have to use a different DNS server than initially configured
+        /// (without creating a new instance of <see cref="ILookupClient"/> for example).
+        /// </remarks>
+        /// <param name="servers">The list of one or more server(s) which should be used for the lookup.</param>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <param name="queryClass">The <see cref="QueryClass" />.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="query"/> is null.</exception>
+        /// <exception cref="OperationCanceledException">If cancellation has been requested for the passed in <paramref name="cancellationToken"/>.</exception>
+        /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
+        public Task<IDnsQueryResponse> QueryServerAsync(IReadOnlyCollection<IPAddress> servers, string query, QueryType queryType, QueryClass queryClass = QueryClass.IN, CancellationToken cancellationToken = default)
+            => QueryServerAsync(servers?.Select(p => new IPEndPoint(p, NameServer.DefaultPort))?.ToArray(), query, queryType, queryClass, cancellationToken);
+
+        /// <summary>
+        /// Performs a DNS lookup for the given <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />
+        /// using only the passed in <paramref name="servers"/>.
+        /// </summary>
+        /// <remarks>
+        /// To query specific servers can be useful in cases where you have to use a different DNS server than initially configured
+        /// (without creating a new instance of <see cref="ILookupClient"/> for example).
+        /// </remarks>
+        /// <param name="servers">The list of one or more server(s) which should be used for the lookup.</param>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <param name="queryClass">The <see cref="QueryClass" />.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
+        /// </returns>
+        /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="query"/> is null.</exception>
+        /// <exception cref="OperationCanceledException">If cancellation has been requested for the passed in <paramref name="cancellationToken"/>.</exception>
+        /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
+        public Task<IDnsQueryResponse> QueryServerAsync(IReadOnlyCollection<IPEndPoint> servers, string query, QueryType queryType, QueryClass queryClass = QueryClass.IN, CancellationToken cancellationToken = default)
+            => QueryInternalAsync(servers?.Select(p => new NameServer(p))?.ToArray(), new DnsQuestion(query, queryType, queryClass), cancellationToken);
+
+        private IDnsQueryResponse QueryInternal(IReadOnlyCollection<NameServer> servers, DnsQuestion question, bool useCache = true)
         {
             if (question == null)
             {
@@ -435,13 +597,13 @@ namespace DnsClient
             var request = new DnsRequestMessage(head, question);
             var handler = UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
 
-            if (_cache.Enabled)
+            if (_cache.Enabled && useCache)
             {
                 var cacheKey = ResponseCache.GetCacheKey(question);
                 var item = _cache.Get(cacheKey);
                 if (item == null)
                 {
-                    item = ResolveQuery(handler, request);
+                    item = ResolveQuery(servers, handler, request);
                     _cache.Add(cacheKey, item);
                 }
 
@@ -449,20 +611,56 @@ namespace DnsClient
             }
             else
             {
-                return ResolveQuery(handler, request);
+                return ResolveQuery(servers, handler, request);
+            }
+        }
+
+        private async Task<IDnsQueryResponse> QueryInternalAsync(IReadOnlyCollection<NameServer> servers, DnsQuestion question, CancellationToken cancellationToken = default, bool useCache = true)
+        {
+            if (question == null)
+            {
+                throw new ArgumentNullException(nameof(question));
+            }
+
+            var head = new DnsRequestHeader(GetNextUniqueId(), Recursion, DnsOpCode.Query);
+            var request = new DnsRequestMessage(head, question);
+            var handler = UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
+
+            if (_cache.Enabled && useCache)
+            {
+                var cacheKey = ResponseCache.GetCacheKey(question);
+                var item = _cache.Get(cacheKey);
+                if (item == null)
+                {
+                    item = await ResolveQueryAsync(servers, handler, request, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    _cache.Add(cacheKey, item);
+                }
+
+                return item;
+            }
+            else
+            {
+                return await ResolveQueryAsync(servers, handler, request, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
 
         // making it internal for unit testing
-        internal IDnsQueryResponse ResolveQuery(DnsMessageHandler handler, DnsRequestMessage request, Audit continueAudit = null)
+        internal IDnsQueryResponse ResolveQuery(IReadOnlyCollection<NameServer> servers, DnsMessageHandler handler, DnsRequestMessage request, Audit continueAudit = null)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
+            if (handler == null)
+            {
+                throw new ArgumentNullException(nameof(handler));
+            }
+            if (servers.Count == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(servers), "List of servers must not be empty.");
+            }
 
             var audit = continueAudit ?? new Audit();
-            var servers = GetNextServers();
 
             DnsResponseException lastDnsResponseException = null;
             Exception lastException = null;
@@ -493,7 +691,7 @@ namespace DnsClient
                                 audit.AuditTruncatedRetryTcp();
                             }
 
-                            return ResolveQuery(_tcpFallbackHandler, request, audit);
+                            return ResolveQuery(new[] { serverInfo }, _tcpFallbackHandler, request, audit);
                         }
 
                         if (EnableAuditTrail)
@@ -602,115 +800,23 @@ namespace DnsClient
             };
         }
 
-        /// <summary>
-        /// Performs a DNS lookup for <paramref name="query" /> and <paramref name="queryType" />.
-        /// </summary>
-        /// <param name="query">The domain name query.</param>
-        /// <param name="queryType">The <see cref="QueryType" />.</param>
-        /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
-        /// </returns>
-        /// <remarks>
-        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
-        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
-        /// </remarks>
-        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType)
-            => QueryAsync(query, queryType, CancellationToken.None);
-
-        /// <summary>
-        /// Performs a DNS lookup for <paramref name="query" /> and <paramref name="queryType" />.
-        /// </summary>
-        /// <param name="query">The domain name query.</param>
-        /// <param name="queryType">The <see cref="QueryType" />.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
-        /// </returns>
-        /// <remarks>
-        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
-        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
-        /// </remarks>
-        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, CancellationToken cancellationToken)
-            => QueryAsync(query, queryType, QueryClass.IN, cancellationToken);
-
-        /// <summary>
-        /// Performs a DNS lookup for <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass"/>.
-        /// </summary>
-        /// <param name="query">The domain name query.</param>
-        /// <param name="queryType">The <see cref="QueryType" />.</param>
-        /// <param name="queryClass">The <see cref="QueryClass"/>.</param>
-        /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
-        /// </returns>
-        /// <remarks>
-        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
-        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
-        /// </remarks>
-        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass)
-            => QueryAsync(query, queryType, queryClass, CancellationToken.None);
-
-        /// <summary>
-        /// Performs a DNS lookup for <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />.
-        /// </summary>
-        /// <param name="query">The domain name query.</param>
-        /// <param name="queryType">The <see cref="QueryType" />.</param>
-        /// <param name="queryClass">The <see cref="QueryClass" />.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
-        /// </returns>
-        /// <remarks>
-        /// The behavior of the query can be controlled by the properties of this <see cref="LookupClient"/> instance.
-        /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
-        /// </remarks>
-        public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
-            => QueryAsync(new DnsQuestion(query, queryType, queryClass), cancellationToken);
-
-        private async Task<IDnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken, bool useCache = true)
-        {
-            if (question == null)
-            {
-                throw new ArgumentNullException(nameof(question));
-            }
-
-            var head = new DnsRequestHeader(GetNextUniqueId(), Recursion, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, question);
-            var handler = UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
-
-            if (_cache.Enabled && useCache)
-            {
-                var cacheKey = ResponseCache.GetCacheKey(question);
-                var item = _cache.Get(cacheKey);
-                if (item == null)
-                {
-                    item = await ResolveQueryAsync(handler, request, cancellationToken).ConfigureAwait(false);
-                    _cache.Add(cacheKey, item);
-                }
-
-                return item;
-            }
-            else
-            {
-                return await ResolveQueryAsync(handler, request, cancellationToken).ConfigureAwait(false);
-            }
-        }
-
-        // internal for unit testing
-        internal Task<IDnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, CancellationToken cancellationToken, Audit continueAudit = null)
+        internal async Task<IDnsQueryResponse> ResolveQueryAsync(IReadOnlyCollection<NameServer> servers, DnsMessageHandler handler, DnsRequestMessage request, Audit continueAudit = null, CancellationToken cancellationToken = default)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
+            if (handler == null)
+            {
+                throw new ArgumentNullException(nameof(handler));
+            }
+            if (servers.Count == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(servers), "List of servers must not be empty.");
+            }
 
             var audit = continueAudit ?? new Audit();
-            var servers = GetNextServers();
 
-            return ResolveQueryAsync(handler, request, audit, servers, cancellationToken);
-        }
-
-        private async Task<IDnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, Audit audit, IReadOnlyCollection<NameServer> servers, CancellationToken cancellationToken)
-        {
             DnsResponseException lastDnsResponseException = null;
             Exception lastException = null;
             DnsQueryResponse lastQueryResponse = null;
@@ -766,7 +872,7 @@ namespace DnsClient
                                 audit.AuditTruncatedRetryTcp();
                             }
 
-                            return await ResolveQueryAsync(_tcpFallbackHandler, request, cancellationToken, audit).ConfigureAwait(false);
+                            return await ResolveQueryAsync(new[] { serverInfo }, _tcpFallbackHandler, request, audit, cancellationToken).ConfigureAwait(false);
                         }
 
                         if (EnableAuditTrail)
@@ -921,7 +1027,8 @@ namespace DnsClient
             }
         }
 
-        private IReadOnlyCollection<NameServer> GetNextServers()
+        // internal for unit testing
+        internal IReadOnlyCollection<NameServer> GetNextServers()
         {
             IReadOnlyCollection<NameServer> servers = null;
             if (_endpoints.Count > 1)
@@ -983,7 +1090,7 @@ namespace DnsClient
                 {
                     try
                     {
-                        var result = await QueryAsync(server.LastSuccessfulRequest.Question, cancellationToken, useCache: false);
+                        var result = await QueryInternalAsync(new[] { server }, server.LastSuccessfulRequest.Question, cancellationToken, useCache: false);
                     }
                     catch { }
                 }

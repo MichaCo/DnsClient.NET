@@ -343,7 +343,7 @@ namespace DnsClient.Tests
 
             var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
-            Action act = () => client.QueryAsync("lala.com", QueryType.A, token).GetAwaiter().GetResult();
+            Action act = () => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token).GetAwaiter().GetResult();
             tokenSource.Cancel();
 
             var ex = Record.Exception(act) as OperationCanceledException;
@@ -362,7 +362,7 @@ namespace DnsClient.Tests
 
             var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
-            Action act = () => client.QueryAsync("lala.com", QueryType.A, token).GetAwaiter().GetResult();
+            Action act = () => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token).GetAwaiter().GetResult();
             tokenSource.Cancel();
 
             var ex = Record.Exception(act) as OperationCanceledException;
@@ -387,7 +387,7 @@ namespace DnsClient.Tests
 
                 var token = tokenSource.Token;
 
-                var ex = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A, token));
+                var ex = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token));
                 Assert.True(ex is OperationCanceledException);
                 Assert.Equal(token, ((OperationCanceledException)ex).CancellationToken);
             }
@@ -406,7 +406,7 @@ namespace DnsClient.Tests
 
                 var token = tokenSource.Token;
 
-                var ex = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A, token));
+                var ex = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token));
                 Assert.True(ex is OperationCanceledException);
                 Assert.Equal(token, ((OperationCanceledException)ex).CancellationToken);
             }
@@ -425,7 +425,7 @@ namespace DnsClient.Tests
 
                 var token = tokenSource.Token;
 
-                var ex = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A, token));
+                var ex = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token));
                 Assert.True(ex is OperationCanceledException);
                 Assert.Equal(token, ((OperationCanceledException)ex).CancellationToken);
             }
@@ -444,7 +444,7 @@ namespace DnsClient.Tests
 
                 var token = tokenSource.Token;
 
-                var ex = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A, token));
+                var ex = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token));
                 Assert.True(ex is OperationCanceledException);
                 Assert.Equal(token, ((OperationCanceledException)ex).CancellationToken);
             }

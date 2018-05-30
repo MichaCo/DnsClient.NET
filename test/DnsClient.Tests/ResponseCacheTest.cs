@@ -10,6 +10,13 @@ namespace DnsClient.Tests
     public class ResponseCacheTest
     {
         [Fact]
+        public void Cache_InvalidLessThanZero()
+        {
+            var ex = Assert.ThrowsAny<ArgumentOutOfRangeException>(
+                () => new ResponseCache(true, TimeSpan.FromMilliseconds(-2)));
+        }
+
+        [Fact]
         public void Cache_DoesCacheWithMinimumDefined()
         {
             var cache = new ResponseCache(true, TimeSpan.FromMilliseconds(100));
