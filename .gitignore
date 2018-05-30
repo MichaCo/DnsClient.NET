@@ -259,3 +259,5 @@ DocFxBin
 msdn.*
 _exported_templates
 docfx.zip
+*.bind
+*.jnl

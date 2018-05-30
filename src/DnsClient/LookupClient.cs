@@ -599,25 +599,10 @@ namespace DnsClient
             var request = new DnsRequestMessage(head, question);
             var handler = UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
 
-            if (_cache.Enabled && useCache)
-            {
-                var cacheKey = ResponseCache.GetCacheKey(question);
-                var item = _cache.Get(cacheKey);
-                if (item == null)
-                {
-                    item = ResolveQuery(servers, handler, request);
-                    _cache.Add(cacheKey, item);
-                }
-
-                return item;
-            }
-            else
-            {
-                return ResolveQuery(servers, handler, request);
-            }
+            return ResolveQuery(servers, handler, request, useCache);
         }
 
-        private async Task<IDnsQueryResponse> QueryInternalAsync(IReadOnlyCollection<NameServer> servers, DnsQuestion question, CancellationToken cancellationToken = default, bool useCache = true)
+        private Task<IDnsQueryResponse> QueryInternalAsync(IReadOnlyCollection<NameServer> servers, DnsQuestion question, CancellationToken cancellationToken = default, bool useCache = true)
         {
             if (question == null)
             {
@@ -628,26 +613,11 @@ namespace DnsClient
             var request = new DnsRequestMessage(head, question);
             var handler = UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
 
-            if (_cache.Enabled && useCache)
-            {
-                var cacheKey = ResponseCache.GetCacheKey(question);
-                var item = _cache.Get(cacheKey);
-                if (item == null)
-                {
-                    item = await ResolveQueryAsync(servers, handler, request, cancellationToken: cancellationToken).ConfigureAwait(false);
-                    _cache.Add(cacheKey, item);
-                }
-
-                return item;
-            }
-            else
-            {
-                return await ResolveQueryAsync(servers, handler, request, cancellationToken: cancellationToken).ConfigureAwait(false);
-            }
+            return ResolveQueryAsync(servers, handler, request, useCache, cancellationToken: cancellationToken);
         }
 
         // making it internal for unit testing
-        internal IDnsQueryResponse ResolveQuery(IReadOnlyCollection<NameServer> servers, DnsMessageHandler handler, DnsRequestMessage request, LookupClientAudit continueAudit = null)
+        internal IDnsQueryResponse ResolveQuery(IReadOnlyCollection<NameServer> servers, DnsMessageHandler handler, DnsRequestMessage request, bool useCache, LookupClientAudit continueAudit = null)
         {
             if (request == null)
             {
@@ -670,6 +640,17 @@ namespace DnsClient
 
             foreach (var serverInfo in servers)
             {
+                var cacheKey = string.Empty;
+                if (_cache.Enabled && useCache)
+                {
+                    cacheKey = ResponseCache.GetCacheKey(request.Question, serverInfo);
+                    var item = _cache.Get(cacheKey);
+                    if (item != null)
+                    {
+                        return item;
+                    }
+                }
+
                 var tries = 0;
                 do
                 {
@@ -695,12 +676,12 @@ namespace DnsClient
                                 audit.AuditTruncatedRetryTcp();
                             }
 
-                            return ResolveQuery(new[] { serverInfo }, _tcpFallbackHandler, request, audit);
+                            return ResolveQuery(new[] { serverInfo }, _tcpFallbackHandler, request, useCache, audit);
                         }
 
                         if (EnableAuditTrail)
                         {
-                            audit.AuditResolveServers(_endpoints.Count);
+                            audit.AuditResolveServers(servers.Count);
                             audit.AuditResponseHeader(response.Header);
                         }
 
@@ -727,6 +708,11 @@ namespace DnsClient
                             (ThrowDnsErrors || ContinueOnDnsError))
                         {
                             throw new DnsResponseException(response.Header.ResponseCode);
+                        }
+
+                        if (_cache.Enabled && useCache)
+                        {
+                            _cache.Add(cacheKey, queryResponse);
                         }
 
                         return queryResponse;
@@ -803,7 +789,7 @@ namespace DnsClient
             };
         }
 
-        internal async Task<IDnsQueryResponse> ResolveQueryAsync(IReadOnlyCollection<NameServer> servers, DnsMessageHandler handler, DnsRequestMessage request, LookupClientAudit continueAudit = null, CancellationToken cancellationToken = default)
+        internal async Task<IDnsQueryResponse> ResolveQueryAsync(IReadOnlyCollection<NameServer> servers, DnsMessageHandler handler, DnsRequestMessage request, bool useCache, LookupClientAudit continueAudit = null, CancellationToken cancellationToken = default)
         {
             if (request == null)
             {
@@ -826,6 +812,17 @@ namespace DnsClient
 
             foreach (var serverInfo in servers)
             {
+                var cacheKey = string.Empty;
+                if (_cache.Enabled && useCache)
+                {
+                    cacheKey = ResponseCache.GetCacheKey(request.Question, serverInfo);
+                    var item = _cache.Get(cacheKey);
+                    if (item != null)
+                    {
+                        return item;
+                    }
+                }
+
                 var tries = 0;
                 do
                 {
@@ -877,12 +874,12 @@ namespace DnsClient
                                 audit.AuditTruncatedRetryTcp();
                             }
 
-                            return await ResolveQueryAsync(new[] { serverInfo }, _tcpFallbackHandler, request, audit, cancellationToken).ConfigureAwait(false);
+                            return await ResolveQueryAsync(new[] { serverInfo }, _tcpFallbackHandler, request, useCache, audit, cancellationToken).ConfigureAwait(false);
                         }
 
                         if (EnableAuditTrail)
                         {
-                            audit.AuditResolveServers(_endpoints.Count);
+                            audit.AuditResolveServers(servers.Count);
                             audit.AuditResponseHeader(response.Header);
                         }
 
@@ -910,6 +907,11 @@ namespace DnsClient
                             (ThrowDnsErrors || ContinueOnDnsError))
                         {
                             throw new DnsResponseException(response.Header.ResponseCode);
+                        }
+
+                        if (_cache.Enabled && useCache)
+                        {
+                            _cache.Add(cacheKey, queryResponse);
                         }
 
                         return queryResponse;

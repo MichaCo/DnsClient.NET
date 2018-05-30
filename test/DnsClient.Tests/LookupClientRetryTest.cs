@@ -39,7 +39,7 @@ namespace DnsClient.Tests
                    new DnsRequestHeader(i, DnsOpCode.Query),
                    new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-                var result = lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request);
+                var result = lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request, false);
                 Assert.False(result.HasError);
             }
 
@@ -78,7 +78,7 @@ namespace DnsClient.Tests
                    new DnsRequestHeader(i, DnsOpCode.Query),
                    new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-                var result = await lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request);
+                var result = await lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request, false);
                 Assert.False(result.HasError);
             }
 
@@ -118,7 +118,7 @@ namespace DnsClient.Tests
                    new DnsRequestHeader(i, DnsOpCode.Query),
                    new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-                var result = lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request);
+                var result = lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request, false);
                 Assert.False(result.HasError);
             }
 
@@ -161,7 +161,7 @@ namespace DnsClient.Tests
                    new DnsRequestHeader(i, DnsOpCode.Query),
                    new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-                var result = await lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request);
+                var result = await lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request, false);
                 Assert.False(result.HasError);
             }
 
@@ -203,7 +203,7 @@ namespace DnsClient.Tests
                 new DnsRequestHeader(0, DnsOpCode.Query),
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-            var result = lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request);
+            var result = lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request, false);
 
             // no exception but error in the response after calling all endpoints!
             Assert.True(result.HasError);
@@ -242,7 +242,7 @@ namespace DnsClient.Tests
                 new DnsRequestHeader(0, DnsOpCode.Query),
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-            var result = await lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request);
+            var result = await lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request, false);
 
             // no exception but error in the response after calling all 3 endpoints!
             Assert.True(result.HasError);
@@ -288,7 +288,7 @@ namespace DnsClient.Tests
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             // all three servers have been called and we get the last exception thrown
-            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request));
+            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request, false));
 
             // ensure the error is the one from the last call
             Assert.Equal(DnsResponseCode.FormatError, result.Code);
@@ -333,7 +333,7 @@ namespace DnsClient.Tests
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             // all three servers have been called and we get the last exception thrown
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request));
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request, false));
 
             // ensure the error is the one from the last call
             Assert.Equal(DnsResponseCode.FormatError, result.Code);
@@ -367,7 +367,7 @@ namespace DnsClient.Tests
                 new DnsRequestHeader(0, DnsOpCode.Query),
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-            var result = lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request);
+            var result = lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request, false);
 
             Assert.True(result.HasError);
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Header.ResponseCode);
@@ -401,7 +401,7 @@ namespace DnsClient.Tests
                 new DnsRequestHeader(0, DnsOpCode.Query),
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-            var result = await lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request);
+            var result = await lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request, false);
 
             Assert.True(result.HasError);
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Header.ResponseCode);
@@ -437,7 +437,7 @@ namespace DnsClient.Tests
                 new DnsRequestHeader(0, DnsOpCode.Query),
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request));
+            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request, false));
 
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Code);
 
@@ -470,7 +470,7 @@ namespace DnsClient.Tests
                 new DnsRequestHeader(0, DnsOpCode.Query),
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request));
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request, false));
 
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Code);
 

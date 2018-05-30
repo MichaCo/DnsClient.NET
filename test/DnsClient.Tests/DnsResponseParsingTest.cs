@@ -24,7 +24,7 @@ namespace DnsClient.Tests
         public void DnsRecordFactory_McnetValidateSupport()
         {
             var types = (ResourceRecordType[])Enum.GetValues(typeof(ResourceRecordType));
-            var result = _client.ResolveQuery(_client.NameServers, new TestMessageHandler(), _nullRequestMessage);
+            var result = _client.ResolveQuery(_client.NameServers, new TestMessageHandler(), _nullRequestMessage, false);
 
             var ignore = new ResourceRecordType[]
             {
@@ -51,7 +51,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_McnetA()
         {
-            var result = _client.ResolveQuery(_client.NameServers, new TestMessageHandler(), _nullRequestMessage);
+            var result = _client.ResolveQuery(_client.NameServers, new TestMessageHandler(), _nullRequestMessage, false);
 
             var records = result.Answers.ARecords().ToArray();
 
@@ -293,7 +293,7 @@ namespace DnsClient.Tests
         private TRecord[] GetTypedRecords<TRecord>()
             where TRecord : DnsResourceRecord
         {
-            var result = _client.ResolveQuery(_client.NameServers, new TestMessageHandler(), _nullRequestMessage);
+            var result = _client.ResolveQuery(_client.NameServers, new TestMessageHandler(), _nullRequestMessage, false);
 
             var records = result.Answers.OfType<TRecord>().ToArray();
             return records;

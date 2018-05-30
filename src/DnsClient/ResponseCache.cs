@@ -46,14 +46,18 @@ namespace DnsClient
             MinimumTimout = minimumTimout;
         }
 
-        public static string GetCacheKey(DnsQuestion question)
+        public static string GetCacheKey(DnsQuestion question, NameServer server)
         {
             if (question == null)
             {
                 throw new ArgumentNullException(nameof(question));
             }
+            if (server == null)
+            {
+                throw new ArgumentNullException(nameof(server));
+            }
 
-            return string.Concat(question.QueryName.Value, ":", (short)question.QuestionClass, ":", (short)question.QuestionType);
+            return string.Concat(server.Endpoint.Address.ToString(), "#", server.Endpoint.Port.ToString(), "_", question.QueryName.Value, ":", (short)question.QuestionClass, ":", (short)question.QuestionType);
         }
 
         public IDnsQueryResponse Get(string key)

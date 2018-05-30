@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 
@@ -80,6 +81,17 @@ namespace DnsClient
             }
 
             return obj.ToString().Equals(Value);
+        }
+
+        /// <summary>
+        /// Returns labels representation of the <see cref="Value"/>.
+        /// </summary>
+        public IReadOnlyList<string> Labels
+        {
+            get
+            {
+                return Value.Split('.').Reverse().Select(p => p + DotStr).ToArray();
+            }
         }
 
         /// <summary>
