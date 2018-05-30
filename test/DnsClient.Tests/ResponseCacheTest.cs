@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
 using Xunit;
@@ -17,18 +18,43 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public void Cache_DoesCacheWithMinimumDefined()
+        public void Cache_InvalidMAx()
         {
-            var cache = new ResponseCache(true, TimeSpan.FromMilliseconds(100));
+            var ex = Assert.ThrowsAny<ArgumentOutOfRangeException>(
+                () => new ResponseCache(true, TimeSpan.MaxValue));
+        }
+
+        [Fact]
+        public void Cache_SupportsInfinite()
+        {
+            var cache = new ResponseCache(true, Timeout.InfiniteTimeSpan);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
-            var item = cache.Get("key");
+            var item = cache.Get("key", out double? effectiveTtl);
+
+            // should not be null although TTL is zero, mimimum timeout is set to infinite
+            Assert.Equal(item, response.AsQueryResponse(new NameServer(IPAddress.Any)));
+            Assert.Equal(int.MaxValue, effectiveTtl);
+        }
+
+        [Fact]
+        public void Cache_DoesCacheWithMinimumDefined()
+        {
+            var minTtl = 100;
+            var cache = new ResponseCache(true, TimeSpan.FromMilliseconds(minTtl));
+            var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
+            response.AddAnswer(record);
+
+            cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
+            var item = cache.Get("key", out double? effectiveTtl);
 
             // should not be null although TTL is zero, mimimum timeout is set to 100ms
             Assert.Equal(item, response.AsQueryResponse(new NameServer(IPAddress.Any)));
+            Assert.Equal(minTtl, effectiveTtl);
         }
 
         [Fact]
@@ -40,10 +66,11 @@ namespace DnsClient.Tests
             response.AddAnswer(record);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
-            var item = cache.Get("key");
+            var item = cache.Get("key", out double? effectiveTtl);
 
             // should be null because cache is disabled and we create null in the second call of GetOrAdd
             Assert.Null(item);
+            Assert.Null(effectiveTtl);
         }
 
         [Fact]
@@ -55,10 +82,27 @@ namespace DnsClient.Tests
             response.AddAnswer(record);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
-            var item = cache.Get("key");
+            var item = cache.Get("key", out double? effectiveTtl);
 
             // should be null because ttl of the record is 0 which disables caching for this record
             Assert.Null(item);
+            Assert.Null(effectiveTtl);
+        }
+
+        [Fact]
+        public void Cache_DoesNotCacheIfZeroTTLWithZeroMinTtl()
+        {
+            var cache = new ResponseCache(true, TimeSpan.Zero);
+            var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
+            response.AddAnswer(record);
+
+            cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
+            var item = cache.Get("key", out double? effectiveTtl);
+
+            // should be null because ttl of the record is 0 which disables caching for this record
+            Assert.Null(item);
+            Assert.Null(effectiveTtl);
         }
 
         [Fact]
@@ -74,12 +118,13 @@ namespace DnsClient.Tests
             response.AddAuthority(recordC);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
-            var item = cache.Get("key");
+            var item = cache.Get("key", out double? effectiveTtl);
 
             Assert.NotNull(item);
+            Assert.Equal(1 * 1000, effectiveTtl);
 
             await Task.Delay(1100);
-            var item3 = cache.Get("key");
+            var item3 = cache.Get("key", out double? effectiveTtl2);
 
             Assert.Null(item3);
         }
@@ -97,10 +142,11 @@ namespace DnsClient.Tests
             response.AddAuthority(recordC);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
-            var item = cache.Get("key");
+            var item = cache.Get("key", out double? effectiveTtl);
 
             // should be null because recordC has zero TTL which wins
             Assert.Null(item);
+            Assert.Null(effectiveTtl);
         }
 
         [Fact]
@@ -112,9 +158,10 @@ namespace DnsClient.Tests
             response.AddAnswer(record);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
-            var item = cache.Get("key");
+            var item = cache.Get("key", out double? effectiveTtl);
 
             Assert.Equal(item, response.AsQueryResponse(new NameServer(IPAddress.Any)));
+            Assert.Equal(100 * 1000, effectiveTtl);
         }
 
         [Fact]

@@ -9,17 +9,36 @@ namespace DnsClient
 {
     internal class ResponseCache
     {
-        private static readonly int CleanupInterval = (int)TimeSpan.FromMinutes(10).TotalMilliseconds;
+        private static readonly TimeSpan s_infiniteTimeout = Timeout.InfiniteTimeSpan;
+
+        // max is 24 days
+        private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
+
+        private static readonly int s_cleanupInterval = (int)TimeSpan.FromMinutes(10).TotalMilliseconds;
         private readonly ConcurrentDictionary<string, ResponseEntry> _cache = new ConcurrentDictionary<string, ResponseEntry>();
         private readonly object _cleanupLock = new object();
         private bool _cleanupRunning = false;
         private int _lastCleanup = 0;
+        private TimeSpan? _minimumTimeout;
 
         public int Count => _cache.Count;
 
         public bool Enabled { get; set; } = true;
 
-        public TimeSpan? MinimumTimout { get; set; }
+        public TimeSpan? MinimumTimout
+        {
+            get { return _minimumTimeout; }
+            set
+            {
+                if (value.HasValue &&
+                    (value < TimeSpan.Zero || value > s_maxTimeout) && value != s_infiniteTimeout)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _minimumTimeout = value;
+            }
+        }
 
         public ResponseCache(bool enabled = true, TimeSpan? minimumTimout = null)
         {
@@ -39,11 +58,18 @@ namespace DnsClient
 
         public IDnsQueryResponse Get(string key)
         {
+            return Get(key, out double? effectiveTtl);
+        }
+
+        public IDnsQueryResponse Get(string key, out double? effectiveTtl)
+        {
+            effectiveTtl = null;
             if (key == null) throw new ArgumentNullException(key);
             if (!Enabled) return null;
 
             if (_cache.TryGetValue(key, out ResponseEntry entry))
             {
+                effectiveTtl = entry.TTL;
                 if (entry.IsExpiredFor(DateTimeOffset.UtcNow))
                 {
                     _cache.TryRemove(key, out entry);
@@ -66,12 +92,18 @@ namespace DnsClient
                 var all = response.AllRecords;
                 if (all.Any())
                 {
+                    // in millis
                     double minTtl = all.Min(p => p.TimeToLive) * 1000d;
 
-                    if (MinimumTimout.HasValue && minTtl < MinimumTimout.Value.TotalMilliseconds)
+                    if (MinimumTimout == Timeout.InfiniteTimeSpan)
+                    {
+                        minTtl = s_maxTimeout.TotalMilliseconds;
+                    }
+                    else if (MinimumTimout.HasValue && minTtl < MinimumTimout.Value.TotalMilliseconds)
                     {
                         minTtl = (long)MinimumTimout.Value.TotalMilliseconds;
                     }
+
                     if (minTtl < 1d)
                     {
                         return false;
@@ -106,14 +138,19 @@ namespace DnsClient
 
         private void StartCleanup()
         {
+            if (!Enabled)
+            {
+                return;
+            }
+
             // TickCount jump every 25days to int.MinValue, adjusting...
             var currentTicks = Environment.TickCount & int.MaxValue;
-            if (_lastCleanup + CleanupInterval < 0 || currentTicks + CleanupInterval < 0) _lastCleanup = 0;
-            if (!_cleanupRunning && _lastCleanup + CleanupInterval < currentTicks)
+            if (_lastCleanup + s_cleanupInterval < 0 || currentTicks + s_cleanupInterval < 0) _lastCleanup = 0;
+            if (!_cleanupRunning && _lastCleanup + s_cleanupInterval < currentTicks)
             {
                 lock (_cleanupLock)
                 {
-                    if (!_cleanupRunning && _lastCleanup + CleanupInterval < currentTicks)
+                    if (!_cleanupRunning && _lastCleanup + s_cleanupInterval < currentTicks)
                     {
                         _lastCleanup = currentTicks;
 
