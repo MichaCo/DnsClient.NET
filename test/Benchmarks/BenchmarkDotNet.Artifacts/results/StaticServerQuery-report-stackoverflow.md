@@ -1,16 +1,17 @@
 
-    BenchmarkDotNet=v0.10.5, OS=Windows 10.0.15063
-    Processor=Intel Core i7-6700 CPU 3.40GHz (Skylake), ProcessorCount=8
-    Frequency=3328126 Hz, Resolution=300.4694 ns, Timer=TSC
-      [Host]     : Clr 4.0.30319.42000, 64bit RyuJIT-v4.7.2046.0
-  Job-IMJKFH : Clr 4.0.30319.42000, 64bit RyuJIT-v4.7.2046.0
-  Job-XSFCHD : .NET Core 4.6.25009.03, 64bit RyuJIT
+    BenchmarkDotNet=v0.10.14, OS=Windows 10.0.17134
+    Intel Core i7-6700 CPU 3.40GHz (Skylake), 1 CPU, 8 logical and 4 physical cores
+    .NET Core SDK=2.1.300-rc1-008673
+      [Host]     : .NET Core 2.0.7 (CoreCLR 4.6.26328.01, CoreFX 4.6.26403.03), 64bit RyuJIT
+  Job-AUWKAQ : .NET Framework 4.6.2 (CLR 4.0.30319.42000), 64bit RyuJIT-v4.7.3110.0
+  Job-DMZITG : .NET Core 2.0.7 (CoreCLR 4.6.26328.01, CoreFX 4.6.26403.03), 64bit RyuJIT
 
-    LaunchCount=1  TargetCount=10  WarmupCount=5  
+    LaunchCount=1  TargetCount=50  WarmupCount=10  
 
-           Method | Runtime |     Mean |    Error |   StdDev | Scaled | ScaledSD | Allocated |
-    ------------- |-------- |---------:|---------:|---------:|-------:|---------:|----------:|
-      RequestSync |     Clr | 37.30 us | 2.007 us | 1.327 us |   1.00 |     0.00 |   2.54 kB |
-     RequestAsync |     Clr | 61.04 us | 6.826 us | 4.515 us |   1.64 |     0.13 |   6.16 kB |
-      RequestSync |    Core | 40.78 us | 4.331 us | 2.865 us |   1.00 |     0.00 |   2.48 kB |
-     RequestAsync |    Core | 68.60 us | 7.335 us | 4.851 us |   1.69 |     0.16 |    2.9 kB |
+           Method | Runtime |     Mean |     Error |    StdDev | Scaled | ScaledSD |  Gen 0 | Allocated |
+    ------------- |-------- |---------:|----------:|----------:|-------:|---------:|-------:|----------:|
+      RequestSync |     Clr | 39.50 us | 0.3031 us | 0.5465 us |   1.00 |     0.00 | 0.6104 |   2.55 KB |
+     RequestAsync |     Clr | 59.17 us | 0.1765 us | 0.3442 us |   1.50 |     0.02 | 1.5259 |   6.44 KB |
+                  |         |          |           |           |        |          |        |           |
+      RequestSync |    Core | 40.36 us | 0.1614 us | 0.3148 us |   1.00 |     0.00 | 0.5493 |   2.43 KB |
+     RequestAsync |    Core | 56.95 us | 0.4608 us | 0.9096 us |   1.41 |     0.02 | 1.0376 |    3.2 KB |

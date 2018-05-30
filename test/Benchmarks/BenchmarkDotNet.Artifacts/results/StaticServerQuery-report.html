@@ -13,23 +13,23 @@
 </head>
 <body>
 <pre><code>
-BenchmarkDotNet=v0.10.5, OS=Windows 10.0.15063
-Processor=Intel Core i7-6700 CPU 3.40GHz (Skylake), ProcessorCount=8
-Frequency=3328126 Hz, Resolution=300.4694 ns, Timer=TSC
-  [Host]     : Clr 4.0.30319.42000, 64bit RyuJIT-v4.7.2046.0
-  Job-IMJKFH : Clr 4.0.30319.42000, 64bit RyuJIT-v4.7.2046.0
-  Job-XSFCHD : .NET Core 4.6.25009.03, 64bit RyuJIT
+BenchmarkDotNet=v0.10.14, OS=Windows 10.0.17134
+Intel Core i7-6700 CPU 3.40GHz (Skylake), 1 CPU, 8 logical and 4 physical cores
+.NET Core SDK=2.1.300-rc1-008673
+  [Host]     : .NET Core 2.0.7 (CoreCLR 4.6.26328.01, CoreFX 4.6.26403.03), 64bit RyuJIT
+  Job-AUWKAQ : .NET Framework 4.6.2 (CLR 4.0.30319.42000), 64bit RyuJIT-v4.7.3110.0
+  Job-DMZITG : .NET Core 2.0.7 (CoreCLR 4.6.26328.01, CoreFX 4.6.26403.03), 64bit RyuJIT
 </code></pre>
-<pre><code>LaunchCount=1  TargetCount=10  WarmupCount=5  
+<pre><code>LaunchCount=1  TargetCount=50  WarmupCount=10  
 </code></pre>
 
 <table>
-<thead><tr><th>Method</th><th>Runtime</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Scaled</th><th>ScaledSD</th><th>Allocated</th>
+<thead><tr><th>Method</th><th>Runtime</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Scaled</th><th>ScaledSD</th><th>Gen 0</th><th>Allocated</th>
 </tr>
-</thead><tbody><tr><td>RequestSync</td><td>Clr</td><td>37.30 us</td><td>2.007 us</td><td>1.327 us</td><td>1.00</td><td>0.00</td><td>2.54 kB</td>
-</tr><tr><td>RequestAsync</td><td>Clr</td><td>61.04 us</td><td>6.826 us</td><td>4.515 us</td><td>1.64</td><td>0.13</td><td>6.16 kB</td>
-</tr><tr><td>RequestSync</td><td>Core</td><td>40.78 us</td><td>4.331 us</td><td>2.865 us</td><td>1.00</td><td>0.00</td><td>2.48 kB</td>
-</tr><tr><td>RequestAsync</td><td>Core</td><td>68.60 us</td><td>7.335 us</td><td>4.851 us</td><td>1.69</td><td>0.16</td><td>2.9 kB</td>
+</thead><tbody><tr><td>RequestSync</td><td>Clr</td><td>39.50 us</td><td>0.3031 us</td><td>0.5465 us</td><td>1.00</td><td>0.00</td><td>0.6104</td><td>2.55 KB</td>
+</tr><tr><td>RequestAsync</td><td>Clr</td><td>59.17 us</td><td>0.1765 us</td><td>0.3442 us</td><td>1.50</td><td>0.02</td><td>1.5259</td><td>6.44 KB</td>
+</tr><tr><td>RequestSync</td><td>Core</td><td>40.36 us</td><td>0.1614 us</td><td>0.3148 us</td><td>1.00</td><td>0.00</td><td>0.5493</td><td>2.43 KB</td>
+</tr><tr><td>RequestAsync</td><td>Core</td><td>56.95 us</td><td>0.4608 us</td><td>0.9096 us</td><td>1.41</td><td>0.02</td><td>1.0376</td><td>3.2 KB</td>
 </tr></tbody></table>
 </body>
 </html>

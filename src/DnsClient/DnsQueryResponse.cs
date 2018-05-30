@@ -25,7 +25,7 @@ namespace DnsClient
         /// <summary>
         /// Gets a list of additional records.
         /// </summary>
-        public ICollection<DnsResourceRecord> Additionals { get; }
+        public IReadOnlyList<DnsResourceRecord> Additionals { get; }
 
         /// <summary>
         /// Gets a list of all answers, addtional and authority records.
@@ -49,12 +49,12 @@ namespace DnsClient
         /// <summary>
         /// Gets a list of answer records.
         /// </summary>
-        public ICollection<DnsResourceRecord> Answers { get; }
+        public IReadOnlyList<DnsResourceRecord> Answers { get; }
 
         /// <summary>
         /// Gets a list of authority records.
         /// </summary>
-        public ICollection<DnsResourceRecord> Authorities { get; }
+        public IReadOnlyList<DnsResourceRecord> Authorities { get; }
 
         /// <summary>
         /// Returns a string value representing the error response code in case an error occured,
@@ -75,7 +75,7 @@ namespace DnsClient
         /// <summary>
         /// Gets the list of questions.
         /// </summary>
-        public ICollection<DnsQuestion> Questions { get; }
+        public IReadOnlyList<DnsQuestion> Questions { get; }
 
         /// <summary>
         /// Gets the size of the message.
@@ -90,10 +90,10 @@ namespace DnsClient
             if (dnsResponseMessage == null) throw new ArgumentNullException(nameof(dnsResponseMessage));
             Header = dnsResponseMessage.Header;
             MessageSize = dnsResponseMessage.MessageSize;
-            Questions = dnsResponseMessage.Questions;
-            Answers = dnsResponseMessage.Answers;
-            Additionals = dnsResponseMessage.Additionals;
-            Authorities = dnsResponseMessage.Authorities;
+            Questions = dnsResponseMessage.Questions.ToArray();
+            Answers = dnsResponseMessage.Answers.ToArray();
+            Additionals = dnsResponseMessage.Additionals.ToArray();
+            Authorities = dnsResponseMessage.Authorities.ToArray();
             NameServer = nameServer;
         }
 

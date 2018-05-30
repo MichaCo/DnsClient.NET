@@ -1,29 +1,25 @@
 ﻿using System;
+using System.Text;
+
 namespace DnsClient.Protocol
 {
     /*
-    https://tools.ietf.org/html/rfc1035#section-3.3.8:
-    3.3.8. MR RDATA format (EXPERIMENTAL)
+    https://tools.ietf.org/html/rfc1035#section-3.3.10:
+    3.3.10. NULL RDATA format (EXPERIMENTAL)
 
         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
-        /                   NEWNAME                     /
+        /                  <anything>                   /
         /                                               /
         +--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+--+
 
-    where:
-
-    NEWNAME         A <domain-name> which specifies a mailbox which is the
-                    proper rename of the specified mailbox.
-
-    MR records cause no additional section processing.  The main use for MR
-    is as a forwarding entry for a user who has moved to a different
-    mailbox.
+    Anything at all may be in the RDATA field so long as it is 65535 octets
+    or less.
      */
 
     /// <summary>
     /// Experimental RR, not sure if the implementation is actually correct either (not tested).
     /// </summary>
-    /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.8">RFC 1035</seealso>
+    /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.10">RFC 1035</seealso>
     public class NullRecord : DnsResourceRecord
     {
         /// <summary>
@@ -35,6 +31,11 @@ namespace DnsClient.Protocol
         public byte[] Anything { get; }
 
         /// <summary>
+        /// Gets the raw data of this record as UTF8 string.
+        /// </summary>
+        public string AsString { get; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="NullRecord" /> class.
         /// </summary>
         /// <param name="info">The information.</param>
@@ -44,11 +45,19 @@ namespace DnsClient.Protocol
             : base(info)
         {
             Anything = anything ?? throw new ArgumentNullException(nameof(anything));
+            try
+            {
+                AsString = Encoding.UTF8.GetString(anything);
+            }
+            catch
+            {
+                // ignore errors.
+            }
         }
 
         private protected override string RecordToString()
         {
-            return $"byte[{Anything.Length}]";
+            return $"\\# {Anything.Length} {AsString}";
         }
     }
 }

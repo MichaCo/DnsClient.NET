@@ -42,7 +42,7 @@ namespace DnsClient.PerfTestHost
                 for (var run = 0; run < 5; run++)
                 {
                     RunSync(client, runTime, tasksCount * i);
-                    RunAsync(client, runTime, tasksCount * i).Wait();
+                    RunAsync(client, runTime, tasksCount * i).GetAwaiter().GetResult();
                 }
             }
 

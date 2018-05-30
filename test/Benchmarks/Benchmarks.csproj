@@ -1,7 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp1.1;net46</TargetFrameworks>
+    <TargetFrameworks>
+      <!--netcoreapp1.1-->;netcoreapp2.0;net462
+    </TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <AssemblyName>Benchmarks</AssemblyName>
@@ -13,7 +15,7 @@
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|netcoreapp1.1|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <Optimize>True</Optimize>
   </PropertyGroup>
 
@@ -23,6 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.10.5" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.10.14" />
   </ItemGroup>
 </Project>

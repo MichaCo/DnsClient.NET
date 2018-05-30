@@ -14,7 +14,7 @@ namespace DigApp
 {
     public class RandomCommand : DnsCommand
     {
-        private static string[] _domainNames;
+        private static ConcurrentQueue<string> _domainNames;
         private static readonly object _nameLock = new object();
         private static Random _randmom = new Random();
         private int _clients;
@@ -38,7 +38,8 @@ namespace DigApp
 
         static RandomCommand()
         {
-            _domainNames = File.ReadAllLines("names.txt");
+            var lines = File.ReadAllLines("names.txt");
+            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(',') + 1)));
         }
 
         public RandomCommand(CommandLineApplication app, ILoggerFactory loggerFactory, string[] originalArgs) : base(app, loggerFactory, originalArgs)
@@ -47,9 +48,14 @@ namespace DigApp
 
         public static string NextDomainName()
         {
-            lock (_nameLock)
+            while (true)
             {
-                return _domainNames[_randmom.Next(0, _domainNames.Length)];
+                if (_domainNames.TryDequeue(out string result))
+                {
+                    _domainNames.Enqueue(result);
+
+                    return result;
+                }
             }
         }
 

@@ -78,10 +78,7 @@ namespace DigApp
                 MinimumCacheTimeout = settings.MinTTL,
                 UseCache = settings.UseCache,
                 UseTcpFallback = !settings.NoTcp,
-                UseTcpOnly = settings.TcpOnly,
-                PreserveNameServerOrder = true,
-                ContinueOnDnsError = true,
-                ThrowDnsErrors = false
+                UseTcpOnly = settings.TcpOnly
             };
         }
 
@@ -144,7 +141,7 @@ namespace DigApp
             return TimeSpan.Zero;
         }
 
-        public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 500;
+        public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 5000;
 
         public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value()) : 10;
 
@@ -183,7 +180,7 @@ namespace DigApp
 
             ConnectTimeoutArg = App.Option(
                 "--time",
-                "Query timeout [1000].",
+                "Query timeout [5000].",
                 CommandOptionType.SingleValue);
 
             UseCacheArg = App.Option(

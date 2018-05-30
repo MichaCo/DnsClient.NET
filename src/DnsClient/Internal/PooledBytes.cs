@@ -11,6 +11,7 @@ namespace DnsClient.Internal
         private static readonly ArrayPool<byte> _pool = ArrayPool<byte>.Create(4096 * 2, 200);
 
         private readonly byte[] _buffer;
+        private bool _disposed = false;
 
         public PooledBytes(int length)
         {
@@ -24,7 +25,15 @@ namespace DnsClient.Internal
 
         public byte[] Buffer
         {
-            get { return _buffer; }
+            get
+            {
+                if (_disposed)
+                {
+                    throw new ObjectDisposedException(nameof(Buffer));
+                }
+
+                return _buffer;
+            }
         }
 
         public void Dispose()
@@ -36,6 +45,7 @@ namespace DnsClient.Internal
         {
             if (disposing)
             {
+                _disposed = true;
                 _pool.Return(_buffer);
             }
         }

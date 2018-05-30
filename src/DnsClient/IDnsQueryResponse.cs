@@ -13,12 +13,12 @@ namespace DnsClient
         /// <summary>
         /// Gets the list of questions.
         /// </summary>
-        ICollection<DnsQuestion> Questions { get; }
+        IReadOnlyList<DnsQuestion> Questions { get; }
 
         /// <summary>
         /// Gets a list of additional records.
         /// </summary>
-        ICollection<DnsResourceRecord> Additionals { get; }
+        IReadOnlyList<DnsResourceRecord> Additionals { get; }
 
         /// <summary>
         /// Gets a list of all answers, addtional and authority records.
@@ -28,12 +28,12 @@ namespace DnsClient
         /// <summary>
         /// Gets a list of answer records.
         /// </summary>
-        ICollection<DnsResourceRecord> Answers { get; }
+        IReadOnlyList<DnsResourceRecord> Answers { get; }
 
         /// <summary>
         /// Gets a list of authority records.
         /// </summary>
-        ICollection<DnsResourceRecord> Authorities { get; }
+        IReadOnlyList<DnsResourceRecord> Authorities { get; }
 
         /// <summary>
         /// Gets the audit trail if <see cref="ILookupClient.EnableAuditTrail"/>. as set to <c>true</c>, <c>null</c> otherwise.
@@ -44,7 +44,7 @@ namespace DnsClient
         string AuditTrail { get; }
 
         /// <summary>
-        /// Returns a string value representing the error response code in case an error occured, 
+        /// Returns a string value representing the error response code in case an error occured,
         /// otherwise '<see cref="DnsResponseCode.NoError"/>'.
         /// </summary>
         string ErrorMessage { get; }

@@ -26,6 +26,8 @@ namespace DnsClient.Tests
             Assert.Equal(client.Timeout, TimeSpan.FromSeconds(5));
             Assert.True(client.UseTcpFallback);
             Assert.False(client.UseTcpOnly);
+            Assert.True(client.ContinueOnDnsError);
+            Assert.True(client.UseRandomNameServer);
         }
 
         [Fact]

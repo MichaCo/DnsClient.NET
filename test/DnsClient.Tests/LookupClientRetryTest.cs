@@ -18,8 +18,8 @@ namespace DnsClient.Tests
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
             {
-                // default is false
-                PreserveNameServerOrder = true
+                // default is true
+                UseRandomNameServer = false
             };
 
             var calledIps = new List<IPAddress>();
@@ -57,8 +57,8 @@ namespace DnsClient.Tests
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
             {
-                // default is false
-                PreserveNameServerOrder = true
+                // default is true
+                UseRandomNameServer = false
             };
 
             var calledIps = new List<IPAddress>();
@@ -96,8 +96,8 @@ namespace DnsClient.Tests
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
             {
-                // default is false
-                PreserveNameServerOrder = false
+                // default is true
+                UseRandomNameServer = true
             };
 
             var calledIps = new List<IPAddress>();
@@ -139,8 +139,8 @@ namespace DnsClient.Tests
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
             {
-                // default is false
-                PreserveNameServerOrder = false
+                // default is true
+                UseRandomNameServer = true
             };
 
             var calledIps = new List<IPAddress>();

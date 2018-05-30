@@ -21,8 +21,6 @@ namespace Benchmarks
 
             server.Start();
 
-            new DnsClientBenchmarks.StaticServerQuery().RequestSync();
-
             do
             {
                 var config = ManualConfig.Create(DefaultConfig.Instance)

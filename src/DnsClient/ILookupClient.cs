@@ -93,8 +93,9 @@ namespace DnsClient
 
         /// <summary>
         /// Gets or sets a flag indicating whether the <see cref="ILookupClient"/> can cycle through all
-        /// configured <see cref="NameServers"/> on each consecutive request, or not.
-        /// Default is <c>False</c>.
+        /// configured <see cref="NameServers"/> on each consecutive request, basically using a random server, or not.
+        /// Default is <c>True</c>.
+        /// If only one <see cref="NameServer"/> is configured, this setting is not used.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -102,11 +103,11 @@ namespace DnsClient
         /// If <c>True</c>, the order will be preserved.
         /// </para>
         /// <para>
-        /// Even if <see cref="PreserveNameServerOrder"/> is set to <c>True</c>, the endpoint might still get
+        /// Even if <see cref="UseRandomNameServer"/> is set to <c>True</c>, the endpoint might still get
         /// disabled and might not being used for some time if it errors out, e.g. no connection can be established.
         /// </para>
         /// </remarks>
-        bool PreserveNameServerOrder { get; set; }
+        bool UseRandomNameServer { get; set; }
 
         /// <summary>
         /// Gets or sets a flag indicating whether to query the next configured <see cref="NameServers"/> in case the response of the last query

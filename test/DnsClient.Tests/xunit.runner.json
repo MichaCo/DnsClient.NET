@@ -2,6 +2,6 @@
   "parallelizeTestCollections": true,
   "methodDisplay": "method",
   "preEnumerateTheories": true,
-  "maxParallelThreads": 16,
+  "maxParallelThreads": 24,
   "diagnosticMessages": false
 }

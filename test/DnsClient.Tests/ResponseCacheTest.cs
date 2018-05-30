@@ -34,7 +34,7 @@ namespace DnsClient.Tests
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
             var item = cache.Get("key");
-            
+
             // should be null because cache is disabled and we create null in the second call of GetOrAdd
             Assert.Null(item);
         }
@@ -49,7 +49,7 @@ namespace DnsClient.Tests
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
             var item = cache.Get("key");
-            
+
             // should be null because ttl of the record is 0 which disables caching for this record
             Assert.Null(item);
         }
@@ -65,15 +65,15 @@ namespace DnsClient.Tests
             response.AddAnswer(record);
             response.AddAdditional(recordB);
             response.AddAuthority(recordC);
-            
+
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
             var item = cache.Get("key");
-            
+
             Assert.NotNull(item);
 
             await Task.Delay(1100);
             var item3 = cache.Get("key");
-            
+
             Assert.Null(item3);
         }
 
@@ -91,7 +91,7 @@ namespace DnsClient.Tests
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
             var item = cache.Get("key");
-            
+
             // should be null because recordC has zero TTL which wins
             Assert.Null(item);
         }
@@ -103,7 +103,7 @@ namespace DnsClient.Tests
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 100, 100));
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
-            
+
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
             var item = cache.Get("key");
 

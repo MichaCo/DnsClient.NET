@@ -2,7 +2,7 @@
   "profiles": {
     "MiniDig": {
       "commandName": "Project",
-      "commandLineArgs": "-s 8.8.8.8 -s 8.8.4.4 -s 8.8.8.8 -s 8.8.4.4 -s 1.1.1.1 lalala"
+      "commandLineArgs": "random -s localhost -s localhost -s localhost -s localhost -s localhost -r 60 -c 20"
     }
   }
 }

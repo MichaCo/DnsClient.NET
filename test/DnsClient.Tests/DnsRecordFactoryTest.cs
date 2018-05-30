@@ -16,7 +16,7 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public void DnsRecordFactory_PTRRecordNotEnoighData()
+        public void DnsRecordFactory_PTRRecordNotEnoughData()
         {
             var data = new byte[0];
             var factory = GetFactory(data);

@@ -90,6 +90,9 @@ namespace DnsClient
         /// </value>
         public int? SupportedUdpPayloadSize { get; internal set; }
 
+        // for tracking if we can re-enable the server...
+        internal DnsRequestMessage LastSuccessfulRequest { get; set; }
+
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.
         /// </summary>

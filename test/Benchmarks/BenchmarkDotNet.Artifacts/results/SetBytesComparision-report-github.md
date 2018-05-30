@@ -10,7 +10,7 @@ dotnet cli version=1.0.0-preview2-1-003177
 Allocated=71 B  
 
 ```
-         Method |          Mean |     StdDev | Scaled | Scaled-StdDev |  Gen 0 |
+ Method |          Mean |     StdDev | Scaled | Scaled-StdDev |  Gen 0 |
 --------------- |-------------- |----------- |------- |-------------- |------- |
         ForLoop |    94.5811 ns |  0.5073 ns |   0.98 |          0.02 | 0.0114 |
       BlockCopy |    96.0576 ns |  1.4434 ns |   1.00 |          0.00 | 0.0113 |

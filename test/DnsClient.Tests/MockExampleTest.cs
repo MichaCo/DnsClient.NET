@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -28,7 +27,7 @@ namespace DnsClient.Tests
             //dnsResponseMock
             //    .Setup(p => p.Answers)
             //        .Returns(new DnsResourceRecord[] { aRecord });
-            
+
             Task<IDnsQueryResponse> response = Task.FromResult(dnsResponse);
             lookupMock.Setup(f => f.QueryAsync(It.IsAny<string>(), QueryType.A)).Returns(response);
             var lookup = lookupMock.Object;

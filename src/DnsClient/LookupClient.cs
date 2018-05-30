@@ -41,7 +41,10 @@ namespace DnsClient
         private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
+        private static readonly int s_serverHealthCheckInterval = (int)TimeSpan.FromSeconds(30).TotalMilliseconds;
         private static int _uniqueId = 0;
+        private bool _healthCheckRunning = false;
+        private int _lastHealthCheck = 0;
         private readonly ResponseCache _cache = new ResponseCache(true);
 
         ////private readonly object _endpointLock = new object();
@@ -197,8 +200,9 @@ namespace DnsClient
 
         /// <summary>
         /// Gets or sets a flag indicating whether the <see cref="ILookupClient"/> can cycle through all
-        /// configured <see cref="NameServers"/> on each consecutive request, or not.
-        /// Default is <c>False</c>.
+        /// configured <see cref="NameServers"/> on each consecutive request, basically using a random server, or not.
+        /// Default is <c>True</c>.
+        /// If only one <see cref="NameServer"/> is configured, this setting is not used.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -206,11 +210,11 @@ namespace DnsClient
         /// If <c>True</c>, the order will be preserved.
         /// </para>
         /// <para>
-        /// Even if <see cref="PreserveNameServerOrder"/> is set to <c>True</c>, the endpoint might still get
+        /// Even if <see cref="UseRandomNameServer"/> is set to <c>True</c>, the endpoint might still get
         /// disabled and might not being used for some time if it errors out, e.g. no connection can be established.
         /// </para>
         /// </remarks>
-        public bool PreserveNameServerOrder { get; set; } = false;
+        public bool UseRandomNameServer { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a flag indicating whether to query the next configured <see cref="NameServers"/> in case the response of the last query
@@ -515,6 +519,7 @@ namespace DnsClient
                         }
 
                         serverInfo.Enabled = true;
+                        serverInfo.LastSuccessfulRequest = request;
                         lastQueryResponse = queryResponse;
 
                         if (response.Header.ResponseCode != DnsResponseCode.NoError &&
@@ -544,20 +549,19 @@ namespace DnsClient
                         DisableServer(serverInfo);
                         break;
                     }
-                    catch (Exception ex) when (ex is TimeoutException || handler.IsTransientException(ex))
+                    catch (Exception ex) when (
+                        ex is TimeoutException
+                        || handler.IsTransientException(ex)
+                        || ex is OperationCanceledException
+                        || ex is TaskCanceledException)
                     {
                         DisableServer(serverInfo);
+                        continue;
                         // retrying the same server...
                     }
                     catch (Exception ex)
                     {
                         DisableServer(serverInfo);
-
-                        if (ex is OperationCanceledException || ex is TaskCanceledException)
-                        {
-                            // timeout, retrying the same server...
-                            continue;
-                        }
 
                         audit.AuditException(ex);
 
@@ -565,14 +569,13 @@ namespace DnsClient
 
                         // not retrying the same server, use next or return
                         break;
-                        ////throw new DnsResponseException(DnsResponseCode.Unassigned, "Unhandled exception", ex)
-                        ////{
-                        ////    AuditTrail = audit.Build()
-                        ////};
                     }
                 } while (tries <= Retries && serverInfo.Enabled);
 
-                audit.AuditRetryNextServer();
+                if (servers.Count > 1)
+                {
+                    audit.AuditRetryNextServer();
+                }
             }
 
             if (lastDnsResponseException != null && ThrowDnsErrors)
@@ -663,7 +666,7 @@ namespace DnsClient
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass, CancellationToken cancellationToken)
             => QueryAsync(new DnsQuestion(query, queryType, queryClass), cancellationToken);
 
-        private async Task<IDnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken)
+        private async Task<IDnsQueryResponse> QueryAsync(DnsQuestion question, CancellationToken cancellationToken, bool useCache = true)
         {
             if (question == null)
             {
@@ -674,7 +677,7 @@ namespace DnsClient
             var request = new DnsRequestMessage(head, question);
             var handler = UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
 
-            if (_cache.Enabled)
+            if (_cache.Enabled && useCache)
             {
                 var cacheKey = ResponseCache.GetCacheKey(question);
                 var item = _cache.Get(cacheKey);
@@ -693,7 +696,7 @@ namespace DnsClient
         }
 
         // internal for unit testing
-        internal async Task<IDnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, CancellationToken cancellationToken, Audit continueAudit = null)
+        internal Task<IDnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, CancellationToken cancellationToken, Audit continueAudit = null)
         {
             if (request == null)
             {
@@ -703,6 +706,11 @@ namespace DnsClient
             var audit = continueAudit ?? new Audit();
             var servers = GetNextServers();
 
+            return ResolveQueryAsync(handler, request, audit, servers, cancellationToken);
+        }
+
+        private async Task<IDnsQueryResponse> ResolveQueryAsync(DnsMessageHandler handler, DnsRequestMessage request, Audit audit, IReadOnlyCollection<NameServer> servers, CancellationToken cancellationToken)
+        {
             DnsResponseException lastDnsResponseException = null;
             Exception lastException = null;
             DnsQueryResponse lastQueryResponse = null;
@@ -783,8 +791,10 @@ namespace DnsClient
                             queryResponse.AuditTrail = audit.Build();
                         }
 
+                        // got a valid result, lets enabled the server again if it was disabled
                         serverInfo.Enabled = true;
                         lastQueryResponse = queryResponse;
+                        serverInfo.LastSuccessfulRequest = request;
 
                         if (response.Header.ResponseCode != DnsResponseCode.NoError &&
                             (ThrowDnsErrors || ContinueOnDnsError))
@@ -812,9 +822,13 @@ namespace DnsClient
                         DisableServer(serverInfo);
                         break;
                     }
-                    catch (Exception ex) when (ex is TimeoutException || handler.IsTransientException(ex))
+                    catch (Exception ex) when (
+                        ex is TimeoutException timeoutEx
+                        || handler.IsTransientException(ex)
+                        || ex is OperationCanceledException
+                        || ex is TaskCanceledException)
                     {
-                        // our timeout got eventually triggered by the a task cancelation token, throw OCE instead...
+                        // user's token got canceled, throw right away...
                         if (cancellationToken.IsCancellationRequested)
                         {
                             throw new OperationCanceledException(cancellationToken);
@@ -826,25 +840,25 @@ namespace DnsClient
                     {
                         DisableServer(serverInfo);
 
-                        var handleEx = ex;
                         if (ex is AggregateException agg)
                         {
-                            if (agg.InnerExceptions.Any(e => e is TimeoutException || handler.IsTransientException(e)))
+                            agg.Handle((e) =>
                             {
-                                continue;
-                            }
+                                if (e is TimeoutException
+                                    || handler.IsTransientException(e)
+                                    || e is OperationCanceledException
+                                    || e is TaskCanceledException)
+                                {
+                                    if (cancellationToken.IsCancellationRequested)
+                                    {
+                                        throw new OperationCanceledException(cancellationToken);
+                                    }
 
-                            handleEx = agg.InnerException;
-                        }
+                                    return true;
+                                }
 
-                        if (handleEx is OperationCanceledException || handleEx is TaskCanceledException)
-                        {
-                            if (cancellationToken.IsCancellationRequested)
-                            {
-                                throw new OperationCanceledException(cancellationToken);
-                            }
-
-                            continue;
+                                return false;
+                            });
                         }
 
                         audit.AuditException(ex);
@@ -855,7 +869,10 @@ namespace DnsClient
                     }
                 } while (tries <= Retries && !cancellationToken.IsCancellationRequested && serverInfo.Enabled);
 
-                audit.AuditRetryNextServer();
+                if (servers.Count > 1)
+                {
+                    audit.AuditRetryNextServer();
+                }
             }
 
             if (lastDnsResponseException != null && ThrowDnsErrors)
@@ -918,13 +935,15 @@ namespace DnsClient
                 }
 
                 // shuffle servers only if we do not have to preserve the order
-                if (!PreserveNameServerOrder)
+                if (UseRandomNameServer)
                 {
                     if (_endpoints.TryDequeue(out NameServer server))
                     {
                         _endpoints.Enqueue(server);
                     }
                 }
+
+                RunHealthCheck();
             }
             else
             {
@@ -934,19 +953,51 @@ namespace DnsClient
             return servers;
         }
 
+        private void RunHealthCheck()
+        {
+            // TickCount jump every 25days to int.MinValue, adjusting...
+            var currentTicks = Environment.TickCount & int.MaxValue;
+            if (_lastHealthCheck + s_serverHealthCheckInterval < 0 || currentTicks + s_serverHealthCheckInterval < 0) _lastHealthCheck = 0;
+            if (!_healthCheckRunning && _lastHealthCheck + s_serverHealthCheckInterval < currentTicks)
+            {
+                _lastHealthCheck = currentTicks;
+
+                var source = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+
+                Task.Factory.StartNew(
+                    state => DoHealthCheck((CancellationToken)state),
+                    source.Token,
+                    source.Token,
+                    TaskCreationOptions.DenyChildAttach,
+                    TaskScheduler.Default);
+            }
+        }
+
+        private async Task DoHealthCheck(CancellationToken cancellationToken)
+        {
+            _healthCheckRunning = true;
+
+            foreach (var server in NameServers)
+            {
+                if (!server.Enabled && server.LastSuccessfulRequest != null)
+                {
+                    try
+                    {
+                        var result = await QueryAsync(server.LastSuccessfulRequest.Question, cancellationToken, useCache: false);
+                    }
+                    catch { }
+                }
+            }
+
+            _healthCheckRunning = false;
+        }
+
         private void DisableServer(NameServer server)
         {
-            //lock (_endpointLock)
-            //{
-            server.Enabled = false;
-
-            // changing the logic to fallback to all endpoints in GetNextServers
-            ////if (_endpoints.Count(p => p.Enabled == true) == 0)
-            ////{
-            ////    // reset all servers to try again...
-            ////    _endpoints.ToList().ForEach(p => p.Enabled = true);
-            ////}
-            //}
+            if (NameServers.Count > 1)
+            {
+                server.Enabled = false;
+            }
         }
 
         private ushort GetNextUniqueId()
