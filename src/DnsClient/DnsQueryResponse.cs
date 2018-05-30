@@ -44,7 +44,7 @@ namespace DnsClient
         /// <value>
         /// The audit trail.
         /// </value>
-        public string AuditTrail { get; internal set; }
+        public string AuditTrail => Audit.Build(this);
 
         /// <summary>
         /// Gets a list of answer records.
@@ -85,7 +85,9 @@ namespace DnsClient
         /// </value>
         public int MessageSize { get; }
 
-        internal DnsQueryResponse(DnsResponseMessage dnsResponseMessage, NameServer nameServer)
+        internal LookupClientAudit Audit { get; }
+
+        internal DnsQueryResponse(DnsResponseMessage dnsResponseMessage, NameServer nameServer, LookupClientAudit audit)
         {
             if (dnsResponseMessage == null) throw new ArgumentNullException(nameof(dnsResponseMessage));
             Header = dnsResponseMessage.Header;
@@ -94,7 +96,8 @@ namespace DnsClient
             Answers = dnsResponseMessage.Answers.ToArray();
             Additionals = dnsResponseMessage.Additionals.ToArray();
             Authorities = dnsResponseMessage.Authorities.ToArray();
-            NameServer = nameServer;
+            NameServer = nameServer ?? throw new ArgumentNullException(nameof(nameServer));
+            Audit = audit ?? throw new ArgumentNullException(nameof(audit));
         }
 
         /// <inheritdoc />

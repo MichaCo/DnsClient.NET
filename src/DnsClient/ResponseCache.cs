@@ -77,7 +77,7 @@ namespace DnsClient
                 else
                 {
                     StartCleanup();
-                    return entry.Response;
+                    return entry.GetResponse();
                 }
             }
 
@@ -167,22 +167,86 @@ namespace DnsClient
 
         private class ResponseEntry
         {
-            public bool IsExpiredFor(DateTimeOffset forDate) => forDate >= ExpiresAt;
+            private readonly IDnsQueryResponse _response;
 
-            public IDnsQueryResponse Response { get; set; }
+            public bool IsExpiredFor(DateTimeOffset forDate) => forDate >= ExpiresAt;
 
             public DateTimeOffset ExpiresAt { get; }
 
+            public DateTimeOffset Created { get; }
+
             public double TTL { get; set; }
+
+            // returns in seconds, not MS!
+            public int Elapsed(DateTimeOffset? since = null)
+            {
+                if (since == null)
+                {
+                    since = DateTimeOffset.UtcNow;
+                }
+
+                var elapsedMillis = (int)(since.Value - Created).TotalMilliseconds;
+                if (elapsedMillis < 0)
+                {
+                    return 0;
+                }
+
+                return elapsedMillis / 1000;
+            }
+
+            public IDnsQueryResponse GetResponse()
+            {
+                var elapsed = Elapsed();
+                if (elapsed <= 0)
+                {
+                    return _response;
+                }
+
+                var response = new DnsResponseMessage(_response.Header, _response.MessageSize)
+                {
+                    Audit = (_response as DnsQueryResponse)?.Audit ?? new LookupClientAudit()
+                };
+
+                foreach (var record in _response.Questions)
+                {
+                    response.AddQuestion(record);
+                }
+
+                foreach (var record in _response.Answers)
+                {
+                    var clone = record.Clone();
+                    clone.TimeToLive = clone.TimeToLive - elapsed;
+                    response.AddAnswer(clone);
+                }
+
+                foreach (var record in _response.Additionals)
+                {
+                    var clone = record.Clone();
+                    clone.TimeToLive = clone.TimeToLive - elapsed;
+                    response.AddAnswer(clone);
+                }
+
+                foreach (var record in _response.Authorities)
+                {
+                    var clone = record.Clone();
+                    clone.TimeToLive = clone.TimeToLive - elapsed;
+                    response.AddAnswer(clone);
+                }
+
+                var qr = response.AsQueryResponse(_response.NameServer);
+
+                return qr;
+            }
 
             public ResponseEntry(IDnsQueryResponse response, double ttlInMS)
             {
                 Debug.Assert(response != null);
                 Debug.Assert(ttlInMS >= 0);
 
-                Response = response;
+                _response = response;
                 TTL = ttlInMS;
-                ExpiresAt = DateTimeOffset.UtcNow.AddMilliseconds(TTL);
+                Created = DateTimeOffset.UtcNow;
+                ExpiresAt = Created.AddMilliseconds(TTL);
             }
         }
     }

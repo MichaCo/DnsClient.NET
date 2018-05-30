@@ -65,10 +65,12 @@ namespace DnsClient
             Questions.Add(question);
         }
 
+        public LookupClientAudit Audit { get; set; } = new LookupClientAudit();
+
         /// <summary>
         /// Gets the readonly representation of this message which can be returned.
         /// </summary>
         public DnsQueryResponse AsQueryResponse(NameServer nameServer)
-            => new DnsQueryResponse(this, nameServer);
+            => new DnsQueryResponse(this, nameServer, Audit);
     }
 }

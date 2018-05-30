@@ -46,6 +46,12 @@ namespace DnsClient.Protocol
                 RecordToString());
         }
 
+        /// <inheritdoc />
+        public DnsResourceRecord Clone()
+        {
+            return (DnsResourceRecord)MemberwiseClone();
+        }
+
         /// <summary>
         /// Returns a string representation of the record's value only.
         /// <see cref="ToString(int)"/> uses this to compose the full string value of this instance.
@@ -77,7 +83,7 @@ namespace DnsClient.Protocol
         /// <summary>
         /// The TTL value for the record set by the server.
         /// </summary>
-        public int TimeToLive { get; protected set; }
+        public int TimeToLive { get; internal set; }
 
         /// <summary>
         /// Gets the number of bytes for this resource record stored in RDATA

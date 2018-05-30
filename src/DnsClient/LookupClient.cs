@@ -647,7 +647,7 @@ namespace DnsClient
         }
 
         // making it internal for unit testing
-        internal IDnsQueryResponse ResolveQuery(IReadOnlyCollection<NameServer> servers, DnsMessageHandler handler, DnsRequestMessage request, Audit continueAudit = null)
+        internal IDnsQueryResponse ResolveQuery(IReadOnlyCollection<NameServer> servers, DnsMessageHandler handler, DnsRequestMessage request, LookupClientAudit continueAudit = null)
         {
             if (request == null)
             {
@@ -662,7 +662,7 @@ namespace DnsClient
                 throw new ArgumentOutOfRangeException(nameof(servers), "List of servers must not be empty.");
             }
 
-            var audit = continueAudit ?? new Audit();
+            var audit = continueAudit ?? new LookupClientAudit();
 
             DnsResponseException lastDnsResponseException = null;
             Exception lastException = null;
@@ -685,6 +685,8 @@ namespace DnsClient
                         }
 
                         DnsResponseMessage response = handler.Query(serverInfo.Endpoint, request, Timeout);
+
+                        response.Audit = audit;
 
                         if (response.Header.ResultTruncated && UseTcpFallback && !handler.GetType().Equals(typeof(DnsTcpMessageHandler)))
                         {
@@ -713,9 +715,8 @@ namespace DnsClient
 
                         if (EnableAuditTrail)
                         {
-                            audit.AuditResponse(queryResponse);
+                            audit.AuditResponse();
                             audit.AuditEnd(queryResponse);
-                            queryResponse.AuditTrail = audit.Build();
                         }
 
                         serverInfo.Enabled = true;
@@ -733,7 +734,7 @@ namespace DnsClient
                     catch (DnsResponseException ex)
                     {
                         ////audit.AuditException(ex);
-                        ex.AuditTrail = audit.Build();
+                        ex.AuditTrail = audit.Build(null);
                         lastDnsResponseException = ex;
 
                         if (ContinueOnDnsError)
@@ -792,17 +793,17 @@ namespace DnsClient
             {
                 throw new DnsResponseException(DnsResponseCode.Unassigned, "Unhandled exception", lastException)
                 {
-                    AuditTrail = audit.Build()
+                    AuditTrail = audit.Build(null)
                 };
             }
 
             throw new DnsResponseException(DnsResponseCode.ConnectionTimeout, $"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.")
             {
-                AuditTrail = audit.Build()
+                AuditTrail = audit.Build(null)
             };
         }
 
-        internal async Task<IDnsQueryResponse> ResolveQueryAsync(IReadOnlyCollection<NameServer> servers, DnsMessageHandler handler, DnsRequestMessage request, Audit continueAudit = null, CancellationToken cancellationToken = default)
+        internal async Task<IDnsQueryResponse> ResolveQueryAsync(IReadOnlyCollection<NameServer> servers, DnsMessageHandler handler, DnsRequestMessage request, LookupClientAudit continueAudit = null, CancellationToken cancellationToken = default)
         {
             if (request == null)
             {
@@ -817,7 +818,7 @@ namespace DnsClient
                 throw new ArgumentOutOfRangeException(nameof(servers), "List of servers must not be empty.");
             }
 
-            var audit = continueAudit ?? new Audit();
+            var audit = continueAudit ?? new LookupClientAudit();
 
             DnsResponseException lastDnsResponseException = null;
             Exception lastException = null;
@@ -867,6 +868,8 @@ namespace DnsClient
                             response = await resultTask.ConfigureAwait(false);
                         }
 
+                        response.Audit = audit;
+
                         if (response.Header.ResultTruncated && UseTcpFallback && !handler.GetType().Equals(typeof(DnsTcpMessageHandler)))
                         {
                             if (EnableAuditTrail)
@@ -894,9 +897,8 @@ namespace DnsClient
 
                         if (EnableAuditTrail)
                         {
-                            audit.AuditResponse(queryResponse);
+                            audit.AuditResponse();
                             audit.AuditEnd(queryResponse);
-                            queryResponse.AuditTrail = audit.Build();
                         }
 
                         // got a valid result, lets enabled the server again if it was disabled
@@ -914,7 +916,7 @@ namespace DnsClient
                     }
                     catch (DnsResponseException ex)
                     {
-                        ex.AuditTrail = audit.Build();
+                        ex.AuditTrail = audit.Build(null);
                         lastDnsResponseException = ex;
 
                         if (ContinueOnDnsError)
@@ -997,17 +999,17 @@ namespace DnsClient
             {
                 throw new DnsResponseException(DnsResponseCode.Unassigned, "Unhandled exception", lastException)
                 {
-                    AuditTrail = audit.Build()
+                    AuditTrail = audit.Build(null)
                 };
             }
 
             throw new DnsResponseException(DnsResponseCode.ConnectionTimeout, $"No connection could be established to any of the following name servers: {string.Join(", ", NameServers)}.")
             {
-                AuditTrail = audit.Build()
+                AuditTrail = audit.Build(null)
             };
         }
 
-        private void HandleOptRecords(Audit audit, NameServer serverInfo, DnsResponseMessage response)
+        private void HandleOptRecords(LookupClientAudit audit, NameServer serverInfo, DnsResponseMessage response)
         {
             var opt = response.Additionals.OfType<OptRecord>().FirstOrDefault();
             if (opt != null)
@@ -1118,145 +1120,156 @@ namespace DnsClient
 
             return unchecked((ushort)Interlocked.Increment(ref _uniqueId));
         }
+    }
 
-        internal class Audit
+    internal class LookupClientAudit
+    {
+        private const string c_placeHolder = "$$REPLACEME$$";
+        private static readonly int s_printOffset = -32;
+        private StringBuilder _auditWriter = new StringBuilder();
+        private Stopwatch _swatch;
+
+        public LookupClientAudit()
         {
-            private static readonly int s_printOffset = -32;
-            private StringBuilder _auditWriter = new StringBuilder();
-            private Stopwatch _swatch;
+        }
 
-            public Audit()
-            {
-            }
+        public void StartTimer()
+        {
+            _swatch = Stopwatch.StartNew();
+            _swatch.Restart();
+        }
 
-            public void StartTimer()
-            {
-                _swatch = Stopwatch.StartNew();
-                _swatch.Restart();
-            }
+        public void AuditResolveServers(int count)
+        {
+            _auditWriter.AppendLine($"; ({count} server found)");
+        }
 
-            public void AuditResolveServers(int count)
-            {
-                _auditWriter.AppendLine($"; ({count} server found)");
-            }
+        public string Build(IDnsQueryResponse queryResponse)
+        {
+            var writer = new StringBuilder();
 
-            public string Build()
-            {
-                return _auditWriter.ToString();
-            }
-
-            public void AuditTruncatedRetryTcp()
-            {
-                _auditWriter.AppendLine(";; Truncated, retrying in TCP mode.");
-                _auditWriter.AppendLine();
-            }
-
-            public void AuditResponseError(DnsResponseCode responseCode)
-            {
-                _auditWriter.AppendLine($";; ERROR: {DnsResponseCodeText.GetErrorText(responseCode)}");
-            }
-
-            public void AuditOptPseudo()
-            {
-                _auditWriter.AppendLine(";; OPT PSEUDOSECTION:");
-            }
-
-            public void AuditResponseHeader(DnsResponseHeader header)
-            {
-                _auditWriter.AppendLine(";; Got answer:");
-                _auditWriter.AppendLine(header.ToString());
-                if (header.RecursionDesired && !header.RecursionAvailable)
-                {
-                    _auditWriter.AppendLine(";; WARNING: recursion requested but not available");
-                }
-                _auditWriter.AppendLine();
-            }
-
-            public void AuditEdnsOpt(short udpSize, byte version, DnsResponseCode responseCodeEx)
-            {
-                // TODO: flags
-                _auditWriter.AppendLine($"; EDNS: version: {version}, flags:; udp: {udpSize}");
-            }
-
-            public void AuditResponse(IDnsQueryResponse queryResponse)
+            if (queryResponse != null)
             {
                 if (queryResponse.Questions.Count > 0)
                 {
-                    _auditWriter.AppendLine(";; QUESTION SECTION:");
+                    writer.AppendLine(";; QUESTION SECTION:");
                     foreach (var question in queryResponse.Questions)
                     {
-                        _auditWriter.AppendLine(question.ToString(s_printOffset));
+                        writer.AppendLine(question.ToString(s_printOffset));
                     }
-                    _auditWriter.AppendLine();
+                    writer.AppendLine();
                 }
 
                 if (queryResponse.Answers.Count > 0)
                 {
-                    _auditWriter.AppendLine(";; ANSWER SECTION:");
+                    writer.AppendLine(";; ANSWER SECTION:");
                     foreach (var answer in queryResponse.Answers)
                     {
-                        _auditWriter.AppendLine(answer.ToString(s_printOffset));
+                        writer.AppendLine(answer.ToString(s_printOffset));
                     }
-                    _auditWriter.AppendLine();
+                    writer.AppendLine();
                 }
 
                 if (queryResponse.Authorities.Count > 0)
                 {
-                    _auditWriter.AppendLine(";; AUTHORITIES SECTION:");
+                    writer.AppendLine(";; AUTHORITIES SECTION:");
                     foreach (var auth in queryResponse.Authorities)
                     {
-                        _auditWriter.AppendLine(auth.ToString(s_printOffset));
+                        writer.AppendLine(auth.ToString(s_printOffset));
                     }
-                    _auditWriter.AppendLine();
+                    writer.AppendLine();
                 }
 
                 if (queryResponse.Additionals.Count > 0)
                 {
-                    _auditWriter.AppendLine(";; ADDITIONALS SECTION:");
+                    writer.AppendLine(";; ADDITIONALS SECTION:");
                     foreach (var additional in queryResponse.Additionals)
                     {
-                        _auditWriter.AppendLine(additional.ToString(s_printOffset));
+                        writer.AppendLine(additional.ToString(s_printOffset));
                     }
-                    _auditWriter.AppendLine();
+                    writer.AppendLine();
                 }
             }
 
-            public void AuditEnd(DnsQueryResponse queryResponse)
+            var all = _auditWriter.ToString();
+            var dynamic = writer.ToString();
+
+            return all.Replace(c_placeHolder, dynamic);
+        }
+
+        public void AuditTruncatedRetryTcp()
+        {
+            _auditWriter.AppendLine(";; Truncated, retrying in TCP mode.");
+            _auditWriter.AppendLine();
+        }
+
+        public void AuditResponseError(DnsResponseCode responseCode)
+        {
+            _auditWriter.AppendLine($";; ERROR: {DnsResponseCodeText.GetErrorText(responseCode)}");
+        }
+
+        public void AuditOptPseudo()
+        {
+            _auditWriter.AppendLine(";; OPT PSEUDOSECTION:");
+        }
+
+        public void AuditResponseHeader(DnsResponseHeader header)
+        {
+            _auditWriter.AppendLine(";; Got answer:");
+            _auditWriter.AppendLine(header.ToString());
+            if (header.RecursionDesired && !header.RecursionAvailable)
             {
-                var elapsed = _swatch.ElapsedMilliseconds;
-                _auditWriter.AppendLine($";; Query time: {elapsed} msec");
-                _auditWriter.AppendLine($";; SERVER: {queryResponse.NameServer.Endpoint.Address}#{queryResponse.NameServer.Endpoint.Port}");
-                _auditWriter.AppendLine($";; WHEN: {DateTime.UtcNow.ToString("ddd MMM dd HH:mm:ss K yyyy", CultureInfo.InvariantCulture)}");
-                _auditWriter.AppendLine($";; MSG SIZE  rcvd: {queryResponse.MessageSize}");
+                _auditWriter.AppendLine(";; WARNING: recursion requested but not available");
             }
+            _auditWriter.AppendLine();
+        }
 
-            public void AuditException(Exception ex)
+        public void AuditEdnsOpt(short udpSize, byte version, DnsResponseCode responseCodeEx)
+        {
+            // TODO: flags
+            _auditWriter.AppendLine($"; EDNS: version: {version}, flags:; udp: {udpSize}");
+        }
+
+        public void AuditResponse()
+        {
+            _auditWriter.AppendLine(c_placeHolder);
+        }
+
+        public void AuditEnd(DnsQueryResponse queryResponse)
+        {
+            var elapsed = _swatch.ElapsedMilliseconds;
+            _auditWriter.AppendLine($";; Query time: {elapsed} msec");
+            _auditWriter.AppendLine($";; SERVER: {queryResponse.NameServer.Endpoint.Address}#{queryResponse.NameServer.Endpoint.Port}");
+            _auditWriter.AppendLine($";; WHEN: {DateTime.UtcNow.ToString("ddd MMM dd HH:mm:ss K yyyy", CultureInfo.InvariantCulture)}");
+            _auditWriter.AppendLine($";; MSG SIZE  rcvd: {queryResponse.MessageSize}");
+        }
+
+        public void AuditException(Exception ex)
+        {
+            var aggEx = ex as AggregateException;
+            if (ex is DnsResponseException dnsEx)
             {
-                var aggEx = ex as AggregateException;
-                if (ex is DnsResponseException dnsEx)
-                {
-                    _auditWriter.AppendLine($";; Error: {DnsResponseCodeText.GetErrorText(dnsEx.Code)} {dnsEx.InnerException?.Message ?? dnsEx.Message}");
-                }
-                else if (aggEx != null)
-                {
-                    _auditWriter.AppendLine($";; Error: {aggEx.InnerException?.Message ?? aggEx.Message}");
-                }
-                else
-                {
-                    _auditWriter.AppendLine($";; Error: {ex.Message}");
-                }
-
-                if (Debugger.IsAttached)
-                {
-                    _auditWriter.AppendLine(ex.ToString());
-                }
+                _auditWriter.AppendLine($";; Error: {DnsResponseCodeText.GetErrorText(dnsEx.Code)} {dnsEx.InnerException?.Message ?? dnsEx.Message}");
             }
-
-            public void AuditRetryNextServer()
+            else if (aggEx != null)
             {
-                _auditWriter.AppendLine();
-                _auditWriter.AppendLine("; Trying next server.");
+                _auditWriter.AppendLine($";; Error: {aggEx.InnerException?.Message ?? aggEx.Message}");
             }
+            else
+            {
+                _auditWriter.AppendLine($";; Error: {ex.Message}");
+            }
+
+            if (Debugger.IsAttached)
+            {
+                _auditWriter.AppendLine(ex.ToString());
+            }
+        }
+
+        public void AuditRetryNextServer()
+        {
+            _auditWriter.AppendLine();
+            _auditWriter.AppendLine("; Trying next server.");
         }
     }
 }
