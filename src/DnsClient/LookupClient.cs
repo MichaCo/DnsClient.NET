@@ -759,9 +759,9 @@ namespace DnsClient
                     }
                 } while (tries <= Retries && serverInfo.Enabled);
 
-                if (servers.Count > 1)
+                if (servers.Count > 1 && serverInfo != servers.Last())
                 {
-                    audit.AuditRetryNextServer();
+                    audit.AuditRetryNextServer(serverInfo);
                 }
             }
 
@@ -981,9 +981,9 @@ namespace DnsClient
                     }
                 } while (tries <= Retries && !cancellationToken.IsCancellationRequested && serverInfo.Enabled);
 
-                if (servers.Count > 1)
+                if (servers.Count > 1 && serverInfo != servers.Last())
                 {
-                    audit.AuditRetryNextServer();
+                    audit.AuditRetryNextServer(serverInfo);
                 }
             }
 
@@ -1268,10 +1268,10 @@ namespace DnsClient
             }
         }
 
-        public void AuditRetryNextServer()
+        public void AuditRetryNextServer(NameServer current)
         {
             _auditWriter.AppendLine();
-            _auditWriter.AppendLine("; Trying next server.");
+            _auditWriter.AppendLine($"; SERVER: {current.Endpoint.Address}#{current.Endpoint.Port} failed; Retrying with the next server.");
         }
     }
 }
