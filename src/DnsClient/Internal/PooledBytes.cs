@@ -45,8 +45,11 @@ namespace DnsClient.Internal
         {
             if (disposing)
             {
-                _disposed = true;
+                if (_disposed)
+                    return;
+
                 _pool.Return(_buffer);
+                _disposed = true;
             }
         }
     }
