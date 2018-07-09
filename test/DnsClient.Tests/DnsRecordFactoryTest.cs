@@ -324,6 +324,31 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void DnsRecordFactory_SSHFPRecord()
+        {
+            var algo = SshfpAlgorithm.RSA;
+            var type = SshfpFingerprintType.SHA1;
+            var fingerprint = "9DBA55CEA3B8E15528665A6781CA7C35190CF0EC";
+            // Value is stored as raw bytes in the record, so convert the HEX string above to it's original bytes
+            var fingerprintBytes = Enumerable.Range(0, fingerprint.Length / 2)
+                .Select(i => Convert.ToByte(fingerprint.Substring(i * 2, 2), 16));
+
+            var data = new List<byte>();
+            data.Add((byte)algo);
+            data.Add((byte)type);
+            data.AddRange(fingerprintBytes);
+
+            var factory = GetFactory(data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.SSHFP, QueryClass.IN, 0, data.Count);
+
+            var result = factory.GetRecord(info) as SshfpRecord;
+
+            Assert.Equal(SshfpAlgorithm.RSA, result.Algorithm);
+            Assert.Equal(SshfpFingerprintType.SHA1, result.FingerprintType);
+            Assert.Equal(fingerprint, result.Fingerprint);
+        }
+
+        [Fact]
         public void DnsRecordFactory_SpecialChars()
         {
             var textA = "\"äöü \\slash/! @bla.com \"";
