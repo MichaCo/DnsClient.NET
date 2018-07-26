@@ -31,7 +31,7 @@ namespace DnsClient
         /// </summary>
         public static readonly DnsString RootLabel = new DnsString(".", ".");
 
-        internal static readonly IdnMapping IDN = new IdnMapping() { UseStd3AsciiRules = true };
+        internal static readonly IdnMapping IDN = new IdnMapping();
         private const char Dot = '.';
         private const string DotStr = ".";
 

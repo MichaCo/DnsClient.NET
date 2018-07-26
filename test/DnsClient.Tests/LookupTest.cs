@@ -646,15 +646,16 @@ namespace DnsClient.Tests
             Assert.NotEmpty(result.Answers.ARecords());
         }
 
-        [Fact]
-        public void Lookup_Query_InvalidPuny()
-        {
-            var client = new LookupClient(IPAddress.Parse("8.8.8.8"));
+        //// relaxing puni code rules
+        ////[Fact]
+        ////public void Lookup_Query_InvalidPuny()
+        ////{
+        ////    var client = new LookupClient(IPAddress.Parse("8.8.8.8"));
 
-            Func<IDnsQueryResponse> act = () => client.QueryAsync("müsliiscool!.de", QueryType.A).Result;
+        ////    Func<IDnsQueryResponse> act = () => client.QueryAsync("müsliiscool!.de", QueryType.A).Result;
 
-            Assert.ThrowsAny<ArgumentException>(act);
-        }
+        ////    Assert.ThrowsAny<ArgumentException>(act);
+        ////}
 
         [Fact]
         public void Ip_Arpa_v4_Valid()

@@ -759,7 +759,7 @@ namespace DnsClient
                     }
                 } while (tries <= Retries && serverInfo.Enabled);
 
-                if (servers.Count > 1 && serverInfo != servers.Last())
+                if (EnableAuditTrail && servers.Count > 1 && serverInfo != servers.Last())
                 {
                     audit.AuditRetryNextServer(serverInfo);
                 }
@@ -981,7 +981,7 @@ namespace DnsClient
                     }
                 } while (tries <= Retries && !cancellationToken.IsCancellationRequested && serverInfo.Enabled);
 
-                if (servers.Count > 1 && serverInfo != servers.Last())
+                if (EnableAuditTrail && servers.Count > 1 && serverInfo != servers.Last())
                 {
                     audit.AuditRetryNextServer(serverInfo);
                 }
