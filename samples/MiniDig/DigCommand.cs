@@ -110,6 +110,8 @@ namespace DigApp
                 var lookup = GetDnsLookup();
                 lookup.EnableAuditTrail = true;
 
+                Console.WriteLine($"; Servers: {string.Join(", ", lookup.NameServers)}");
+
                 var result = useQClass == 0 ?
                     await lookup.QueryAsync(useDomain, useQType) :
                     await lookup.QueryAsync(useDomain, useQType, useQClass);

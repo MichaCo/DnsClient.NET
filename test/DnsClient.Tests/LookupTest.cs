@@ -153,7 +153,6 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient(NameServer.GooglePublicDns)
             {
-                Timeout = Timeout.InfiniteTimeSpan,
                 // force both requests
                 UseCache = false,
                 UseTcpOnly = true

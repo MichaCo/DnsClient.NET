@@ -137,6 +137,7 @@ namespace DnsClient
                 try
                 {
                     endpoints = ResolveNameServersNative();
+                    exceptions.Clear();
                 }
                 catch (Exception ex)
                 {
