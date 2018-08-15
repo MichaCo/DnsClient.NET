@@ -191,5 +191,12 @@ namespace DnsClient
         /// <seealso href="https://tools.ietf.org/html/rfc6844">RFC 6844</seealso>
         /// <seealso cref="CaaRecord"/>
         CAA = ResourceRecordType.CAA,
+
+        /// <summary>
+        /// A SSH Fingerprint resource record.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4255">RFC 4255</seealso>
+        /// <seealso cref="SshfpRecord"/>
+        SSHFP = ResourceRecordType.SSHFP,
     }
 }
