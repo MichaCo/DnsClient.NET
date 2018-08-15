@@ -2,16 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-// TODO: Remove if fixed
-// This code is from https://github.com/dotnet/corefx
-// Will be removed whenever the bugs reading network information on linux are fixed and 
-// I can use the Managed version.
-
 using System.Diagnostics;
 
 namespace System.IO
 {
-    /// <summary> 
+    /// <summary>
     /// Helper for reading config files where each row is a key-value data pair.
     /// The input key-values must not have any whitespace within them.
     /// Keys are only matched if they begin a line, with no preceding whitespace.
@@ -68,6 +63,7 @@ namespace System.IO
         /// </summary>
         public bool TryGetNextValue(string key, out string value)
         {
+            Debug.Assert(_buffer != null);
             if (_currentIndex >= _buffer.Length)
             {
                 value = null;

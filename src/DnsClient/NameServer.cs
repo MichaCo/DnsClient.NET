@@ -120,13 +120,41 @@ namespace DnsClient
         {
             ICollection<IPEndPoint> endpoints = new IPEndPoint[0];
 
+            List<Exception> exceptions = new List<Exception>();
+
             try
             {
                 endpoints = QueryNetworkInterfaces(skipIPv6SiteLocal);
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException($"Error resolving name servers: {ex.Message} HResult: {ex.HResult}.", ex);
+                exceptions.Add(ex);
+            }
+
+#if !NET45
+            if (exceptions.Count > 0)
+            {
+                try
+                {
+                    endpoints = ResolveNameServersNative();
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(ex);
+                }
+            }
+#endif
+
+            if (exceptions.Count > 0)
+            {
+                if (exceptions.Count > 1)
+                {
+                    throw new AggregateException("Error resolving name servers", exceptions);
+                }
+                else
+                {
+                    throw exceptions.First();
+                }
             }
 
             if (endpoints.Count == 0 && fallbackToGooglePublicDns)
@@ -143,19 +171,16 @@ namespace DnsClient
             return endpoints;
         }
 
-#if PORTABLE
+#if !NET45
 
         /// <summary>
         /// Using my custom native implementation to support UWP apps and such until <see cref="NetworkInterface.GetAllNetworkInterfaces"/>
         /// gets an implementation in netstandard2.1.
-        /// <para>
+        /// </summary>
+        /// <remarks>
         /// DnsClient has been changed in version 1.1.0.
         /// It will not invoke this when resolving default DNS servers. It is up to the user to decide what to do based on what platform the code is running on.
-        /// </para>
-        /// <para>
-        /// Also, this method might get removed in later versions.
-        /// </para>
-        /// </summary>
+        /// </remarks>
         /// <returns>
         /// The list of name servers.
         /// </returns>

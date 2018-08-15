@@ -13,17 +13,17 @@ namespace DnsClient
             MessageSize = messageSize;
         }
 
-        public IList<DnsResourceRecord> Additionals { get; } = new List<DnsResourceRecord>();
+        public List<DnsResourceRecord> Additionals { get; } = new List<DnsResourceRecord>();
 
-        public IList<DnsResourceRecord> Answers { get; } = new List<DnsResourceRecord>();
+        public List<DnsResourceRecord> Answers { get; } = new List<DnsResourceRecord>();
 
-        public IList<DnsResourceRecord> Authorities { get; } = new List<DnsResourceRecord>();
+        public List<DnsResourceRecord> Authorities { get; } = new List<DnsResourceRecord>();
 
         public DnsResponseHeader Header { get; }
 
         public int MessageSize { get; }
 
-        public IList<DnsQuestion> Questions { get; } = new List<DnsQuestion>();
+        public List<DnsQuestion> Questions { get; } = new List<DnsQuestion>();
 
         public void AddAdditional(DnsResourceRecord record)
         {
@@ -72,5 +72,32 @@ namespace DnsClient
         /// </summary>
         public DnsQueryResponse AsQueryResponse(NameServer nameServer)
             => new DnsQueryResponse(this, nameServer, Audit);
+
+        public static DnsResponseMessage Combine(params DnsResponseMessage[] messages)
+        {
+            if (messages.Length <= 1)
+            {
+                return messages.FirstOrDefault();
+            }
+
+            var first = messages.First();
+
+            var header = new DnsResponseHeader(
+                first.Header.Id,
+                (ushort)first.Header.HeaderFlags,
+                first.Header.QuestionCount,
+                messages.Sum(p => p.Header.AnswerCount),
+                messages.Sum(p => p.Header.AdditionalCount),
+                first.Header.NameServerCount);
+
+            var response = new DnsResponseMessage(header, messages.Sum(p => p.MessageSize));
+
+            response.Questions.AddRange(first.Questions);
+            response.Additionals.AddRange(messages.SelectMany(p => p.Additionals));
+            response.Answers.AddRange(messages.SelectMany(p => p.Answers));
+            response.Authorities.AddRange(messages.SelectMany(p => p.Authorities));
+
+            return response;
+        }
     }
 }

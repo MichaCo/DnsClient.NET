@@ -76,7 +76,7 @@ namespace DnsClient
                 {
                     try
                     {
-#if PORTABLE
+#if !NET45
                         udpClient.Dispose();
 #else
                         udpClient.Close();
@@ -103,7 +103,7 @@ namespace DnsClient
                 // setup timeout cancelation, dispose socket (the only way to acutally cancel the request in async...
                 cancelationCallback(() =>
                 {
-#if PORTABLE
+#if !NET45
                     udpClient.Dispose();
 #else
                     udpClient.Close();
@@ -120,7 +120,7 @@ namespace DnsClient
 
                 using (var memory = new PooledBytes(readSize))
                 {
-#if PORTABLE
+#if !NET45
                     int received = await udpClient.Client.ReceiveAsync(new ArraySegment<byte>(memory.Buffer), SocketFlags.None).ConfigureAwait(false);
 
                     var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
@@ -157,7 +157,7 @@ namespace DnsClient
                 {
                     try
                     {
-#if PORTABLE
+#if !NET45
                         udpClient.Dispose();
 #else
                         udpClient.Close();

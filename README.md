@@ -28,6 +28,8 @@ Get beta builds from [MyGet](https://www.myget.org/feed/dnsclient/package/nuget/
 
 ### Build from Code
 
+The solution requires a .NET Core 2.x SDK and the [.NET 4.7.1 Dev Pack](https://www.microsoft.com/net/download/dotnet-framework/net471) being installed.
+
 Just clone the repository and open the solution in Visual Studio 2017.
 Or use the dotnet client via command line.
 

@@ -13,6 +13,13 @@ namespace DnsClient.Tests
         private static readonly IPAddress DoesNotExist = IPAddress.Parse("192.0.21.43");
 
         [Fact]
+        public void NativeDnsServerResolution()
+        {
+            var ex = Record.Exception(() => NameServer.ResolveNameServersNative());
+            Assert.Null(ex);
+        }
+
+        [Fact]
         public void Lookup_Defaults()
         {
             var client = new LookupClient();
@@ -98,6 +105,19 @@ namespace DnsClient.Tests
 
 #if ENABLE_REMOTE_DNS
 
+        [Fact]
+        public void Lookup_LargeAXFR()
+        {
+            var dns = new LookupClient(IPAddress.Loopback)
+            {
+                UseTcpOnly = true
+            };
+
+            var result = dns.Query("mcnet.com", QueryType.AXFR);
+
+            Assert.True(result.Answers.Count > 0);
+        }
+
         // see #10, wrong TCP result handling if the result contains like 1000 answers
         [Fact]
         public void Lookup_LargeResultWithTCP()
@@ -133,6 +153,7 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient(NameServer.GooglePublicDns)
             {
+                Timeout = Timeout.InfiniteTimeSpan,
                 // force both requests
                 UseCache = false,
                 UseTcpOnly = true

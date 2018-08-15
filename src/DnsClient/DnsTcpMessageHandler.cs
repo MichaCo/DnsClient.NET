@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -105,53 +106,60 @@ namespace DnsClient
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            int length = 0;
-            try
-            {
-                length = stream.ReadByte() << 8 | stream.ReadByte();
-            }
-            catch (Exception ex) when (ex is IOException || ex is SocketException)
-            {
-                return null;
-            }
+            var responses = new List<DnsResponseMessage>();
 
-            if (length <= 0)
+            do
             {
-                // server signals close/disconnecting
-                return null;
-            }
-
-            using (var memory = new PooledBytes(length))
-            {
-                int bytesReceived = 0;
-                int readSize = length > 4096 ? 4096 : length;
-
-                while ((bytesReceived += await stream.ReadAsync(memory.Buffer, bytesReceived, readSize).ConfigureAwait(false)) < length)
+                int length = 0;
+                try
                 {
-                    if (bytesReceived <= 0)
-                    {
-                        // disconnected
-                        return null;
-                    }
-                    if (bytesReceived + readSize > length)
-                    {
-                        readSize = length - bytesReceived;
+                    length = stream.ReadByte() << 8 | stream.ReadByte();
+                }
+                catch (Exception ex) when (ex is IOException || ex is SocketException)
+                {
+                    break;
+                }
 
-                        if (readSize <= 0)
+                if (length <= 0)
+                {
+                    // server signals close/disconnecting
+                    break;
+                }
+
+                using (var memory = new PooledBytes(length))
+                {
+                    int bytesReceived = 0;
+                    int readSize = length > 4096 ? 4096 : length;
+
+                    while (!cancellationToken.IsCancellationRequested && (bytesReceived += await stream.ReadAsync(memory.Buffer, bytesReceived, readSize).ConfigureAwait(false)) < length)
+                    {
+                        if (bytesReceived <= 0)
                         {
-                            break;
+                            // disconnected
+                            return null;
+                        }
+                        if (bytesReceived + readSize > length)
+                        {
+                            readSize = length - bytesReceived;
+
+                            if (readSize <= 0)
+                            {
+                                break;
+                            }
                         }
                     }
-                }
 
-                DnsResponseMessage response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, bytesReceived));
-                if (request.Header.Id != response.Header.Id)
-                {
-                    throw new DnsResponseException("Header id mismatch.");
-                }
+                    DnsResponseMessage response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, bytesReceived));
+                    if (request.Header.Id != response.Header.Id)
+                    {
+                        throw new DnsResponseException("Header id mismatch.");
+                    }
 
-                return response;
-            }
+                    responses.Add(response);
+                }
+            } while (stream.DataAvailable && !cancellationToken.IsCancellationRequested);
+
+            return DnsResponseMessage.Combine(responses.ToArray());
         }
 
         private class ClientPool : IDisposable
