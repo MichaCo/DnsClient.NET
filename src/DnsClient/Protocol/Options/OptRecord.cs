@@ -76,12 +76,12 @@ namespace DnsClient.Protocol.Options
         {
             get
             {
-                return (DnsResponseCode)((TimeToLive & ResponseCodeMask) >> ResponseCodeShift);
+                return (DnsResponseCode)((InitialTimeToLive & ResponseCodeMask) >> ResponseCodeShift);
             }
             set
             {
-                TimeToLive &= (int)~ResponseCodeMask;
-                TimeToLive |= (int)(((int)value << ResponseCodeShift) & ResponseCodeMask);
+                InitialTimeToLive &= (int)~ResponseCodeMask;
+                InitialTimeToLive |= (int)(((int)value << ResponseCodeShift) & ResponseCodeMask);
             }
         }
 
@@ -94,27 +94,27 @@ namespace DnsClient.Protocol.Options
         {
             get
             {
-                return (byte)((TimeToLive & VersionMask) >> VersionShift);
+                return (byte)((InitialTimeToLive & VersionMask) >> VersionShift);
             }
             set
             {
-                TimeToLive = (int)((uint)TimeToLive & ~VersionMask);
-                TimeToLive |= (int)((value << VersionShift) & VersionMask);
+                InitialTimeToLive = (int)((uint)InitialTimeToLive & ~VersionMask);
+                InitialTimeToLive |= (int)((value << VersionShift) & VersionMask);
             }
         }
 
         public bool IsDnsSecOk
         {
-            get { return (TimeToLive & 0x8000) != 0; }
+            get { return (InitialTimeToLive & 0x8000) != 0; }
             set
             {
                 if (value)
                 {
-                    TimeToLive |= 0x8000;
+                    InitialTimeToLive |= 0x8000;
                 }
                 else
                 {
-                    TimeToLive &= 0x7fff;
+                    InitialTimeToLive &= 0x7fff;
                 }
             }
         }

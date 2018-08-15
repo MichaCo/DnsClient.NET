@@ -36,7 +36,7 @@ namespace DnsClient.Tests
             Assert.Equal(4, resultAnswer.RawDataLength);
             Assert.Equal(QueryClass.IN, resultAnswer.RecordClass);
             Assert.Equal(ResourceRecordType.A, resultAnswer.RecordType);
-            Assert.True(resultAnswer.TimeToLive == 100);
+            Assert.True(resultAnswer.InitialTimeToLive == 100);
             Assert.True(result.Header.Id == 42);
             Assert.True(result.Header.AnswerCount == 1);
         }
@@ -60,7 +60,7 @@ namespace DnsClient.Tests
                 writer.WriteHostName(answer.DomainName.Value);
                 writer.WriteUInt16NetworkOrder((ushort)answer.RecordType);
                 writer.WriteUInt16NetworkOrder((ushort)answer.RecordClass);
-                writer.WriteUInt32NetworkOrder((uint)answer.TimeToLive);
+                writer.WriteUInt32NetworkOrder((uint)answer.InitialTimeToLive);
                 writer.WriteUInt16NetworkOrder((ushort)answerData.Length);
 
                 //writer.Extend(answerData.Length);   // the following data->length

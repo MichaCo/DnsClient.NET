@@ -48,7 +48,7 @@ namespace DnsClient.Tests
         {
             var minTtl = 2000;
             var cache = new ResponseCache(true, TimeSpan.FromMilliseconds(minTtl));
-            var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
+            var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 1, 100));
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0)
             {
                 Audit = new LookupClientAudit()
@@ -57,12 +57,12 @@ namespace DnsClient.Tests
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
 
-            await Task.Delay(1000);
+            await Task.Delay(1200);
             var item = cache.Get("key", out double? effectiveTtl);
 
             // should not be null although TTL is zero, mimimum timeout is set to 2000ms
-            // TTL of the record should be negative because the initial TTL is 0
-            Assert.True(item.Answers.First().TimeToLive < 0);
+            // TTL of the record should be zero because the initial TTL is 100
+            Assert.Equal(0, item.Answers.First().TimeToLive);
             Assert.Equal(minTtl, effectiveTtl);
         }
 

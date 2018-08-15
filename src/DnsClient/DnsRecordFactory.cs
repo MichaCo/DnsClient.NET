@@ -173,7 +173,7 @@ namespace DnsClient
 
         private DnsResourceRecord ResolveOptRecord(ResourceRecordInfo info)
         {
-            return new OptRecord((int)info.RecordClass, info.TimeToLive, info.RawDataLength);
+            return new OptRecord((int)info.RecordClass, info.InitialTimeToLive, info.RawDataLength);
         }
 
         private DnsResourceRecord ResolveWksRecord(ResourceRecordInfo info)

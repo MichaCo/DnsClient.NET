@@ -67,7 +67,7 @@ namespace DnsClient
             writer.WriteHostName("");
             writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
             writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
-            writer.WriteUInt32NetworkOrder((ushort)opt.TimeToLive);
+            writer.WriteUInt32NetworkOrder((ushort)opt.InitialTimeToLive);
             writer.WriteUInt16NetworkOrder(0);
         }
 

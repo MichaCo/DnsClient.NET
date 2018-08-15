@@ -9,72 +9,55 @@ $ORIGIN		mcnet.com.
              604800 )   ; Negative Cache TTL
 			 
 ; name servers - NS records
-    IN      NS      ns1.mcnet.com.
-    IN      NS      ns2.mcnet.com.
+    604800	IN   NS      ns1.mcnet.com.
+    604800	IN   NS      ns2.mcnet.com.
 
 ; name servers - A records
-ns1          IN      A       192.168.178.1
-ns2          IN      A       192.168.178.2
-@			IN		A 		192.168.178.23
-micha		IN		A		192.168.178.23
+ns1		86400	IN      A       192.168.178.1
+ns2		86400	IN      A       192.168.178.2
+@		86400	IN		A		192.168.178.50
+@        		IN      AAAA   	fe80::24c9:8e14:9df4:a314
 
 ; mail
-@			IN 		MX	10 		mail.mcnet.com.
+@			IN 		MX		10 mail.mcnet.com.
 
-; 192.168.178.0/100 - A records
-mail.mcnet.com.			IN		A		192.168.178.1
-phone.mcnet.com.  		IN      A      	192.168.178.20
-srv.mcnet.com.			IN		A  		192.168.178.21
-srv.mcnet.com.			IN    	HINFO   Intel-I5    WINDOWS
-hidden.mcnet.com.		IN		A  		192.168.178.24
-hidden2.mcnet.com.		IN		A  		192.168.178.24
-srv2.mcnet.com.			IN		A  		192.168.178.25
-srv3.mcnet.com.			IN		A  		192.168.178.26
-srv4.mcnet.com.			IN		A  		192.168.178.27
-uber.mcnet.com.			IN		A		192.168.178.30
-www.mcnet.com.	500		IN		CNAME	micha.mcnet.com.
-XN--CLCHC0EA0B2G2A9GCD.XN--0ZWM56D.mcnet.com.		IN		A		192.168.178.100
-
-; Sub Domain
-$ORIGIN		alex.mcnet.com.
-home		IN		CNAME	www.mcnet.com.
-mail		IN		A		192.168.178.1
-
-$ORIGIN		mia.mcnet.com.
-home		IN		CNAME	www.mcnet.com.
-mail		IN		A		192.168.178.1
-
-$ORIGIN		micha.mcnet.com.
-home		IN		CNAME	www.mcnet.com.
-mail		IN		A		192.168.178.1
-; Test Records
-@			IN		A		192.168.178.23
-@        	IN      A     	127.0.0.1
-@        	IN      AAAA   	fe80::24c9:8e14:9df4:a314
-@			IN		TXT		"some long text with some stuff in it {lala:blub}"
-@			IN		TXT		(some text "separated by" space
+; other
+www		500		IN		CNAME	mcnet.com.
+mail			IN		A		192.168.178.3
+phone  			IN      A      	192.168.178.20
+srv				IN		A  		192.168.178.21
+srv				IN    	HINFO   Intel-I5    WINDOWS
+hidden			IN		A  		192.168.178.24
+hidden2			IN		A  		192.168.178.24
+srv2			IN		A  		192.168.178.25
+srv3			IN		A  		192.168.178.26
+srv4			IN		A  		192.168.178.27
+uber			IN		A		192.168.178.30
+@				IN		TXT		"some long text with some stuff in it {lala:blub}"
+@				IN		TXT		(some text "separated by" space
 										with new line stuff too)
-@			IN		TXT		more "(text with)" "\"special\" öäÜ!""§$%\\/" @stuff \;and ";fake comment"
-@			IN		TXT		"another" "more" "(text with)" "\"special\" \195\182\195\164\195\156!" "\194\167$%\\/" "@stuff" "\;and" "\;fake comment"
-@			IN		MX		10 mail.micha.mcnet.com.
-@			IN		MX		10 mail.mcnet.com.
-@			IN		MB		srv.mcnet.com.
-@			IN		MB		lÜä'laüö#2x.XN--CLCHC0EA0B2G2A9GCD.XN--0ZWM56D.mcnet.com.
-@			IN		MG		hidden.mcnet.com.
-@			IN		MR		hidden2.mcnet.com.
-@			IN		MR		xn--4gbrim.xn----ymcbaaajlc6dj7bxne2c.xn--wgbh1c
-@			IN		SRV		1 1 8080 srv4.mcnet.com.
-@			IN		PTR		hidden.mcnet.com.
-@			IN		PTR		mcnet.com.
-@			IN		MINFO	hidden.mcnet.com. hidden2.mcnet.com.
-@			IN		CAA 	129 tbs MDIGA1UEJQYJYIZIAWUDBAIBBCAXzJgPaoT7FeXaPzKv6mI2D0yilif+7WhzmhMGLe/oBA==
-@			IN		CAA 	1 policy 1.3.6.1.4.1.35405.666.1
-@			IN		CAA 	255 somethingstrange ThevalueStingwithÜberSpeciölvalue.
-@			IN		URI		10 1 "ftp://srv.mcnet.com/public"
-@			IN		NULL 	\# 117 656D7330312E796F75722D66726565646F6D2E64653B55533B313938 2E3235352E33302E3234323B303B353733303B64656661756C742C76 6F6C756D652C6E6F727468616D65726963612C696E74657261637469 76652C766F69702C6F70656E76706E2C707074702C736F636B73352C 667265653B
+@				IN		TXT		more "(text with)" "\"special\" öäÜ!""§$%\\/" @stuff \;and ";fake comment"
+@				IN		TXT		"another" "more" "(text with)" "\"special\" \195\182\195\164\195\156!" "\194\167$%\\/" "@stuff" "\;and" "\;fake comment"
+@		1000	IN		MX		10 mail.micha.mcnet.com.
+@		1000	IN		MX		10 mail.mcnet.com.
+@				IN		MB		srv.mcnet.com.
+@				IN		MB		lÜä'laüö#2x.XN--CLCHC0EA0B2G2A9GCD.XN--0ZWM56D.mcnet.com.
+@				IN		MG		hidden.mcnet.com.
+@				IN		MR		hidden2.mcnet.com.
+@				IN		MR		xn--4gbrim.xn----ymcbaaajlc6dj7bxne2c.xn--wgbh1c
+@				IN		SRV		1 1 8080 srv4.mcnet.com.
+@		500		IN		PTR		hidden.mcnet.com.
+@		500		IN		PTR		mcnet.com.
+@				IN		MINFO	hidden.mcnet.com. hidden2.mcnet.com.
+@		500		IN		CAA 	129 tbs MDIGA1UEJQYJYIZIAWUDBAIBBCAXzJgPaoT7FeXaPzKv6mI2D0yilif+7WhzmhMGLe/oBA==
+@		500		IN		CAA 	1 policy 1.3.6.1.4.1.35405.666.1
+@		1000	IN		CAA 	255 somethingstrange ThevalueStingwithÜberSpeciölvalue.
+@		350		IN		URI		10 1 "ftp://srv.mcnet.com/public"
+@		350		IN		NULL 	\# 117 656D7330312E796F75722D66726565646F6D2E64653B55533B313938 2E3235352E33302E3234323B303B353733303B64656661756C742C76 6F6C756D652C6E6F727468616D65726963612C696E74657261637469 76652C766F69702C6F70656E76706E2C707074702C736F636B73352C 667265653B
+@		200		IN 		SSHFP	1 1 9DBA55CEA3B8E15528665A6781CA7C35190CF0EC
 
 ; RP entries
-@			RP    micha.c.mcnet.com. addr.micha.mcnet.com.
+@			RP    micha.c.mcnet.com. micha.mcnet.com.
 @			RP    alex.b.mcnet.com. addr.alex.mcnet.com.
 @			RP    mia.c.mcnet.com. addr.mia.mcnet.com.
 @			RP    lucy.c.mcnet.com.  .
@@ -89,6 +72,26 @@ mail		IN		A		192.168.178.1
 @			IN    	HINFO   Sparc-10    UNIX
 @			IN    	HINFO   Intel-I7    WINDOWS
 
+; Sub Domain
+$ORIGIN		alex.mcnet.com.
+@			IN	 	A		192.168.178.61
+mail		IN 		MX		10 mail.mcnet.com.
+
+$ORIGIN		mia.mcnet.com.
+@			IN	 	A		192.168.178.62
+mail		IN 		MX		10 mail.mcnet.com.
+
+$ORIGIN		mail.mcnet.com.
+@	86400	IN		A		192.168.178.3
+
+$ORIGIN		micha.mcnet.com.
+@			IN		CNAME	mcnet.com.
+www			IN		CNAME	mcnet.com.
+mail		IN		A		192.168.178.4
+
+; 192.168.178.0/100 - A records
+
+XN--CLCHC0EA0B2G2A9GCD.XN--0ZWM56D.mcnet.com.		IN		A		192.168.178.100
 
 ; AFS example
 _afs3-vl._tcp.mcnet.com. 	IN	 SRV   0 0 7003 srv2.mcnet.com.
@@ -99,667 +102,4 @@ addr.micha.mcnet.com.  	TXT   "Boss (123) 456789"
 addr.alex.mcnet.com. 	TXT   "Ernst (123) 456789"
 addr.mia.mcnet.com.		TXT   "Yey (123) 456789"
 
-; Generated
-domain1.mcnet.com.	100	IN	A	10.0.1.1
-domain2.mcnet.com.	101	IN	A	10.0.1.2
-domain3.mcnet.com.	102	IN	A	10.0.1.3
-domain4.mcnet.com.	103	IN	A	10.0.1.4
-domain5.mcnet.com.	104	IN	A	10.0.1.5
-domain6.mcnet.com.	105	IN	A	10.0.1.6
-domain7.mcnet.com.	106	IN	A	10.0.1.7
-domain8.mcnet.com.	107	IN	A	10.0.1.8
-domain9.mcnet.com.	108	IN	A	10.0.1.9
-domain10.mcnet.com.	109	IN	A	10.0.1.10
-domain11.mcnet.com.	110	IN	A	10.0.1.11
-domain12.mcnet.com.	111	IN	A	10.0.1.12
-domain13.mcnet.com.	112	IN	A	10.0.1.13
-domain14.mcnet.com.	113	IN	A	10.0.1.14
-domain15.mcnet.com.	114	IN	A	10.0.1.15
-domain16.mcnet.com.	115	IN	A	10.0.1.16
-domain17.mcnet.com.	116	IN	A	10.0.1.17
-domain18.mcnet.com.	117	IN	A	10.0.1.18
-domain19.mcnet.com.	118	IN	A	10.0.1.19
-domain20.mcnet.com.	119	IN	A	10.0.1.20
-domain21.mcnet.com.	120	IN	A	10.0.1.21
-domain22.mcnet.com.	121	IN	A	10.0.1.22
-domain23.mcnet.com.	122	IN	A	10.0.1.23
-domain24.mcnet.com.	123	IN	A	10.0.1.24
-domain25.mcnet.com.	124	IN	A	10.0.1.25
-domain26.mcnet.com.	125	IN	A	10.0.1.26
-domain27.mcnet.com.	126	IN	A	10.0.1.27
-domain28.mcnet.com.	127	IN	A	10.0.1.28
-domain29.mcnet.com.	128	IN	A	10.0.1.29
-domain30.mcnet.com.	129	IN	A	10.0.1.30
-domain31.mcnet.com.	130	IN	A	10.0.1.31
-domain32.mcnet.com.	131	IN	A	10.0.1.32
-domain33.mcnet.com.	132	IN	A	10.0.1.33
-domain34.mcnet.com.	133	IN	A	10.0.1.34
-domain35.mcnet.com.	134	IN	A	10.0.1.35
-domain36.mcnet.com.	135	IN	A	10.0.1.36
-domain37.mcnet.com.	136	IN	A	10.0.1.37
-domain38.mcnet.com.	137	IN	A	10.0.1.38
-domain39.mcnet.com.	138	IN	A	10.0.1.39
-domain40.mcnet.com.	139	IN	A	10.0.1.40
-domain41.mcnet.com.	140	IN	A	10.0.1.41
-domain42.mcnet.com.	141	IN	A	10.0.1.42
-domain43.mcnet.com.	142	IN	A	10.0.1.43
-domain44.mcnet.com.	143	IN	A	10.0.1.44
-domain45.mcnet.com.	144	IN	A	10.0.1.45
-domain46.mcnet.com.	145	IN	A	10.0.1.46
-domain47.mcnet.com.	146	IN	A	10.0.1.47
-domain48.mcnet.com.	147	IN	A	10.0.1.48
-domain49.mcnet.com.	148	IN	A	10.0.1.49
-domain50.mcnet.com.	149	IN	A	10.0.1.50
-domain51.mcnet.com.	150	IN	A	10.0.1.51
-domain52.mcnet.com.	151	IN	A	10.0.1.52
-domain53.mcnet.com.	152	IN	A	10.0.1.53
-domain54.mcnet.com.	153	IN	A	10.0.1.54
-domain55.mcnet.com.	154	IN	A	10.0.1.55
-domain56.mcnet.com.	155	IN	A	10.0.1.56
-domain57.mcnet.com.	156	IN	A	10.0.1.57
-domain58.mcnet.com.	157	IN	A	10.0.1.58
-domain59.mcnet.com.	158	IN	A	10.0.1.59
-domain60.mcnet.com.	159	IN	A	10.0.1.60
-domain61.mcnet.com.	160	IN	A	10.0.1.61
-domain62.mcnet.com.	161	IN	A	10.0.1.62
-domain63.mcnet.com.	162	IN	A	10.0.1.63
-domain64.mcnet.com.	163	IN	A	10.0.1.64
-domain65.mcnet.com.	164	IN	A	10.0.1.65
-domain66.mcnet.com.	165	IN	A	10.0.1.66
-domain67.mcnet.com.	166	IN	A	10.0.1.67
-domain68.mcnet.com.	167	IN	A	10.0.1.68
-domain69.mcnet.com.	168	IN	A	10.0.1.69
-domain70.mcnet.com.	169	IN	A	10.0.1.70
-domain71.mcnet.com.	170	IN	A	10.0.1.71
-domain72.mcnet.com.	171	IN	A	10.0.1.72
-domain73.mcnet.com.	172	IN	A	10.0.1.73
-domain74.mcnet.com.	173	IN	A	10.0.1.74
-domain75.mcnet.com.	174	IN	A	10.0.1.75
-domain76.mcnet.com.	175	IN	A	10.0.1.76
-domain77.mcnet.com.	176	IN	A	10.0.1.77
-domain78.mcnet.com.	177	IN	A	10.0.1.78
-domain79.mcnet.com.	178	IN	A	10.0.1.79
-domain80.mcnet.com.	179	IN	A	10.0.1.80
-domain81.mcnet.com.	180	IN	A	10.0.1.81
-domain82.mcnet.com.	181	IN	A	10.0.1.82
-domain83.mcnet.com.	182	IN	A	10.0.1.83
-domain84.mcnet.com.	183	IN	A	10.0.1.84
-domain85.mcnet.com.	184	IN	A	10.0.1.85
-domain86.mcnet.com.	185	IN	A	10.0.1.86
-domain87.mcnet.com.	186	IN	A	10.0.1.87
-domain88.mcnet.com.	187	IN	A	10.0.1.88
-domain89.mcnet.com.	188	IN	A	10.0.1.89
-domain90.mcnet.com.	189	IN	A	10.0.1.90
-domain91.mcnet.com.	190	IN	A	10.0.1.91
-domain92.mcnet.com.	191	IN	A	10.0.1.92
-domain93.mcnet.com.	192	IN	A	10.0.1.93
-domain94.mcnet.com.	193	IN	A	10.0.1.94
-domain95.mcnet.com.	194	IN	A	10.0.1.95
-domain96.mcnet.com.	195	IN	A	10.0.1.96
-domain97.mcnet.com.	196	IN	A	10.0.1.97
-domain98.mcnet.com.	197	IN	A	10.0.1.98
-domain99.mcnet.com.	198	IN	A	10.0.1.99
-domain100.mcnet.com.	199	IN	A	10.0.1.100
-domain101.mcnet.com.	200	IN	A	10.0.1.101
-domain102.mcnet.com.	201	IN	A	10.0.1.102
-domain103.mcnet.com.	202	IN	A	10.0.1.103
-domain104.mcnet.com.	203	IN	A	10.0.1.104
-domain105.mcnet.com.	204	IN	A	10.0.1.105
-domain106.mcnet.com.	205	IN	A	10.0.1.106
-domain107.mcnet.com.	206	IN	A	10.0.1.107
-domain108.mcnet.com.	207	IN	A	10.0.1.108
-domain109.mcnet.com.	208	IN	A	10.0.1.109
-domain110.mcnet.com.	209	IN	A	10.0.1.110
-domain111.mcnet.com.	210	IN	A	10.0.1.111
-domain112.mcnet.com.	211	IN	A	10.0.1.112
-domain113.mcnet.com.	212	IN	A	10.0.1.113
-domain114.mcnet.com.	213	IN	A	10.0.1.114
-domain115.mcnet.com.	214	IN	A	10.0.1.115
-domain116.mcnet.com.	215	IN	A	10.0.1.116
-domain117.mcnet.com.	216	IN	A	10.0.1.117
-domain118.mcnet.com.	217	IN	A	10.0.1.118
-domain119.mcnet.com.	218	IN	A	10.0.1.119
-domain120.mcnet.com.	219	IN	A	10.0.1.120
-domain121.mcnet.com.	220	IN	A	10.0.1.121
-domain122.mcnet.com.	221	IN	A	10.0.1.122
-domain123.mcnet.com.	222	IN	A	10.0.1.123
-domain124.mcnet.com.	223	IN	A	10.0.1.124
-domain125.mcnet.com.	224	IN	A	10.0.1.125
-domain126.mcnet.com.	225	IN	A	10.0.1.126
-domain127.mcnet.com.	226	IN	A	10.0.1.127
-domain128.mcnet.com.	227	IN	A	10.0.1.128
-domain129.mcnet.com.	228	IN	A	10.0.1.129
-domain130.mcnet.com.	229	IN	A	10.0.1.130
-domain131.mcnet.com.	230	IN	A	10.0.1.131
-domain132.mcnet.com.	231	IN	A	10.0.1.132
-domain133.mcnet.com.	232	IN	A	10.0.1.133
-domain134.mcnet.com.	233	IN	A	10.0.1.134
-domain135.mcnet.com.	234	IN	A	10.0.1.135
-domain136.mcnet.com.	235	IN	A	10.0.1.136
-domain137.mcnet.com.	236	IN	A	10.0.1.137
-domain138.mcnet.com.	237	IN	A	10.0.1.138
-domain139.mcnet.com.	238	IN	A	10.0.1.139
-domain140.mcnet.com.	239	IN	A	10.0.1.140
-domain141.mcnet.com.	240	IN	A	10.0.1.141
-domain142.mcnet.com.	241	IN	A	10.0.1.142
-domain143.mcnet.com.	242	IN	A	10.0.1.143
-domain144.mcnet.com.	243	IN	A	10.0.1.144
-domain145.mcnet.com.	244	IN	A	10.0.1.145
-domain146.mcnet.com.	245	IN	A	10.0.1.146
-domain147.mcnet.com.	246	IN	A	10.0.1.147
-domain148.mcnet.com.	247	IN	A	10.0.1.148
-domain149.mcnet.com.	248	IN	A	10.0.1.149
-domain150.mcnet.com.	249	IN	A	10.0.1.150
-domain151.mcnet.com.	250	IN	A	10.0.1.151
-domain152.mcnet.com.	251	IN	A	10.0.1.152
-domain153.mcnet.com.	252	IN	A	10.0.1.153
-domain154.mcnet.com.	253	IN	A	10.0.1.154
-domain155.mcnet.com.	254	IN	A	10.0.1.155
-domain156.mcnet.com.	255	IN	A	10.0.1.156
-domain157.mcnet.com.	256	IN	A	10.0.1.157
-domain158.mcnet.com.	257	IN	A	10.0.1.158
-domain159.mcnet.com.	258	IN	A	10.0.1.159
-domain160.mcnet.com.	259	IN	A	10.0.1.160
-domain161.mcnet.com.	260	IN	A	10.0.1.161
-domain162.mcnet.com.	261	IN	A	10.0.1.162
-domain163.mcnet.com.	262	IN	A	10.0.1.163
-domain164.mcnet.com.	263	IN	A	10.0.1.164
-domain165.mcnet.com.	264	IN	A	10.0.1.165
-domain166.mcnet.com.	265	IN	A	10.0.1.166
-domain167.mcnet.com.	266	IN	A	10.0.1.167
-domain168.mcnet.com.	267	IN	A	10.0.1.168
-domain169.mcnet.com.	268	IN	A	10.0.1.169
-domain170.mcnet.com.	269	IN	A	10.0.1.170
-domain171.mcnet.com.	270	IN	A	10.0.1.171
-domain172.mcnet.com.	271	IN	A	10.0.1.172
-domain173.mcnet.com.	272	IN	A	10.0.1.173
-domain174.mcnet.com.	273	IN	A	10.0.1.174
-domain175.mcnet.com.	274	IN	A	10.0.1.175
-domain176.mcnet.com.	275	IN	A	10.0.1.176
-domain177.mcnet.com.	276	IN	A	10.0.1.177
-domain178.mcnet.com.	277	IN	A	10.0.1.178
-domain179.mcnet.com.	278	IN	A	10.0.1.179
-domain180.mcnet.com.	279	IN	A	10.0.1.180
-domain181.mcnet.com.	280	IN	A	10.0.1.181
-domain182.mcnet.com.	281	IN	A	10.0.1.182
-domain183.mcnet.com.	282	IN	A	10.0.1.183
-domain184.mcnet.com.	283	IN	A	10.0.1.184
-domain185.mcnet.com.	284	IN	A	10.0.1.185
-domain186.mcnet.com.	285	IN	A	10.0.1.186
-domain187.mcnet.com.	286	IN	A	10.0.1.187
-domain188.mcnet.com.	287	IN	A	10.0.1.188
-domain189.mcnet.com.	288	IN	A	10.0.1.189
-domain190.mcnet.com.	289	IN	A	10.0.1.190
-domain191.mcnet.com.	290	IN	A	10.0.1.191
-domain192.mcnet.com.	291	IN	A	10.0.1.192
-domain193.mcnet.com.	292	IN	A	10.0.1.193
-domain194.mcnet.com.	293	IN	A	10.0.1.194
-domain195.mcnet.com.	294	IN	A	10.0.1.195
-domain196.mcnet.com.	295	IN	A	10.0.1.196
-domain197.mcnet.com.	296	IN	A	10.0.1.197
-domain198.mcnet.com.	297	IN	A	10.0.1.198
-domain199.mcnet.com.	298	IN	A	10.0.1.199
-domain200.mcnet.com.	299	IN	A	10.0.1.200
-domain201.mcnet.com.	300	IN	A	10.0.1.201
-domain202.mcnet.com.	301	IN	A	10.0.1.202
-domain203.mcnet.com.	302	IN	A	10.0.1.203
-domain204.mcnet.com.	303	IN	A	10.0.1.204
-domain205.mcnet.com.	304	IN	A	10.0.1.205
-domain206.mcnet.com.	305	IN	A	10.0.1.206
-domain207.mcnet.com.	306	IN	A	10.0.1.207
-domain208.mcnet.com.	307	IN	A	10.0.1.208
-domain209.mcnet.com.	308	IN	A	10.0.1.209
-domain210.mcnet.com.	309	IN	A	10.0.1.210
-domain211.mcnet.com.	310	IN	A	10.0.1.211
-domain212.mcnet.com.	311	IN	A	10.0.1.212
-domain213.mcnet.com.	312	IN	A	10.0.1.213
-domain214.mcnet.com.	313	IN	A	10.0.1.214
-domain215.mcnet.com.	314	IN	A	10.0.1.215
-domain216.mcnet.com.	315	IN	A	10.0.1.216
-domain217.mcnet.com.	316	IN	A	10.0.1.217
-domain218.mcnet.com.	317	IN	A	10.0.1.218
-domain219.mcnet.com.	318	IN	A	10.0.1.219
-domain220.mcnet.com.	319	IN	A	10.0.1.220
-domain221.mcnet.com.	320	IN	A	10.0.1.221
-domain1.mcnet.com.	100	IN	A	10.0.2.1
-domain2.mcnet.com.	101	IN	A	10.0.2.2
-domain3.mcnet.com.	102	IN	A	10.0.2.3
-domain4.mcnet.com.	103	IN	A	10.0.2.4
-domain5.mcnet.com.	104	IN	A	10.0.2.5
-domain6.mcnet.com.	105	IN	A	10.0.2.6
-domain7.mcnet.com.	106	IN	A	10.0.2.7
-domain8.mcnet.com.	107	IN	A	10.0.2.8
-domain9.mcnet.com.	108	IN	A	10.0.2.9
-domain10.mcnet.com.	109	IN	A	10.0.2.10
-domain11.mcnet.com.	110	IN	A	10.0.2.11
-domain12.mcnet.com.	111	IN	A	10.0.2.12
-domain13.mcnet.com.	112	IN	A	10.0.2.13
-domain14.mcnet.com.	113	IN	A	10.0.2.14
-domain15.mcnet.com.	114	IN	A	10.0.2.15
-domain16.mcnet.com.	115	IN	A	10.0.2.16
-domain17.mcnet.com.	116	IN	A	10.0.2.17
-domain18.mcnet.com.	117	IN	A	10.0.2.18
-domain19.mcnet.com.	118	IN	A	10.0.2.19
-domain20.mcnet.com.	119	IN	A	10.0.2.20
-domain21.mcnet.com.	120	IN	A	10.0.2.21
-domain22.mcnet.com.	121	IN	A	10.0.2.22
-domain23.mcnet.com.	122	IN	A	10.0.2.23
-domain24.mcnet.com.	123	IN	A	10.0.2.24
-domain25.mcnet.com.	124	IN	A	10.0.2.25
-domain26.mcnet.com.	125	IN	A	10.0.2.26
-domain27.mcnet.com.	126	IN	A	10.0.2.27
-domain28.mcnet.com.	127	IN	A	10.0.2.28
-domain29.mcnet.com.	128	IN	A	10.0.2.29
-domain30.mcnet.com.	129	IN	A	10.0.2.30
-domain31.mcnet.com.	130	IN	A	10.0.2.31
-domain32.mcnet.com.	131	IN	A	10.0.2.32
-domain33.mcnet.com.	132	IN	A	10.0.2.33
-domain34.mcnet.com.	133	IN	A	10.0.2.34
-domain35.mcnet.com.	134	IN	A	10.0.2.35
-domain36.mcnet.com.	135	IN	A	10.0.2.36
-domain37.mcnet.com.	136	IN	A	10.0.2.37
-domain38.mcnet.com.	137	IN	A	10.0.2.38
-domain39.mcnet.com.	138	IN	A	10.0.2.39
-domain40.mcnet.com.	139	IN	A	10.0.2.40
-domain41.mcnet.com.	140	IN	A	10.0.2.41
-domain42.mcnet.com.	141	IN	A	10.0.2.42
-domain43.mcnet.com.	142	IN	A	10.0.2.43
-domain44.mcnet.com.	143	IN	A	10.0.2.44
-domain45.mcnet.com.	144	IN	A	10.0.2.45
-domain46.mcnet.com.	145	IN	A	10.0.2.46
-domain47.mcnet.com.	146	IN	A	10.0.2.47
-domain48.mcnet.com.	147	IN	A	10.0.2.48
-domain49.mcnet.com.	148	IN	A	10.0.2.49
-domain50.mcnet.com.	149	IN	A	10.0.2.50
-domain51.mcnet.com.	150	IN	A	10.0.2.51
-domain52.mcnet.com.	151	IN	A	10.0.2.52
-domain53.mcnet.com.	152	IN	A	10.0.2.53
-domain54.mcnet.com.	153	IN	A	10.0.2.54
-domain55.mcnet.com.	154	IN	A	10.0.2.55
-domain56.mcnet.com.	155	IN	A	10.0.2.56
-domain57.mcnet.com.	156	IN	A	10.0.2.57
-domain58.mcnet.com.	157	IN	A	10.0.2.58
-domain59.mcnet.com.	158	IN	A	10.0.2.59
-domain60.mcnet.com.	159	IN	A	10.0.2.60
-domain61.mcnet.com.	160	IN	A	10.0.2.61
-domain62.mcnet.com.	161	IN	A	10.0.2.62
-domain63.mcnet.com.	162	IN	A	10.0.2.63
-domain64.mcnet.com.	163	IN	A	10.0.2.64
-domain65.mcnet.com.	164	IN	A	10.0.2.65
-domain66.mcnet.com.	165	IN	A	10.0.2.66
-domain67.mcnet.com.	166	IN	A	10.0.2.67
-domain68.mcnet.com.	167	IN	A	10.0.2.68
-domain69.mcnet.com.	168	IN	A	10.0.2.69
-domain70.mcnet.com.	169	IN	A	10.0.2.70
-domain71.mcnet.com.	170	IN	A	10.0.2.71
-domain72.mcnet.com.	171	IN	A	10.0.2.72
-domain73.mcnet.com.	172	IN	A	10.0.2.73
-domain74.mcnet.com.	173	IN	A	10.0.2.74
-domain75.mcnet.com.	174	IN	A	10.0.2.75
-domain76.mcnet.com.	175	IN	A	10.0.2.76
-domain77.mcnet.com.	176	IN	A	10.0.2.77
-domain78.mcnet.com.	177	IN	A	10.0.2.78
-domain79.mcnet.com.	178	IN	A	10.0.2.79
-domain80.mcnet.com.	179	IN	A	10.0.2.80
-domain81.mcnet.com.	180	IN	A	10.0.2.81
-domain82.mcnet.com.	181	IN	A	10.0.2.82
-domain83.mcnet.com.	182	IN	A	10.0.2.83
-domain84.mcnet.com.	183	IN	A	10.0.2.84
-domain85.mcnet.com.	184	IN	A	10.0.2.85
-domain86.mcnet.com.	185	IN	A	10.0.2.86
-domain87.mcnet.com.	186	IN	A	10.0.2.87
-domain88.mcnet.com.	187	IN	A	10.0.2.88
-domain89.mcnet.com.	188	IN	A	10.0.2.89
-domain90.mcnet.com.	189	IN	A	10.0.2.90
-domain91.mcnet.com.	190	IN	A	10.0.2.91
-domain92.mcnet.com.	191	IN	A	10.0.2.92
-domain93.mcnet.com.	192	IN	A	10.0.2.93
-domain94.mcnet.com.	193	IN	A	10.0.2.94
-domain95.mcnet.com.	194	IN	A	10.0.2.95
-domain96.mcnet.com.	195	IN	A	10.0.2.96
-domain97.mcnet.com.	196	IN	A	10.0.2.97
-domain98.mcnet.com.	197	IN	A	10.0.2.98
-domain99.mcnet.com.	198	IN	A	10.0.2.99
-domain100.mcnet.com.	199	IN	A	10.0.2.100
-domain101.mcnet.com.	200	IN	A	10.0.2.101
-domain102.mcnet.com.	201	IN	A	10.0.2.102
-domain103.mcnet.com.	202	IN	A	10.0.2.103
-domain104.mcnet.com.	203	IN	A	10.0.2.104
-domain105.mcnet.com.	204	IN	A	10.0.2.105
-domain106.mcnet.com.	205	IN	A	10.0.2.106
-domain107.mcnet.com.	206	IN	A	10.0.2.107
-domain108.mcnet.com.	207	IN	A	10.0.2.108
-domain109.mcnet.com.	208	IN	A	10.0.2.109
-domain110.mcnet.com.	209	IN	A	10.0.2.110
-domain111.mcnet.com.	210	IN	A	10.0.2.111
-domain112.mcnet.com.	211	IN	A	10.0.2.112
-domain113.mcnet.com.	212	IN	A	10.0.2.113
-domain114.mcnet.com.	213	IN	A	10.0.2.114
-domain115.mcnet.com.	214	IN	A	10.0.2.115
-domain116.mcnet.com.	215	IN	A	10.0.2.116
-domain117.mcnet.com.	216	IN	A	10.0.2.117
-domain118.mcnet.com.	217	IN	A	10.0.2.118
-domain119.mcnet.com.	218	IN	A	10.0.2.119
-domain120.mcnet.com.	219	IN	A	10.0.2.120
-domain121.mcnet.com.	220	IN	A	10.0.2.121
-domain122.mcnet.com.	221	IN	A	10.0.2.122
-domain123.mcnet.com.	222	IN	A	10.0.2.123
-domain124.mcnet.com.	223	IN	A	10.0.2.124
-domain125.mcnet.com.	224	IN	A	10.0.2.125
-domain126.mcnet.com.	225	IN	A	10.0.2.126
-domain127.mcnet.com.	226	IN	A	10.0.2.127
-domain128.mcnet.com.	227	IN	A	10.0.2.128
-domain129.mcnet.com.	228	IN	A	10.0.2.129
-domain130.mcnet.com.	229	IN	A	10.0.2.130
-domain131.mcnet.com.	230	IN	A	10.0.2.131
-domain132.mcnet.com.	231	IN	A	10.0.2.132
-domain133.mcnet.com.	232	IN	A	10.0.2.133
-domain134.mcnet.com.	233	IN	A	10.0.2.134
-domain135.mcnet.com.	234	IN	A	10.0.2.135
-domain136.mcnet.com.	235	IN	A	10.0.2.136
-domain137.mcnet.com.	236	IN	A	10.0.2.137
-domain138.mcnet.com.	237	IN	A	10.0.2.138
-domain139.mcnet.com.	238	IN	A	10.0.2.139
-domain140.mcnet.com.	239	IN	A	10.0.2.140
-domain141.mcnet.com.	240	IN	A	10.0.2.141
-domain142.mcnet.com.	241	IN	A	10.0.2.142
-domain143.mcnet.com.	242	IN	A	10.0.2.143
-domain144.mcnet.com.	243	IN	A	10.0.2.144
-domain145.mcnet.com.	244	IN	A	10.0.2.145
-domain146.mcnet.com.	245	IN	A	10.0.2.146
-domain147.mcnet.com.	246	IN	A	10.0.2.147
-domain148.mcnet.com.	247	IN	A	10.0.2.148
-domain149.mcnet.com.	248	IN	A	10.0.2.149
-domain150.mcnet.com.	249	IN	A	10.0.2.150
-domain151.mcnet.com.	250	IN	A	10.0.2.151
-domain152.mcnet.com.	251	IN	A	10.0.2.152
-domain153.mcnet.com.	252	IN	A	10.0.2.153
-domain154.mcnet.com.	253	IN	A	10.0.2.154
-domain155.mcnet.com.	254	IN	A	10.0.2.155
-domain156.mcnet.com.	255	IN	A	10.0.2.156
-domain157.mcnet.com.	256	IN	A	10.0.2.157
-domain158.mcnet.com.	257	IN	A	10.0.2.158
-domain159.mcnet.com.	258	IN	A	10.0.2.159
-domain160.mcnet.com.	259	IN	A	10.0.2.160
-domain161.mcnet.com.	260	IN	A	10.0.2.161
-domain162.mcnet.com.	261	IN	A	10.0.2.162
-domain163.mcnet.com.	262	IN	A	10.0.2.163
-domain164.mcnet.com.	263	IN	A	10.0.2.164
-domain165.mcnet.com.	264	IN	A	10.0.2.165
-domain166.mcnet.com.	265	IN	A	10.0.2.166
-domain167.mcnet.com.	266	IN	A	10.0.2.167
-domain168.mcnet.com.	267	IN	A	10.0.2.168
-domain169.mcnet.com.	268	IN	A	10.0.2.169
-domain170.mcnet.com.	269	IN	A	10.0.2.170
-domain171.mcnet.com.	270	IN	A	10.0.2.171
-domain172.mcnet.com.	271	IN	A	10.0.2.172
-domain173.mcnet.com.	272	IN	A	10.0.2.173
-domain174.mcnet.com.	273	IN	A	10.0.2.174
-domain175.mcnet.com.	274	IN	A	10.0.2.175
-domain176.mcnet.com.	275	IN	A	10.0.2.176
-domain177.mcnet.com.	276	IN	A	10.0.2.177
-domain178.mcnet.com.	277	IN	A	10.0.2.178
-domain179.mcnet.com.	278	IN	A	10.0.2.179
-domain180.mcnet.com.	279	IN	A	10.0.2.180
-domain181.mcnet.com.	280	IN	A	10.0.2.181
-domain182.mcnet.com.	281	IN	A	10.0.2.182
-domain183.mcnet.com.	282	IN	A	10.0.2.183
-domain184.mcnet.com.	283	IN	A	10.0.2.184
-domain185.mcnet.com.	284	IN	A	10.0.2.185
-domain186.mcnet.com.	285	IN	A	10.0.2.186
-domain187.mcnet.com.	286	IN	A	10.0.2.187
-domain188.mcnet.com.	287	IN	A	10.0.2.188
-domain189.mcnet.com.	288	IN	A	10.0.2.189
-domain190.mcnet.com.	289	IN	A	10.0.2.190
-domain191.mcnet.com.	290	IN	A	10.0.2.191
-domain192.mcnet.com.	291	IN	A	10.0.2.192
-domain193.mcnet.com.	292	IN	A	10.0.2.193
-domain194.mcnet.com.	293	IN	A	10.0.2.194
-domain195.mcnet.com.	294	IN	A	10.0.2.195
-domain196.mcnet.com.	295	IN	A	10.0.2.196
-domain197.mcnet.com.	296	IN	A	10.0.2.197
-domain198.mcnet.com.	297	IN	A	10.0.2.198
-domain199.mcnet.com.	298	IN	A	10.0.2.199
-domain200.mcnet.com.	299	IN	A	10.0.2.200
-domain201.mcnet.com.	300	IN	A	10.0.2.201
-domain202.mcnet.com.	301	IN	A	10.0.2.202
-domain203.mcnet.com.	302	IN	A	10.0.2.203
-domain204.mcnet.com.	303	IN	A	10.0.2.204
-domain205.mcnet.com.	304	IN	A	10.0.2.205
-domain206.mcnet.com.	305	IN	A	10.0.2.206
-domain207.mcnet.com.	306	IN	A	10.0.2.207
-domain208.mcnet.com.	307	IN	A	10.0.2.208
-domain209.mcnet.com.	308	IN	A	10.0.2.209
-domain210.mcnet.com.	309	IN	A	10.0.2.210
-domain211.mcnet.com.	310	IN	A	10.0.2.211
-domain212.mcnet.com.	311	IN	A	10.0.2.212
-domain213.mcnet.com.	312	IN	A	10.0.2.213
-domain214.mcnet.com.	313	IN	A	10.0.2.214
-domain215.mcnet.com.	314	IN	A	10.0.2.215
-domain216.mcnet.com.	315	IN	A	10.0.2.216
-domain217.mcnet.com.	316	IN	A	10.0.2.217
-domain218.mcnet.com.	317	IN	A	10.0.2.218
-domain219.mcnet.com.	318	IN	A	10.0.2.219
-domain220.mcnet.com.	319	IN	A	10.0.2.220
-domain221.mcnet.com.	320	IN	A	10.0.2.221
-domain1.mcnet.com.	100	IN	A	10.0.3.1
-domain2.mcnet.com.	101	IN	A	10.0.3.2
-domain3.mcnet.com.	102	IN	A	10.0.3.3
-domain4.mcnet.com.	103	IN	A	10.0.3.4
-domain5.mcnet.com.	104	IN	A	10.0.3.5
-domain6.mcnet.com.	105	IN	A	10.0.3.6
-domain7.mcnet.com.	106	IN	A	10.0.3.7
-domain8.mcnet.com.	107	IN	A	10.0.3.8
-domain9.mcnet.com.	108	IN	A	10.0.3.9
-domain10.mcnet.com.	109	IN	A	10.0.3.10
-domain11.mcnet.com.	110	IN	A	10.0.3.11
-domain12.mcnet.com.	111	IN	A	10.0.3.12
-domain13.mcnet.com.	112	IN	A	10.0.3.13
-domain14.mcnet.com.	113	IN	A	10.0.3.14
-domain15.mcnet.com.	114	IN	A	10.0.3.15
-domain16.mcnet.com.	115	IN	A	10.0.3.16
-domain17.mcnet.com.	116	IN	A	10.0.3.17
-domain18.mcnet.com.	117	IN	A	10.0.3.18
-domain19.mcnet.com.	118	IN	A	10.0.3.19
-domain20.mcnet.com.	119	IN	A	10.0.3.20
-domain21.mcnet.com.	120	IN	A	10.0.3.21
-domain22.mcnet.com.	121	IN	A	10.0.3.22
-domain23.mcnet.com.	122	IN	A	10.0.3.23
-domain24.mcnet.com.	123	IN	A	10.0.3.24
-domain25.mcnet.com.	124	IN	A	10.0.3.25
-domain26.mcnet.com.	125	IN	A	10.0.3.26
-domain27.mcnet.com.	126	IN	A	10.0.3.27
-domain28.mcnet.com.	127	IN	A	10.0.3.28
-domain29.mcnet.com.	128	IN	A	10.0.3.29
-domain30.mcnet.com.	129	IN	A	10.0.3.30
-domain31.mcnet.com.	130	IN	A	10.0.3.31
-domain32.mcnet.com.	131	IN	A	10.0.3.32
-domain33.mcnet.com.	132	IN	A	10.0.3.33
-domain34.mcnet.com.	133	IN	A	10.0.3.34
-domain35.mcnet.com.	134	IN	A	10.0.3.35
-domain36.mcnet.com.	135	IN	A	10.0.3.36
-domain37.mcnet.com.	136	IN	A	10.0.3.37
-domain38.mcnet.com.	137	IN	A	10.0.3.38
-domain39.mcnet.com.	138	IN	A	10.0.3.39
-domain40.mcnet.com.	139	IN	A	10.0.3.40
-domain41.mcnet.com.	140	IN	A	10.0.3.41
-domain42.mcnet.com.	141	IN	A	10.0.3.42
-domain43.mcnet.com.	142	IN	A	10.0.3.43
-domain44.mcnet.com.	143	IN	A	10.0.3.44
-domain45.mcnet.com.	144	IN	A	10.0.3.45
-domain46.mcnet.com.	145	IN	A	10.0.3.46
-domain47.mcnet.com.	146	IN	A	10.0.3.47
-domain48.mcnet.com.	147	IN	A	10.0.3.48
-domain49.mcnet.com.	148	IN	A	10.0.3.49
-domain50.mcnet.com.	149	IN	A	10.0.3.50
-domain51.mcnet.com.	150	IN	A	10.0.3.51
-domain52.mcnet.com.	151	IN	A	10.0.3.52
-domain53.mcnet.com.	152	IN	A	10.0.3.53
-domain54.mcnet.com.	153	IN	A	10.0.3.54
-domain55.mcnet.com.	154	IN	A	10.0.3.55
-domain56.mcnet.com.	155	IN	A	10.0.3.56
-domain57.mcnet.com.	156	IN	A	10.0.3.57
-domain58.mcnet.com.	157	IN	A	10.0.3.58
-domain59.mcnet.com.	158	IN	A	10.0.3.59
-domain60.mcnet.com.	159	IN	A	10.0.3.60
-domain61.mcnet.com.	160	IN	A	10.0.3.61
-domain62.mcnet.com.	161	IN	A	10.0.3.62
-domain63.mcnet.com.	162	IN	A	10.0.3.63
-domain64.mcnet.com.	163	IN	A	10.0.3.64
-domain65.mcnet.com.	164	IN	A	10.0.3.65
-domain66.mcnet.com.	165	IN	A	10.0.3.66
-domain67.mcnet.com.	166	IN	A	10.0.3.67
-domain68.mcnet.com.	167	IN	A	10.0.3.68
-domain69.mcnet.com.	168	IN	A	10.0.3.69
-domain70.mcnet.com.	169	IN	A	10.0.3.70
-domain71.mcnet.com.	170	IN	A	10.0.3.71
-domain72.mcnet.com.	171	IN	A	10.0.3.72
-domain73.mcnet.com.	172	IN	A	10.0.3.73
-domain74.mcnet.com.	173	IN	A	10.0.3.74
-domain75.mcnet.com.	174	IN	A	10.0.3.75
-domain76.mcnet.com.	175	IN	A	10.0.3.76
-domain77.mcnet.com.	176	IN	A	10.0.3.77
-domain78.mcnet.com.	177	IN	A	10.0.3.78
-domain79.mcnet.com.	178	IN	A	10.0.3.79
-domain80.mcnet.com.	179	IN	A	10.0.3.80
-domain81.mcnet.com.	180	IN	A	10.0.3.81
-domain82.mcnet.com.	181	IN	A	10.0.3.82
-domain83.mcnet.com.	182	IN	A	10.0.3.83
-domain84.mcnet.com.	183	IN	A	10.0.3.84
-domain85.mcnet.com.	184	IN	A	10.0.3.85
-domain86.mcnet.com.	185	IN	A	10.0.3.86
-domain87.mcnet.com.	186	IN	A	10.0.3.87
-domain88.mcnet.com.	187	IN	A	10.0.3.88
-domain89.mcnet.com.	188	IN	A	10.0.3.89
-domain90.mcnet.com.	189	IN	A	10.0.3.90
-domain91.mcnet.com.	190	IN	A	10.0.3.91
-domain92.mcnet.com.	191	IN	A	10.0.3.92
-domain93.mcnet.com.	192	IN	A	10.0.3.93
-domain94.mcnet.com.	193	IN	A	10.0.3.94
-domain95.mcnet.com.	194	IN	A	10.0.3.95
-domain96.mcnet.com.	195	IN	A	10.0.3.96
-domain97.mcnet.com.	196	IN	A	10.0.3.97
-domain98.mcnet.com.	197	IN	A	10.0.3.98
-domain99.mcnet.com.	198	IN	A	10.0.3.99
-domain100.mcnet.com.	199	IN	A	10.0.3.100
-domain101.mcnet.com.	200	IN	A	10.0.3.101
-domain102.mcnet.com.	201	IN	A	10.0.3.102
-domain103.mcnet.com.	202	IN	A	10.0.3.103
-domain104.mcnet.com.	203	IN	A	10.0.3.104
-domain105.mcnet.com.	204	IN	A	10.0.3.105
-domain106.mcnet.com.	205	IN	A	10.0.3.106
-domain107.mcnet.com.	206	IN	A	10.0.3.107
-domain108.mcnet.com.	207	IN	A	10.0.3.108
-domain109.mcnet.com.	208	IN	A	10.0.3.109
-domain110.mcnet.com.	209	IN	A	10.0.3.110
-domain111.mcnet.com.	210	IN	A	10.0.3.111
-domain112.mcnet.com.	211	IN	A	10.0.3.112
-domain113.mcnet.com.	212	IN	A	10.0.3.113
-domain114.mcnet.com.	213	IN	A	10.0.3.114
-domain115.mcnet.com.	214	IN	A	10.0.3.115
-domain116.mcnet.com.	215	IN	A	10.0.3.116
-domain117.mcnet.com.	216	IN	A	10.0.3.117
-domain118.mcnet.com.	217	IN	A	10.0.3.118
-domain119.mcnet.com.	218	IN	A	10.0.3.119
-domain120.mcnet.com.	219	IN	A	10.0.3.120
-domain121.mcnet.com.	220	IN	A	10.0.3.121
-domain122.mcnet.com.	221	IN	A	10.0.3.122
-domain123.mcnet.com.	222	IN	A	10.0.3.123
-domain124.mcnet.com.	223	IN	A	10.0.3.124
-domain125.mcnet.com.	224	IN	A	10.0.3.125
-domain126.mcnet.com.	225	IN	A	10.0.3.126
-domain127.mcnet.com.	226	IN	A	10.0.3.127
-domain128.mcnet.com.	227	IN	A	10.0.3.128
-domain129.mcnet.com.	228	IN	A	10.0.3.129
-domain130.mcnet.com.	229	IN	A	10.0.3.130
-domain131.mcnet.com.	230	IN	A	10.0.3.131
-domain132.mcnet.com.	231	IN	A	10.0.3.132
-domain133.mcnet.com.	232	IN	A	10.0.3.133
-domain134.mcnet.com.	233	IN	A	10.0.3.134
-domain135.mcnet.com.	234	IN	A	10.0.3.135
-domain136.mcnet.com.	235	IN	A	10.0.3.136
-domain137.mcnet.com.	236	IN	A	10.0.3.137
-domain138.mcnet.com.	237	IN	A	10.0.3.138
-domain139.mcnet.com.	238	IN	A	10.0.3.139
-domain140.mcnet.com.	239	IN	A	10.0.3.140
-domain141.mcnet.com.	240	IN	A	10.0.3.141
-domain142.mcnet.com.	241	IN	A	10.0.3.142
-domain143.mcnet.com.	242	IN	A	10.0.3.143
-domain144.mcnet.com.	243	IN	A	10.0.3.144
-domain145.mcnet.com.	244	IN	A	10.0.3.145
-domain146.mcnet.com.	245	IN	A	10.0.3.146
-domain147.mcnet.com.	246	IN	A	10.0.3.147
-domain148.mcnet.com.	247	IN	A	10.0.3.148
-domain149.mcnet.com.	248	IN	A	10.0.3.149
-domain150.mcnet.com.	249	IN	A	10.0.3.150
-domain151.mcnet.com.	250	IN	A	10.0.3.151
-domain152.mcnet.com.	251	IN	A	10.0.3.152
-domain153.mcnet.com.	252	IN	A	10.0.3.153
-domain154.mcnet.com.	253	IN	A	10.0.3.154
-domain155.mcnet.com.	254	IN	A	10.0.3.155
-domain156.mcnet.com.	255	IN	A	10.0.3.156
-domain157.mcnet.com.	256	IN	A	10.0.3.157
-domain158.mcnet.com.	257	IN	A	10.0.3.158
-domain159.mcnet.com.	258	IN	A	10.0.3.159
-domain160.mcnet.com.	259	IN	A	10.0.3.160
-domain161.mcnet.com.	260	IN	A	10.0.3.161
-domain162.mcnet.com.	261	IN	A	10.0.3.162
-domain163.mcnet.com.	262	IN	A	10.0.3.163
-domain164.mcnet.com.	263	IN	A	10.0.3.164
-domain165.mcnet.com.	264	IN	A	10.0.3.165
-domain166.mcnet.com.	265	IN	A	10.0.3.166
-domain167.mcnet.com.	266	IN	A	10.0.3.167
-domain168.mcnet.com.	267	IN	A	10.0.3.168
-domain169.mcnet.com.	268	IN	A	10.0.3.169
-domain170.mcnet.com.	269	IN	A	10.0.3.170
-domain171.mcnet.com.	270	IN	A	10.0.3.171
-domain172.mcnet.com.	271	IN	A	10.0.3.172
-domain173.mcnet.com.	272	IN	A	10.0.3.173
-domain174.mcnet.com.	273	IN	A	10.0.3.174
-domain175.mcnet.com.	274	IN	A	10.0.3.175
-domain176.mcnet.com.	275	IN	A	10.0.3.176
-domain177.mcnet.com.	276	IN	A	10.0.3.177
-domain178.mcnet.com.	277	IN	A	10.0.3.178
-domain179.mcnet.com.	278	IN	A	10.0.3.179
-domain180.mcnet.com.	279	IN	A	10.0.3.180
-domain181.mcnet.com.	280	IN	A	10.0.3.181
-domain182.mcnet.com.	281	IN	A	10.0.3.182
-domain183.mcnet.com.	282	IN	A	10.0.3.183
-domain184.mcnet.com.	283	IN	A	10.0.3.184
-domain185.mcnet.com.	284	IN	A	10.0.3.185
-domain186.mcnet.com.	285	IN	A	10.0.3.186
-domain187.mcnet.com.	286	IN	A	10.0.3.187
-domain188.mcnet.com.	287	IN	A	10.0.3.188
-domain189.mcnet.com.	288	IN	A	10.0.3.189
-domain190.mcnet.com.	289	IN	A	10.0.3.190
-domain191.mcnet.com.	290	IN	A	10.0.3.191
-domain192.mcnet.com.	291	IN	A	10.0.3.192
-domain193.mcnet.com.	292	IN	A	10.0.3.193
-domain194.mcnet.com.	293	IN	A	10.0.3.194
-domain195.mcnet.com.	294	IN	A	10.0.3.195
-domain196.mcnet.com.	295	IN	A	10.0.3.196
-domain197.mcnet.com.	296	IN	A	10.0.3.197
-domain198.mcnet.com.	297	IN	A	10.0.3.198
-domain199.mcnet.com.	298	IN	A	10.0.3.199
-domain200.mcnet.com.	299	IN	A	10.0.3.200
-domain201.mcnet.com.	300	IN	A	10.0.3.201
-domain202.mcnet.com.	301	IN	A	10.0.3.202
-domain203.mcnet.com.	302	IN	A	10.0.3.203
-domain204.mcnet.com.	303	IN	A	10.0.3.204
-domain205.mcnet.com.	304	IN	A	10.0.3.205
-domain206.mcnet.com.	305	IN	A	10.0.3.206
-domain207.mcnet.com.	306	IN	A	10.0.3.207
-domain208.mcnet.com.	307	IN	A	10.0.3.208
-domain209.mcnet.com.	308	IN	A	10.0.3.209
-domain210.mcnet.com.	309	IN	A	10.0.3.210
-domain211.mcnet.com.	310	IN	A	10.0.3.211
-domain212.mcnet.com.	311	IN	A	10.0.3.212
-domain213.mcnet.com.	312	IN	A	10.0.3.213
-domain214.mcnet.com.	313	IN	A	10.0.3.214
-domain215.mcnet.com.	314	IN	A	10.0.3.215
-domain216.mcnet.com.	315	IN	A	10.0.3.216
-domain217.mcnet.com.	316	IN	A	10.0.3.217
-domain218.mcnet.com.	317	IN	A	10.0.3.218
-domain219.mcnet.com.	318	IN	A	10.0.3.219
-domain220.mcnet.com.	319	IN	A	10.0.3.220
-domain221.mcnet.com.	320	IN	A	10.0.3.221
+sub.micha.mcnet.com. 200	IN		CNAME	2.micha.mcnet.com.
