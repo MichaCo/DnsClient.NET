@@ -26,7 +26,30 @@ Get it via NuGet https://www.nuget.org/packages/DnsClient/
 
 Get beta builds from [MyGet](https://www.myget.org/feed/dnsclient/package/nuget/DnsClient).
 
-### Build from Code
+## Features
+
+### General
+
+* Full Async API
+* UDP and TCP lookup, configurable if TCP should be used as fallback in case UDP result is truncated (default=true).
+* Caching
+  * Query result cache based on provided TTL 
+  * Minimum TTL setting to overrule the result's TTL and always cache the responses for at least that time. (Even very low value, like a few milliseconds, do make a huge difference if used in high traffic low latency scenarios)
+  * Cache can be disabled altogether
+* Supports multiple DNS endpoints to be configured
+* Configurable retry over configured DNS servers if one or more returned a server error
+* Configurable retry logic in case of timeouts and other exceptions
+* Optional audit trail of each response and exception
+* Configurable error handling. Throwing DNS errors, like `NotExistentDomain` is turned off by default
+
+### Supported resource records
+
+* PTR for reverse lookups
+* A, AAAA, NS, CNAME, SOA, MB, MG, MR, WKS, HINFO, MINFO, MX, RP, TXT, AFSDB, SRV, URI, CAA, SSHFP
+* OPT (currently only for reading the supported UDP buffer size, EDNS version)
+* AXFR zone transfer (as per spec, LookupClient has to be set to TCP mode only for this type. Also, the result depends on if the DNS server trusts your current connection)
+
+## Build from Source
 
 The solution requires a .NET Core 2.x SDK and the [.NET 4.7.1 Dev Pack](https://www.microsoft.com/net/download/dotnet-framework/net471) being installed.
 
@@ -51,29 +74,6 @@ To test some random domain names, run MiniDig with the `random` sub command (wor
 ``` cmd
 dotnet run random -s localhost
 ```
-
-## Features
-
-### General
-
-* Full Async API
-* UDP and TCP lookup, configurable if TCP should be used as fallback in case UDP result is truncated (default=true).
-* Caching
-  * Query result cache based on provided TTL 
-  * Minimum TTL setting to overrule the result's TTL and always cache the responses for at least that time. (Even very low value, like a few milliseconds, do make a huge difference if used in high traffic low latency scenarios)
-  * Cache can be disabled altogether
-* Supports multiple DNS endpoints to be configured
-* Configurable retry over configured DNS servers if one or more returned a server error
-* Configurable retry logic in case of timeouts and other exceptions
-* Optional audit trail of each response and exception
-* Configurable error handling. Throwing DNS errors, like `NotExistentDomain` is turned off by default
-
-### Supported resource records
-
-* PTR for reverse lookups
-* A, AAAA, NS, CNAME, SOA, MB, MG, MR, WKS, HINFO, MINFO, MX, RP, TXT, AFSDB, SRV, URI, CAA
-* OPT (currently only for reading the supported UDP buffer size, EDNS version)
-* AXFR (as per spec, LookupClient has to be set to TCP mode only for this type. Also, the result depends on if the DNS server trusts your current connection)
 
 ## Examples
 
