@@ -20,7 +20,7 @@ namespace DnsClient.Tests
 
             var responseMsg = new DnsResponseMessage(new DnsResponseHeader(123, 256, 1, 1, 0, 1), 123);
             responseMsg.Answers.Add(aRecord);
-            IDnsQueryResponse dnsResponse = responseMsg.AsQueryResponse(new NameServer(NameServer.GooglePublicDns));
+            IDnsQueryResponse dnsResponse = responseMsg.AsQueryResponse(NameServer.GooglePublicDns);
 
             //// or mock response
             //var dnsResponseMock = new Mock<IDnsQueryResponse>();
@@ -29,7 +29,7 @@ namespace DnsClient.Tests
             //        .Returns(new DnsResourceRecord[] { aRecord });
 
             Task<IDnsQueryResponse> response = Task.FromResult(dnsResponse);
-            lookupMock.Setup(f => f.QueryAsync(It.IsAny<string>(), QueryType.A, QueryClass.IN, new System.Threading.CancellationToken())).Returns(response);
+            lookupMock.Setup(f => f.QueryAsync(It.IsAny<string>(), QueryType.A, QueryClass.IN, It.IsAny<DnsQueryOptions>(), new System.Threading.CancellationToken())).Returns(response);
             var lookup = lookupMock.Object;
 
             // act

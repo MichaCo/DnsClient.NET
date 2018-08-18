@@ -2,7 +2,7 @@
   "profiles": {
     "MiniDig": {
       "commandName": "Project",
-      "commandLineArgs": " -s l.root-servers.net. google.com"
+      "commandLineArgs": "-s localhost perf -s 500 "
     }
   }
 }

@@ -12,7 +12,7 @@ namespace DnsClient
     /// Represents a name server instance used by <see cref="ILookupClient"/>.
     /// Also, comes with some static methods to resolve name servers from the local network configuration.
     /// </summary>
-    public class NameServer
+    public class NameServer : IEquatable<NameServer>
     {
         /// <summary>
         /// The default DNS server port.
@@ -22,42 +22,80 @@ namespace DnsClient
         /// <summary>
         /// The public google DNS IPv4 endpoint.
         /// </summary>
-        public static readonly IPEndPoint GooglePublicDns = new IPEndPoint(IPAddress.Parse("8.8.4.4"), DefaultPort);
+        public static readonly NameServer GooglePublicDns = new IPEndPoint(IPAddress.Parse("8.8.4.4"), DefaultPort);
 
         /// <summary>
         /// The second public google DNS IPv6 endpoint.
         /// </summary>
-        public static readonly IPEndPoint GooglePublicDns2 = new IPEndPoint(IPAddress.Parse("8.8.8.8"), DefaultPort);
+        public static readonly NameServer GooglePublicDns2 = new IPEndPoint(IPAddress.Parse("8.8.8.8"), DefaultPort);
 
         /// <summary>
         /// The public google DNS IPv6 endpoint.
         /// </summary>
-        public static readonly IPEndPoint GooglePublicDnsIPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8844"), DefaultPort);
+        public static readonly NameServer GooglePublicDnsIPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8844"), DefaultPort);
 
         /// <summary>
         /// The second public google DNS IPv6 endpoint.
         /// </summary>
-        public static readonly IPEndPoint GooglePublicDns2IPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8888"), DefaultPort);
+        public static readonly NameServer GooglePublicDns2IPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8888"), DefaultPort);
 
         internal const string EtcResolvConfFile = "/etc/resolv.conf";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NameServer"/> class.
         /// </summary>
-        /// <param name="endpoint">The endpoint.</param>
-        public NameServer(IPAddress endpoint)
-            : this(new IPEndPoint(endpoint, DefaultPort))
+        /// <param name="endPoint">The name server endpoint.</param>
+        public NameServer(IPAddress endPoint)
+            : this(new IPEndPoint(endPoint, DefaultPort))
         {
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NameServer"/> class.
         /// </summary>
-        /// <param name="endpoint">The endpoint.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="endpoint"/> is null.</exception>
-        public NameServer(IPEndPoint endpoint)
+        /// <param name="endPoint">The name server endpoint.</param>
+        /// <param name="port">The name server port.</param>
+        public NameServer(IPAddress endPoint, int port)
+            : this(new IPEndPoint(endPoint, port))
         {
-            Endpoint = endpoint ?? throw new ArgumentNullException(nameof(endpoint));
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NameServer"/> class.
+        /// </summary>
+        /// <param name="endPoint">The name server endpoint.</param>
+        /// <exception cref="System.ArgumentNullException">If <paramref name="endPoint"/> is null.</exception>
+        public NameServer(IPEndPoint endPoint)
+        {
+            IPEndPoint = endPoint ?? throw new ArgumentNullException(nameof(endPoint));
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NameServer"/> class from a <see cref="IPEndPoint"/>.
+        /// </summary>
+        /// <param name="endPoint">The endpoint.</param>
+        public static implicit operator NameServer(IPEndPoint endPoint)
+        {
+            if (endPoint == null)
+            {
+                return null;
+            }
+
+            return new NameServer(endPoint);
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NameServer"/> class from a <see cref="IPAddress"/>.
+        /// </summary>
+        /// <param name="address">The address.</param>
+        public static implicit operator NameServer(IPAddress address)
+        {
+            if (address == null)
+            {
+                return null;
+            }
+
+            return new NameServer(address);
         }
 
         /// <summary>
@@ -72,12 +110,19 @@ namespace DnsClient
         public bool Enabled { get; internal set; } = true;
 
         /// <summary>
-        /// Gets the endpoint of this instance.
+        /// Gets the string representation of the configured <see cref="IPAddress"/>.
         /// </summary>
-        /// <value>
-        /// The endpoint.
-        /// </value>
-        public IPEndPoint Endpoint { get; }
+        public string Address => IPEndPoint.Address.ToString();
+
+        /// <summary>
+        /// Gets the port.
+        /// </summary>
+        public int Port => IPEndPoint.Port;
+
+        /// <summary>
+        /// Gets the address family.
+        /// </summary>
+        public AddressFamily AddressFamily => IPEndPoint.AddressFamily;
 
         /// <summary>
         /// Gets the size of the supported UDP payload.
@@ -93,6 +138,8 @@ namespace DnsClient
         // for tracking if we can re-enable the server...
         internal DnsRequestMessage LastSuccessfulRequest { get; set; }
 
+        internal IPEndPoint IPEndPoint { get; }
+
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.
         /// </summary>
@@ -101,7 +148,37 @@ namespace DnsClient
         /// </returns>
         public override string ToString()
         {
-            return $"{Endpoint} (Udp: {SupportedUdpPayloadSize ?? 512})";
+            return $"{Address}:{Port} (Udp: {SupportedUdpPayloadSize ?? 512})";
+        }
+
+        internal NameServer Clone()
+        {
+            return this;
+            // TODO: maybe not needed
+            ////return new NameServer(IPEndPoint)
+            ////{
+            ////    Enabled = Enabled,
+            ////    SupportedUdpPayloadSize = SupportedUdpPayloadSize
+            ////};
+        }
+
+        /// <inheritdocs />
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as NameServer);
+        }
+
+        /// <inheritdocs />
+        public bool Equals(NameServer other)
+        {
+            return other != null
+                && EqualityComparer<IPEndPoint>.Default.Equals(IPEndPoint, other.IPEndPoint);
+        }
+
+        /// <inheritdocs />
+        public override int GetHashCode()
+        {
+            return EqualityComparer<IPEndPoint>.Default.GetHashCode(IPEndPoint);
         }
 
         /// <summary>
@@ -116,15 +193,15 @@ namespace DnsClient
         /// <returns>
         /// The list of name servers.
         /// </returns>
-        public static ICollection<IPEndPoint> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true)
+        public static IReadOnlyCollection<NameServer> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true)
         {
-            ICollection<IPEndPoint> endpoints = new IPEndPoint[0];
+            IReadOnlyCollection<NameServer> endPoints = new NameServer[0];
 
             List<Exception> exceptions = new List<Exception>();
 
             try
             {
-                endpoints = QueryNetworkInterfaces(skipIPv6SiteLocal);
+                endPoints = QueryNetworkInterfaces(skipIPv6SiteLocal);
             }
             catch (Exception ex)
             {
@@ -136,7 +213,7 @@ namespace DnsClient
             {
                 try
                 {
-                    endpoints = ResolveNameServersNative();
+                    endPoints = ResolveNameServersNative();
                     exceptions.Clear();
                 }
                 catch (Exception ex)
@@ -158,9 +235,9 @@ namespace DnsClient
                 }
             }
 
-            if (endpoints.Count == 0 && fallbackToGooglePublicDns)
+            if (endPoints.Count == 0 && fallbackToGooglePublicDns)
             {
-                return new[]
+                return new NameServer[]
                 {
                     GooglePublicDnsIPv6,
                     GooglePublicDns2IPv6,
@@ -169,7 +246,7 @@ namespace DnsClient
                 };
             }
 
-            return endpoints;
+            return endPoints;
         }
 
 #if !NET45
@@ -185,7 +262,7 @@ namespace DnsClient
         /// <returns>
         /// The list of name servers.
         /// </returns>
-        public static ICollection<IPEndPoint> ResolveNameServersNative()
+        public static IReadOnlyCollection<NameServer> ResolveNameServersNative()
         {
             IPAddress[] addresses = null;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -199,14 +276,14 @@ namespace DnsClient
                 addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(EtcResolvConfFile).ToArray();
             }
 
-            return addresses?.Select(p => new IPEndPoint(p, DefaultPort)).ToArray();
+            return addresses?.Select(p => new NameServer(p, DefaultPort)).ToArray();
         }
 
 #endif
 
-        private static IPEndPoint[] QueryNetworkInterfaces(bool skipIPv6SiteLocal)
+        private static NameServer[] QueryNetworkInterfaces(bool skipIPv6SiteLocal)
         {
-            var result = new HashSet<IPEndPoint>();
+            var result = new HashSet<NameServer>();
 
             var adapters = NetworkInterface.GetAllNetworkInterfaces();
             foreach (NetworkInterface networkInterface in
@@ -234,15 +311,6 @@ namespace DnsClient
             }
 
             return result.ToArray();
-        }
-
-        internal NameServer Clone()
-        {
-            return new NameServer(Endpoint)
-            {
-                Enabled = Enabled,
-                SupportedUdpPayloadSize = SupportedUdpPayloadSize
-            };
         }
     }
 }

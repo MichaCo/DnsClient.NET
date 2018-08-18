@@ -88,14 +88,14 @@ namespace DnsClient
         }
 
         public override async Task<DnsResponseMessage> QueryAsync(
-            IPEndPoint server,
+            IPEndPoint endpoint,
             DnsRequestMessage request,
             CancellationToken cancellationToken,
             Action<Action> cancelationCallback)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            UdpClient udpClient = GetNextUdpClient(server.AddressFamily);
+            UdpClient udpClient = GetNextUdpClient(endpoint.AddressFamily);
 
             bool mustDispose = false;
             try
@@ -113,7 +113,7 @@ namespace DnsClient
                 using (var writer = new DnsDatagramWriter())
                 {
                     GetRequestData(request, writer);
-                    await udpClient.SendAsync(writer.Data.Array, writer.Data.Count, server).ConfigureAwait(false);
+                    await udpClient.SendAsync(writer.Data.Array, writer.Data.Count, endpoint).ConfigureAwait(false);
                 }
 
                 var readSize = udpClient.Available > MaxSize ? udpClient.Available : MaxSize;
@@ -135,7 +135,7 @@ namespace DnsClient
                         throw new DnsResponseException("Header id mismatch.");
                     }
 
-                    Enqueue(server.AddressFamily, udpClient);
+                    Enqueue(endpoint.AddressFamily, udpClient);
 
                     return response;
                 }

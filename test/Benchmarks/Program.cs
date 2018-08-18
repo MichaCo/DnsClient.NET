@@ -30,11 +30,11 @@ namespace Benchmarks
                     .With(BenchmarkDotNet.Exporters.MarkdownExporter.StackOverflow)
                     .With(BenchmarkDotNet.Diagnosers.MemoryDiagnoser.Default)
                     .With(Job.Core
-                        .WithTargetCount(10)
+                        .WithIterationCount(10)
                         .WithWarmupCount(5)
                         .WithLaunchCount(1))
                     .With(Job.Clr
-                        .WithTargetCount(10)
+                        .WithIterationCount(10)
                         .WithWarmupCount(5)
                         .WithLaunchCount(1));
 
@@ -53,21 +53,12 @@ namespace Benchmarks
     //[MarkdownExporter, AsciiDocExporter, HtmlExporter, CsvExporter, RPlotExporter]
     //[MinColumn, MaxColumn]
     //[ClrJob, CoreJob, MediumRunJob]
-    public class CustomConfiguration : ManualConfig
-    {
-        public CustomConfiguration()
-        {
-            Add(new Job(EnvMode.Clr)
-            {
-                Env = { Runtime = Runtime.Clr },
-                Run = { LaunchCount = 3, WarmupCount = 5, TargetCount = 10 },
-            });
-
-            Add(new Job(EnvMode.Core)
-            {
-                Env = { Runtime = Runtime.Core },
-                Run = { LaunchCount = 3, WarmupCount = 5, TargetCount = 10 },
-            });
-        }
-    }
+    //public class CustomConfiguration : ManualConfig
+    //{
+    //    public CustomConfiguration()
+    //    {
+    //        Add(Job.ShortRun.With(Runtime.Core));
+    //        Add(Job.ShortRun.With(Runtime.Clr));
+    //    }
+    //}
 }

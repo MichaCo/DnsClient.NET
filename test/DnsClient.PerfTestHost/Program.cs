@@ -20,7 +20,7 @@ namespace DnsClient.PerfTestHost
 
             server.Start();
 
-            var client = new LookupClient(IPAddress.Parse("127.0.0.1"), port)
+            var options = new LookupClientOptions(new NameServer(IPAddress.Parse("127.0.0.1"), port))
             {
                 UseCache = false,
                 EnableAuditTrail = false,
@@ -30,6 +30,8 @@ namespace DnsClient.PerfTestHost
                 Retries = 0,
                 Timeout = Timeout.InfiniteTimeSpan
             };
+
+            var client = new LookupClient(options);
 
             var tasksCount = 16;
             //Console.WriteLine("warmup");
@@ -42,6 +44,9 @@ namespace DnsClient.PerfTestHost
                 for (var run = 0; run < 5; run++)
                 {
                     RunSync(client, runTime, tasksCount * i);
+
+                    server.Stop();
+                    return;
                     RunAsync(client, runTime, tasksCount * i).GetAwaiter().GetResult();
                 }
             }
@@ -52,26 +57,26 @@ namespace DnsClient.PerfTestHost
         private static void RunSync(LookupClient client, double runTime, int tasksCount = 8)
         {
             var swatch = Stopwatch.StartNew();
-            var swatchInner = Stopwatch.StartNew();
 
             long execCount = 0;
             long tookOverall = 0;
 
             Action act = () =>
             {
+                var swatchInner = Stopwatch.StartNew();
                 while (swatch.ElapsedMilliseconds < runTime * 1000)
                 {
-                    swatchInner.Restart();
                     var result = client.Query("doesntmatter.com", QueryType.A);
                     if (result.HasError || result.Answers.Count < 1)
                     {
                         throw new Exception("Expected something");
                     }
 
-                    var took = swatchInner.ElapsedTicks;
-                    Interlocked.Add(ref tookOverall, took);
                     Interlocked.Increment(ref execCount);
                 }
+
+                var took = swatchInner.ElapsedTicks;
+                Interlocked.Add(ref tookOverall, took);
             };
 
             Parallel.Invoke(new ParallelOptions()
@@ -84,38 +89,38 @@ namespace DnsClient.PerfTestHost
             double msPerExec = tookInMs / execCount;
             double execPerSec = execCount / runTime;
 
-            Console.WriteLine($"{tasksCount,-5};{"sync",5};{execCount,10};\t{execPerSec,10:N0};\t{msPerExec,10:N5}");
+            Console.WriteLine($"{tasksCount,-5} {"sync",5} {execCount,10} {execPerSec,10:N0} {msPerExec,10:N5}");
         }
 
         private static async Task RunAsync(LookupClient client, double runTime, int tasksCount = 8)
         {
             var swatch = Stopwatch.StartNew();
-            var swatchInner = Stopwatch.StartNew();
 
             long execCount = 0;
             long tookOverall = 0;
 
-            Func<Task> act = async () =>
+            async Task Worker()
             {
+                var swatchInner = Stopwatch.StartNew();
                 while (swatch.ElapsedMilliseconds < runTime * 1000)
                 {
-                    swatchInner.Restart();
                     var result = await client.QueryAsync("doesntmatter.com", QueryType.A);
                     if (result.HasError || result.Answers.Count < 1)
                     {
                         throw new Exception("Expected something");
                     }
 
-                    var took = swatchInner.ElapsedTicks;
-                    Interlocked.Add(ref tookOverall, took);
                     Interlocked.Increment(ref execCount);
                 }
+
+                var took = swatchInner.ElapsedTicks;
+                Interlocked.Add(ref tookOverall, took);
             };
 
             var tasks = new List<Task>();
             for (var i = 0; i < tasksCount; i++)
             {
-                tasks.Add(act());
+                tasks.Add(Worker());
             }
 
             await Task.WhenAll(tasks.ToArray());
@@ -124,7 +129,7 @@ namespace DnsClient.PerfTestHost
             double msPerExec = tookInMs / execCount;
             double execPerSec = execCount / runTime;
 
-            Console.WriteLine($"{tasksCount,-5};{"async",5};{execCount,10};\t{execPerSec,10:N0};\t{msPerExec,10:N5}");
+            Console.WriteLine($"{tasksCount,-5} {"async",5} {execCount,10} {execPerSec,10:N0} {msPerExec,10:N5}");
         }
     }
 }

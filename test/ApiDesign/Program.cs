@@ -12,22 +12,29 @@ namespace ApiDesign
     {
         public static void Main(string[] args)
         {
-            var client = new LookupClient();
-            client.EnableAuditTrail = true;
+            // version a
+            var client = new LookupClient(IPAddress.Loopback);
+
+            // version b
+            client = new LookupClient(new LookupClientOptions(
+                NameServer.GooglePublicDns, NameServer.GooglePublicDns2, NameServer.GooglePublicDns2IPv6, NameServer.GooglePublicDnsIPv6)
+            {
+                UseCache = true,
+                ContinueOnDnsError = true,
+                EnableAuditTrail = true,
+                UseRandomNameServer = false
+            });
 
             while (true)
             {
-                Task.Delay(1000).GetAwaiter().GetResult();
-
-                var result = client.Query("googlecom", QueryType.ANY);
+                var result = client.Query("google.com", QueryType.ANY);
                 Console.WriteLine(result.AuditTrail);
                 if (result.HasError)
                 {
                     Console.WriteLine("Error response: " + result.ErrorMessage);
                 }
                 Console.WriteLine();
-                Console.WriteLine();
-                Console.WriteLine();
+                Task.Delay(1000).GetAwaiter().GetResult();
             }
         }
 

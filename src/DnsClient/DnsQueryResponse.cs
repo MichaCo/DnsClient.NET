@@ -44,7 +44,7 @@ namespace DnsClient
         /// <value>
         /// The audit trail.
         /// </value>
-        public string AuditTrail => Audit.Build(this);
+        public string AuditTrail => Audit?.Build(this);
 
         /// <summary>
         /// Gets a list of answer records.
@@ -97,7 +97,7 @@ namespace DnsClient
             Additionals = dnsResponseMessage.Additionals.ToArray();
             Authorities = dnsResponseMessage.Authorities.ToArray();
             NameServer = nameServer ?? throw new ArgumentNullException(nameof(nameServer));
-            Audit = audit ?? throw new ArgumentNullException(nameof(audit));
+            Audit = audit;
         }
 
         /// <inheritdoc />

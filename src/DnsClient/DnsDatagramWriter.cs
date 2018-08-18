@@ -37,7 +37,7 @@ namespace DnsClient
         public DnsDatagramWriter(ArraySegment<byte> useBuffer)
         {
             Debug.Assert(useBuffer.Count >= BufferSize);
-            
+
             _buffer = useBuffer;
         }
 

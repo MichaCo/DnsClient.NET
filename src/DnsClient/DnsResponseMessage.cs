@@ -65,7 +65,7 @@ namespace DnsClient
             Questions.Add(question);
         }
 
-        public LookupClientAudit Audit { get; set; } = new LookupClientAudit();
+        public LookupClientAudit Audit { get; set; }
 
         /// <summary>
         /// Gets the readonly representation of this message which can be returned.

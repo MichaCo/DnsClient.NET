@@ -57,7 +57,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(server));
             }
 
-            return string.Concat(server.Endpoint.Address.ToString(), "#", server.Endpoint.Port.ToString(), "_", question.QueryName.Value, ":", (short)question.QuestionClass, ":", (short)question.QuestionType);
+            return string.Concat(server.Address.ToString(), "#", server.Port.ToString(), "_", question.QueryName.Value, ":", (short)question.QuestionClass, ":", (short)question.QuestionType);
         }
 
         public IDnsQueryResponse Get(string key)

@@ -273,7 +273,7 @@ namespace DnsClient
                 {
                     try
                     {
-#if PORTABLE
+#if !NET45
                         Client.Dispose();
 #else
                         Client.Close();

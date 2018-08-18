@@ -44,8 +44,9 @@ Get beta builds from [MyGet](https://www.myget.org/feed/dnsclient/package/nuget/
 
 ### Supported resource records
 
+* A, AAAA, NS, CNAME, SOA, MB, MG, MR, WKS, HINFO, MINFO, MX, RP, TXT, AFSDB, URI, CAA, NULL, SSHFP
 * PTR for reverse lookups
-* A, AAAA, NS, CNAME, SOA, MB, MG, MR, WKS, HINFO, MINFO, MX, RP, TXT, AFSDB, SRV, URI, CAA, SSHFP
+* SRV For service discovery. `LookupClient` has some extensions to help with that.
 * OPT (currently only for reading the supported UDP buffer size, EDNS version)
 * AXFR zone transfer (as per spec, LookupClient has to be set to TCP mode only for this type. Also, the result depends on if the DNS server trusts your current connection)
 

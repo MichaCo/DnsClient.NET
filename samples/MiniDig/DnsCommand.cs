@@ -67,27 +67,18 @@ namespace DigApp
             Configure();
         }
 
-        public LookupClient GetDnsLookup(LookupSettings props = null)
+        public LookupClient GetDnsLookup(LookupClientOptions props = null)
         {
             var settings = props ?? GetLookupSettings();
-            return new LookupClient(settings.Endpoints)
-            {
-                Recursion = settings.Recursion,
-                Retries = settings.Retries,
-                Timeout = settings.Timeout,
-                MinimumCacheTimeout = settings.MinTTL,
-                UseCache = settings.UseCache,
-                UseTcpFallback = !settings.NoTcp,
-                UseTcpOnly = settings.TcpOnly
-            };
+            return new LookupClient(settings);
         }
 
-        public IPEndPoint[] GetEndpointsValue()
+        public NameServer[] GetEndpointsValue()
         {
             if (ServerArg.HasValue())
             {
                 var values = ServerArg.Values.Select(p => p.Split('#').ToArray());
-                var result = new List<IPEndPoint>();
+                var result = new List<NameServer>();
                 foreach (var serverPair in values)
                 {
                     var server = serverPair[0];
@@ -116,18 +107,18 @@ namespace DigApp
             }
         }
 
-        public LookupSettings GetLookupSettings()
+        public LookupClientOptions GetLookupSettings()
         {
-            return new LookupSettings()
+            return new LookupClientOptions()
             {
-                Endpoints = GetEndpointsValue(),
+                NameServers = GetEndpointsValue(),
                 Recursion = GetUseRecursionValue(),
                 Retries = GetTriesValue(),
                 Timeout = TimeSpan.FromMilliseconds(GetTimeoutValue()),
-                MinTTL = GetMinimumTTL(),
+                MinimumCacheTimeout = GetMinimumTTL(),
                 UseCache = GetUseCache(),
-                TcpOnly = GetUseTcp(),
-                NoTcp = GetNoTcp()
+                UseTcpOnly = GetUseTcp(),
+                UseTcpFallback = !GetNoTcp()
             };
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
@@ -16,14 +17,17 @@ namespace Benchmarks
 
             public LoopupAsyncVsSync()
             {
-                _lookup = new LookupClient();
-                _lookup.UseCache = false;
+                _lookup = new LookupClient(
+                    new LookupClientOptions(IPAddress.Loopback)
+                    {
+                        UseCache = false
+                    });
 
-                _lookupNoTtl = new LookupClient()
+                _lookupNoTtl = new LookupClient(new LookupClientOptions(IPAddress.Loopback)
                 {
                     UseCache = false,
                     Timeout = TimeSpan.FromMilliseconds(Timeout.Infinite)
-                };
+                });
             }
 
             [Benchmark(Baseline = true)]
@@ -51,8 +55,10 @@ namespace Benchmarks
 
             public LoopupCachedAsyncVsSync()
             {
-                _lookup = new LookupClient();
-                _lookup.UseCache = true;
+                _lookup = new LookupClient(new LookupClientOptions(IPAddress.Loopback)
+                {
+                    UseCache = true
+                });
             }
 
             [Benchmark(Baseline = true)]
