@@ -14,7 +14,7 @@ namespace DigApp
 {
     public class RandomCommand : DnsCommand
     {
-        private static ConcurrentQueue<string> _domainNames;
+        private ConcurrentQueue<string> _domainNames;
         private static readonly object _nameLock = new object();
         private static Random _randmom = new Random();
         private int _clients;
@@ -36,17 +36,11 @@ namespace DigApp
 
         public CommandOption SyncArg { get; private set; }
 
-        static RandomCommand()
-        {
-            var lines = File.ReadAllLines("names.txt");
-            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(',') + 1)));
-        }
-
         public RandomCommand(CommandLineApplication app, ILoggerFactory loggerFactory, string[] originalArgs) : base(app, loggerFactory, originalArgs)
         {
         }
 
-        public static string NextDomainName()
+        public string NextDomainName()
         {
             while (true)
             {
@@ -69,6 +63,9 @@ namespace DigApp
 
         protected override async Task<int> Execute()
         {
+            var lines = File.ReadAllLines("names.txt");
+            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(',') + 1)));
+
             _clients = ClientsArg.HasValue() ? int.Parse(ClientsArg.Value()) : 10;
             _runtime = RuntimeArg.HasValue() ? int.Parse(RuntimeArg.Value()) <= 1 ? 5 : int.Parse(RuntimeArg.Value()) : 5;
             _runSync = SyncArg.HasValue();
