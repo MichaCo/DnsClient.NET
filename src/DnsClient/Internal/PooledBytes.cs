@@ -67,10 +67,10 @@ namespace DnsClient.Internal
 
         protected virtual void Dispose(bool disposing)
         {
-            if (disposing)
+            if (disposing && !_disposed)
             {
                 _disposed = true;
-                _pool.Return(_buffer.Array);
+                _pool.Return(_buffer);
             }
         }
     }
