@@ -19,7 +19,11 @@ namespace Benchmarks
             private static readonly BenchmarkMessageHandler _handler = new BenchmarkMessageHandler();
             private static readonly BenchmarkMessageHandler _handlerRequest = new BenchmarkMessageHandler(true, false);
             private static readonly BenchmarkMessageHandler _handlerResponse = new BenchmarkMessageHandler(false, true);
-            private static readonly LookupClient _lookup = new LookupClient(IPAddress.Loopback);
+
+            private static readonly LookupClient _lookup = new LookupClient(new LookupClientOptions(IPAddress.Loopback)
+            {
+                UseCache = false
+            });
 
             public RequestResponseParsing()
             {
@@ -28,7 +32,7 @@ namespace Benchmarks
             [Benchmark(Baseline = true)]
             public void RequestAndResponse()
             {
-                var result = _lookup.ResolveQuery(_lookup.NameServers, _handler, _request, false);
+                var result = _lookup.ResolveQuery(_lookup.Settings, _handler, _request);
                 if (result.Answers.Count != 11)
                 {
                     throw new InvalidOperationException();
@@ -46,13 +50,13 @@ namespace Benchmarks
             [Benchmark]
             public void Request()
             {
-                var result = _lookup.ResolveQuery(_lookup.NameServers, _handlerRequest, _request, false);
+                var result = _lookup.ResolveQuery(_lookup.Settings, _handlerRequest, _request);
             }
 
             [Benchmark]
             public void Response()
             {
-                var result = _lookup.ResolveQuery(_lookup.NameServers, _handlerResponse, _request, false);
+                var result = _lookup.ResolveQuery(_lookup.Settings, _handlerResponse, _request);
             }
         }
     }

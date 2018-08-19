@@ -143,6 +143,10 @@ namespace DnsClient
                     result = ResolveCaaRecord(info);
                     break;
 
+                case ResourceRecordType.SSHFP:
+                    result = ResolveSshfpRecord(info);
+                    break;
+
                 default:
                     // update reader index because we don't read full data for the empty record
                     _reader.Index += info.RawDataLength;
@@ -169,7 +173,7 @@ namespace DnsClient
 
         private DnsResourceRecord ResolveOptRecord(ResourceRecordInfo info)
         {
-            return new OptRecord((int)info.RecordClass, info.TimeToLive, info.RawDataLength);
+            return new OptRecord((int)info.RecordClass, info.InitialTimeToLive, info.RawDataLength);
         }
 
         private DnsResourceRecord ResolveWksRecord(ResourceRecordInfo info)
@@ -230,6 +234,15 @@ namespace DnsClient
             }
 
             return new TxtRecord(info, values.ToArray(), utf8Values.ToArray());
+        }
+
+        private DnsResourceRecord ResolveSshfpRecord(ResourceRecordInfo info)
+        {
+            var algorithm = (SshfpAlgorithm)_reader.ReadByte();
+            var fingerprintType = (SshfpFingerprintType)_reader.ReadByte();
+            var fingerprint = _reader.ReadBytes(info.RawDataLength - 2).ToArray();
+            var fingerprintHexString = string.Join(string.Empty, fingerprint.Select(b => b.ToString("X2")));
+            return new SshfpRecord(info, algorithm, fingerprintType, fingerprintHexString);
         }
 
         private DnsResourceRecord ResolveCaaRecord(ResourceRecordInfo info)

@@ -46,7 +46,7 @@ namespace DnsClient
             _workerHitCounter = new int[_workers];
 
             //_udpServer.ExclusiveAddressUse = true;
-            _server = new UdpClient(_port, AddressFamily.InterNetwork);
+            _server = new UdpClient(new IPEndPoint(IPAddress.Loopback, _port));
 
             // async
             //Console.WriteLine("using tasks");

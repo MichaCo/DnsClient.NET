@@ -18,7 +18,7 @@ namespace DigApp
         private long _reportExcecutions = 0;
         private long _allExcecutions = 0;
         private bool _running;
-        private LookupSettings _settings;
+        private LookupClientOptions _settings;
         private LookupClient _lookup;
         private int _errors;
         private int _success;
@@ -52,13 +52,14 @@ namespace DigApp
             _runtime = RuntimeArg.HasValue() ? int.Parse(RuntimeArg.Value()) <= 1 ? 5 : int.Parse(RuntimeArg.Value()) : 5;
             _query = string.IsNullOrWhiteSpace(QueryArg.Value) ? string.Empty : QueryArg.Value;
             _runSync = SyncArg.HasValue();
-            _lookup = GetDnsLookup();
-            _lookup.EnableAuditTrail = false;
-            _running = true;
+
             _settings = GetLookupSettings();
+            _settings.EnableAuditTrail = false;
+            _lookup = GetDnsLookup(_settings);
+            _running = true;
 
             Console.WriteLine($"; <<>> Starting perf run with {_clients} clients running for {_runtime} seconds <<>>");
-            Console.WriteLine($"; ({_settings.Endpoints.Length} Servers, caching:{_settings.UseCache}, minttl:{_settings.MinTTL.TotalMilliseconds})");
+            Console.WriteLine($"; ({_settings.NameServers.Count} Servers, caching:{_settings.UseCache}, minttl:{_settings.MinimumCacheTimeout?.TotalMilliseconds})");
             _spinner = new Spiner();
             _spinner.Start();
 
@@ -118,8 +119,10 @@ namespace DigApp
         private async Task ExcecuteRun()
         {
             //var swatch = Stopwatch.StartNew();
-            var lookup = GetDnsLookup();
-            lookup.EnableAuditTrail = false;
+            var options = GetLookupSettings();
+            options.EnableAuditTrail = false;
+            var lookup = GetDnsLookup(options);
+
             while (_running)
             {
                 try

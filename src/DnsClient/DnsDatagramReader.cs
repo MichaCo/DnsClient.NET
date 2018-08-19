@@ -240,7 +240,7 @@ namespace DnsClient
 
         public ICollection<ArraySegment<byte>> ReadLabels()
         {
-            var result = new List<ArraySegment<byte>>();
+            var result = new List<ArraySegment<byte>>(10);
 
             // read the length byte for the label, then get the content from offset+1 to length
             // proceed till we reach zero length byte.

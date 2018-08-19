@@ -28,7 +28,7 @@ namespace DigApp
             loggerFactory.AddSerilog(new LoggerConfiguration()
                 .Enrich.FromLogContext()
                 .Filter.ByExcluding(e => e.Level < Serilog.Events.LogEventLevel.Information)
-                .WriteTo.File(logFilename, shared: true)
+                // .WriteTo.File(logFilename, shared: true)
                 .CreateLogger());
 
             var app = new CommandLineApplication(throwOnUnexpectedArg: true);

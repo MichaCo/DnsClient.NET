@@ -76,7 +76,7 @@ namespace DnsClient
                 {
                     try
                     {
-#if PORTABLE
+#if !NET45
                         udpClient.Dispose();
 #else
                         udpClient.Close();
@@ -88,14 +88,14 @@ namespace DnsClient
         }
 
         public override async Task<DnsResponseMessage> QueryAsync(
-            IPEndPoint server,
+            IPEndPoint endpoint,
             DnsRequestMessage request,
             CancellationToken cancellationToken,
             Action<Action> cancelationCallback)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            UdpClient udpClient = GetNextUdpClient(server.AddressFamily);
+            UdpClient udpClient = GetNextUdpClient(endpoint.AddressFamily);
 
             bool mustDispose = false;
             try
@@ -103,7 +103,7 @@ namespace DnsClient
                 // setup timeout cancelation, dispose socket (the only way to acutally cancel the request in async...
                 cancelationCallback(() =>
                 {
-#if PORTABLE
+#if !NET45
                     udpClient.Dispose();
 #else
                     udpClient.Close();
@@ -113,14 +113,14 @@ namespace DnsClient
                 using (var writer = new DnsDatagramWriter())
                 {
                     GetRequestData(request, writer);
-                    await udpClient.SendAsync(writer.Data.Array, writer.Data.Count, server).ConfigureAwait(false);
+                    await udpClient.SendAsync(writer.Data.Array, writer.Data.Count, endpoint).ConfigureAwait(false);
                 }
 
                 var readSize = udpClient.Available > MaxSize ? udpClient.Available : MaxSize;
 
                 using (var memory = new PooledBytes(readSize))
                 {
-#if PORTABLE
+#if !NET45
                     int received = await udpClient.Client.ReceiveAsync(new ArraySegment<byte>(memory.Buffer), SocketFlags.None).ConfigureAwait(false);
 
                     var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
@@ -135,7 +135,7 @@ namespace DnsClient
                         throw new DnsResponseException("Header id mismatch.");
                     }
 
-                    Enqueue(server.AddressFamily, udpClient);
+                    Enqueue(endpoint.AddressFamily, udpClient);
 
                     return response;
                 }
@@ -157,7 +157,7 @@ namespace DnsClient
                 {
                     try
                     {
-#if PORTABLE
+#if !NET45
                         udpClient.Dispose();
 #else
                         udpClient.Close();

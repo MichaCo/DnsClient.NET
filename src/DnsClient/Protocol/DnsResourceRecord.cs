@@ -18,7 +18,7 @@ namespace DnsClient.Protocol
                   info?.DomainName ?? throw new ArgumentNullException(nameof(info)),
                   info?.RecordType ?? throw new ArgumentNullException(nameof(info)),
                   info?.RecordClass ?? throw new ArgumentNullException(nameof(info)),
-                  info?.TimeToLive ?? throw new ArgumentNullException(nameof(info)),
+                  info?.InitialTimeToLive ?? throw new ArgumentNullException(nameof(info)),
                   info?.RawDataLength ?? throw new ArgumentNullException(nameof(info)))
         {
         }
@@ -46,12 +46,6 @@ namespace DnsClient.Protocol
                 RecordToString());
         }
 
-        /// <inheritdoc />
-        public DnsResourceRecord Clone()
-        {
-            return (DnsResourceRecord)MemberwiseClone();
-        }
-
         /// <summary>
         /// Returns a string representation of the record's value only.
         /// <see cref="ToString(int)"/> uses this to compose the full string value of this instance.
@@ -65,6 +59,8 @@ namespace DnsClient.Protocol
     /// </summary>
     public class ResourceRecordInfo
     {
+        private readonly int _ticks;
+
         /// <summary>
         /// The domain name used to query.
         /// </summary>
@@ -81,9 +77,27 @@ namespace DnsClient.Protocol
         public QueryClass RecordClass { get; }
 
         /// <summary>
-        /// The TTL value for the record set by the server.
+        /// Gets the current time to live value for the record.
         /// </summary>
-        public int TimeToLive { get; internal set; }
+        public int TimeToLive
+        {
+            get
+            {
+                var curTicks = Environment.TickCount & int.MaxValue;
+                if (curTicks < _ticks)
+                {
+                    return 0;
+                }
+
+                var ttl = InitialTimeToLive - ((curTicks - _ticks) / 1000);
+                return ttl < 0 ? 0 : ttl;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the original time to live returned from the server.
+        /// </summary>
+        public int InitialTimeToLive { get; internal set; }
 
         /// <summary>
         /// Gets the number of bytes for this resource record stored in RDATA
@@ -118,8 +132,9 @@ namespace DnsClient.Protocol
             DomainName = domainName ?? throw new ArgumentNullException(nameof(domainName));
             RecordType = recordType;
             RecordClass = recordClass;
-            TimeToLive = timeToLive;
             RawDataLength = rawDataLength;
+            InitialTimeToLive = timeToLive;
+            _ticks = Environment.TickCount;
         }
     }
 }

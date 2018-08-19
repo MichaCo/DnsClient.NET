@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <VersionPrefix>1.1.1</VersionPrefix>
+    <VersionPrefix>1.3.0</VersionPrefix>
     <VersionSuffix Condition="'$(VersionSuffix)'!='' AND '$(BuildNumber)' != ''">$(VersionSuffix)-$(BuildNumber)</VersionSuffix>
 
-    <TargetFrameworks>netstandard1.3;netstandard2.0;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.3;netstandard2.0;net45;net471</TargetFrameworks>
     <DebugType>full</DebugType>
 
     <Product>DnsClient.NET</Product>
@@ -18,7 +18,7 @@
     <PublicSign Condition="'$(OS)' != 'Windows_NT'">true</PublicSign>
 
     <PackageId>DnsClient</PackageId>
-    <PackageTags>DNS;Name Server;CSharp;.NET;.NET Core</PackageTags>
+    <PackageTags>dns;client;stub;resolver;name;server;core;service;discovery</PackageTags>
 
     <PackageIconUrl>http://dnsclient.michaco.net/favicon-196x196.png</PackageIconUrl>
     <PackageProjectUrl>http://dnsclient.michaco.net</PackageProjectUrl>
@@ -37,27 +37,9 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
-    <PackageReference Include="System.Collections" Version="4.3.0" />
-    <PackageReference Include="System.Collections.Concurrent" Version="4.3.0" />
-    <PackageReference Include="System.Globalization.Extensions" Version="4.3.0" />
-    <PackageReference Include="System.IO.FileSystem" Version="4.3.0" />
-    <PackageReference Include="System.Linq" Version="4.3.0" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
-    <PackageReference Include="System.Net.Sockets" Version="4.3.0" />
-    <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
-    <PackageReference Include="System.Text.Encoding" Version="4.3.0" />
-    <PackageReference Include="System.Threading" Version="4.3.0" />
-    <PackageReference Include="System.Runtime.InteropServices.RuntimeInformation" Version="4.3.0" />
-    <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
+    <PackageReference Include="System.Globalization.Extensions" Version="4.3.0" />
     <PackageReference Include="Microsoft.Win32.Primitives" Version="4.3.0" />
   </ItemGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
-    <DefineConstants>$(DefineConstants);PORTABLE</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <DefineConstants>$(DefineConstants);PORTABLE</DefineConstants>
-  </PropertyGroup>
 </Project>

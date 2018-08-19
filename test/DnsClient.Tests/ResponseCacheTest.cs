@@ -29,10 +29,7 @@ namespace DnsClient.Tests
         {
             var cache = new ResponseCache(true, Timeout.InfiniteTimeSpan);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
-            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0)
-            {
-                Audit = new LookupClientAudit()
-            };
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
@@ -48,21 +45,18 @@ namespace DnsClient.Tests
         {
             var minTtl = 2000;
             var cache = new ResponseCache(true, TimeSpan.FromMilliseconds(minTtl));
-            var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
-            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0)
-            {
-                Audit = new LookupClientAudit()
-            };
+            var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 1, 100));
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
 
-            await Task.Delay(1000);
+            await Task.Delay(1200);
             var item = cache.Get("key", out double? effectiveTtl);
 
             // should not be null although TTL is zero, mimimum timeout is set to 2000ms
-            // TTL of the record should be negative because the initial TTL is 0
-            Assert.True(item.Answers.First().TimeToLive < 0);
+            // TTL of the record should be zero because the initial TTL is 100
+            Assert.Equal(0, item.Answers.First().TimeToLive);
             Assert.Equal(minTtl, effectiveTtl);
         }
 
@@ -71,10 +65,7 @@ namespace DnsClient.Tests
         {
             var cache = new ResponseCache(false);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 100, 100));
-            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0)
-            {
-                Audit = new LookupClientAudit()
-            };
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
@@ -90,10 +81,7 @@ namespace DnsClient.Tests
         {
             var cache = new ResponseCache(true);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
-            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0)
-            {
-                Audit = new LookupClientAudit()
-            };
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
@@ -109,10 +97,7 @@ namespace DnsClient.Tests
         {
             var cache = new ResponseCache(true, TimeSpan.Zero);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
-            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0)
-            {
-                Audit = new LookupClientAudit()
-            };
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
@@ -130,10 +115,7 @@ namespace DnsClient.Tests
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 1000, 100));
             var recordB = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 100, 100));
             var recordC = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 1, 100));
-            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0)
-            {
-                Audit = new LookupClientAudit()
-            };
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
             response.AddAdditional(recordB);
             response.AddAuthority(recordC);
@@ -159,10 +141,7 @@ namespace DnsClient.Tests
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 1000, 100));
             var recordB = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 100, 100));
             var recordC = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
-            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0)
-            {
-                Audit = new LookupClientAudit()
-            };
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
             response.AddAdditional(recordB);
             response.AddAuthority(recordC);
@@ -180,10 +159,7 @@ namespace DnsClient.Tests
         {
             var cache = new ResponseCache(true);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 100, 100));
-            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0)
-            {
-                Audit = new LookupClientAudit()
-            };
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));
@@ -198,10 +174,7 @@ namespace DnsClient.Tests
         {
             var cache = new ResponseCache(true);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 100, 100));
-            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0)
-            {
-                Audit = new LookupClientAudit()
-            };
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
 
             var success = cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any)));

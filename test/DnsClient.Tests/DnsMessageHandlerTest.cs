@@ -11,10 +11,7 @@ namespace DnsClient.Tests
         public void DnsRecordFactory_ResolveARecord()
         {
             var header = new DnsResponseHeader(42, 256, 0, 1, 0, 0);
-            var responseMessage = new DnsResponseMessage(header, 0)
-            {
-                Audit = new LookupClientAudit()
-            };
+            var responseMessage = new DnsResponseMessage(header, 0);
 
             var info = new ResourceRecordInfo(DnsString.Parse("query"), ResourceRecordType.A, QueryClass.IN, 100, 4);
             var ip = IPAddress.Parse("123.45.67.9");
@@ -36,7 +33,7 @@ namespace DnsClient.Tests
             Assert.Equal(4, resultAnswer.RawDataLength);
             Assert.Equal(QueryClass.IN, resultAnswer.RecordClass);
             Assert.Equal(ResourceRecordType.A, resultAnswer.RecordType);
-            Assert.True(resultAnswer.TimeToLive == 100);
+            Assert.True(resultAnswer.InitialTimeToLive == 100);
             Assert.True(result.Header.Id == 42);
             Assert.True(result.Header.AnswerCount == 1);
         }
@@ -60,7 +57,7 @@ namespace DnsClient.Tests
                 writer.WriteHostName(answer.DomainName.Value);
                 writer.WriteUInt16NetworkOrder((ushort)answer.RecordType);
                 writer.WriteUInt16NetworkOrder((ushort)answer.RecordClass);
-                writer.WriteUInt32NetworkOrder((uint)answer.TimeToLive);
+                writer.WriteUInt32NetworkOrder((uint)answer.InitialTimeToLive);
                 writer.WriteUInt16NetworkOrder((ushort)answerData.Length);
 
                 //writer.Extend(answerData.Length);   // the following data->length

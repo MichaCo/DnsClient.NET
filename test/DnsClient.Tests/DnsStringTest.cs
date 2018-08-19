@@ -94,14 +94,15 @@ namespace DnsClient.Tests
             Assert.Contains("maximum of " + DnsString.QueryMaxLength, ex.Message);
         }
 
-        [Fact]
-        public void DnsString_IllegalEscape()
-        {
-            Action act = () => DnsString.Parse("abc.zy\\.z.com");
+        //// relaxed puny code rules
+        ////[Fact]
+        ////public void DnsString_IllegalEscape()
+        ////{
+        ////    Action act = () => DnsString.Parse("abc.zy\\.z.com");
 
-            var ex = Record.Exception(act);
-            Assert.Contains("not a valid hostname", ex.Message);
-        }
+        ////    var ex = Record.Exception(act);
+        ////    Assert.Contains("not a valid hostname", ex.Message);
+        ////}
 
         [Fact]
         public void DnsString_StartsWithDot()

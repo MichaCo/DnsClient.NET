@@ -13,14 +13,16 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_PreserveNameServerOrder()
         {
-            var lookup = new LookupClient(
-                new NameServer(IPAddress.Parse("127.0.0.1")),
-                new NameServer(IPAddress.Parse("127.0.0.2")),
-                new NameServer(IPAddress.Parse("127.0.0.3")))
+            var options = new LookupClientOptions(
+                   new NameServer(IPAddress.Parse("127.0.0.1")),
+                   new NameServer(IPAddress.Parse("127.0.0.2")),
+                   new NameServer(IPAddress.Parse("127.0.0.3")))
             {
-                // default is true
-                UseRandomNameServer = false
+                UseRandomNameServer = false,
+                UseCache = false
             };
+
+            var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
@@ -39,7 +41,9 @@ namespace DnsClient.Tests
                    new DnsRequestHeader(i, DnsOpCode.Query),
                    new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-                var result = lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request, false);
+                var servers = lookup.Settings.ShuffleNameServers();
+
+                var result = lookup.ResolveQuery(lookup.Settings.WithServers(servers), messageHandler, request);
                 Assert.False(result.HasError);
             }
 
@@ -52,14 +56,16 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Lookup_PreserveNameServerOrderAsync()
         {
-            var lookup = new LookupClient(
+            var options = new LookupClientOptions(
                 new NameServer(IPAddress.Parse("127.0.0.1")),
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
             {
-                // default is true
-                UseRandomNameServer = false
+                UseRandomNameServer = false,
+                UseCache = false
             };
+
+            var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
@@ -78,7 +84,9 @@ namespace DnsClient.Tests
                    new DnsRequestHeader(i, DnsOpCode.Query),
                    new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-                var result = await lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request, false);
+                var servers = lookup.Settings.ShuffleNameServers();
+
+                var result = await lookup.ResolveQueryAsync(lookup.Settings.WithServers(servers), messageHandler, request);
                 Assert.False(result.HasError);
             }
 
@@ -91,14 +99,16 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_ShuffleNameServerOrder()
         {
-            var lookup = new LookupClient(
+            var options = new LookupClientOptions(
                 new NameServer(IPAddress.Parse("127.0.0.1")),
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
             {
-                // default is true
-                UseRandomNameServer = true
+                UseRandomNameServer = true,
+                UseCache = false
             };
+
+            var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
@@ -118,7 +128,9 @@ namespace DnsClient.Tests
                    new DnsRequestHeader(i, DnsOpCode.Query),
                    new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-                var result = lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request, false);
+                var servers = lookup.Settings.ShuffleNameServers();
+
+                var result = lookup.ResolveQuery(lookup.Settings.WithServers(servers), messageHandler, request);
                 Assert.False(result.HasError);
             }
 
@@ -134,14 +146,16 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Lookup_ShuffleNameServerOrderAsync()
         {
-            var lookup = new LookupClient(
+            var options = new LookupClientOptions(
                 new NameServer(IPAddress.Parse("127.0.0.1")),
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
             {
-                // default is true
-                UseRandomNameServer = true
+                UseRandomNameServer = true,
+                UseCache = false
             };
+
+            var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
@@ -161,7 +175,9 @@ namespace DnsClient.Tests
                    new DnsRequestHeader(i, DnsOpCode.Query),
                    new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-                var result = await lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request, false);
+                var servers = lookup.Settings.ShuffleNameServers();
+
+                var result = await lookup.ResolveQueryAsync(lookup.Settings.WithServers(servers), messageHandler, request);
                 Assert.False(result.HasError);
             }
 
@@ -177,7 +193,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_RetryOnDnsError()
         {
-            var lookup = new LookupClient(
+            var options = new LookupClientOptions(
                 new NameServer(IPAddress.Parse("127.0.0.1")),
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")),
@@ -187,8 +203,11 @@ namespace DnsClient.Tests
                 new NameServer(IPAddress.Parse("127.0.0.7")))
             {
                 EnableAuditTrail = true,
-                ContinueOnDnsError = true
+                ContinueOnDnsError = true,
+                UseCache = false
             };
+
+            var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
@@ -203,7 +222,8 @@ namespace DnsClient.Tests
                 new DnsRequestHeader(0, DnsOpCode.Query),
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-            var result = lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request, false);
+            var servers = lookup.Settings.ShuffleNameServers();
+            var result = lookup.ResolveQuery(lookup.Settings.WithServers(servers), messageHandler, request);
 
             // no exception but error in the response after calling all endpoints!
             Assert.True(result.HasError);
@@ -216,7 +236,7 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Lookup_RetryOnDnsErrorAsync()
         {
-            var lookup = new LookupClient(
+            var options = new LookupClientOptions(
                 new NameServer(IPAddress.Parse("127.0.0.1")),
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")),
@@ -226,8 +246,11 @@ namespace DnsClient.Tests
                 new NameServer(IPAddress.Parse("127.0.0.7")))
             {
                 EnableAuditTrail = true,
-                ContinueOnDnsError = true
+                ContinueOnDnsError = true,
+                UseCache = false
             };
+
+            var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
@@ -242,7 +265,8 @@ namespace DnsClient.Tests
                 new DnsRequestHeader(0, DnsOpCode.Query),
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-            var result = await lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request, false);
+            var servers = lookup.Settings.ShuffleNameServers();
+            var result = await lookup.ResolveQueryAsync(lookup.Settings.WithServers(servers), messageHandler, request);
 
             // no exception but error in the response after calling all 3 endpoints!
             Assert.True(result.HasError);
@@ -255,15 +279,18 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_RetryOnDnsErrorAndThrow()
         {
-            var lookup = new LookupClient(
+            var options = new LookupClientOptions(
                 new NameServer(IPAddress.Parse("127.0.0.1")),
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
             {
                 EnableAuditTrail = true,
                 ContinueOnDnsError = true,
-                ThrowDnsErrors = true
+                ThrowDnsErrors = true,
+                UseCache = false
             };
+
+            var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
@@ -288,7 +315,8 @@ namespace DnsClient.Tests
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             // all three servers have been called and we get the last exception thrown
-            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request, false));
+            var servers = lookup.Settings.ShuffleNameServers();
+            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(lookup.Settings.WithServers(servers), messageHandler, request));
 
             // ensure the error is the one from the last call
             Assert.Equal(DnsResponseCode.FormatError, result.Code);
@@ -300,7 +328,7 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Lookup_RetryOnDnsErrorAndThrowAsync()
         {
-            var lookup = new LookupClient(
+            var options = new LookupClientOptions(
                 new NameServer(IPAddress.Parse("127.0.0.1")),
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
@@ -309,6 +337,8 @@ namespace DnsClient.Tests
                 ContinueOnDnsError = true,
                 ThrowDnsErrors = true
             };
+
+            var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
@@ -333,7 +363,8 @@ namespace DnsClient.Tests
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             // all three servers have been called and we get the last exception thrown
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request, false));
+            var servers = lookup.Settings.ShuffleNameServers();
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(lookup.Settings.WithServers(servers), messageHandler, request));
 
             // ensure the error is the one from the last call
             Assert.Equal(DnsResponseCode.FormatError, result.Code);
@@ -345,7 +376,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_NoRetryOnDnsError()
         {
-            var lookup = new LookupClient(
+            var options = new LookupClientOptions(
                 new NameServer(IPAddress.Parse("127.0.0.1")),
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
@@ -353,6 +384,8 @@ namespace DnsClient.Tests
                 EnableAuditTrail = true,
                 ContinueOnDnsError = false // disable retry/continue on dns error
             };
+
+            var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
@@ -367,7 +400,8 @@ namespace DnsClient.Tests
                 new DnsRequestHeader(0, DnsOpCode.Query),
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-            var result = lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request, false);
+            var servers = lookup.Settings.ShuffleNameServers();
+            var result = lookup.ResolveQuery(lookup.Settings.WithServers(servers), messageHandler, request);
 
             Assert.True(result.HasError);
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Header.ResponseCode);
@@ -379,7 +413,7 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Lookup_NoRetryOnDnsErrorAsync()
         {
-            var lookup = new LookupClient(
+            var options = new LookupClientOptions(
                 new NameServer(IPAddress.Parse("127.0.0.1")),
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
@@ -387,6 +421,8 @@ namespace DnsClient.Tests
                 EnableAuditTrail = true,
                 ContinueOnDnsError = false // disable retry/continue on dns error
             };
+
+            var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
@@ -401,7 +437,8 @@ namespace DnsClient.Tests
                 new DnsRequestHeader(0, DnsOpCode.Query),
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-            var result = await lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request, false);
+            var servers = lookup.Settings.ShuffleNameServers();
+            var result = await lookup.ResolveQueryAsync(lookup.Settings.WithServers(servers), messageHandler, request);
 
             Assert.True(result.HasError);
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Header.ResponseCode);
@@ -413,7 +450,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_NoRetryOnDnsErrorAndThrow()
         {
-            var lookup = new LookupClient(
+            var options = new LookupClientOptions(
                 new NameServer(IPAddress.Parse("127.0.0.1")),
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
@@ -423,6 +460,8 @@ namespace DnsClient.Tests
                 ThrowDnsErrors = true // enable throw dns error (should throw the error of the last one
             };
 
+            var lookup = new LookupClient(options);
+
             var calledIps = new List<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
             {
@@ -437,7 +476,8 @@ namespace DnsClient.Tests
                 new DnsRequestHeader(0, DnsOpCode.Query),
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(lookup.GetNextServers(), messageHandler, request, false));
+            var servers = lookup.Settings.ShuffleNameServers();
+            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(lookup.Settings.WithServers(servers), messageHandler, request));
 
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Code);
 
@@ -447,7 +487,7 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Lookup_NoRetryOnDnsErrorAndThrowAsync()
         {
-            var lookup = new LookupClient(
+            var options = new LookupClientOptions(
                 new NameServer(IPAddress.Parse("127.0.0.1")),
                 new NameServer(IPAddress.Parse("127.0.0.2")),
                 new NameServer(IPAddress.Parse("127.0.0.3")))
@@ -456,6 +496,8 @@ namespace DnsClient.Tests
                 ContinueOnDnsError = false,
                 ThrowDnsErrors = true
             };
+
+            var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
@@ -470,7 +512,8 @@ namespace DnsClient.Tests
                 new DnsRequestHeader(0, DnsOpCode.Query),
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(lookup.GetNextServers(), messageHandler, request, false));
+            var servers = lookup.Settings.ShuffleNameServers();
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(lookup.Settings.WithServers(servers), messageHandler, request));
 
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Code);
 

@@ -4,9 +4,6 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Attributes.Columns;
-using BenchmarkDotNet.Attributes.Exporters;
-using BenchmarkDotNet.Attributes.Jobs;
 using DnsClient;
 
 namespace Benchmarks
@@ -23,13 +20,13 @@ namespace Benchmarks
             public StaticServerQuery()
             {
                 // relies on static dns server
-                _client = new LookupClient(IPAddress.Parse("127.0.0.1"), 5053)
+                _client = new LookupClient(new LookupClientOptions(new NameServer(IPAddress.Parse("127.0.0.1"), 5053))
                 {
                     EnableAuditTrail = false,
                     UseCache = false,
                     UseTcpFallback = false,
                     Timeout = Timeout.InfiniteTimeSpan
-                };
+                });
             }
 
             [Benchmark(Baseline = true)]

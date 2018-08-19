@@ -41,7 +41,7 @@ namespace DnsClient
         /// <param name="questionType">Type of the question.</param>
         /// <param name="questionClass">The question class.</param>
         /// <exception cref="ArgumentNullException">If <paramref name="query"/> is null.</exception>
-        public DnsQuestion(string query, QueryType questionType, QueryClass questionClass)
+        public DnsQuestion(string query, QueryType questionType, QueryClass questionClass = QueryClass.IN)
             : this(DnsString.Parse(query), questionType, questionClass)
         {
         }
@@ -53,7 +53,7 @@ namespace DnsClient
         /// <param name="questionType">Type of the question.</param>
         /// <param name="questionClass">The question class.</param>
         /// <exception cref="ArgumentNullException">If <paramref name="query"/> is null.</exception>
-        public DnsQuestion(DnsString query, QueryType questionType, QueryClass questionClass)
+        public DnsQuestion(DnsString query, QueryType questionType, QueryClass questionClass = QueryClass.IN)
         {
             QueryName = query ?? throw new ArgumentNullException(nameof(query));
             QuestionType = questionType;

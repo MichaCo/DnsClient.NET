@@ -9,72 +9,55 @@ $ORIGIN		mcnet.com.
              604800 )   ; Negative Cache TTL
 			 
 ; name servers - NS records
-    IN      NS      ns1.mcnet.com.
-    IN      NS      ns2.mcnet.com.
+    604800	IN   NS      ns1.mcnet.com.
+    604800	IN   NS      ns2.mcnet.com.
 
 ; name servers - A records
-ns1          IN      A       192.168.178.1
-ns2          IN      A       192.168.178.2
-@			IN		A 		192.168.178.23
-micha		IN		A		192.168.178.23
+ns1		86400	IN      A       192.168.178.1
+ns2		86400	IN      A       192.168.178.2
+@		86400	IN		A		192.168.178.50
+@        		IN      AAAA   	fe80::24c9:8e14:9df4:a314
 
 ; mail
-@			IN 		MX	10 		mail.mcnet.com.
+@			IN 		MX		10 mail.mcnet.com.
 
-; 192.168.178.0/100 - A records
-mail.mcnet.com.			IN		A		192.168.178.1
-phone.mcnet.com.  		IN      A      	192.168.178.20
-srv.mcnet.com.			IN		A  		192.168.178.21
-srv.mcnet.com.			IN    	HINFO   Intel-I5    WINDOWS
-hidden.mcnet.com.		IN		A  		192.168.178.24
-hidden2.mcnet.com.		IN		A  		192.168.178.24
-srv2.mcnet.com.			IN		A  		192.168.178.25
-srv3.mcnet.com.			IN		A  		192.168.178.26
-srv4.mcnet.com.			IN		A  		192.168.178.27
-uber.mcnet.com.			IN		A		192.168.178.30
-www.mcnet.com.	500		IN		CNAME	micha.mcnet.com.
-XN--CLCHC0EA0B2G2A9GCD.XN--0ZWM56D.mcnet.com.		IN		A		192.168.178.100
-
-; Sub Domain
-$ORIGIN		alex.mcnet.com.
-home		IN		CNAME	www.mcnet.com.
-mail		IN		A		192.168.178.1
-
-$ORIGIN		mia.mcnet.com.
-home		IN		CNAME	www.mcnet.com.
-mail		IN		A		192.168.178.1
-
-$ORIGIN		micha.mcnet.com.
-home		IN		CNAME	www.mcnet.com.
-mail		IN		A		192.168.178.1
-; Test Records
-@			IN		A		192.168.178.23
-@        	IN      A     	127.0.0.1
-@        	IN      AAAA   	fe80::24c9:8e14:9df4:a314
-@			IN		TXT		"some long text with some stuff in it {lala:blub}"
-@			IN		TXT		(some text "separated by" space
+; other
+www		500		IN		CNAME	mcnet.com.
+mail			IN		A		192.168.178.3
+phone  			IN      A      	192.168.178.20
+srv				IN		A  		192.168.178.21
+srv				IN    	HINFO   Intel-I5    WINDOWS
+hidden			IN		A  		192.168.178.24
+hidden2			IN		A  		192.168.178.24
+srv2			IN		A  		192.168.178.25
+srv3			IN		A  		192.168.178.26
+srv4			IN		A  		192.168.178.27
+uber			IN		A		192.168.178.30
+@				IN		TXT		"some long text with some stuff in it {lala:blub}"
+@				IN		TXT		(some text "separated by" space
 										with new line stuff too)
-@			IN		TXT		more "(text with)" "\"special\" öäÜ!""§$%\\/" @stuff \;and ";fake comment"
-@			IN		TXT		"another" "more" "(text with)" "\"special\" \195\182\195\164\195\156!" "\194\167$%\\/" "@stuff" "\;and" "\;fake comment"
-@			IN		MX		10 mail.micha.mcnet.com.
-@			IN		MX		10 mail.mcnet.com.
-@			IN		MB		srv.mcnet.com.
-@			IN		MB		lÜä'laüö#2x.XN--CLCHC0EA0B2G2A9GCD.XN--0ZWM56D.mcnet.com.
-@			IN		MG		hidden.mcnet.com.
-@			IN		MR		hidden2.mcnet.com.
-@			IN		MR		xn--4gbrim.xn----ymcbaaajlc6dj7bxne2c.xn--wgbh1c
-@			IN		SRV		1 1 8080 srv4.mcnet.com.
-@			IN		PTR		hidden.mcnet.com.
-@			IN		PTR		mcnet.com.
-@			IN		MINFO	hidden.mcnet.com. hidden2.mcnet.com.
-@			IN		CAA 	129 tbs MDIGA1UEJQYJYIZIAWUDBAIBBCAXzJgPaoT7FeXaPzKv6mI2D0yilif+7WhzmhMGLe/oBA==
-@			IN		CAA 	1 policy 1.3.6.1.4.1.35405.666.1
-@			IN		CAA 	255 somethingstrange ThevalueStingwithÜberSpeciölvalue.
-@			IN		URI		10 1 "ftp://srv.mcnet.com/public"
-@			IN		NULL 	\# 117 656D7330312E796F75722D66726565646F6D2E64653B55533B313938 2E3235352E33302E3234323B303B353733303B64656661756C742C76 6F6C756D652C6E6F727468616D65726963612C696E74657261637469 76652C766F69702C6F70656E76706E2C707074702C736F636B73352C 667265653B
+@				IN		TXT		more "(text with)" "\"special\" öäÜ!""§$%\\/" @stuff \;and ";fake comment"
+@				IN		TXT		"another" "more" "(text with)" "\"special\" \195\182\195\164\195\156!" "\194\167$%\\/" "@stuff" "\;and" "\;fake comment"
+@		1000	IN		MX		10 mail.micha.mcnet.com.
+@		1000	IN		MX		10 mail.mcnet.com.
+@				IN		MB		srv.mcnet.com.
+@				IN		MB		lÜä'laüö#2x.XN--CLCHC0EA0B2G2A9GCD.XN--0ZWM56D.mcnet.com.
+@				IN		MG		hidden.mcnet.com.
+@				IN		MR		hidden2.mcnet.com.
+@				IN		MR		xn--4gbrim.xn----ymcbaaajlc6dj7bxne2c.xn--wgbh1c
+@				IN		SRV		1 1 8080 srv4.mcnet.com.
+@		500		IN		PTR		hidden.mcnet.com.
+@		500		IN		PTR		mcnet.com.
+@				IN		MINFO	hidden.mcnet.com. hidden2.mcnet.com.
+@		500		IN		CAA 	129 tbs MDIGA1UEJQYJYIZIAWUDBAIBBCAXzJgPaoT7FeXaPzKv6mI2D0yilif+7WhzmhMGLe/oBA==
+@		500		IN		CAA 	1 policy 1.3.6.1.4.1.35405.666.1
+@		1000	IN		CAA 	255 somethingstrange ThevalueStingwithÜberSpeciölvalue.
+@		350		IN		URI		10 1 "ftp://srv.mcnet.com/public"
+@		350		IN		NULL 	\# 117 656D7330312E796F75722D66726565646F6D2E64653B55533B313938 2E3235352E33302E3234323B303B353733303B64656661756C742C76 6F6C756D652C6E6F727468616D65726963612C696E74657261637469 76652C766F69702C6F70656E76706E2C707074702C736F636B73352C 667265653B
+@		200		IN 		SSHFP	1 1 9DBA55CEA3B8E15528665A6781CA7C35190CF0EC
 
 ; RP entries
-@			RP    micha.c.mcnet.com. addr.micha.mcnet.com.
+@			RP    micha.c.mcnet.com. micha.mcnet.com.
 @			RP    alex.b.mcnet.com. addr.alex.mcnet.com.
 @			RP    mia.c.mcnet.com. addr.mia.mcnet.com.
 @			RP    lucy.c.mcnet.com.  .
@@ -89,6 +72,26 @@ mail		IN		A		192.168.178.1
 @			IN    	HINFO   Sparc-10    UNIX
 @			IN    	HINFO   Intel-I7    WINDOWS
 
+; Sub Domain
+$ORIGIN		alex.mcnet.com.
+@			IN	 	A		192.168.178.61
+mail		IN 		MX		10 mail.mcnet.com.
+
+$ORIGIN		mia.mcnet.com.
+@			IN	 	A		192.168.178.62
+mail		IN 		MX		10 mail.mcnet.com.
+
+$ORIGIN		mail.mcnet.com.
+@	86400	IN		A		192.168.178.3
+
+$ORIGIN		micha.mcnet.com.
+@			IN		CNAME	mcnet.com.
+www			IN		CNAME	mcnet.com.
+mail		IN		A		192.168.178.4
+
+; 192.168.178.0/100 - A records
+
+XN--CLCHC0EA0B2G2A9GCD.XN--0ZWM56D.mcnet.com.		IN		A		192.168.178.100
 
 ; AFS example
 _afs3-vl._tcp.mcnet.com. 	IN	 SRV   0 0 7003 srv2.mcnet.com.
@@ -98,3 +101,5 @@ _afs3-pr._tcp.mcnet.com. 	IN	 SRV   0 0 7002 srv4.mcnet.com.
 addr.micha.mcnet.com.  	TXT   "Boss (123) 456789"
 addr.alex.mcnet.com. 	TXT   "Ernst (123) 456789"
 addr.mia.mcnet.com.		TXT   "Yey (123) 456789"
+
+sub.micha.mcnet.com. 200	IN		CNAME	2.micha.mcnet.com.

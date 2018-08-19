@@ -57,7 +57,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(server));
             }
 
-            return string.Concat(server.Endpoint.Address.ToString(), "#", server.Endpoint.Port.ToString(), "_", question.QueryName.Value, ":", (short)question.QuestionClass, ":", (short)question.QuestionType);
+            return string.Concat(server.Address.ToString(), "#", server.Port.ToString(), "_", question.QueryName.Value, ":", (short)question.QuestionClass, ":", (short)question.QuestionType);
         }
 
         public IDnsQueryResponse Get(string key)
@@ -81,7 +81,7 @@ namespace DnsClient
                 else
                 {
                     StartCleanup();
-                    return entry.GetResponse();
+                    return entry.Response;
                 }
             }
 
@@ -97,7 +97,7 @@ namespace DnsClient
                 if (all.Any())
                 {
                     // in millis
-                    double minTtl = all.Min(p => p.TimeToLive) * 1000d;
+                    double minTtl = all.Min(p => p.InitialTimeToLive) * 1000d;
 
                     if (MinimumTimout == Timeout.InfiniteTimeSpan)
                     {
@@ -171,8 +171,6 @@ namespace DnsClient
 
         private class ResponseEntry
         {
-            private readonly IDnsQueryResponse _response;
-
             public bool IsExpiredFor(DateTimeOffset forDate) => forDate >= ExpiresAt;
 
             public DateTimeOffset ExpiresAt { get; }
@@ -181,73 +179,14 @@ namespace DnsClient
 
             public double TTL { get; set; }
 
-            // returns in seconds, not MS!
-            public int Elapsed(DateTimeOffset? since = null)
-            {
-                if (since == null)
-                {
-                    since = DateTimeOffset.UtcNow;
-                }
-
-                var elapsedMillis = (int)(since.Value - Created).TotalMilliseconds;
-                if (elapsedMillis < 0)
-                {
-                    return 0;
-                }
-
-                return elapsedMillis / 1000;
-            }
-
-            public IDnsQueryResponse GetResponse()
-            {
-                var elapsed = Elapsed();
-                if (elapsed <= 0)
-                {
-                    return _response;
-                }
-
-                var response = new DnsResponseMessage(_response.Header, _response.MessageSize)
-                {
-                    Audit = (_response as DnsQueryResponse)?.Audit ?? new LookupClientAudit()
-                };
-
-                foreach (var record in _response.Questions)
-                {
-                    response.AddQuestion(record);
-                }
-
-                foreach (var record in _response.Answers)
-                {
-                    var clone = record.Clone();
-                    clone.TimeToLive = clone.TimeToLive - elapsed;
-                    response.AddAnswer(clone);
-                }
-
-                foreach (var record in _response.Additionals)
-                {
-                    var clone = record.Clone();
-                    clone.TimeToLive = clone.TimeToLive - elapsed;
-                    response.AddAnswer(clone);
-                }
-
-                foreach (var record in _response.Authorities)
-                {
-                    var clone = record.Clone();
-                    clone.TimeToLive = clone.TimeToLive - elapsed;
-                    response.AddAnswer(clone);
-                }
-
-                var qr = response.AsQueryResponse(_response.NameServer);
-
-                return qr;
-            }
+            public IDnsQueryResponse Response { get; }
 
             public ResponseEntry(IDnsQueryResponse response, double ttlInMS)
             {
                 Debug.Assert(response != null);
                 Debug.Assert(ttlInMS >= 0);
 
-                _response = response;
+                Response = response;
                 TTL = ttlInMS;
                 Created = DateTimeOffset.UtcNow;
                 ExpiresAt = Created.AddMilliseconds(TTL);

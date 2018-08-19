@@ -5,6 +5,10 @@ It is supposed to work similar to the well-known `dig` command line tool on Linu
 ## How to Build/Run it
 To run it, open a command line windows, or bash, navigate to \Samples\MiniDig and run `dotnet restore` and `dotnet run`.
 
+MiniDig is multi targeted for now, which means, when you use `dotnet run` you have to specify a framework `-f NetCoreApp20` for example.
+
+On Linux, e.g. running it in Ubuntu, the dotnet SDK currently has bugs to resolve certain things. To build and run it, you might have to publish a self-contained output with `dotnet publish -f NetCoreApp20 --self-contained -r ubuntu-x64` for example.
+
 ## Help
 `dotnet run -?` gives you the list of options and commands.
 

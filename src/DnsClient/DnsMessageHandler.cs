@@ -10,7 +10,7 @@ namespace DnsClient
     {
         public abstract DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request, TimeSpan timeout);
 
-        public abstract Task<DnsResponseMessage> QueryAsync(IPEndPoint server, DnsRequestMessage request, CancellationToken cancellationToken,
+        public abstract Task<DnsResponseMessage> QueryAsync(IPEndPoint endpoint, DnsRequestMessage request, CancellationToken cancellationToken,
             Action<Action> cancelationCallback);
 
         public abstract bool IsTransientException<T>(T exception) where T : Exception;
@@ -67,7 +67,7 @@ namespace DnsClient
             writer.WriteHostName("");
             writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
             writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
-            writer.WriteUInt32NetworkOrder((ushort)opt.TimeToLive);
+            writer.WriteUInt32NetworkOrder((ushort)opt.InitialTimeToLive);
             writer.WriteUInt16NetworkOrder(0);
         }
 

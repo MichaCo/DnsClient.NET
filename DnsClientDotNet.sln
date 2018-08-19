@@ -36,9 +36,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Documentation", "Documentat
 		Documentation\toc.yml = Documentation\toc.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DnsClient.TestsCommon", "test\DnsClient.TestsCommon\DnsClient.TestsCommon.csproj", "{8422A76D-CC40-4B4B-AA03-C17C3D86A073}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnsClient.TestsCommon", "test\DnsClient.TestsCommon\DnsClient.TestsCommon.csproj", "{8422A76D-CC40-4B4B-AA03-C17C3D86A073}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DnsClient.PerfTestHost", "test\DnsClient.PerfTestHost\DnsClient.PerfTestHost.csproj", "{58173158-2B2D-4C26-A666-495641477066}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnsClient.PerfTestHost", "test\DnsClient.PerfTestHost\DnsClient.PerfTestHost.csproj", "{58173158-2B2D-4C26-A666-495641477066}"
 EndProject
 Global
 	GlobalSection(Performance) = preSolution
@@ -89,6 +89,15 @@ Global
 		{7461E2C7-008E-4E61-ABC3-AF85DE37084B} = {34E43CED-3DF4-49CE-8556-69225ABD84E6}
 		{8422A76D-CC40-4B4B-AA03-C17C3D86A073} = {34E43CED-3DF4-49CE-8556-69225ABD84E6}
 		{58173158-2B2D-4C26-A666-495641477066} = {34E43CED-3DF4-49CE-8556-69225ABD84E6}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E26DC1C5-A82B-4984-88DB-107C9D66271F}
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
+	EndGlobalSection
+	GlobalSection(Performance) = preSolution
+		HasPerformanceSessions = true
 	EndGlobalSection
 	GlobalSection(Performance) = preSolution
 		HasPerformanceSessions = true

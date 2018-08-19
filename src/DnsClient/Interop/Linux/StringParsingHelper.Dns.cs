@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
-using System.Threading.Tasks;
 using System.Net;
 
 // TODO: Remove if fixed
 // This code is from https://github.com/dotnet/corefx
-// Will be removed whenever the bugs reading network information on linux are fixed and 
+// Will be removed whenever the bugs reading network information on linux are fixed and
 // I can use the Managed version.
 
 namespace DnsClient.Linux
