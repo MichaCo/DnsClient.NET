@@ -20,7 +20,7 @@ namespace DnsClient.Tests
 
             var responseMsg = new DnsResponseMessage(new DnsResponseHeader(123, 256, 1, 1, 0, 1), 123);
             responseMsg.Answers.Add(aRecord);
-            IDnsQueryResponse dnsResponse = responseMsg.AsQueryResponse(NameServer.GooglePublicDns);
+            IDnsQueryResponse dnsResponse = responseMsg.AsQueryResponse(NameServer.GooglePublicDns, null);
 
             //// or mock response
             //var dnsResponseMock = new Mock<IDnsQueryResponse>();

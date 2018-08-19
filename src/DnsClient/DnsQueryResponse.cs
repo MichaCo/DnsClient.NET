@@ -85,9 +85,14 @@ namespace DnsClient
         /// </value>
         public int MessageSize { get; }
 
+        /// <summary>
+        /// Gets the settings used to produce this response.
+        /// </summary>
+        public DnsQuerySettings Settings { get; }
+
         internal LookupClientAudit Audit { get; }
 
-        internal DnsQueryResponse(DnsResponseMessage dnsResponseMessage, NameServer nameServer, LookupClientAudit audit)
+        internal DnsQueryResponse(DnsResponseMessage dnsResponseMessage, NameServer nameServer, LookupClientAudit audit, DnsQuerySettings settings)
         {
             if (dnsResponseMessage == null) throw new ArgumentNullException(nameof(dnsResponseMessage));
             Header = dnsResponseMessage.Header;
@@ -98,6 +103,7 @@ namespace DnsClient
             Authorities = dnsResponseMessage.Authorities.ToArray();
             NameServer = nameServer ?? throw new ArgumentNullException(nameof(nameServer));
             Audit = audit;
+            Settings = settings;
         }
 
         /// <inheritdoc />

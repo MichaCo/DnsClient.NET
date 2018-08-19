@@ -198,7 +198,7 @@ namespace DnsClient
 
         /// <summary>
         /// Creates a new instance of <see cref="LookupClient"/> without specifying any name server.
-        /// This will implicitly use the name server(s) configured by the local network adapter.
+        /// This will implicitly use the name server(s) configured by the local network adapter(s).
         /// </summary>
         /// <remarks>
         /// This uses <see cref="NameServer.ResolveNameServers(bool, bool)"/>.
@@ -220,7 +220,7 @@ namespace DnsClient
         /// </code>
         /// </example>
         public LookupClient()
-            : this(new LookupClientOptions(NameServer.ResolveNameServers()))
+            : this(new LookupClientOptions(resolveNameServers: true))
         {
         }
 
@@ -325,15 +325,7 @@ namespace DnsClient
         /// <exception cref="ArgumentNullException">If <paramref name="ipAddress"/> is null.</exception>
         /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
         public IDnsQueryResponse QueryReverse(IPAddress ipAddress)
-        {
-            if (ipAddress == null)
-            {
-                throw new ArgumentNullException(nameof(ipAddress));
-            }
-
-            var arpa = ipAddress.GetArpaName();
-            return Query(new DnsQuestion(arpa, QueryType.PTR, QueryClass.IN));
-        }
+            => Query(GetReverseQuestion(ipAddress));
 
         /// <summary>
         /// Does a reverse lookup for the <paramref name="ipAddress"/>.
@@ -346,15 +338,7 @@ namespace DnsClient
         /// <exception cref="ArgumentNullException">If <paramref name="ipAddress"/> is null.</exception>
         /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
         public IDnsQueryResponse QueryReverse(IPAddress ipAddress, DnsQueryOptions queryOptions)
-        {
-            if (ipAddress == null)
-            {
-                throw new ArgumentNullException(nameof(ipAddress));
-            }
-
-            var arpa = ipAddress.GetArpaName();
-            return Query(new DnsQuestion(arpa, QueryType.PTR, QueryClass.IN), queryOptions);
-        }
+            => Query(GetReverseQuestion(ipAddress), queryOptions);
 
         /// <summary>
         /// Does a reverse lookup for the <paramref name="ipAddress" />.
@@ -368,15 +352,7 @@ namespace DnsClient
         /// <exception cref="OperationCanceledException">If cancellation has been requested for the passed in <paramref name="cancellationToken"/>.</exception>
         /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
         public Task<IDnsQueryResponse> QueryReverseAsync(IPAddress ipAddress, CancellationToken cancellationToken = default)
-        {
-            if (ipAddress == null)
-            {
-                throw new ArgumentNullException(nameof(ipAddress));
-            }
-
-            var arpa = ipAddress.GetArpaName();
-            return QueryAsync(new DnsQuestion(arpa, QueryType.PTR, QueryClass.IN), cancellationToken);
-        }
+            => QueryAsync(GetReverseQuestion(ipAddress), cancellationToken);
 
         /// <summary>
         /// Does a reverse lookup for the <paramref name="ipAddress" />.
@@ -391,6 +367,9 @@ namespace DnsClient
         /// <exception cref="OperationCanceledException">If cancellation has been requested for the passed in <paramref name="cancellationToken"/>.</exception>
         /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
         public Task<IDnsQueryResponse> QueryReverseAsync(IPAddress ipAddress, DnsQueryOptions queryOptions, CancellationToken cancellationToken = default)
+            => QueryAsync(GetReverseQuestion(ipAddress), queryOptions, cancellationToken);
+
+        private static DnsQuestion GetReverseQuestion(IPAddress ipAddress)
         {
             if (ipAddress == null)
             {
@@ -398,7 +377,7 @@ namespace DnsClient
             }
 
             var arpa = ipAddress.GetArpaName();
-            return QueryAsync(new DnsQuestion(arpa, QueryType.PTR, QueryClass.IN), queryOptions, cancellationToken);
+            return new DnsQuestion(arpa, QueryType.PTR, QueryClass.IN);
         }
 
         /// <summary>
@@ -418,7 +397,15 @@ namespace DnsClient
         /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
         /// </remarks>
         public IDnsQueryResponse Query(string query, QueryType queryType, QueryClass queryClass = QueryClass.IN, DnsQueryOptions queryOptions = null)
-            => QueryInternal(new DnsQuestion(query, queryType, queryClass), (DnsQuerySettings)queryOptions ?? Settings);
+        {
+            var question = new DnsQuestion(query, queryType, queryClass);
+            if (queryOptions == null)
+            {
+                return QueryInternal(question, Settings);
+            }
+
+            return Query(question, queryOptions);
+        }
 
         /// <summary>
         /// Performs a DNS lookup for the given <paramref name="question" />.
@@ -443,7 +430,20 @@ namespace DnsClient
         /// <exception cref="ArgumentNullException">If <paramref name="question"/> is null.</exception>
         /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
         public IDnsQueryResponse Query(DnsQuestion question, DnsQueryOptions queryOptions)
-            => QueryInternal(question, queryOptions);
+        {
+            if (queryOptions == null)
+            {
+                throw new ArgumentNullException(nameof(queryOptions));
+            }
+
+            if (queryOptions.NameServers.Count == 0 && queryOptions.AutoResolvedNameServers == false)
+            {
+                // fallback to already configured nameservers in case none are specified.
+                queryOptions.NameServers = Settings.NameServers.ToList();
+            }
+
+            return QueryInternal(question, queryOptions);
+        }
 
         /// <summary>
         /// Performs a DNS lookup for the given <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />.
@@ -464,7 +464,15 @@ namespace DnsClient
         /// <see cref="Recursion"/> for example can be disabled and would instruct the DNS server to return no additional records.
         /// </remarks>
         public Task<IDnsQueryResponse> QueryAsync(string query, QueryType queryType, QueryClass queryClass = QueryClass.IN, DnsQueryOptions queryOptions = null, CancellationToken cancellationToken = default)
-            => QueryInternalAsync(new DnsQuestion(query, queryType, queryClass), (DnsQuerySettings)queryOptions ?? Settings, cancellationToken);
+        {
+            var question = new DnsQuestion(query, queryType, queryClass);
+            if (queryOptions == null)
+            {
+                return QueryInternalAsync(question, Settings, cancellationToken);
+            }
+
+            return QueryAsync(question, queryOptions, cancellationToken);
+        }
 
         /// <summary>
         /// Performs a DNS lookup for the given <paramref name="question" />.
@@ -488,10 +496,23 @@ namespace DnsClient
         /// <returns>
         /// The <see cref="IDnsQueryResponse" /> which contains the response headers and lists of resource records.
         /// </returns>
-        /// <exception cref="ArgumentNullException">If <paramref name="question"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="question"/> or <paramref name="queryOptions"/> is null.</exception>
         /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="ILookupClient.ThrowDnsErrors"/> is enabled) returned error results.</exception>
         public Task<IDnsQueryResponse> QueryAsync(DnsQuestion question, DnsQueryOptions queryOptions, CancellationToken cancellationToken = default)
-            => QueryInternalAsync(question, queryOptions, cancellationToken);
+        {
+            if (queryOptions == null)
+            {
+                throw new ArgumentNullException(nameof(queryOptions));
+            }
+
+            if (queryOptions.NameServers.Count == 0 && queryOptions.AutoResolvedNameServers == false)
+            {
+                // fallback to already configured nameservers in case none are specified.
+                queryOptions.NameServers = Settings.NameServers.ToList();
+            }
+
+            return QueryInternalAsync(question, queryOptions, cancellationToken);
+        }
 
         private IDnsQueryResponse QueryInternal(DnsQuestion question, DnsQuerySettings settings)
         {
@@ -546,7 +567,7 @@ namespace DnsClient
 
             if (servers.Count == 0)
             {
-                throw new ArgumentOutOfRangeException(nameof(servers), "List of servers must not be empty.");
+                throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
             }
 
             LookupClientAudit audit = null;
@@ -605,7 +626,7 @@ namespace DnsClient
 
                         HandleOptRecords(settings, audit, serverInfo, response);
 
-                        DnsQueryResponse queryResponse = response.AsQueryResponse(serverInfo.Clone());
+                        DnsQueryResponse queryResponse = response.AsQueryResponse(serverInfo.Clone(), settings);
 
                         audit?.AuditResponse();
                         audit?.AuditEnd(queryResponse);
@@ -803,7 +824,7 @@ namespace DnsClient
 
                         HandleOptRecords(settings, audit, serverInfo, response);
 
-                        DnsQueryResponse queryResponse = response.AsQueryResponse(serverInfo.Clone());
+                        DnsQueryResponse queryResponse = response.AsQueryResponse(serverInfo.Clone(), settings);
 
                         audit?.AuditResponse();
                         audit?.AuditEnd(queryResponse);

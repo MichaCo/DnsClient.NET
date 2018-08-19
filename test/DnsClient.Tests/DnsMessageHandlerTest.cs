@@ -17,14 +17,14 @@ namespace DnsClient.Tests
             var ip = IPAddress.Parse("123.45.67.9");
             var answer = new ARecord(info, ip);
             responseMessage.AddAnswer(answer);
-            var response = responseMessage.AsQueryResponse(new NameServer(ip));
+            var response = responseMessage.AsQueryResponse(new NameServer(ip), null);
 
             var answerBytes = ip.GetAddressBytes();
 
             var raw = GetResponseBytes(response, answerBytes);
 
             var handle = new DnsUdpMessageHandler(true);
-            var result = handle.GetResponseMessage(new System.ArraySegment<byte>(raw)).AsQueryResponse(new NameServer(ip));
+            var result = handle.GetResponseMessage(new System.ArraySegment<byte>(raw)).AsQueryResponse(new NameServer(ip), null);
 
             Assert.Equal(1, result.Answers.Count);
             var resultAnswer = result.Answers.OfType<ARecord>().First();

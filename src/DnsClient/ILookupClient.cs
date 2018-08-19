@@ -70,12 +70,19 @@ namespace DnsClient
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
         private TimeSpan _timeout = s_defaultTimeout;
 
+        // TODO: evalualte if defaulting resolveNameServers to false here and in the query plan, fall back to configured nameservers of the client
         /// <summary>
         /// Creates a new instance of <see cref="DnsQueryOptions"/> without name servers.
         /// </summary>
-        public DnsQueryOptions(bool resolveNameServers = true)
+        /// <remarks>
+        /// If no nameservers are configured, a query will fallback to the nameservers already configured on the <see cref="LookupClient"/> instance.
+        /// </remarks>
+        /// <param name="resolveNameServers">If set to <c>true</c>, <see cref="NameServer.ResolveNameServers(bool, bool)"/>
+        /// will be used to get a list of nameservers.</param>
+        public DnsQueryOptions(bool resolveNameServers = false)
             : this(resolveNameServers ? NameServer.ResolveNameServers() : null)
         {
+            AutoResolvedNameServers = resolveNameServers;
         }
 
         /// <summary>
@@ -136,6 +143,11 @@ namespace DnsClient
         /// </summary>
         /// <seealso cref="IDnsQueryResponse.AuditTrail"/>
         public bool EnableAuditTrail { get; set; } = false;
+
+        /// <summary>
+        /// Gets a flag indicating whether the name server collection was manually defined or automatically resolved
+        /// </summary>
+        public bool AutoResolvedNameServers { get; }
 
         /// <summary>
         /// Gets or sets a flag indicating whether DNS queries should use response caching or not.
@@ -536,6 +548,11 @@ namespace DnsClient
         public bool UseTcpOnly { get; }
 
         /// <summary>
+        /// Gets a flag indicating whether the name server collection was manually defined or automatically resolved
+        /// </summary>
+        public bool AutoResolvedNameServers { get; }
+
+        /// <summary>
         /// Creates a new instance of <see cref="DnsQuerySettings"/>.
         /// </summary>
         public DnsQuerySettings(DnsQueryOptions options)
@@ -557,6 +574,7 @@ namespace DnsClient
             UseRandomNameServer = options.UseRandomNameServer;
             UseTcpFallback = options.UseTcpFallback;
             UseTcpOnly = options.UseTcpOnly;
+            AutoResolvedNameServers = options.AutoResolvedNameServers;
         }
 
         internal IReadOnlyCollection<NameServer> ShuffleNameServers()
@@ -648,6 +666,7 @@ namespace DnsClient
             bool? useTcpFallback = null,
             bool? useTcpOnly = null)
         {
+            // auto resolved flag might get lost here. But this stuff gets deleted anyways.
             return new LookupClientSettings(new LookupClientOptions(nameServers)
             {
                 MinimumCacheTimeout = minimumCacheTimeout,

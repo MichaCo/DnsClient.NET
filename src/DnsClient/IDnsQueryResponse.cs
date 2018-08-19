@@ -74,5 +74,10 @@ namespace DnsClient
         /// The name server.
         /// </value>
         NameServer NameServer { get; }
+
+        /// <summary>
+        /// Gets the settings used to produce this response.
+        /// </summary>
+        DnsQuerySettings Settings { get; }
     }
 }
