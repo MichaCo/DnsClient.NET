@@ -1,10 +1,8 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using Xunit;
 
 namespace DnsClient.Tests
 {
-    [ExcludeFromCodeCoverage]
     public class DnsRequestHeaderTest
     {
         [Fact]

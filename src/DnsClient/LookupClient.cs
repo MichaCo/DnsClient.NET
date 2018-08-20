@@ -196,6 +196,8 @@ namespace DnsClient
 
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
+        internal ResponseCache ResponseCache => _cache;
+
         /// <summary>
         /// Creates a new instance of <see cref="LookupClient"/> without specifying any name server.
         /// This will implicitly use the name server(s) configured by the local network adapter(s).
@@ -430,13 +432,18 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(queryOptions));
             }
 
+            DnsQuerySettings settings;
             if (queryOptions.NameServers.Count == 0 && queryOptions.AutoResolvedNameServers == false)
             {
                 // fallback to already configured nameservers in case none are specified.
-                queryOptions.NameServers = Settings.NameServers.ToList();
+                settings = new DnsQuerySettings(queryOptions, Settings.NameServers);
+            }
+            else
+            {
+                settings = new DnsQuerySettings(queryOptions);
             }
 
-            return QueryInternal(question, queryOptions);
+            return QueryInternal(question, settings);
         }
 
         /// <summary>
@@ -499,13 +506,18 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(queryOptions));
             }
 
+            DnsQuerySettings settings;
             if (queryOptions.NameServers.Count == 0 && queryOptions.AutoResolvedNameServers == false)
             {
                 // fallback to already configured nameservers in case none are specified.
-                queryOptions.NameServers = Settings.NameServers.ToList();
+                settings = new DnsQuerySettings(queryOptions, Settings.NameServers);
+            }
+            else
+            {
+                settings = new DnsQuerySettings(queryOptions);
             }
 
-            return QueryInternalAsync(question, queryOptions, cancellationToken: cancellationToken);
+            return QueryInternalAsync(question, settings, cancellationToken: cancellationToken);
         }
 
         /// <summary>
@@ -621,10 +633,6 @@ namespace DnsClient
             if (question == null)
             {
                 throw new ArgumentNullException(nameof(question));
-            }
-            if (settings == null)
-            {
-                throw new ArgumentNullException(nameof(settings));
             }
 
             var head = new DnsRequestHeader(GetNextUniqueId(), settings.Recursion, DnsOpCode.Query);

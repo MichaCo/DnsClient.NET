@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -9,7 +8,6 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
-    [ExcludeFromCodeCoverage]
     public class DnsResponseParsingTest
     {
         private static readonly DnsRequestMessage _nullRequestMessage =
@@ -303,6 +301,31 @@ namespace DnsClient.Tests
                 && p.Ports.Contains(9));
 
             Assert.NotNull(validateRecord);
+        }
+
+        [Fact]
+        public void DnsRecordPerformance()
+        {
+            var client = new LookupClient(
+                new LookupClientOptions()
+                {
+                    UseTcpOnly = false,
+                    UseTcpFallback = false,
+                    UseCache = false
+                },
+                new TestMessageHandler(),
+                new TestMessageHandler());
+
+            var source = new CancellationTokenSource(1000);
+
+            var count = 0;
+            while (!source.Token.IsCancellationRequested)
+            {
+                var result = client.Query("mcnet.com", QueryType.ANY);
+                count++;
+            }
+
+            Assert.True(count > 100);
         }
 
         private TRecord[] GetTypedRecords<TRecord>()

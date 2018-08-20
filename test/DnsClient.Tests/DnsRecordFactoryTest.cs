@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -9,7 +8,6 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
-    [ExcludeFromCodeCoverage]
     public class DnsRecordFactoryTest
     {
         internal DnsRecordFactory GetFactory(byte[] data)

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -9,7 +8,6 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
-    [ExcludeFromCodeCoverage]
     public class ResponseCacheTest
     {
         [Fact]

@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Xunit;
 
 namespace DnsClient.Tests
 {
-    [ExcludeFromCodeCoverage]
     public class DatagramReaderTest
     {
         private static byte[] ReferenceBitData = new byte[]

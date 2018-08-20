@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -575,6 +574,15 @@ namespace DnsClient
             UseTcpFallback = options.UseTcpFallback;
             UseTcpOnly = options.UseTcpOnly;
             AutoResolvedNameServers = options.AutoResolvedNameServers;
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="DnsQuerySettings"/>.
+        /// </summary>
+        public DnsQuerySettings(DnsQueryOptions options, IReadOnlyCollection<NameServer> overrideServers)
+            : this(options)
+        {
+            _endpoints = overrideServers?.ToArray() ?? throw new ArgumentNullException(nameof(overrideServers));
         }
 
         internal IReadOnlyCollection<NameServer> ShuffleNameServers()

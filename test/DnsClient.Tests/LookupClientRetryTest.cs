@@ -9,7 +9,6 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
-    [ExcludeFromCodeCoverage]
     public class LookupClientRetryTest
     {
         [Fact]

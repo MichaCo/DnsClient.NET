@@ -104,26 +104,28 @@ namespace DnsClient
 
         public byte ReadByte()
         {
-            if (_data.Count < _index + 1)
-            {
-                throw new IndexOutOfRangeException($"Cannot read byte {_index + 1}, out of range.");
-            }
-            else
+            try
             {
                 return _data.Array[_data.Offset + _index++];
+            }
+            catch (IndexOutOfRangeException)
+            {
+                throw new IndexOutOfRangeException($"Cannot read byte {_index + 1}, out of range.");
             }
         }
 
         public ArraySegment<byte> ReadBytes(int length)
         {
-            if (_data.Count < _index + length)
+            try
+            {
+                var result = new ArraySegment<byte>(_data.Array, _data.Offset + _index, length);
+                _index += length;
+                return result;
+            }
+            catch (ArgumentException)
             {
                 throw new IndexOutOfRangeException($"Cannot read that many bytes: '{length}'.");
             }
-
-            var result = new ArraySegment<byte>(_data.Array, _data.Offset + _index, length);
-            _index += length;
-            return result;
         }
 
         // needed for IPAddress ctor as it doesn't work with ArraySegment<>

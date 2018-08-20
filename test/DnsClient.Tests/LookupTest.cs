@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -9,10 +8,18 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
-    [ExcludeFromCodeCoverage]
     public class LookupTest
     {
         private static readonly IPAddress DoesNotExist = IPAddress.Parse("192.0.21.43");
+
+        [Fact]
+        public void Lookup_Query_QuestionCannotBeNull()
+        {
+            IDnsQuery client = new LookupClient();
+
+            Assert.Throws<ArgumentNullException>("question", () => client.Query(null));
+            Assert.ThrowsAsync<ArgumentNullException>("question", () => client.QueryAsync(null));
+        }
 
         [Fact]
         public void NativeDnsServerResolution()
