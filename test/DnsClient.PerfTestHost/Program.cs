@@ -33,7 +33,7 @@ namespace DnsClient.PerfTestHost
 
             var client = new LookupClient(options);
 
-            var tasksCount = 16;
+            var tasksCount = 12;
             //Console.WriteLine("warmup");
             //RunSync(client, 5, tasksCount);
             //RunAsync(client, 5, tasksCount).Wait();
@@ -45,8 +45,6 @@ namespace DnsClient.PerfTestHost
                 {
                     RunSync(client, runTime, tasksCount * i);
 
-                    server.Stop();
-                    return;
                     RunAsync(client, runTime, tasksCount * i).GetAwaiter().GetResult();
                 }
             }

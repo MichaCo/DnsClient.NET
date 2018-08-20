@@ -278,8 +278,7 @@ namespace DnsClient.Tests
         {
             var textA = "Some Text";
             var lineA = Encoding.ASCII.GetBytes(textA);
-            var data = new List<byte>();
-            data.Add(5);
+            var data = new List<byte> { 5 };
             data.AddRange(lineA);
 
             var factory = GetFactory(data.ToArray());
@@ -335,9 +334,11 @@ namespace DnsClient.Tests
             var fingerprintBytes = Enumerable.Range(0, fingerprint.Length / 2)
                 .Select(i => Convert.ToByte(fingerprint.Substring(i * 2, 2), 16));
 
-            var data = new List<byte>();
-            data.Add((byte)algo);
-            data.Add((byte)type);
+            var data = new List<byte>
+            {
+                (byte)algo,
+                (byte)type
+            };
             data.AddRange(fingerprintBytes);
 
             var factory = GetFactory(data.ToArray());

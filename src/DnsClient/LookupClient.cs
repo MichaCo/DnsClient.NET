@@ -310,10 +310,10 @@ namespace DnsClient
             Settings = options ?? throw new ArgumentNullException(nameof(options));
 
             // TODO: revisit, do we need this check? Maybe throw on query instead, in case no default name servers nor the per query settings have any defined.
-            if (Settings.NameServers == null || Settings.NameServers.Count == 0)
-            {
-                throw new ArgumentException("At least one name server must be configured.", nameof(options));
-            }
+            ////if (Settings.NameServers == null || Settings.NameServers.Count == 0)
+            ////{
+            ////    throw new ArgumentException("At least one name server must be configured.", nameof(options));
+            ////}
 
             _messageHandler = udpHandler ?? new DnsUdpMessageHandler(true);
             _tcpFallbackHandler = tcpHandler ?? new DnsTcpMessageHandler();

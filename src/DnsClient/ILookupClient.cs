@@ -412,7 +412,7 @@ namespace DnsClient
     /// <summary>
     /// The readonly version of <see cref="DnsQueryOptions"/> used to customize settings per query.
     /// </summary>
-    public class DnsQuerySettings
+    public class DnsQuerySettings : IEquatable<DnsQuerySettings>
     {
         private NameServer[] _endpoints;
 
@@ -623,12 +623,55 @@ namespace DnsClient
                 UseTcpOnly = UseTcpOnly
             });
         }
+
+        /// <inheritdocs />
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as DnsQuerySettings);
+        }
+
+        /// <inheritdocs />
+        public bool Equals(DnsQuerySettings other)
+        {
+            return other != null &&
+                   NameServers.SequenceEqual(other.NameServers) &&
+                   EnableAuditTrail == other.EnableAuditTrail &&
+                   UseCache == other.UseCache &&
+                   Recursion == other.Recursion &&
+                   Retries == other.Retries &&
+                   ThrowDnsErrors == other.ThrowDnsErrors &&
+                   UseRandomNameServer == other.UseRandomNameServer &&
+                   ContinueOnDnsError == other.ContinueOnDnsError &&
+                   Timeout.Equals(other.Timeout) &&
+                   UseTcpFallback == other.UseTcpFallback &&
+                   UseTcpOnly == other.UseTcpOnly &&
+                   AutoResolvedNameServers == other.AutoResolvedNameServers;
+        }
+
+        /// <inheritdocs />
+        public override int GetHashCode()
+        {
+            var hashCode = -1775804580;
+            hashCode = hashCode * -1521134295 + EqualityComparer<NameServer[]>.Default.GetHashCode(_endpoints);
+            hashCode = hashCode * -1521134295 + EnableAuditTrail.GetHashCode();
+            hashCode = hashCode * -1521134295 + UseCache.GetHashCode();
+            hashCode = hashCode * -1521134295 + Recursion.GetHashCode();
+            hashCode = hashCode * -1521134295 + Retries.GetHashCode();
+            hashCode = hashCode * -1521134295 + ThrowDnsErrors.GetHashCode();
+            hashCode = hashCode * -1521134295 + UseRandomNameServer.GetHashCode();
+            hashCode = hashCode * -1521134295 + ContinueOnDnsError.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<TimeSpan>.Default.GetHashCode(Timeout);
+            hashCode = hashCode * -1521134295 + UseTcpFallback.GetHashCode();
+            hashCode = hashCode * -1521134295 + UseTcpOnly.GetHashCode();
+            hashCode = hashCode * -1521134295 + AutoResolvedNameServers.GetHashCode();
+            return hashCode;
+        }
     }
 
     /// <summary>
     /// The readonly version of <see cref="LookupClientOptions"/> used as default settings in <see cref="LookupClient"/>.
     /// </summary>
-    public class LookupClientSettings : DnsQuerySettings
+    public class LookupClientSettings : DnsQuerySettings, IEquatable<LookupClientSettings>
     {
         /// <summary>
         /// Creates a new instance of <see cref="LookupClientSettings"/>.
@@ -651,6 +694,29 @@ namespace DnsClient
         /// The maximum value is 24 days or <see cref="Timeout.Infinite"/>.
         /// </remarks>
         public TimeSpan? MinimumCacheTimeout { get; }
+
+        /// <inheritdocs />
+        public override bool Equals(object obj)
+        {
+            return Equals(obj as LookupClientSettings);
+        }
+
+        /// <inheritdocs />
+        public bool Equals(LookupClientSettings other)
+        {
+            return other != null &&
+                   base.Equals(other) &&
+                   EqualityComparer<TimeSpan?>.Default.Equals(MinimumCacheTimeout, other.MinimumCacheTimeout);
+        }
+
+        /// <inheritdocs />
+        public override int GetHashCode()
+        {
+            var hashCode = 1049610412;
+            hashCode = hashCode * -1521134295 + base.GetHashCode();
+            hashCode = hashCode * -1521134295 + EqualityComparer<TimeSpan?>.Default.GetHashCode(MinimumCacheTimeout);
+            return hashCode;
+        }
 
         internal LookupClientSettings Copy(
             IReadOnlyCollection<NameServer> nameServers,
