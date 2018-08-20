@@ -159,7 +159,7 @@ namespace DnsClient
                 }
             } while (stream.DataAvailable && !cancellationToken.IsCancellationRequested);
 
-            return DnsResponseMessage.Combine(responses.ToArray());
+            return DnsResponseMessage.Combine(responses);
         }
 
         private class ClientPool : IDisposable
@@ -205,7 +205,7 @@ namespace DnsClient
                 if (entry == null) throw new ArgumentNullException(nameof(entry));
                 if (!entry.Client.Client.RemoteEndPoint.Equals(_endpoint)) throw new ArgumentException("Invalid endpoint.");
 
-                // TickCount swap will be fine here as the entry just gets disposed and we'll create a new one starting at 0+ again, totall fine...
+                // TickCount swap will be fine here as the entry just gets disposed and we'll create a new one starting at 0+ again, totally fine...
                 if (_enablePool && entry.Client.Connected && entry.StartMillis + entry.MaxLiveTime >= (Environment.TickCount & int.MaxValue))
                 {
                     _clients.Enqueue(entry);

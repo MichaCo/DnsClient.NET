@@ -62,8 +62,7 @@ namespace DnsClient.Protocol.Options
     */
 
     /// <summary>
-    /// A DNS resource record represending an IP address.
-    /// Hosts that have multiple Internet addresses will have multiple A records.
+    /// A options resource record.
     /// </summary>
     internal class OptRecord : DnsResourceRecord
     {

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -8,6 +9,7 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
+    [ExcludeFromCodeCoverage]
     public class LookupTest
     {
         private static readonly IPAddress DoesNotExist = IPAddress.Parse("192.0.21.43");
@@ -17,54 +19,6 @@ namespace DnsClient.Tests
         {
             var ex = Record.Exception(() => NameServer.ResolveNameServersNative());
             Assert.Null(ex);
-        }
-
-        [Fact]
-        public void LookupClientOptions_Defaults()
-        {
-            var options = new LookupClientOptions();
-
-            Assert.True(options.NameServers.Count > 0);
-            Assert.True(options.UseCache);
-            Assert.False(options.EnableAuditTrail);
-            Assert.Null(options.MinimumCacheTimeout);
-            Assert.True(options.Recursion);
-            Assert.False(options.ThrowDnsErrors);
-            Assert.Equal(5, options.Retries);
-            Assert.Equal(options.Timeout, TimeSpan.FromSeconds(5));
-            Assert.True(options.UseTcpFallback);
-            Assert.False(options.UseTcpOnly);
-            Assert.True(options.ContinueOnDnsError);
-            Assert.True(options.UseRandomNameServer);
-        }
-
-        [Fact]
-        public void LookupClientOptions_DefaultsNoResolve()
-        {
-            var options = new LookupClientOptions(resolveNameServers: false);
-
-            Assert.Equal(0, options.NameServers.Count);
-            Assert.True(options.UseCache);
-            Assert.False(options.EnableAuditTrail);
-            Assert.Null(options.MinimumCacheTimeout);
-            Assert.True(options.Recursion);
-            Assert.False(options.ThrowDnsErrors);
-            Assert.Equal(5, options.Retries);
-            Assert.Equal(options.Timeout, TimeSpan.FromSeconds(5));
-            Assert.True(options.UseTcpFallback);
-            Assert.False(options.UseTcpOnly);
-            Assert.True(options.ContinueOnDnsError);
-            Assert.True(options.UseRandomNameServer);
-        }
-
-        [Fact]
-        public void Lookup_Query_InvalidTimeout()
-        {
-            var options = new LookupClientOptions();
-
-            Action act = () => options.Timeout = TimeSpan.FromMilliseconds(0);
-
-            Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
 
         [Fact]
@@ -133,7 +87,7 @@ namespace DnsClient.Tests
 
 #if ENABLE_REMOTE_DNS
 
-        [Fact]
+        [Fact(Skip = "Required bind")]
         public void Lookup_LargeAXFR()
         {
             var client = new LookupClient(

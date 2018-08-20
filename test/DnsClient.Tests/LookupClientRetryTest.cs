@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -8,6 +9,7 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
+    [ExcludeFromCodeCoverage]
     public class LookupClientRetryTest
     {
         [Fact]
@@ -43,7 +45,7 @@ namespace DnsClient.Tests
 
                 var servers = lookup.Settings.ShuffleNameServers();
 
-                var result = lookup.ResolveQuery(lookup.Settings.WithServers(servers), messageHandler, request);
+                var result = lookup.ResolveQuery(servers, lookup.Settings, messageHandler, request);
                 Assert.False(result.HasError);
             }
 
@@ -86,7 +88,7 @@ namespace DnsClient.Tests
 
                 var servers = lookup.Settings.ShuffleNameServers();
 
-                var result = await lookup.ResolveQueryAsync(lookup.Settings.WithServers(servers), messageHandler, request);
+                var result = await lookup.ResolveQueryAsync(servers, lookup.Settings, messageHandler, request);
                 Assert.False(result.HasError);
             }
 
@@ -130,7 +132,7 @@ namespace DnsClient.Tests
 
                 var servers = lookup.Settings.ShuffleNameServers();
 
-                var result = lookup.ResolveQuery(lookup.Settings.WithServers(servers), messageHandler, request);
+                var result = lookup.ResolveQuery(servers, lookup.Settings, messageHandler, request);
                 Assert.False(result.HasError);
             }
 
@@ -177,7 +179,7 @@ namespace DnsClient.Tests
 
                 var servers = lookup.Settings.ShuffleNameServers();
 
-                var result = await lookup.ResolveQueryAsync(lookup.Settings.WithServers(servers), messageHandler, request);
+                var result = await lookup.ResolveQueryAsync(servers, lookup.Settings, messageHandler, request);
                 Assert.False(result.HasError);
             }
 
@@ -223,7 +225,7 @@ namespace DnsClient.Tests
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             var servers = lookup.Settings.ShuffleNameServers();
-            var result = lookup.ResolveQuery(lookup.Settings.WithServers(servers), messageHandler, request);
+            var result = lookup.ResolveQuery(servers, lookup.Settings, messageHandler, request);
 
             // no exception but error in the response after calling all endpoints!
             Assert.True(result.HasError);
@@ -266,7 +268,7 @@ namespace DnsClient.Tests
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             var servers = lookup.Settings.ShuffleNameServers();
-            var result = await lookup.ResolveQueryAsync(lookup.Settings.WithServers(servers), messageHandler, request);
+            var result = await lookup.ResolveQueryAsync(servers, lookup.Settings, messageHandler, request);
 
             // no exception but error in the response after calling all 3 endpoints!
             Assert.True(result.HasError);
@@ -316,7 +318,7 @@ namespace DnsClient.Tests
 
             // all three servers have been called and we get the last exception thrown
             var servers = lookup.Settings.ShuffleNameServers();
-            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(lookup.Settings.WithServers(servers), messageHandler, request));
+            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(servers, lookup.Settings, messageHandler, request));
 
             // ensure the error is the one from the last call
             Assert.Equal(DnsResponseCode.FormatError, result.Code);
@@ -364,7 +366,7 @@ namespace DnsClient.Tests
 
             // all three servers have been called and we get the last exception thrown
             var servers = lookup.Settings.ShuffleNameServers();
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(lookup.Settings.WithServers(servers), messageHandler, request));
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(servers, lookup.Settings, messageHandler, request));
 
             // ensure the error is the one from the last call
             Assert.Equal(DnsResponseCode.FormatError, result.Code);
@@ -401,7 +403,7 @@ namespace DnsClient.Tests
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             var servers = lookup.Settings.ShuffleNameServers();
-            var result = lookup.ResolveQuery(lookup.Settings.WithServers(servers), messageHandler, request);
+            var result = lookup.ResolveQuery(servers, lookup.Settings, messageHandler, request);
 
             Assert.True(result.HasError);
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Header.ResponseCode);
@@ -438,7 +440,7 @@ namespace DnsClient.Tests
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             var servers = lookup.Settings.ShuffleNameServers();
-            var result = await lookup.ResolveQueryAsync(lookup.Settings.WithServers(servers), messageHandler, request);
+            var result = await lookup.ResolveQueryAsync(servers, lookup.Settings, messageHandler, request);
 
             Assert.True(result.HasError);
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Header.ResponseCode);
@@ -477,7 +479,7 @@ namespace DnsClient.Tests
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             var servers = lookup.Settings.ShuffleNameServers();
-            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(lookup.Settings.WithServers(servers), messageHandler, request));
+            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(servers, lookup.Settings, messageHandler, request));
 
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Code);
 
@@ -513,7 +515,7 @@ namespace DnsClient.Tests
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             var servers = lookup.Settings.ShuffleNameServers();
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(lookup.Settings.WithServers(servers), messageHandler, request));
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(servers, lookup.Settings, messageHandler, request));
 
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Code);
 
@@ -521,6 +523,7 @@ namespace DnsClient.Tests
         }
     }
 
+    [ExcludeFromCodeCoverage]
     internal class TestMessageHandler : DnsMessageHandler
     {
         private readonly Func<IPEndPoint, DnsRequestMessage, DnsResponseMessage> _onQuery;

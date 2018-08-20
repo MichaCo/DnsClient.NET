@@ -73,9 +73,9 @@ namespace DnsClient
         public DnsQueryResponse AsQueryResponse(NameServer nameServer, DnsQuerySettings settings)
             => new DnsQueryResponse(this, nameServer, Audit, settings);
 
-        public static DnsResponseMessage Combine(params DnsResponseMessage[] messages)
+        public static DnsResponseMessage Combine(ICollection<DnsResponseMessage> messages)
         {
-            if (messages.Length <= 1)
+            if (messages.Count <= 1)
             {
                 return messages.FirstOrDefault();
             }
