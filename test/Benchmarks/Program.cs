@@ -49,16 +49,4 @@ namespace Benchmarks
             server.Stop();
         }
     }
-
-    //[MarkdownExporter, AsciiDocExporter, HtmlExporter, CsvExporter, RPlotExporter]
-    //[MinColumn, MaxColumn]
-    //[ClrJob, CoreJob, MediumRunJob]
-    //public class CustomConfiguration : ManualConfig
-    //{
-    //    public CustomConfiguration()
-    //    {
-    //        Add(Job.ShortRun.With(Runtime.Core));
-    //        Add(Job.ShortRun.With(Runtime.Clr));
-    //    }
-    //}
 }
