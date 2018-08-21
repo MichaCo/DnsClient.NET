@@ -83,16 +83,17 @@ namespace DnsClient
             return obj.ToString().Equals(Value);
         }
 
-        /// <summary>
-        /// Returns labels representation of the <see cref="Value"/>.
-        /// </summary>
-        public IReadOnlyList<string> Labels
-        {
-            get
-            {
-                return Value.Split('.').Reverse().Select(p => p + DotStr).ToArray();
-            }
-        }
+        // removed as this is actually the wrong label representation (also, doesn't work if there are escaped \. in the value
+        /////// <summary>
+        /////// Returns labels representation of the <see cref="Value"/>.
+        /////// </summary>
+        ////public IReadOnlyList<string> Labels
+        ////{
+        ////    get
+        ////    {
+        ////        return Value.Split('.').Reverse().Select(p => p + DotStr).ToArray();
+        ////    }
+        ////}
 
         /// <summary>
         /// Parses the given <paramref name="query"/> and validates all labels.

@@ -844,7 +844,10 @@ namespace DnsClient.Tests
         [Fact]
         public void GetHostEntry_ByManyIps()
         {
-            var client = new LookupClient();
+            var client = new LookupClient(new LookupClientOptions()
+            {
+                ThrowDnsErrors = true
+            });
             var nsServers = client.Query("google.com", QueryType.NS).Answers.NsRecords().ToArray();
 
             Assert.True(nsServers.Length > 0);
@@ -854,6 +857,7 @@ namespace DnsClient.Tests
                 var ipAddress = client.GetHostEntry(server.NSDName).AddressList.First();
                 var result = client.GetHostEntry(ipAddress);
 
+                Assert.NotNull(result);
                 Assert.True(result.AddressList.Length >= 1);
                 Assert.Contains(ipAddress, result.AddressList);
                 Assert.True(result.Aliases.Length == 0);
@@ -994,8 +998,11 @@ namespace DnsClient.Tests
             foreach (var server in nsServers)
             {
                 var ipAddress = (await client.GetHostEntryAsync(server.NSDName)).AddressList.First();
+
+                Assert.NotNull(ipAddress);
                 var result = await client.GetHostEntryAsync(ipAddress);
 
+                Assert.NotNull(result);
                 Assert.True(result.AddressList.Length >= 1, "Revers should have found at least one ip");
                 Assert.True(result.AddressList.Contains(ipAddress), "Result should contain the NSDName address");
                 Assert.True(result.Aliases.Length == 0, "There shouldn't be an alias");

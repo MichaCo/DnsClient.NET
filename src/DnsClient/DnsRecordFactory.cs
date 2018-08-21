@@ -149,7 +149,7 @@ namespace DnsClient
 
                 default:
                     // update reader index because we don't read full data for the empty record
-                    _reader.Index += info.RawDataLength;
+                    _reader.Advance(info.RawDataLength);
                     result = new EmptyRecord(info);
                     break;
             }

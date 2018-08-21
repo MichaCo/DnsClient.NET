@@ -44,7 +44,7 @@ namespace DnsClient.Tests
             {
                 writer.WriteUInt16NetworkOrder((ushort)message.Header.Id);
                 writer.WriteUInt16NetworkOrder((ushort)message.Header.HeaderFlags);
-                // lets iterate answers only, makes it easier
+
                 //writer.WriteUInt16Network((ushort)message.Header.QuestionCount);
                 writer.WriteUInt16NetworkOrder(0);
                 writer.WriteUInt16NetworkOrder(1);
