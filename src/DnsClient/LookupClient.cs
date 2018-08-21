@@ -319,7 +319,7 @@ namespace DnsClient
 
             _messageHandler = udpHandler ?? new DnsUdpMessageHandler(true);
             _tcpFallbackHandler = tcpHandler ?? new DnsTcpMessageHandler();
-            _cache = new ResponseCache(Settings.UseCache, Settings.MinimumCacheTimeout);
+            _cache = new ResponseCache(true, Settings.MinimumCacheTimeout);
         }
 
         /// <summary>
