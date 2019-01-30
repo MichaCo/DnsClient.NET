@@ -1,5 +1,8 @@
 # DnsClient.NET
 
+[![NuGet](https://img.shields.io/nuget/v/DnsClient.svg?style=flat&label=Stable)](https://www.nuget.org/packages/DnsClient) 
+[![MyGet](https://img.shields.io/myget/dnsclient/vpre/DnsClient.svg?style=flat&label=Pre-release)](https://www.myget.org/feed/dnsclient/package/nuget/DnsClient) 
+
 DnsClient.NET is a simple yet very powerful and high performant open source library for the .NET Framework to do DNS lookups.
 
 ## Usage
