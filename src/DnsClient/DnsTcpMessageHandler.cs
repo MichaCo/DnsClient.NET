@@ -66,7 +66,7 @@ namespace DnsClient
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                response = await QueryAsyncInternal(entry.Client, entry.Client.GetStream(), request, cancellationToken)
+                response = await QueryAsyncInternal(entry.Client, request, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (response != null)
@@ -82,8 +82,10 @@ namespace DnsClient
             return response;
         }
 
-        private async Task<DnsResponseMessage> QueryAsyncInternal(TcpClient client, NetworkStream stream, DnsRequestMessage request, CancellationToken cancellationToken)
+        private async Task<DnsResponseMessage> QueryAsyncInternal(TcpClient client, DnsRequestMessage request, CancellationToken cancellationToken)
         {
+            var stream = client.GetStream();
+
             cancellationToken.ThrowIfCancellationRequested();
             // use a pooled buffer to writer the data + the length of the data later into the frist two bytes
             using (var memory = new PooledBytes(DnsDatagramWriter.BufferSize + 2))
@@ -110,14 +112,23 @@ namespace DnsClient
 
             do
             {
+                const int LengthSize = 2;
                 int length = 0;
-                try
+                using (var memory = new PooledBytes(LengthSize))
                 {
-                    length = stream.ReadByte() << 8 | stream.ReadByte();
-                }
-                catch (Exception ex) when (ex is IOException || ex is SocketException)
-                {
-                    break;
+                    try
+                    {
+                        var bytesReceived = await stream.ReadAsync(memory.Buffer, 0, LengthSize, cancellationToken)
+                            .ConfigureAwait(false);
+                        if (bytesReceived == LengthSize)
+                        {
+                            length = memory.Buffer[0] << 8 | memory.Buffer[1];
+                        }
+                    }
+                    catch (Exception ex) when (ex is IOException || ex is SocketException)
+                    {
+                        break;
+                    }
                 }
 
                 if (length <= 0)
@@ -131,7 +142,7 @@ namespace DnsClient
                     int bytesReceived = 0;
                     int readSize = length > 4096 ? 4096 : length;
 
-                    while (!cancellationToken.IsCancellationRequested && (bytesReceived += await stream.ReadAsync(memory.Buffer, bytesReceived, readSize).ConfigureAwait(false)) < length)
+                    while (!cancellationToken.IsCancellationRequested && (bytesReceived += await stream.ReadAsync(memory.Buffer, bytesReceived, readSize, cancellationToken).ConfigureAwait(false)) < length)
                     {
                         if (bytesReceived <= 0)
                         {
