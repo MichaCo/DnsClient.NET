@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -8,6 +8,7 @@ using DnsClient;
 
 namespace Benchmarks
 {
+    [ExcludeFromCodeCoverage]
     public static partial class DnsClientBenchmarks
     {
         //[MarkdownExporter, AsciiDocExporter, HtmlExporter, CsvExporter, RPlotExporter]

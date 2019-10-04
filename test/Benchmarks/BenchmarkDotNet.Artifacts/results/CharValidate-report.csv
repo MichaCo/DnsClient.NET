@@ -1,8 +1,0 @@
-Method;Job;AnalyzeLaunchVariance;EvaluateOverhead;MaxStdErrRelative;MinInvokeCount;MinIterationTime;RemoveOutliers;Affinity;Jit;Platform;Runtime;AllowVeryLargeObjects;Concurrent;CpuGroups;Force;Server;Clock;EngineFactory;Toolchain;InvocationCount;IterationTime;LaunchCount;RunStrategy;TargetCount;UnrollFactor;WarmupCount;Mean;StdDev;Scaled;Scaled-StdDev;Allocated
-ForeachLongName;Default;False;Default;Default;Default;Default;Default;255;RyuJit;X64;Core;False;True;False;True;False;Default;Default;Default;1;Default;Default;Default;Default;16;Default;909.8184 ns;7.8330 ns;19.34;0.25;0 B
-Foreach;Default;False;Default;Default;Default;Default;Default;255;RyuJit;X64;Core;False;True;False;True;False;Default;Default;Default;1;Default;Default;Default;Default;16;Default;47.0548 ns;0.4984 ns;1.00;0.00;0 B
-LinqAnyLongName;Default;False;Default;Default;Default;Default;Default;255;RyuJit;X64;Core;False;True;False;True;False;Default;Default;Default;1;Default;Default;Default;Default;16;Default;"2,646.9445 ns";17.7688 ns;56.26;0.68;31 B
-LinqAny;Default;False;Default;Default;Default;Default;Default;255;RyuJit;X64;Core;False;True;False;True;False;Default;Default;Default;1;Default;Default;Default;Default;16;Default;212.1548 ns;1.6318 ns;4.51;0.06;31 B
-RegExLongName;Default;False;Default;Default;Default;Default;Default;255;RyuJit;X64;Core;False;True;False;True;False;Default;Default;Default;1;Default;Default;Default;Default;16;Default;"3,659.4354 ns";16.4830 ns;77.78;0.86;0 B
-RegEx;Default;False;Default;Default;Default;Default;Default;255;RyuJit;X64;Core;False;True;False;True;False;Default;Default;Default;1;Default;Default;Default;Default;16;Default;370.8919 ns;6.2250 ns;7.88;0.15;0 B
-

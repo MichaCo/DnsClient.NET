@@ -1,6 +1,0 @@
-Method;Job;AnalyzeLaunchVariance;EvaluateOverhead;MaxStdErrRelative;MinInvokeCount;MinIterationTime;RemoveOutliers;Affinity;Jit;Platform;Runtime;AllowVeryLargeObjects;Concurrent;CpuGroups;Force;Server;Clock;EngineFactory;Toolchain;InvocationCount;IterationTime;LaunchCount;RunStrategy;TargetCount;UnrollFactor;WarmupCount;Mean;StdDev;Scaled;Scaled-StdDev;Gen 0;Allocated
-List_Concat;Default;False;Default;Default;Default;Default;Default;255;RyuJit;X64;Core;False;True;False;True;False;Default;Default;Default;1;Default;Default;Default;Default;16;Default;262.9872 ns;3.4336 ns;1.77;0.02;0.2784;1.22 kB
-List_AddForEach;Default;False;Default;Default;Default;Default;Default;255;RyuJit;X64;Core;False;True;False;True;False;Default;Default;Default;1;Default;Default;Default;Default;16;Default;204.7946 ns;3.2523 ns;1.38;0.02;0.1210;566 B
-List_AddRange;Default;False;Default;Default;Default;Default;Default;255;RyuJit;X64;Core;False;True;False;True;False;Default;Default;Default;1;Default;Default;Default;Default;16;Default;148.6260 ns;0.7045 ns;1.00;0.00;0.1722;749 B
-List_ArrayCopy;Default;False;Default;Default;Default;Default;Default;255;RyuJit;X64;Core;False;True;False;True;False;Default;Default;Default;1;Default;Default;Default;Default;16;Default;132.6301 ns;1.7807 ns;0.89;0.01;0.1667;725 B
-B

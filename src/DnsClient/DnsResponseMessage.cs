@@ -73,14 +73,14 @@ namespace DnsClient
         public DnsQueryResponse AsQueryResponse(NameServer nameServer, DnsQuerySettings settings)
             => new DnsQueryResponse(this, nameServer, Audit, settings);
 
-        public static DnsResponseMessage Combine(ICollection<DnsResponseMessage> messages)
+        public static DnsResponseMessage Combine(List<DnsResponseMessage> messages)
         {
             if (messages.Count <= 1)
             {
                 return messages.FirstOrDefault();
             }
 
-            var first = messages.First();
+            var first = messages[0];
 
             var header = new DnsResponseHeader(
                 first.Header.Id,

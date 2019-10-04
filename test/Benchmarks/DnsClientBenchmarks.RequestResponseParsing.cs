@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -61,6 +61,7 @@ namespace Benchmarks
         }
     }
 
+    [ExcludeFromCodeCoverage]
     internal class BenchmarkMessageHandler : DnsMessageHandler
     {
         //google.com any
