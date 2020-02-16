@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -411,9 +412,10 @@ namespace DnsClient
     /// <summary>
     /// The readonly version of <see cref="DnsQueryOptions"/> used to customize settings per query.
     /// </summary>
-    public class DnsQuerySettings : IEquatable<DnsQuerySettings>
+    public class DnsQuerySettings
     {
-        private NameServer[] _endpoints;
+        private readonly NameServer[] _endpoints;
+        private readonly Random _rnd = new Random();
 
         /// <summary>
         /// Gets a flag indicating whether each <see cref="IDnsQueryResponse"/> will contain a full documentation of the response(s).
@@ -587,23 +589,16 @@ namespace DnsClient
 
         internal IReadOnlyCollection<NameServer> ShuffleNameServers()
         {
-            if (NameServers.Count > 1)
+            if (_endpoints.Length > 1 && UseRandomNameServer)
             {
-                var servers = _endpoints.Where(p => p.Enabled).ToArray();
+                var servers = _endpoints.ToArray();
 
-                // if all servers are disabled, retry all of them
-                if (servers.Length == 0)
+                for (var i = servers.Length; i > 0; i--)
                 {
-                    return _endpoints;
-                }
-
-                // shuffle servers only if we do not have to preserve the order
-                if (UseRandomNameServer)
-                {
-                    var q = new Queue<NameServer>(_endpoints);
-                    var server = q.Dequeue();
-                    q.Enqueue(server);
-                    _endpoints = q.ToArray();
+                    var j = _rnd.Next(0, i);
+                    var temp = servers[j];
+                    servers[j] = servers[i - 1];
+                    servers[i - 1] = temp;
                 }
 
                 return servers;
@@ -631,55 +626,12 @@ namespace DnsClient
                 UseTcpOnly = UseTcpOnly
             });
         }
-
-        /// <inheritdocs />
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as DnsQuerySettings);
-        }
-
-        /// <inheritdocs />
-        public bool Equals(DnsQuerySettings other)
-        {
-            return other != null &&
-                   NameServers.SequenceEqual(other.NameServers) &&
-                   EnableAuditTrail == other.EnableAuditTrail &&
-                   UseCache == other.UseCache &&
-                   Recursion == other.Recursion &&
-                   Retries == other.Retries &&
-                   ThrowDnsErrors == other.ThrowDnsErrors &&
-                   UseRandomNameServer == other.UseRandomNameServer &&
-                   ContinueOnDnsError == other.ContinueOnDnsError &&
-                   Timeout.Equals(other.Timeout) &&
-                   UseTcpFallback == other.UseTcpFallback &&
-                   UseTcpOnly == other.UseTcpOnly &&
-                   AutoResolvedNameServers == other.AutoResolvedNameServers;
-        }
-
-        /// <inheritdocs />
-        public override int GetHashCode()
-        {
-            var hashCode = -1775804580;
-            hashCode = hashCode * -1521134295 + EqualityComparer<NameServer[]>.Default.GetHashCode(_endpoints);
-            hashCode = hashCode * -1521134295 + EnableAuditTrail.GetHashCode();
-            hashCode = hashCode * -1521134295 + UseCache.GetHashCode();
-            hashCode = hashCode * -1521134295 + Recursion.GetHashCode();
-            hashCode = hashCode * -1521134295 + Retries.GetHashCode();
-            hashCode = hashCode * -1521134295 + ThrowDnsErrors.GetHashCode();
-            hashCode = hashCode * -1521134295 + UseRandomNameServer.GetHashCode();
-            hashCode = hashCode * -1521134295 + ContinueOnDnsError.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<TimeSpan>.Default.GetHashCode(Timeout);
-            hashCode = hashCode * -1521134295 + UseTcpFallback.GetHashCode();
-            hashCode = hashCode * -1521134295 + UseTcpOnly.GetHashCode();
-            hashCode = hashCode * -1521134295 + AutoResolvedNameServers.GetHashCode();
-            return hashCode;
-        }
     }
 
     /// <summary>
     /// The readonly version of <see cref="LookupClientOptions"/> used as default settings in <see cref="LookupClient"/>.
     /// </summary>
-    public class LookupClientSettings : DnsQuerySettings, IEquatable<LookupClientSettings>
+    public class LookupClientSettings : DnsQuerySettings
     {
         /// <summary>
         /// Creates a new instance of <see cref="LookupClientSettings"/>.
@@ -702,29 +654,6 @@ namespace DnsClient
         /// The maximum value is 24 days or <see cref="Timeout.Infinite"/>.
         /// </remarks>
         public TimeSpan? MinimumCacheTimeout { get; }
-
-        /// <inheritdocs />
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as LookupClientSettings);
-        }
-
-        /// <inheritdocs />
-        public bool Equals(LookupClientSettings other)
-        {
-            return other != null &&
-                   base.Equals(other) &&
-                   EqualityComparer<TimeSpan?>.Default.Equals(MinimumCacheTimeout, other.MinimumCacheTimeout);
-        }
-
-        /// <inheritdocs />
-        public override int GetHashCode()
-        {
-            var hashCode = 1049610412;
-            hashCode = hashCode * -1521134295 + base.GetHashCode();
-            hashCode = hashCode * -1521134295 + EqualityComparer<TimeSpan?>.Default.GetHashCode(MinimumCacheTimeout);
-            return hashCode;
-        }
 
         internal LookupClientSettings Copy(
             IReadOnlyCollection<NameServer> nameServers,

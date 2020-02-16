@@ -112,11 +112,11 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_LargeResultWithTCP()
         {
-            var dns = new LookupClient();
+            var dns = new LookupClient(NameServer.GooglePublicDns);
 
             var result = dns.Query("big.basic.caatestsuite.com", QueryType.CAA);
 
-            Assert.True(result.Answers.Count > 0);
+            Assert.True(result.Answers.CaaRecords().Count() >= 1000);
         }
 
         [Fact]
@@ -212,8 +212,8 @@ namespace DnsClient.Tests
                 });
 
             // server rotation should use both defined dns servers
-            var resultA = client.Query("google.com", QueryType.ANY);
-            var resultB = client.Query("google.com", QueryType.ANY);
+            var resultA = client.QueryServer(new[] { NameServer.GooglePublicDns }, "google.com", QueryType.ANY);
+            var resultB = client.QueryServer(new[] { NameServer.GooglePublicDnsIPv6 }, "google.com", QueryType.ANY);
 
             Assert.Equal(NameServer.GooglePublicDns, resultA.NameServer);
             Assert.Equal(NameServer.GooglePublicDnsIPv6, resultB.NameServer);
@@ -233,8 +233,8 @@ namespace DnsClient.Tests
                 });
 
             // server rotation should use both defined dns servers
-            var resultA = client.Query("google.com", QueryType.ANY);
-            var resultB = client.Query("google.com", QueryType.ANY);
+            var resultA = client.QueryServer(new[] { NameServer.GooglePublicDns }, "google.com", QueryType.ANY);
+            var resultB = client.QueryServer(new[] { NameServer.GooglePublicDnsIPv6 }, "google.com", QueryType.ANY);
 
             Assert.Equal(NameServer.GooglePublicDns, resultA.NameServer);
             Assert.Equal(NameServer.GooglePublicDnsIPv6, resultB.NameServer);
@@ -495,7 +495,7 @@ namespace DnsClient.Tests
             var client = new LookupClient();
             string hostName = await client.GetHostNameAsync(IPAddress.Parse("8.8.8.8"));
 
-            Assert.Equal("google-public-dns-a.google.com", hostName);
+            Assert.Equal("dns.google", hostName);
         }
 
         [Fact]
@@ -708,7 +708,7 @@ namespace DnsClient.Tests
             var queryResult = client.QueryReverse(ip);
 
             Assert.Equal("8.8.8.8.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.6.8.4.0.6.8.4.1.0.0.2.ip6.arpa.", result);
-            Assert.Contains("google-public-dns", queryResult.Answers.PtrRecords().First().PtrDomainName);
+            Assert.Contains("dns.google", queryResult.Answers.PtrRecords().First().PtrDomainName);
         }
 
         [Fact]

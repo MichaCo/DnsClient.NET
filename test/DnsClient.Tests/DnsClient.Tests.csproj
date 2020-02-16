@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DnsClient\DnsClient.csproj" />
+    <ProjectReference Include="..\ApiDesign.OldReference\ApiDesign.OldReference.csproj" />
   </ItemGroup>
 
   <ItemGroup>

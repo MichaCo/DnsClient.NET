@@ -173,7 +173,7 @@ namespace DnsClient.Tests
 
             Assert.Null(result.TestClient.TcpHandler.LastRequest);
             Assert.NotNull(result.TestClient.UdpHandler.LastRequest);
-            Assert.Equal(new LookupClientSettings(unresolvedOptions), result.TestClient.Client.Settings);
+            Assert.StrictEqual(new LookupClientSettings(unresolvedOptions), result.TestClient.Client.Settings);
 
             if (test.UsesQueryOptions)
             {
@@ -249,7 +249,7 @@ namespace DnsClient.Tests
             var result = test.Invoke(lookupClientOptions: defaultOptions, useOptions: queryOptions);
 
             // verify that override settings also control cache
-            var cacheKey = ResponseCache.GetCacheKey(result.TestClient.TcpHandler.LastRequest.Question, NameServer.GooglePublicDns2IPv6);
+            var cacheKey = ResponseCache.GetCacheKey(result.TestClient.TcpHandler.LastRequest.Question);
             Assert.Null(result.TestClient.Client.ResponseCache.Get(cacheKey));
 
             Assert.Equal(NameServer.GooglePublicDns2IPv6, result.TestClient.TcpHandler.LastServer);
@@ -276,7 +276,7 @@ namespace DnsClient.Tests
             var result = test.Invoke(lookupClientOptions: defaultOptions, useOptions: queryOptions);
 
             // verify that override settings also control cache
-            var cacheKey = ResponseCache.GetCacheKey(result.TestClient.UdpHandler.LastRequest.Question, NameServer.GooglePublicDns2IPv6);
+            var cacheKey = ResponseCache.GetCacheKey(result.TestClient.UdpHandler.LastRequest.Question);
             Assert.NotNull(result.TestClient.Client.ResponseCache.Get(cacheKey));
         }
 
@@ -297,7 +297,7 @@ namespace DnsClient.Tests
             var result = test.Invoke(lookupClientOptions: defaultOptions, useOptions: queryOptions);
 
             // verify that override settings also control cache
-            var cacheKey = ResponseCache.GetCacheKey(result.TestClient.UdpHandler.LastRequest.Question, NameServer.GooglePublicDns2IPv6);
+            var cacheKey = ResponseCache.GetCacheKey(result.TestClient.UdpHandler.LastRequest.Question);
             Assert.Null(result.TestClient.Client.ResponseCache.Get(cacheKey));
         }
 

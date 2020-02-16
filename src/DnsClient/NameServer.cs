@@ -39,6 +39,26 @@ namespace DnsClient
         /// </summary>
         public static readonly NameServer GooglePublicDns2IPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8888"), DefaultPort);
 
+        /// <summary>
+        /// A public Cloudflare DNS endpoint.
+        /// </summary>
+        public static readonly NameServer Cloudflare = new IPEndPoint(IPAddress.Parse("1.1.1.1"), DefaultPort);
+
+        /// <summary>
+        /// A public Cloudflare DNS endpoint.
+        /// </summary>
+        public static readonly NameServer Cloudflare2 = new IPEndPoint(IPAddress.Parse("1.0.0.1"), DefaultPort);
+
+        /// <summary>
+        /// A public Cloudflare DNS IPv6 endpoint.
+        /// </summary>
+        public static readonly NameServer CloudflareIPv6 = new IPEndPoint(IPAddress.Parse("2606:4700:4700::1111"), DefaultPort);
+
+        /// <summary>
+        /// A public Cloudflare DNS IPv6 endpoint.
+        /// </summary>
+        public static readonly NameServer Cloudflare2IPv6 = new IPEndPoint(IPAddress.Parse("2606:4700:4700::1001"), DefaultPort);
+
         internal const string EtcResolvConfFile = "/etc/resolv.conf";
 
         /// <summary>
@@ -99,17 +119,6 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Gets a value indicating whether this <see cref="NameServer"/> is enabled.
-        /// <para>
-        /// The instance might get disabled if <see cref="ILookupClient"/> encounters problems to connect to it.
-        /// </para>
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if enabled; otherwise, <c>false</c>.
-        /// </value>
-        public bool Enabled { get; internal set; } = true;
-
-        /// <summary>
         /// Gets the string representation of the configured <see cref="IPAddress"/>.
         /// </summary>
         public string Address => IPEndPoint.Address.ToString();
@@ -135,9 +144,6 @@ namespace DnsClient
         /// </value>
         public int? SupportedUdpPayloadSize { get; internal set; }
 
-        // for tracking if we can re-enable the server...
-        internal DnsRequestMessage LastSuccessfulRequest { get; set; }
-
         internal IPEndPoint IPEndPoint { get; }
 
         /// <summary>
@@ -149,17 +155,6 @@ namespace DnsClient
         public override string ToString()
         {
             return $"{Address}:{Port} (Udp: {SupportedUdpPayloadSize ?? 512})";
-        }
-
-        internal NameServer Clone()
-        {
-            return this;
-            // TODO: maybe not needed
-            ////return new NameServer(IPEndPoint)
-            ////{
-            ////    Enabled = Enabled,
-            ////    SupportedUdpPayloadSize = SupportedUdpPayloadSize
-            ////};
         }
 
         /// <inheritdocs />

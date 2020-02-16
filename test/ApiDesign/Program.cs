@@ -17,7 +17,7 @@ namespace ApiDesign
 
             // version b
             client = new LookupClient(new LookupClientOptions(
-                NameServer.GooglePublicDns, NameServer.GooglePublicDns2, NameServer.GooglePublicDns2IPv6, NameServer.GooglePublicDnsIPv6)
+                NameServer.Cloudflare, NameServer.Cloudflare2)
             {
                 UseCache = true,
                 ContinueOnDnsError = true,
@@ -27,7 +27,8 @@ namespace ApiDesign
 
             while (true)
             {
-                var result = client.Query("google.com", QueryType.ANY);
+                var result = client.Query("google.com", QueryType.A);
+                var result2 = client.Query("google.com", QueryType.A, queryOptions: new DnsQueryOptions());
                 Console.WriteLine(result.AuditTrail);
                 if (result.HasError)
                 {
