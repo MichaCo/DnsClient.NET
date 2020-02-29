@@ -173,6 +173,7 @@ namespace DnsClient
 
         private DnsResourceRecord ResolveOptRecord(ResourceRecordInfo info)
         {
+            _reader.Index = _reader.Index + info.RawDataLength;
             return new OptRecord((int)info.RecordClass, info.InitialTimeToLive, info.RawDataLength);
         }
 
