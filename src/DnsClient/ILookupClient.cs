@@ -70,84 +70,12 @@ namespace DnsClient
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
         private TimeSpan _timeout = s_defaultTimeout;
 
-        // TODO: evalualte if defaulting resolveNameServers to false here and in the query plan, fall back to configured nameservers of the client
-        /// <summary>
-        /// Creates a new instance of <see cref="DnsQueryOptions"/> without name servers.
-        /// </summary>
-        /// <remarks>
-        /// If no nameservers are configured, a query will fallback to the nameservers already configured on the <see cref="LookupClient"/> instance.
-        /// </remarks>
-        /// <param name="resolveNameServers">If set to <c>true</c>, <see cref="NameServer.ResolveNameServers(bool, bool)"/>
-        /// will be used to get a list of nameservers.</param>
-        public DnsQueryOptions(bool resolveNameServers = false)
-            : this(resolveNameServers ? NameServer.ResolveNameServers() : null)
-        {
-            AutoResolvedNameServers = resolveNameServers;
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="DnsQueryOptions"/> with one name server.
-        /// <see cref="IPAddress"/> or <see cref="IPEndPoint"/> can be used as well thanks to implicit conversion.
-        /// </summary>
-        /// <param name="nameServer">The name servers.</param>
-        public DnsQueryOptions(NameServer nameServer)
-            : this(new[] { nameServer })
-        {
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="DnsQueryOptions"/>.
-        /// </summary>
-        /// <param name="nameServers">A collection of name servers.</param>
-        public DnsQueryOptions(IReadOnlyCollection<NameServer> nameServers)
-        {
-            if (nameServers != null && nameServers.Count > 0)
-            {
-                NameServers = nameServers.ToList();
-            }
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="DnsQueryOptions"/>.
-        /// </summary>
-        /// <param name="nameServers">A collection of name servers.</param>
-        public DnsQueryOptions(params NameServer[] nameServers)
-        {
-            if (nameServers != null && nameServers.Length > 0)
-            {
-                NameServers = nameServers.ToList();
-            }
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="DnsQueryOptions"/>.
-        /// </summary>
-        /// <param name="nameServers">A collection of name servers.</param>
-        public DnsQueryOptions(params IPEndPoint[] nameServers)
-           : this(nameServers.Select(p => (NameServer)p).ToArray())
-        {
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="DnsQueryOptions"/>.
-        /// </summary>
-        /// <param name="nameServers">A collection of name servers.</param>
-        public DnsQueryOptions(params IPAddress[] nameServers)
-            : this(nameServers.Select(p => (NameServer)p).ToArray())
-        {
-        }
-
         /// <summary>
         /// Gets or sets a flag indicating whether each <see cref="IDnsQueryResponse"/> will contain a full documentation of the response(s).
         /// Default is <c>False</c>.
         /// </summary>
         /// <seealso cref="IDnsQueryResponse.AuditTrail"/>
         public bool EnableAuditTrail { get; set; } = false;
-
-        /// <summary>
-        /// Gets a flag indicating whether the name server collection was manually defined or automatically resolved
-        /// </summary>
-        public bool AutoResolvedNameServers { get; }
 
         /// <summary>
         /// Gets or sets a flag indicating whether DNS queries should use response caching or not.
@@ -158,11 +86,6 @@ namespace DnsClient
         /// In case the DNS Server returns records with a TTL of zero. The response cannot be cached.
         /// </remarks>
         public bool UseCache { get; set; } = true;
-
-        /// <summary>
-        /// Gets or sets a list of name servers which should be used to query.
-        /// </summary>
-        public IList<NameServer> NameServers { get; set; } = new List<NameServer>();
 
         /// <summary>
         /// Gets or sets a flag indicating whether DNS queries should instruct the DNS server to do recursive lookups, or not.
@@ -176,7 +99,7 @@ namespace DnsClient
         /// Only transient errors, like network or connection errors will be retried.
         /// Default is <c>5</c>.
         /// <para>
-        /// If all configured <see cref="NameServers"/> error out after retries, an exception will be thrown at the end.
+        /// If all configured <see cref="DnsQueryAndServerOptions.NameServers"/> error out after retries, an exception will be thrown at the end.
         /// </para>
         /// </summary>
         /// <value>The number of retries.</value>
@@ -198,7 +121,7 @@ namespace DnsClient
         /// </para>
         /// <para>
         /// If both, <see cref="ContinueOnDnsError"/> and <see cref="ThrowDnsErrors"/> are set to <c>True</c>,
-        /// <see cref="ILookupClient"/> will continue to query all configured <see cref="NameServers"/>.
+        /// <see cref="ILookupClient"/> will continue to query all configured <see cref="DnsQueryAndServerOptions.NameServers"/>.
         /// If none of the servers yield a valid response, a <see cref="DnsResponseException"/> will be thrown
         /// with the error of the last response.
         /// </para>
@@ -209,7 +132,7 @@ namespace DnsClient
 
         /// <summary>
         /// Gets or sets a flag indicating whether the <see cref="ILookupClient"/> can cycle through all
-        /// configured <see cref="NameServers"/> on each consecutive request, basically using a random server, or not.
+        /// configured <see cref="DnsQueryAndServerOptions.NameServers"/> on each consecutive request, basically using a random server, or not.
         /// Default is <c>True</c>.
         /// If only one <see cref="NameServer"/> is configured, this setting is not used.
         /// </summary>
@@ -226,13 +149,13 @@ namespace DnsClient
         public bool UseRandomNameServer { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a flag indicating whether to query the next configured <see cref="NameServers"/> in case the response of the last query
+        /// Gets or sets a flag indicating whether to query the next configured <see cref="DnsQueryAndServerOptions.NameServers"/> in case the response of the last query
         /// returned a <see cref="DnsResponseCode"/> other than <see cref="DnsResponseCode.NoError"/>.
         /// Default is <c>True</c>.
         /// </summary>
         /// <remarks>
         /// If <c>True</c>, lookup client will continue until a server returns a valid result, or,
-        /// if no <see cref="NameServers"/> yield a valid result, the last response with the error will be returned.
+        /// if no <see cref="DnsQueryAndServerOptions.NameServers"/> yield a valid result, the last response with the error will be returned.
         /// In case no server yields a valid result and <see cref="ThrowDnsErrors"/> is also enabled, an exception
         /// will be thrown containing the error of the last response.
         /// </remarks>
@@ -301,9 +224,109 @@ namespace DnsClient
     }
 
     /// <summary>
+    /// The options used to override the defaults of <see cref="LookupClient"/> per query.
+    /// </summary>
+    public class DnsQueryAndServerOptions : DnsQueryOptions
+    {
+        // TODO: evalualte if defaulting resolveNameServers to false here and in the query plan, fall back to configured nameservers of the client
+        /// <summary>
+        /// Creates a new instance of <see cref="DnsQueryAndServerOptions"/> without name servers.
+        /// </summary>
+        /// <remarks>
+        /// If no nameservers are configured, a query will fallback to the nameservers already configured on the <see cref="LookupClient"/> instance.
+        /// </remarks>
+        /// <param name="resolveNameServers">If set to <c>true</c>, <see cref="NameServer.ResolveNameServers(bool, bool)"/>
+        /// will be used to get a list of nameservers.</param>
+        public DnsQueryAndServerOptions(bool resolveNameServers = false)
+            : this(resolveNameServers ? NameServer.ResolveNameServers() : null)
+        {
+            AutoResolvedNameServers = resolveNameServers;
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="DnsQueryAndServerOptions"/> with one name server.
+        /// <see cref="IPAddress"/> or <see cref="IPEndPoint"/> can be used as well thanks to implicit conversion.
+        /// </summary>
+        /// <param name="nameServer">The name servers.</param>
+        public DnsQueryAndServerOptions(NameServer nameServer)
+            : this(new[] { nameServer })
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="DnsQueryAndServerOptions"/>.
+        /// </summary>
+        /// <param name="nameServers">A collection of name servers.</param>
+        public DnsQueryAndServerOptions(IReadOnlyCollection<NameServer> nameServers)
+            : base()
+        {
+            if (nameServers != null && nameServers.Count > 0)
+            {
+                NameServers = nameServers.ToList();
+            }
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="DnsQueryAndServerOptions"/>.
+        /// </summary>
+        /// <param name="nameServers">A collection of name servers.</param>
+        public DnsQueryAndServerOptions(params NameServer[] nameServers)
+            : base()
+        {
+            if (nameServers != null && nameServers.Length > 0)
+            {
+                NameServers = nameServers.ToList();
+            }
+        }
+
+        // TODO: remove overloads in favor of implicit conversion to NameServer?
+        /// <summary>
+        /// Creates a new instance of <see cref="DnsQueryAndServerOptions"/>.
+        /// </summary>
+        /// <param name="nameServers">A collection of name servers.</param>
+        public DnsQueryAndServerOptions(params IPEndPoint[] nameServers)
+           : this(nameServers.Select(p => (NameServer)p).ToArray())
+        {
+        }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="DnsQueryAndServerOptions"/>.
+        /// </summary>
+        /// <param name="nameServers">A collection of name servers.</param>
+        public DnsQueryAndServerOptions(params IPAddress[] nameServers)
+            : this(nameServers.Select(p => (NameServer)p).ToArray())
+        {
+        }
+
+        /// <summary>
+        /// Gets a flag indicating whether the name server collection was manually defined or automatically resolved
+        /// </summary>
+        public bool AutoResolvedNameServers { get; }
+
+        /// <summary>
+        /// Gets or sets a list of name servers which should be used to query.
+        /// </summary>
+        public IList<NameServer> NameServers { get; set; } = new List<NameServer>();
+
+        /// <summary>
+        /// Converts the query options into readonly settings.
+        /// </summary>
+        /// <param name="fromOptions">The options.</param>
+        public static implicit operator DnsQueryAndServerSettings(DnsQueryAndServerOptions fromOptions)
+        {
+            if (fromOptions == null)
+            {
+                return null;
+            }
+
+            return new DnsQueryAndServerSettings(fromOptions);
+        }
+    }
+
+    /// <summary>
     /// The options used to configure defaults in <see cref="LookupClient"/> and to optionally use specific settings per query.
     /// </summary>
-    public class LookupClientOptions : DnsQueryOptions
+    public class LookupClientOptions : DnsQueryAndServerOptions
     {
         private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
 
@@ -311,6 +334,7 @@ namespace DnsClient
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
 
         private TimeSpan? _minimumCacheTimeout;
+        private TimeSpan? _maximumCacheTimeout;
 
         /// <summary>
         /// Creates a new instance of <see cref="LookupClientOptions"/> without name servers.
@@ -394,6 +418,31 @@ namespace DnsClient
         }
 
         /// <summary>
+        /// Gets a <see cref="TimeSpan"/> which can override the TTL of a resource record in case the
+        /// TTL of the record is higher than this maximum value.
+        /// Default is <c>Null</c>.
+        /// </summary>
+        /// <remarks>
+        /// This setting gets igonred in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>.
+        /// The maximum value is 24 days.
+        /// Setting it to <see cref="Timeout.Infinite"/> would be equal to not providing a value.
+        /// </remarks>
+        public TimeSpan? MaximumCacheTimeout
+        {
+            get { return _maximumCacheTimeout; }
+            set
+            {
+                if (value.HasValue &&
+                    (value < TimeSpan.Zero || value > s_maxTimeout) && value != s_infiniteTimeout)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _maximumCacheTimeout = value;
+            }
+        }
+
+        /// <summary>
         /// Converts the options into readonly settings.
         /// </summary>
         /// <param name="fromOptions">The options.</param>
@@ -408,15 +457,13 @@ namespace DnsClient
         }
     }
 
-    // TODO: revisit if we need this AND LookupClientSettings, might not be needed for per query options
-    /// <summary>
-    /// The readonly version of <see cref="DnsQueryOptions"/> used to customize settings per query.
-    /// </summary>
-    public class DnsQuerySettings
-    {
-        private readonly NameServer[] _endpoints;
-        private readonly Random _rnd = new Random();
+#pragma warning disable CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode() - intentionally, Equals is only used by unit tests
 
+    /// <summary>
+    /// The options used to override the defaults of <see cref="LookupClient"/> per query.
+    /// </summary>
+    public class DnsQuerySettings : IEquatable<DnsQuerySettings>
+    {
         /// <summary>
         /// Gets a flag indicating whether each <see cref="IDnsQueryResponse"/> will contain a full documentation of the response(s).
         /// Default is <c>False</c>.
@@ -435,11 +482,6 @@ namespace DnsClient
         public bool UseCache { get; }
 
         /// <summary>
-        /// Gets a collection of name servers which should be used to query.
-        /// </summary>
-        public IReadOnlyCollection<NameServer> NameServers => _endpoints;
-
-        /// <summary>
         /// Gets a flag indicating whether DNS queries should instruct the DNS server to do recursive lookups, or not.
         /// Default is <c>True</c>.
         /// </summary>
@@ -451,7 +493,7 @@ namespace DnsClient
         /// Only transient errors, like network or connection errors will be retried.
         /// Default is <c>5</c>.
         /// <para>
-        /// If all configured <see cref="NameServers"/> error out after retries, an exception will be thrown at the end.
+        /// If all configured <see cref="DnsQueryAndServerSettings.NameServers"/> error out after retries, an exception will be thrown at the end.
         /// </para>
         /// </summary>
         /// <value>The number of retries.</value>
@@ -473,7 +515,7 @@ namespace DnsClient
         /// </para>
         /// <para>
         /// If both, <see cref="ContinueOnDnsError"/> and <see cref="ThrowDnsErrors"/> are set to <c>True</c>,
-        /// <see cref="ILookupClient"/> will continue to query all configured <see cref="NameServers"/>.
+        /// <see cref="ILookupClient"/> will continue to query all configured <see cref="DnsQueryAndServerSettings.NameServers"/>.
         /// If none of the servers yield a valid response, a <see cref="DnsResponseException"/> will be thrown
         /// with the error of the last response.
         /// </para>
@@ -484,7 +526,7 @@ namespace DnsClient
 
         /// <summary>
         /// Gets a flag indicating whether the <see cref="ILookupClient"/> can cycle through all
-        /// configured <see cref="NameServers"/> on each consecutive request, basically using a random server, or not.
+        /// configured <see cref="DnsQueryAndServerSettings.NameServers"/> on each consecutive request, basically using a random server, or not.
         /// Default is <c>True</c>.
         /// If only one <see cref="NameServer"/> is configured, this setting is not used.
         /// </summary>
@@ -501,13 +543,13 @@ namespace DnsClient
         public bool UseRandomNameServer { get; }
 
         /// <summary>
-        /// Gets a flag indicating whether to query the next configured <see cref="NameServers"/> in case the response of the last query
+        /// Gets a flag indicating whether to query the next configured <see cref="DnsQueryAndServerSettings.NameServers"/> in case the response of the last query
         /// returned a <see cref="DnsResponseCode"/> other than <see cref="DnsResponseCode.NoError"/>.
         /// Default is <c>True</c>.
         /// </summary>
         /// <remarks>
         /// If <c>True</c>, lookup client will continue until a server returns a valid result, or,
-        /// if no <see cref="NameServers"/> yield a valid result, the last response with the error will be returned.
+        /// if no <see cref="DnsQueryAndServerSettings.NameServers"/> yield a valid result, the last response with the error will be returned.
         /// In case no server yields a valid result and <see cref="ThrowDnsErrors"/> is also enabled, an exception
         /// will be thrown containing the error of the last response.
         /// </remarks>
@@ -549,12 +591,7 @@ namespace DnsClient
         public bool UseTcpOnly { get; }
 
         /// <summary>
-        /// Gets a flag indicating whether the name server collection was manually defined or automatically resolved
-        /// </summary>
-        public bool AutoResolvedNameServers { get; }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="DnsQuerySettings"/>.
+        /// Creates a new instance of <see cref="DnsQueryAndServerSettings"/>.
         /// </summary>
         public DnsQuerySettings(DnsQueryOptions options)
         {
@@ -562,8 +599,6 @@ namespace DnsClient
             {
                 throw new ArgumentNullException(nameof(options));
             }
-
-            _endpoints = options.NameServers.ToArray();
 
             ContinueOnDnsError = options.ContinueOnDnsError;
             EnableAuditTrail = options.EnableAuditTrail;
@@ -575,16 +610,125 @@ namespace DnsClient
             UseRandomNameServer = options.UseRandomNameServer;
             UseTcpFallback = options.UseTcpFallback;
             UseTcpOnly = options.UseTcpOnly;
+        }
+
+        /// <inheritdocs />
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            return Equals(obj as DnsQuerySettings);
+        }
+
+        /// <inheritdocs />
+        public bool Equals(DnsQuerySettings other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return EnableAuditTrail == other.EnableAuditTrail &&
+                   UseCache == other.UseCache &&
+                   Recursion == other.Recursion &&
+                   Retries == other.Retries &&
+                   ThrowDnsErrors == other.ThrowDnsErrors &&
+                   UseRandomNameServer == other.UseRandomNameServer &&
+                   ContinueOnDnsError == other.ContinueOnDnsError &&
+                   Timeout.Equals(other.Timeout) &&
+                   UseTcpFallback == other.UseTcpFallback &&
+                   UseTcpOnly == other.UseTcpOnly;
+        }
+    }
+
+    /// <summary>
+    /// The readonly version of <see cref="DnsQueryOptions"/> used to customize settings per query.
+    /// </summary>
+    public class DnsQueryAndServerSettings : DnsQuerySettings, IEquatable<DnsQueryAndServerSettings>
+    {
+        private readonly NameServer[] _endpoints;
+        private readonly Random _rnd = new Random();
+
+        /// <summary>
+        /// Gets a collection of name servers which should be used to query.
+        /// </summary>
+        public IReadOnlyCollection<NameServer> NameServers => _endpoints;
+
+        /// <summary>
+        /// Gets a flag indicating whether the name server collection was manually defined or automatically resolved
+        /// </summary>
+        public bool AutoResolvedNameServers { get; }
+
+        /// <summary>
+        /// Creates a new instance of <see cref="DnsQueryAndServerSettings"/>.
+        /// </summary>
+        public DnsQueryAndServerSettings(DnsQueryAndServerOptions options)
+            : base(options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            _endpoints = options.NameServers?.ToArray() ?? new NameServer[0];
+
             AutoResolvedNameServers = options.AutoResolvedNameServers;
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="DnsQuerySettings"/>.
+        /// Creates a new instance of <see cref="DnsQueryAndServerSettings"/>.
         /// </summary>
-        public DnsQuerySettings(DnsQueryOptions options, IReadOnlyCollection<NameServer> overrideServers)
+        public DnsQueryAndServerSettings(DnsQueryAndServerOptions options, IReadOnlyCollection<NameServer> overrideServers)
             : this(options)
         {
             _endpoints = overrideServers?.ToArray() ?? throw new ArgumentNullException(nameof(overrideServers));
+        }
+
+        /// <inheritdocs />
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            return Equals(obj as DnsQueryAndServerSettings);
+        }
+
+        /// <inheritdocs />
+        public bool Equals(DnsQueryAndServerSettings other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return NameServers.SequenceEqual(other.NameServers)
+                   && AutoResolvedNameServers == other.AutoResolvedNameServers
+                   && base.Equals(other);
         }
 
         internal IReadOnlyCollection<NameServer> ShuffleNameServers()
@@ -608,37 +752,21 @@ namespace DnsClient
                 return NameServers;
             }
         }
-
-        internal DnsQuerySettings WithServers(
-            IReadOnlyCollection<NameServer> nameServers)
-        {
-            return new DnsQuerySettings(new DnsQueryOptions(nameServers)
-            {
-                ContinueOnDnsError = ContinueOnDnsError,
-                EnableAuditTrail = EnableAuditTrail,
-                Recursion = Recursion,
-                Retries = Retries,
-                ThrowDnsErrors = ThrowDnsErrors,
-                Timeout = Timeout,
-                UseCache = UseCache,
-                UseRandomNameServer = UseRandomNameServer,
-                UseTcpFallback = UseTcpFallback,
-                UseTcpOnly = UseTcpOnly
-            });
-        }
     }
 
     /// <summary>
     /// The readonly version of <see cref="LookupClientOptions"/> used as default settings in <see cref="LookupClient"/>.
     /// </summary>
-    public class LookupClientSettings : DnsQuerySettings
+    public class LookupClientSettings : DnsQueryAndServerSettings, IEquatable<LookupClientSettings>
     {
         /// <summary>
         /// Creates a new instance of <see cref="LookupClientSettings"/>.
         /// </summary>
-        public LookupClientSettings(LookupClientOptions options) : base(options)
+        public LookupClientSettings(LookupClientOptions options)
+            : base(options)
         {
             MinimumCacheTimeout = options.MinimumCacheTimeout;
+            MaximumCacheTimeout = options.MaximumCacheTimeout;
         }
 
         /// <summary>
@@ -655,9 +783,57 @@ namespace DnsClient
         /// </remarks>
         public TimeSpan? MinimumCacheTimeout { get; }
 
+        /// <summary>
+        /// Gets a <see cref="TimeSpan"/> which can override the TTL of a resource record in case the
+        /// TTL of the record is higher than this maximum value.
+        /// Default is <c>Null</c>.
+        /// </summary>
+        /// <remarks>
+        /// This setting gets igonred in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>.
+        /// The maximum value is 24 days.
+        /// Setting it to <see cref="Timeout.Infinite"/> would be equal to not providing a value.
+        /// </remarks>
+        public TimeSpan? MaximumCacheTimeout { get; }
+
+        /// <inheritdocs />
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            return Equals(obj as LookupClientSettings);
+        }
+
+        /// <inheritdocs />
+        public bool Equals(LookupClientSettings other)
+        {
+            if (other == null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return Equals(MinimumCacheTimeout, other.MinimumCacheTimeout)
+                && Equals(MaximumCacheTimeout, other.MaximumCacheTimeout)
+                && base.Equals(other);
+        }
+
+        // TODO: remove if LookupClient settings can be made readonly
         internal LookupClientSettings Copy(
             IReadOnlyCollection<NameServer> nameServers,
             TimeSpan? minimumCacheTimeout,
+            TimeSpan? maximumCacheTimeout = null,
             bool? continueOnDnsError = null,
             bool? enableAuditTrail = null,
             bool? recursion = null,
@@ -670,9 +846,10 @@ namespace DnsClient
             bool? useTcpOnly = null)
         {
             // auto resolved flag might get lost here. But this stuff gets deleted anyways.
-            return new LookupClientSettings(new LookupClientOptions(nameServers)
+            return new LookupClientOptions(nameServers)
             {
                 MinimumCacheTimeout = minimumCacheTimeout,
+                MaximumCacheTimeout = maximumCacheTimeout,
                 ContinueOnDnsError = continueOnDnsError ?? ContinueOnDnsError,
                 EnableAuditTrail = enableAuditTrail ?? EnableAuditTrail,
                 Recursion = recursion ?? Recursion,
@@ -683,7 +860,7 @@ namespace DnsClient
                 UseRandomNameServer = useRandomNameServer ?? UseRandomNameServer,
                 UseTcpFallback = useTcpFallback ?? UseTcpFallback,
                 UseTcpOnly = useTcpOnly ?? UseTcpOnly
-            });
+            };
         }
 
         // TODO: remove if LookupClient settings can be made readonly
@@ -746,4 +923,6 @@ namespace DnsClient
             return Copy(NameServers, MinimumCacheTimeout, useTcpOnly: value);
         }
     }
+
+#pragma warning restore CS0659 // Type overrides Object.Equals(object o) but does not override Object.GetHashCode()
 }

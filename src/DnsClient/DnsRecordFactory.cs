@@ -173,7 +173,9 @@ namespace DnsClient
 
         private DnsResourceRecord ResolveOptRecord(ResourceRecordInfo info)
         {
-            return new OptRecord((int)info.RecordClass, info.InitialTimeToLive, info.RawDataLength);
+            // Consume bytes in case the OPT record has any.
+            var bytes = _reader.ReadBytes(info.RawDataLength).ToArray();
+            return new OptRecord((int)info.RecordClass, info.InitialTimeToLive, info.RawDataLength, bytes);
         }
 
         private DnsResourceRecord ResolveWksRecord(ResourceRecordInfo info)

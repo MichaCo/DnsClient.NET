@@ -701,7 +701,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Ip_Arpa_v6_Valid()
         {
-            var ip = NameServer.GooglePublicDns2IPv6.IPEndPoint.Address;
+            var ip = NameServer.GooglePublicDns2IPv6.Address;
             var client = new LookupClient();
 
             var result = DnsString.Parse(ip.GetArpaName());
@@ -742,7 +742,7 @@ namespace DnsClient.Tests
 
             var result = client.GetHostEntry("dnsclient.michaco.net");
 
-            Assert.True(result.AddressList.Length == 1);
+            Assert.True(result.AddressList.Length >= 1);
             Assert.True(result.Aliases.Length > 1);
             Assert.Equal("dnsclient.michaco.net", result.HostName);
         }

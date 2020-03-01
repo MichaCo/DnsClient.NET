@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using DnsClient;
-using Microsoft.Extensions.CommandLineUtils;
+using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
 
 namespace DigApp
@@ -59,7 +59,7 @@ namespace DigApp
             _running = true;
 
             Console.WriteLine($"; <<>> Starting perf run with {_clients} clients running for {_runtime} seconds <<>>");
-            Console.WriteLine($"; ({_settings.NameServers.Count} Servers, caching:{_settings.UseCache}, minttl:{_settings.MinimumCacheTimeout?.TotalMilliseconds})");
+            Console.WriteLine($"; ({_settings.NameServers.Count} Servers, caching:{_settings.UseCache}, minttl:{_settings.MinimumCacheTimeout?.TotalMilliseconds}, maxttl:{_settings.MaximumCacheTimeout?.TotalMilliseconds})");
             _spinner = new Spiner();
             _spinner.Start();
 

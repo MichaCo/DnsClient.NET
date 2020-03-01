@@ -25,10 +25,16 @@ namespace ApiDesign
                 UseRandomNameServer = false
             });
 
+            var x = client.QueryServer(new NameServer[] { IPAddress.Loopback }, "query", QueryType.A);
+
             while (true)
             {
                 var result = client.Query("google.com", QueryType.A);
-                var result2 = client.Query("google.com", QueryType.A, queryOptions: new DnsQueryOptions());
+                var result2 = client.Query("google.com", QueryType.A, queryOptions: new DnsQueryAndServerOptions()
+                {
+                    ContinueOnDnsError = true
+                });
+
                 Console.WriteLine(result.AuditTrail);
                 if (result.HasError)
                 {

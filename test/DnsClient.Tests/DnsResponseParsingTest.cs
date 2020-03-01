@@ -32,7 +32,6 @@ namespace DnsClient.Tests
                 ResourceRecordType.MD,
                 ResourceRecordType.MF,
 #pragma warning restore CS0618 // Type or member is obsolete
-                ResourceRecordType.OPT,
                 ResourceRecordType.RRSIG
             };
 

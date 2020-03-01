@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using DnsClient;
 using DnsClient.Protocol;
-using Microsoft.Extensions.CommandLineUtils;
+using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
 
 namespace DigApp
@@ -34,6 +35,8 @@ namespace DigApp
         public CommandOption ConnectTimeoutArg { get; set; }
 
         public CommandOption MinimumTTLArg { get; set; }
+
+        public CommandOption MaximumTTLArg { get; set; }
 
         public CommandOption NoRecurseArg { get; set; }
 
@@ -114,22 +117,33 @@ namespace DigApp
                 NameServers = GetEndpointsValue(),
                 Recursion = GetUseRecursionValue(),
                 Retries = GetTriesValue(),
-                Timeout = TimeSpan.FromMilliseconds(GetTimeoutValue()),
+                Timeout = Timeout.InfiniteTimeSpan, // TimeSpan.FromMilliseconds(GetTimeoutValue()),
                 MinimumCacheTimeout = GetMinimumTTL(),
                 UseCache = GetUseCache(),
                 UseTcpOnly = GetUseTcp(),
-                UseTcpFallback = !GetNoTcp()
+                UseTcpFallback = !GetNoTcp(),
+                MaximumCacheTimeout = GetMaximumTTL()
             };
         }
 
-        public TimeSpan GetMinimumTTL()
+        public TimeSpan? GetMinimumTTL()
         {
             if (MinimumTTLArg.HasValue())
             {
                 return TimeSpan.FromMilliseconds(int.Parse(MinimumTTLArg.Value()));
             }
 
-            return TimeSpan.Zero;
+            return null;
+        }
+
+        public TimeSpan? GetMaximumTTL()
+        {
+            if (MaximumTTLArg.HasValue())
+            {
+                return TimeSpan.FromMilliseconds(int.Parse(MaximumTTLArg.Value()));
+            }
+
+            return null;
         }
 
         public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 5000;
@@ -182,6 +196,11 @@ namespace DigApp
             MinimumTTLArg = App.Option(
                 "--minttl",
                 "Minimum cache ttl.",
+                CommandOptionType.SingleValue);
+
+            MaximumTTLArg = App.Option(
+                "--maxttl",
+                "Maximum cache ttl.",
                 CommandOptionType.SingleValue);
 
             App.HelpOption("-? | -h | --help");

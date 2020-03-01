@@ -22,42 +22,42 @@ namespace DnsClient
         /// <summary>
         /// The public google DNS IPv4 endpoint.
         /// </summary>
-        public static readonly NameServer GooglePublicDns = new IPEndPoint(IPAddress.Parse("8.8.4.4"), DefaultPort);
+        public static readonly IPEndPoint GooglePublicDns = new IPEndPoint(IPAddress.Parse("8.8.4.4"), DefaultPort);
 
         /// <summary>
         /// The second public google DNS IPv6 endpoint.
         /// </summary>
-        public static readonly NameServer GooglePublicDns2 = new IPEndPoint(IPAddress.Parse("8.8.8.8"), DefaultPort);
+        public static readonly IPEndPoint GooglePublicDns2 = new IPEndPoint(IPAddress.Parse("8.8.8.8"), DefaultPort);
 
         /// <summary>
         /// The public google DNS IPv6 endpoint.
         /// </summary>
-        public static readonly NameServer GooglePublicDnsIPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8844"), DefaultPort);
+        public static readonly IPEndPoint GooglePublicDnsIPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8844"), DefaultPort);
 
         /// <summary>
         /// The second public google DNS IPv6 endpoint.
         /// </summary>
-        public static readonly NameServer GooglePublicDns2IPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8888"), DefaultPort);
+        public static readonly IPEndPoint GooglePublicDns2IPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8888"), DefaultPort);
 
         /// <summary>
         /// A public Cloudflare DNS endpoint.
         /// </summary>
-        public static readonly NameServer Cloudflare = new IPEndPoint(IPAddress.Parse("1.1.1.1"), DefaultPort);
+        public static readonly IPEndPoint Cloudflare = new IPEndPoint(IPAddress.Parse("1.1.1.1"), DefaultPort);
 
         /// <summary>
         /// A public Cloudflare DNS endpoint.
         /// </summary>
-        public static readonly NameServer Cloudflare2 = new IPEndPoint(IPAddress.Parse("1.0.0.1"), DefaultPort);
+        public static readonly IPEndPoint Cloudflare2 = new IPEndPoint(IPAddress.Parse("1.0.0.1"), DefaultPort);
 
         /// <summary>
         /// A public Cloudflare DNS IPv6 endpoint.
         /// </summary>
-        public static readonly NameServer CloudflareIPv6 = new IPEndPoint(IPAddress.Parse("2606:4700:4700::1111"), DefaultPort);
+        public static readonly IPEndPoint CloudflareIPv6 = new IPEndPoint(IPAddress.Parse("2606:4700:4700::1111"), DefaultPort);
 
         /// <summary>
         /// A public Cloudflare DNS IPv6 endpoint.
         /// </summary>
-        public static readonly NameServer Cloudflare2IPv6 = new IPEndPoint(IPAddress.Parse("2606:4700:4700::1001"), DefaultPort);
+        public static readonly IPEndPoint Cloudflare2IPv6 = new IPEndPoint(IPAddress.Parse("2606:4700:4700::1001"), DefaultPort);
 
         internal const string EtcResolvConfFile = "/etc/resolv.conf";
 
@@ -145,6 +145,12 @@ namespace DnsClient
         public int? SupportedUdpPayloadSize { get; internal set; }
 
         internal IPEndPoint IPEndPoint { get; }
+
+        internal static IReadOnlyCollection<NameServer> Convert(IReadOnlyCollection<IPAddress> addresses)
+            => addresses.Select(p => (NameServer)p).ToArray();
+
+        internal static IReadOnlyCollection<NameServer> Convert(IReadOnlyCollection<IPEndPoint> addresses)
+            => addresses.Select(p => (NameServer)p).ToArray();
 
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.
