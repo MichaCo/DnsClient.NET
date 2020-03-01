@@ -40,9 +40,9 @@ steps:
     nobuild: true
     includesymbols: true
     versioningScheme: 'off'
-    buildProperties: '/p:PackageVersion=$(version)'
     verbosityPack: Normal
-    arguments: '-c $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)'
+    configuration: $(buildConfiguration)
+    arguments: '--no-build --output $(Build.ArtifactStagingDirectory) /p:PackageVersion=$(version)'
 
 - task: PublishBuildArtifacts@1
   inputs:
