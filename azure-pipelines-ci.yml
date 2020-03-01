@@ -10,38 +10,30 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: NuGetToolInstaller@1
-
-- task: NuGetCommand@2
+- task: DotNetCoreCLI@2
   inputs:
-    restoreSolution: '$(solution)'
-    verbosityPack: Normal
+    command: 'restore'
+    projects: '**/*.csproj'
+    feedsToUse: 'select'
 
-- task: VSBuild@1
+- task: DotNetCoreCLI@2
   inputs:
-    solution: '$(solution)'
-    msbuildArgs: ''
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    command: 'build'
+    projects: '**/*.csproj'
+    arguments: '-c $(buildConfiguration)'
 
-- task: VSTest@2
+- task: DotNetCoreCLI@2
   inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+    command: 'test'
+    projects: 'test/DnsClient.Tests/*.csproj'
+    publishTestResults: true
+    arguments: '-c $(buildConfiguration) --no-build'
 
-- task: NuGetCommand@2
-  inputs:
-    command: 'pack'
-    packagesToPack: 'src/DnsClient/*.csproj'
-    packDestination: '$(Build.ArtifactStagingDirectory)'
-
-- task: NuGetCommand@2
+- task: DotNetCoreCLI@2
   inputs:
     command: 'pack'
     packagesToPack: 'src/DnsClient/*.csproj'
-    versioningScheme: byPrereleaseNumber
-    majorVersion: '1'
-    minorVersion: '3'
-    patchVersion: '0'
-    includeSymbols: true
-    verbosityPack: 'Normal'
+    nobuild: true
+    includesymbols: true
+    versioningScheme: 'off'
+    buildProperties: 'build=$(build.number)'
