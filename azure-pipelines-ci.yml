@@ -1,3 +1,5 @@
+name: '$(Date:yyyyMMdd)$(Rev:.r)'
+
 trigger:
 - master
 
@@ -5,9 +7,9 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  version: '1.3.0-beta-$(Build.BuildNumber)'
 
 steps:
 - task: DotNetCoreCLI@2
@@ -15,12 +17,14 @@ steps:
     command: 'restore'
     projects: '**/*.csproj'
     feedsToUse: 'select'
+    verbosityRestore: Normal
 
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
     projects: '**/*.csproj'
     arguments: '-c $(buildConfiguration)'
+
 
 - task: DotNetCoreCLI@2
   inputs:
@@ -36,4 +40,11 @@ steps:
     nobuild: true
     includesymbols: true
     versioningScheme: 'off'
-    buildProperties: 'build=$(build.number)'
+    buildProperties: '/p:PackageVersion=$(version)'
+    verbosityPack: Normal
+    arguments: '-c $(buildConfiguration) --no-build --output $(Build.ArtifactStagingDirectory)'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
+    artifactName: 'nugets'
