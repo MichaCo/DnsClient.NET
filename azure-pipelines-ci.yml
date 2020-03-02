@@ -48,7 +48,6 @@ steps:
     verbosityPack: Minimal
     packDirectory: '$(Build.ArtifactStagingDirectory)\release'
     configuration: '$(buildConfiguration)'
-    arguments: '--no-build --no-restore  --version-suffix ""'
 
 - task: DotNetCoreCLI@2
   inputs:
@@ -59,7 +58,7 @@ steps:
     verbosityPack: Minimal
     packDirectory: '$(Build.ArtifactStagingDirectory)\beta'
     configuration: '$(buildConfiguration)'
-    arguments: '--no-build --no-restore --version-suffix beta-$(Build.BuildNumber)'
+    arguments: '--version-suffix beta-$(Build.BuildNumber)'
 
 # - task: PublishBuildArtifacts@1
 #   inputs:
