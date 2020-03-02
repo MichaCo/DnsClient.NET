@@ -39,7 +39,6 @@ steps:
     includesymbols: false
     versioningScheme: 'off'
     verbosityPack: Minimal
-    configuration: '$(buildConfiguration)'
     arguments: '-c $(buildConfiguration) --no-build --no-restore --output $(Build.ArtifactStagingDirectory) /p:PackageVersion=$(version)'
 
 - task: PublishBuildArtifacts@1
