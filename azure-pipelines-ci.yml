@@ -23,7 +23,7 @@ steps:
     command: 'build'
     projects: |
       src/**/*.csproj
-      test/DnsClient.Tests/*.csproj
+#      test/DnsClient.Tests/*.csproj
     configuration: '$(buildConfiguration)'
 
 # - task: DotNetCoreCLI@2
@@ -49,16 +49,19 @@ steps:
     packDirectory: '$(Build.ArtifactStagingDirectory)\release'
     configuration: '$(buildConfiguration)'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'pack'
-    packagesToPack: 'src/DnsClient/*.csproj'
-    includesymbols: false
-    versioningScheme: 'off'
-    verbosityPack: Minimal
-    packDirectory: '$(Build.ArtifactStagingDirectory)\beta'
-    configuration: '$(buildConfiguration)'
-    arguments: '--version-suffix beta-$(Build.BuildNumber)'
+# - task: DotNetCoreCLI@2
+#   inputs:
+#     command: 'pack'
+#     packagesToPack: 'src/DnsClient/*.csproj'
+#     includesymbols: false
+#     versioningScheme: 'off'
+#     verbosityPack: Minimal
+#     packDirectory: '$(Build.ArtifactStagingDirectory)\beta'
+#     configuration: '$(buildConfiguration)'
+#     noCache: true
+#     arguments: '--version-suffix beta-$(Build.BuildNumber)'
+
+- script: 'dotnet pack --no-build --no-restore --version-suffix beta-$(Build.BuildNumber) -v normal -o $(Build.ArtifactStagingDirectory)\beta'
 
 # - task: PublishBuildArtifacts@1
 #   inputs:
