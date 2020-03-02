@@ -50,16 +50,16 @@ steps:
     configuration: '$(buildConfiguration)'
     arguments: '--no-build --no-restore  --version-suffix ""'
 
-# - task: DotNetCoreCLI@2
-#   inputs:
-#     command: 'pack'
-#     packagesToPack: 'src/DnsClient/*.csproj'
-#     includesymbols: false
-#     versioningScheme: 'off'
-#     verbosityPack: Minimal
-#     packDirectory: '$(Build.ArtifactStagingDirectory)\beta'
-#     configuration: '$(buildConfiguration)'
-#     arguments: '--no-build --no-restore --version-suffix $(versionSuffix)'
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'pack'
+    packagesToPack: 'src/DnsClient/*.csproj'
+    includesymbols: false
+    versioningScheme: 'off'
+    verbosityPack: Minimal
+    packDirectory: '$(Build.ArtifactStagingDirectory)\beta'
+    configuration: '$(buildConfiguration)'
+    arguments: '--no-build --no-restore --version-suffix beta-$(Build.BuildNumber)'
 
 # - task: PublishBuildArtifacts@1
 #   inputs:
