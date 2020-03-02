@@ -9,7 +9,7 @@ pool:
 variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  versionSuffix: 'beta-$(Build.BuildNumber)'
+  # versionSuffix: 'beta-$(Build.BuildNumber)'
 
 steps:
 # - task: DotNetCoreCLI@2
@@ -50,16 +50,16 @@ steps:
     configuration: '$(buildConfiguration)'
     arguments: '--no-build --no-restore  --version-suffix ""'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'pack'
-    packagesToPack: 'src/DnsClient/*.csproj'
-    includesymbols: false
-    versioningScheme: 'off'
-    verbosityPack: Minimal
-    packDirectory: '$(Build.ArtifactStagingDirectory)\beta'
-    configuration: '$(buildConfiguration)'
-    arguments: '--no-build --no-restore --version-suffix $(versionSuffix)'
+# - task: DotNetCoreCLI@2
+#   inputs:
+#     command: 'pack'
+#     packagesToPack: 'src/DnsClient/*.csproj'
+#     includesymbols: false
+#     versioningScheme: 'off'
+#     verbosityPack: Minimal
+#     packDirectory: '$(Build.ArtifactStagingDirectory)\beta'
+#     configuration: '$(buildConfiguration)'
+#     arguments: '--no-build --no-restore --version-suffix $(versionSuffix)'
 
 # - task: PublishBuildArtifacts@1
 #   inputs:
