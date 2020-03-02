@@ -1,7 +1,7 @@
 name: '$(Date:yyyyMMdd)$(Rev:.r)'
 
 trigger:
-- master
+- dev
 
 pool:
   vmImage: 'windows-latest'
@@ -9,7 +9,7 @@ pool:
 variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  version: '1.3.0-beta-$(Build.BuildNumber)'
+  versionSuffix: 'beta-$(Build.BuildNumber)'
 
 steps:
 - task: DotNetCoreCLI@2
@@ -39,9 +39,23 @@ steps:
     includesymbols: false
     versioningScheme: 'off'
     verbosityPack: Minimal
-    arguments: '-c $(buildConfiguration) --no-build --no-restore --output $(Build.ArtifactStagingDirectory) /p:PackageVersion=$(version)'
+    arguments: '-c $(buildConfiguration) --no-build --no-restore --output $(Build.ArtifactStagingDirectory)/beta --version-suffix $(versionSuffix)'
+
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'pack'
+    packagesToPack: 'src/DnsClient/*.csproj'
+    includesymbols: false
+    versioningScheme: 'off'
+    verbosityPack: Minimal
+    arguments: '-c $(buildConfiguration) --no-build --no-restore --output $(Build.ArtifactStagingDirectory)/release'
 
 - task: PublishBuildArtifacts@1
   inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
-    artifactName: 'nugets'
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/beta' 
+    artifactName: 'beta'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/release' 
+    artifactName: 'release'
