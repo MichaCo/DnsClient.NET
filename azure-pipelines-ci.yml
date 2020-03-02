@@ -23,14 +23,14 @@ steps:
   inputs:
     command: 'build'
     projects: '**/*.csproj'
-    configuration: $(buildConfiguration)
+    configuration: '$(buildConfiguration)'
 
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
     projects: 'test/DnsClient.Tests/*.csproj'
     publishTestResults: true
-    configuration: $(buildConfiguration)
+    configuration: '$(buildConfiguration)'
     nobuild: true
 
 - task: DotNetCoreCLI@2
@@ -40,7 +40,7 @@ steps:
     includesymbols: false
     versioningScheme: 'off'
     verbosityPack: Minimal
-    configuration: $(buildConfiguration)
+    configuration: '$(buildConfiguration)'
     nobuild: true    
     arguments: '--output $(Build.ArtifactStagingDirectory) /p:PackageVersion=$(version)'
 
