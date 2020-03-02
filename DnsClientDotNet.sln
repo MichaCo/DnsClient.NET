@@ -9,6 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		appveyor.yml = appveyor.yml
+		azure-pipelines-ci.yml = azure-pipelines-ci.yml
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -40,7 +41,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnsClient.TestsCommon", "te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnsClient.PerfTestHost", "test\DnsClient.PerfTestHost\DnsClient.PerfTestHost.csproj", "{58173158-2B2D-4C26-A666-495641477066}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiDesign.OldReference", "test\ApiDesign.OldReference\ApiDesign.OldReference.csproj", "{77554E92-95AB-404F-8999-A82BE4978361}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiDesign.OldReference", "test\ApiDesign.OldReference\ApiDesign.OldReference.csproj", "{77554E92-95AB-404F-8999-A82BE4978361}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

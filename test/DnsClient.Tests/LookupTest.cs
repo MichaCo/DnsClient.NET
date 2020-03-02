@@ -837,6 +837,7 @@ namespace DnsClient.Tests
             var client = new LookupClient();
             var result = client.GetHostEntry(source.AddressList.First());
 
+            Assert.NotNull(result);
             Assert.True(result.AddressList.Length == 1);
             Assert.True(result.Aliases.Length == 0);
         }
