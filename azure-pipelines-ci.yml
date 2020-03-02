@@ -64,22 +64,11 @@ steps:
 #     noCache: true
 #     arguments: '--version-suffix beta-$(Build.BuildNumber)'
 
-- script: |
-    dotnet pack src\DnsClient\DnsClient.csproj 
-    --no-build 
-    --no-restore 
-    --version-suffix beta-$(Build.BuildNumber) 
-    -v normal 
-    -o $(Build.ArtifactStagingDirectory)\beta
+- script: 'dotnet pack src\DnsClient\DnsClient.csproj --no-build --no-restore --version-suffix beta-$(Build.BuildNumber) -v normal -o $(Build.ArtifactStagingDirectory)\beta'
   name: 'PackBeta'
   displayName: 'dotnet pack for beta'
 
-- script: |
-    dotnet pack src\DnsClient\DnsClient.csproj 
-    --no-build 
-    --no-restore 
-    -v normal 
-    -o $(Build.ArtifactStagingDirectory)\release
+- script: 'dotnet pack src\DnsClient\DnsClient.csproj --no-build --no-restore -v normal -o $(Build.ArtifactStagingDirectory)\release'
   name: 'PackRelease'
   displayName: 'dotnet pack for release'
 
