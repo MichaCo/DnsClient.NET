@@ -46,9 +46,9 @@ steps:
     includesymbols: false
     versioningScheme: 'off'
     verbosityPack: Minimal
-    packDirectory: '$(Build.ArtifactStagingDirectory)\beta'
+    packDirectory: '$(Build.ArtifactStagingDirectory)\release'
     configuration: '$(buildConfiguration)'
-    arguments: '--no-build --no-restore --version-suffix $(versionSuffix)'
+    arguments: '--no-build --no-restore'
 
 - task: DotNetCoreCLI@2
   inputs:
@@ -57,9 +57,9 @@ steps:
     includesymbols: false
     versioningScheme: 'off'
     verbosityPack: Minimal
-    packDirectory: '$(Build.ArtifactStagingDirectory)\release'
+    packDirectory: '$(Build.ArtifactStagingDirectory)\beta'
     configuration: '$(buildConfiguration)'
-    arguments: '--no-build --no-restore'
+    arguments: '--no-build --no-restore --version-suffix $(versionSuffix)'
 
 # - task: PublishBuildArtifacts@1
 #   inputs:
