@@ -3,72 +3,81 @@ name: '$(Date:yyyyMMdd)$(Rev:.r)'
 trigger:
 - dev
 
-pool:
-  vmImage: 'windows-latest'
+# pool:
+#   vmImage: 'windows-latest'
 
 variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
   versionSuffix: 'beta-$(Build.BuildNumber)'
 
-steps:
-# - task: DotNetCoreCLI@2
-#   inputs:
-#     command: 'restore'
-#     projects: '**/*.csproj'
-#     feedsToUse: 'select'
-#     verbosityRestore: Minimal
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    projects: |
-      src/**/*.csproj
-#      test/DnsClient.Tests/*.csproj
-    configuration: '$(buildConfiguration)'
-  name: 'Build'
-  displayName: 'dotnet build'
+jobs:
+- job: Linux
+  pool: 
+    vmImage: 'ubuntu-latest'
 
-# - task: DotNetCoreCLI@2
-#   inputs:
-#     command: 'build'
-#     projects: '**/*.csproj'
-#     arguments: '-c $(buildConfiguration) --no-restore'
+- job: Windows
+  pool:
+    vmImage: 'windows-latest'
 
-# - task: DotNetCoreCLI@2
-#   inputs:
-#     command: 'test'
-#     projects: 'test/DnsClient.Tests/*.csproj'
-#     publishTestResults: true
-#     arguments: '-c $(buildConfiguration) --no-build --no-restore'
-    
-# - task: DotNetCoreCLI@2
-#   inputs:
-#     command: 'pack'
-#     packagesToPack: 'src/DnsClient/*.csproj'
-#     includesymbols: false
-#     versioningScheme: 'off'
-#     verbosityPack: Minimal
-#     packDirectory: '$(Build.ArtifactStagingDirectory)\release'
-#     configuration: '$(buildConfiguration)'
-#   name: 'PackRelease'
+  steps:
+  # - task: DotNetCoreCLI@2
+  #   inputs:
+  #     command: 'restore'
+  #     projects: '**/*.csproj'
+  #     feedsToUse: 'select'
+  #     verbosityRestore: Minimal
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: |
+        src/**/*.csproj
+  #      test/DnsClient.Tests/*.csproj
+      configuration: '$(buildConfiguration)'
+    name: 'Build'
+    displayName: 'dotnet build'
 
-# - task: DotNetCoreCLI@2
-#   inputs:
-#     command: 'pack'
-#     packagesToPack: 'src/DnsClient/*.csproj'
-#     includesymbols: false
-#     versioningScheme: 'off'
-#     verbosityPack: Minimal
-#     packDirectory: '$(Build.ArtifactStagingDirectory)\beta'
-#     configuration: '$(buildConfiguration)'
-#     noCache: true
-#     arguments: '--version-suffix beta-$(Build.BuildNumber)'
+  # - task: DotNetCoreCLI@2
+  #   inputs:
+  #     command: 'build'
+  #     projects: '**/*.csproj'
+  #     arguments: '-c $(buildConfiguration) --no-restore'
 
-- script: 'dotnet pack src\DnsClient\DnsClient.csproj --no-build --no-restore --version-suffix $(versionSuffix) -v normal -o $(Build.ArtifactStagingDirectory)'
-  name: 'PackBeta'
-  displayName: 'dotnet pack for beta'
+  # - task: DotNetCoreCLI@2
+  #   inputs:
+  #     command: 'test'
+  #     projects: 'test/DnsClient.Tests/*.csproj'
+  #     publishTestResults: true
+  #     arguments: '-c $(buildConfiguration) --no-build --no-restore'
+      
+  # - task: DotNetCoreCLI@2
+  #   inputs:
+  #     command: 'pack'
+  #     packagesToPack: 'src/DnsClient/*.csproj'
+  #     includesymbols: false
+  #     versioningScheme: 'off'
+  #     verbosityPack: Minimal
+  #     packDirectory: '$(Build.ArtifactStagingDirectory)\release'
+  #     configuration: '$(buildConfiguration)'
+  #   name: 'PackRelease'
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
-    artifactName: 'beta'
+  # - task: DotNetCoreCLI@2
+  #   inputs:
+  #     command: 'pack'
+  #     packagesToPack: 'src/DnsClient/*.csproj'
+  #     includesymbols: false
+  #     versioningScheme: 'off'
+  #     verbosityPack: Minimal
+  #     packDirectory: '$(Build.ArtifactStagingDirectory)\beta'
+  #     configuration: '$(buildConfiguration)'
+  #     noCache: true
+  #     arguments: '--version-suffix beta-$(Build.BuildNumber)'
+
+  - script: 'dotnet pack src\DnsClient\DnsClient.csproj --no-build --no-restore --version-suffix $(versionSuffix) -v normal -o $(Build.ArtifactStagingDirectory)'
+    name: 'PackBeta'
+    displayName: 'dotnet pack for beta'
+
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
+      artifactName: 'beta'
