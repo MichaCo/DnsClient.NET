@@ -17,21 +17,21 @@ jobs:
   pool: 
     vmImage: 'ubuntu-latest'
   steps:
-  - task: DotNetCoreCLI@2
-    inputs:
-      command: 'build'
-      projects: |
-        src/**/*.csproj
-        test/DnsClient.Tests/*.csproj
-      arguments: '-c Release -f netstandard2.0'
-    name: 'Build'
-    displayName: 'dotnet build'
+  # - task: DotNetCoreCLI@2
+  #   inputs:
+  #     command: 'build'
+  #     projects: |
+  #       src/**/*.csproj
+  #       test/DnsClient.Tests/*.csproj
+  #     arguments: '-c Release -f netstandard2.0'
+  #   name: 'Build'
+  #   displayName: 'dotnet build'
   - task: DotNetCoreCLI@2
     inputs:
       command: 'test'
       projects: 'test/DnsClient.Tests/*.csproj'
       publishTestResults: true
-      arguments: '-c Release -f netstandard2.0 --no-build --no-restore'
+      arguments: '-c Release -f netcoreapp3.0'
 
 - job: Windows
   displayName: 'Build & Test on Windows'
