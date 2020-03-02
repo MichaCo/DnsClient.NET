@@ -23,16 +23,15 @@ steps:
   inputs:
     command: 'build'
     projects: '**/*.csproj'
-    configuration: '$(buildConfiguration)'
+    arguments: '-c $(buildConfiguration) --no-restore'
 
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
     projects: 'test/DnsClient.Tests/*.csproj'
     publishTestResults: true
-    configuration: '$(buildConfiguration)'
-    nobuild: true
-
+    arguments: '-c $(buildConfiguration) --no-build --no-restore'
+    
 - task: DotNetCoreCLI@2
   inputs:
     command: 'pack'
@@ -41,8 +40,7 @@ steps:
     versioningScheme: 'off'
     verbosityPack: Minimal
     configuration: '$(buildConfiguration)'
-    nobuild: true    
-    arguments: '--output $(Build.ArtifactStagingDirectory) /p:PackageVersion=$(version)'
+    arguments: '-c $(buildConfiguration) --no-build --no-restore --output $(Build.ArtifactStagingDirectory) /p:PackageVersion=$(version)'
 
 - task: PublishBuildArtifacts@1
   inputs:
