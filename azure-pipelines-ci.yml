@@ -23,7 +23,7 @@ steps:
     command: 'build'
     projects: |
       src/**/*.csproj
-      test/**/*.csproj
+      test/DnsClient.Tests/*.csproj
     configuration: '$(buildConfiguration)'
 
 # - task: DotNetCoreCLI@2
@@ -48,7 +48,7 @@ steps:
     verbosityPack: Minimal
     packDirectory: '$(Build.ArtifactStagingDirectory)\release'
     configuration: '$(buildConfiguration)'
-    arguments: '--no-build --no-restore'
+    arguments: '--no-build --no-restore  --version-suffix ""'
 
 - task: DotNetCoreCLI@2
   inputs:
