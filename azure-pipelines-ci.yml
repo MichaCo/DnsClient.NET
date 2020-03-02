@@ -72,13 +72,12 @@ steps:
   name: 'PackRelease'
   displayName: 'dotnet pack for release'
 
-# - task: PublishBuildArtifacts@1
-#   inputs:
-#     pathtoPublish: '$(Build.ArtifactStagingDirectory)/beta' 
-#     TargetPath: 
-#     artifactName: 'beta'
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/beta' 
+    artifactName: 'beta'
 
-# - task: PublishBuildArtifacts@1
-#   inputs:
-#     pathtoPublish: '$(Build.ArtifactStagingDirectory)/release' 
-#     artifactName: 'release'
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)/release' 
+    artifactName: 'release'
