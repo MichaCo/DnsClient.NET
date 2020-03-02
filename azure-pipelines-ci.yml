@@ -25,6 +25,8 @@ steps:
       src/**/*.csproj
 #      test/DnsClient.Tests/*.csproj
     configuration: '$(buildConfiguration)'
+  name: 'Build'
+  displayName: 'dotnet build'
 
 # - task: DotNetCoreCLI@2
 #   inputs:
@@ -39,15 +41,16 @@ steps:
 #     publishTestResults: true
 #     arguments: '-c $(buildConfiguration) --no-build --no-restore'
     
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'pack'
-    packagesToPack: 'src/DnsClient/*.csproj'
-    includesymbols: false
-    versioningScheme: 'off'
-    verbosityPack: Minimal
-    packDirectory: '$(Build.ArtifactStagingDirectory)\release'
-    configuration: '$(buildConfiguration)'
+# - task: DotNetCoreCLI@2
+#   inputs:
+#     command: 'pack'
+#     packagesToPack: 'src/DnsClient/*.csproj'
+#     includesymbols: false
+#     versioningScheme: 'off'
+#     verbosityPack: Minimal
+#     packDirectory: '$(Build.ArtifactStagingDirectory)\release'
+#     configuration: '$(buildConfiguration)'
+#   name: 'PackRelease'
 
 # - task: DotNetCoreCLI@2
 #   inputs:
@@ -61,7 +64,24 @@ steps:
 #     noCache: true
 #     arguments: '--version-suffix beta-$(Build.BuildNumber)'
 
-- script: 'dotnet pack --no-build --no-restore --version-suffix beta-$(Build.BuildNumber) -v normal -o $(Build.ArtifactStagingDirectory)\beta'
+- script: |
+    dotnet pack src\DnsClient\DnsClient.csproj 
+    --no-build 
+    --no-restore 
+    --version-suffix beta-$(Build.BuildNumber) 
+    -v normal 
+    -o $(Build.ArtifactStagingDirectory)\beta
+  name: 'PackBeta'
+  displayName: 'dotnet pack for beta'
+
+- script: |
+    dotnet pack src\DnsClient\DnsClient.csproj 
+    --no-build 
+    --no-restore 
+    -v normal 
+    -o $(Build.ArtifactStagingDirectory)\release
+  name: 'PackRelease'
+  displayName: 'dotnet pack for release'
 
 # - task: PublishBuildArtifacts@1
 #   inputs:
