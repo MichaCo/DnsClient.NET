@@ -12,18 +12,25 @@ variables:
   versionSuffix: 'beta-$(Build.BuildNumber)'
 
 steps:
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'restore'
-    projects: '**/*.csproj'
-    feedsToUse: 'select'
-    verbosityRestore: Minimal
-
+# - task: DotNetCoreCLI@2
+#   inputs:
+#     command: 'restore'
+#     projects: '**/*.csproj'
+#     feedsToUse: 'select'
+#     verbosityRestore: Minimal
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
-    projects: '**/*.csproj'
-    arguments: '-c $(buildConfiguration) --no-restore'
+    projects: |
+      src/**/*.csproj
+      test/**/*.csproj
+    configuration: '$(buildConfiguration)'
+
+# - task: DotNetCoreCLI@2
+#   inputs:
+#     command: 'build'
+#     projects: '**/*.csproj'
+#     arguments: '-c $(buildConfiguration) --no-restore'
 
 # - task: DotNetCoreCLI@2
 #   inputs:
@@ -50,8 +57,9 @@ steps:
     includesymbols: false
     versioningScheme: 'off'
     verbosityPack: Minimal
-    arguments: '-c $(buildConfiguration) --no-build --no-restore --output $(Build.ArtifactStagingDirectory)\release'
-
+    packDirectory: '$(Build.ArtifactStagingDirectory)\release'
+    configuration: '$(buildConfiguration)'
+    arguments: '--no-build --no-restore'
 
 # - task: PublishBuildArtifacts@1
 #   inputs:
