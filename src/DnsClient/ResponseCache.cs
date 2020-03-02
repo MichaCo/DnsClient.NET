@@ -20,6 +20,7 @@ namespace DnsClient
         private bool _cleanupRunning = false;
         private int _lastCleanup = 0;
         private TimeSpan? _minimumTimeout;
+        private TimeSpan? _maximumTimeout;
 
         public int Count => _cache.Count;
 
@@ -40,24 +41,36 @@ namespace DnsClient
             }
         }
 
-        public ResponseCache(bool enabled = true, TimeSpan? minimumTimout = null)
+        public TimeSpan? MaximumTimeout
+        {
+            get { return _maximumTimeout; }
+            set
+            {
+                if (value.HasValue &&
+                    (value < TimeSpan.Zero || value > s_maxTimeout) && value != s_infiniteTimeout)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _maximumTimeout = value;
+            }
+        }
+
+        public ResponseCache(bool enabled = true, TimeSpan? minimumTimout = null, TimeSpan? maximumTimeout = null)
         {
             Enabled = enabled;
             MinimumTimout = minimumTimout;
+            MaximumTimeout = maximumTimeout;
         }
 
-        public static string GetCacheKey(DnsQuestion question, NameServer server)
+        public static string GetCacheKey(DnsQuestion question)
         {
             if (question == null)
             {
                 throw new ArgumentNullException(nameof(question));
             }
-            if (server == null)
-            {
-                throw new ArgumentNullException(nameof(server));
-            }
 
-            return string.Concat(server.Address.ToString(), "#", server.Port.ToString(), "_", question.QueryName.Value, ":", (short)question.QuestionClass, ":", (short)question.QuestionType);
+            return string.Concat(question.QueryName.Value, ":", (short)question.QuestionClass, ":", (short)question.QuestionType);
         }
 
         public IDnsQueryResponse Get(string key)
@@ -93,7 +106,7 @@ namespace DnsClient
             if (key == null) throw new ArgumentNullException(key);
             if (Enabled && response != null && !response.HasError)
             {
-                var all = response.AllRecords;
+                var all = response.AllRecords.Where(p => !(p is Protocol.Options.OptRecord));
                 if (all.Any())
                 {
                     // in millis
@@ -105,7 +118,13 @@ namespace DnsClient
                     }
                     else if (MinimumTimout.HasValue && minTtl < MinimumTimout.Value.TotalMilliseconds)
                     {
-                        minTtl = (long)MinimumTimout.Value.TotalMilliseconds;
+                        minTtl = MinimumTimout.Value.TotalMilliseconds;
+                    }
+
+                    // max ttl check which can limit the upper boundary
+                    if (MaximumTimeout.HasValue && MaximumTimeout != Timeout.InfiniteTimeSpan && minTtl > MaximumTimeout.Value.TotalMilliseconds)
+                    {
+                        minTtl = MaximumTimeout.Value.TotalMilliseconds;
                     }
 
                     if (minTtl < 1d)

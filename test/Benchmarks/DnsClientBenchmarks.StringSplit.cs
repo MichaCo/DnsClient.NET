@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,19 +17,79 @@ namespace Benchmarks
             {
             }
 
-            [Benchmark(Baseline = true)]
+            //[Benchmark(Baseline = true)]
             public object Split()
             {
                 var x = SplitString(Source).ToArray();
                 return x;
             }
 
-            [Benchmark]
+            // [Benchmark]
             public object ManualSplit()
             {
                 var x = ManualSplitBytes(Source).ToArray();
                 return x;
             }
+
+#if NETCOREAPP2_1
+
+            [Benchmark]
+            public object ManualSplitMemoryT()
+            {
+                var sourceMem = Source.AsMemory();
+                var readTotal = 0;
+                var len = sourceMem.Length * 4;
+
+                Span<byte> mem = stackalloc byte[len];
+
+                //using (var mem = MemoryPool<byte>.Shared.Rent(len))
+                //{
+                var seq = new ReadOnlySequence<char>(sourceMem);
+
+                SequencePosition? pos = null;
+                while ((pos = seq.PositionOf(CharDot)) != null)
+                {
+                    var part = seq.Slice(seq.Start, pos.Value);
+                    seq = seq.Slice(seq.GetPosition(1, pos.Value));
+
+                    // Label memory.
+                    var slice = mem.Slice(readTotal);
+
+                    // Write label.
+                    var read = Encoding.UTF8.GetBytes(part.First.Span, slice.Slice(1));
+
+                    // Write label length prefix.
+                    slice[0] = (byte)read;
+                    readTotal += read + 1;
+                }
+
+                return readTotal;
+                //}
+            }
+
+            [Benchmark]
+            public object ManualSplitMemoryT2()
+            {
+                var sourceMem = Source.AsMemory();
+                Span<byte> inputMem = stackalloc byte[sourceMem.Length * 4];
+                Span<byte> outputMem = stackalloc byte[sourceMem.Length * 4];
+                var read = Encoding.UTF8.GetBytes(sourceMem.Span, inputMem);
+
+                int currentPos = 0;
+                int offset = 0;
+                while ((offset = inputMem.Slice(currentPos).IndexOf(Dot)) > -1)
+                {
+                    var label = inputMem.Slice(currentPos, offset);
+                    outputMem[currentPos++] = (byte)label.Length;
+                    label.CopyTo(outputMem.Slice(currentPos));
+                    currentPos += offset;
+                }
+
+                return read;
+                //}
+            }
+
+#endif
 
             public static IEnumerable<byte[]> SplitString(string input)
             {
@@ -38,7 +99,8 @@ namespace Benchmarks
                 }
             }
 
-            private const byte Dot = (byte)'.';
+            private const char CharDot = '.';
+            private const byte Dot = (byte)CharDot;
 
             public static IEnumerable<ArraySegment<byte>> ManualSplitBytes(string input)
             {

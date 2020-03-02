@@ -1,34 +1,66 @@
-# ASP.NET Core (.NET Framework)
-# Build and test ASP.NET Core projects targeting the full .NET Framework.
-# Add steps that publish symbols, save build artifacts, and more:
-# https://docs.microsoft.com/azure/devops/pipelines/languages/dotnet-core
+name: '$(Date:yyyyMMdd)$(Rev:.r)'
 
 trigger:
+- dev
 - master
 
-pool:
-  vmImage: 'windows-latest'
+# pool:
+#   vmImage: 'windows-latest'
 
 variables:
-  solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  versionSuffix: 'beta-$(Build.BuildNumber)'
 
-steps:
-- task: NuGetToolInstaller@1
+jobs:
+- job: 'Linux'
+  displayName: 'Build on Ubuntu'
+  pool: 
+    vmImage: 'ubuntu-latest'
+  steps:
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: |
+        src/**/*.csproj
+      arguments: '-c Release -f netstandard2.0'
+    name: 'Build'
+    displayName: 'build sources'
 
-- task: NuGetCommand@2
-  inputs:
-    restoreSolution: '$(solution)'
+  # TODO: re-work unit tests to run without unpredictable local DNS results or run bind on those build agents?
+  # - task: DotNetCoreCLI@2
+  #   inputs:
+  #     command: 'test'
+  #     projects: 'test/DnsClient.Tests/*.csproj'
+  #     publishTestResults: true
+  #     arguments: '-c Release -f netcoreapp3.0'
 
-- task: VSBuild@1
-  inputs:
-    solution: '$(solution)'
-    msbuildArgs: ''
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+- job: Windows
+  displayName: 'Build & Test on Windows'
+  pool:
+    vmImage: 'windows-latest'
 
-- task: VSTest@2
-  inputs:
-    platform: '$(buildPlatform)'
-    configuration: '$(buildConfiguration)'
+  steps:
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'build'
+      projects: |
+        src/**/*.csproj
+        test/DnsClient.Tests/*.csproj
+      arguments: '-c Release'
+    name: 'Build'
+    displayName: 'dotnet build'
+  - task: DotNetCoreCLI@2
+    inputs:
+      command: 'test'
+      projects: 'test/DnsClient.Tests/*.csproj'
+      publishTestResults: true
+      arguments: '-c Release --no-build --no-restore'
+
+  - script: 'dotnet pack src\DnsClient\DnsClient.csproj -c Release --no-build --no-restore --version-suffix $(versionSuffix) -v normal -o $(Build.ArtifactStagingDirectory)'
+    name: 'PackBeta'
+    displayName: 'dotnet pack for beta'
+  - task: PublishBuildArtifacts@1
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
+      artifactName: 'beta'

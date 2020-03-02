@@ -112,11 +112,13 @@ namespace DnsClient.Tests
             var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
+            var uniqueIps = new HashSet<IPAddress>();
             var messageHandler = new TestMessageHandler((ip, req) =>
             {
                 calledIps.Add(ip.Address);
+                uniqueIps.Add(ip.Address);
                 return new DnsResponseMessage(
-                    new DnsResponseHeader(1, (int)DnsResponseCode.NoError, 0, 0, 0, 0),
+                    new DnsResponseHeader(1, (int)DnsResponseCode.BadAlgorithm, 0, 0, 0, 0),
                     0);
             });
 
@@ -132,16 +134,11 @@ namespace DnsClient.Tests
                 var servers = lookup.Settings.ShuffleNameServers();
 
                 var result = lookup.ResolveQuery(servers, lookup.Settings, messageHandler, request);
-                Assert.False(result.HasError);
+                Assert.True(result.HasError);
             }
 
-            Assert.Equal(6, calledIps.Count);
-            Assert.Equal(IPAddress.Parse("127.0.0.1"), calledIps[0]);
-            Assert.Equal(IPAddress.Parse("127.0.0.2"), calledIps[1]);
-            Assert.Equal(IPAddress.Parse("127.0.0.3"), calledIps[2]);
-            Assert.Equal(IPAddress.Parse("127.0.0.1"), calledIps[3]);
-            Assert.Equal(IPAddress.Parse("127.0.0.2"), calledIps[4]);
-            Assert.Equal(IPAddress.Parse("127.0.0.3"), calledIps[5]);
+            Assert.Equal(18, calledIps.Count);
+            Assert.Equal(3, uniqueIps.Count);
         }
 
         [Fact]
@@ -163,7 +160,7 @@ namespace DnsClient.Tests
             {
                 calledIps.Add(ip.Address);
                 return new DnsResponseMessage(
-                    new DnsResponseHeader(1, (int)DnsResponseCode.NoError, 0, 0, 0, 0),
+                    new DnsResponseHeader(1, (int)DnsResponseCode.BadAlgorithm, 0, 0, 0, 0),
                     0);
             });
 
@@ -179,16 +176,10 @@ namespace DnsClient.Tests
                 var servers = lookup.Settings.ShuffleNameServers();
 
                 var result = await lookup.ResolveQueryAsync(servers, lookup.Settings, messageHandler, request);
-                Assert.False(result.HasError);
+                Assert.True(result.HasError);
             }
 
-            Assert.Equal(6, calledIps.Count);
-            Assert.Equal(IPAddress.Parse("127.0.0.1"), calledIps[0]);
-            Assert.Equal(IPAddress.Parse("127.0.0.2"), calledIps[1]);
-            Assert.Equal(IPAddress.Parse("127.0.0.3"), calledIps[2]);
-            Assert.Equal(IPAddress.Parse("127.0.0.1"), calledIps[3]);
-            Assert.Equal(IPAddress.Parse("127.0.0.2"), calledIps[4]);
-            Assert.Equal(IPAddress.Parse("127.0.0.3"), calledIps[5]);
+            Assert.Equal(18, calledIps.Count);
         }
 
         [Fact]
@@ -288,7 +279,8 @@ namespace DnsClient.Tests
                 EnableAuditTrail = true,
                 ContinueOnDnsError = true,
                 ThrowDnsErrors = true,
-                UseCache = false
+                UseCache = false,
+                UseRandomNameServer = false
             };
 
             var lookup = new LookupClient(options);
@@ -316,8 +308,7 @@ namespace DnsClient.Tests
                 new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             // all three servers have been called and we get the last exception thrown
-            var servers = lookup.Settings.ShuffleNameServers();
-            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(servers, lookup.Settings, messageHandler, request));
+            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.ResolveQuery(lookup.Settings.NameServers, lookup.Settings, messageHandler, request));
 
             // ensure the error is the one from the last call
             Assert.Equal(DnsResponseCode.FormatError, result.Code);
@@ -336,7 +327,8 @@ namespace DnsClient.Tests
             {
                 EnableAuditTrail = true,
                 ContinueOnDnsError = true,
-                ThrowDnsErrors = true
+                ThrowDnsErrors = true,
+                UseRandomNameServer = false
             };
 
             var lookup = new LookupClient(options);

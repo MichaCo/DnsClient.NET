@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using BenchmarkDotNet.Attributes;
@@ -13,12 +12,12 @@ namespace Benchmarks
             private static readonly Regex c_regex = new Regex("^[a-zA-Z0-9._-]+$", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant);
             public const string c_longValue = "a.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.thema.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.thema.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.them";
             public const string c_shortValue = "a.very.short.hostname";
-            
+
             private static bool IsHostNameChar(char c)
             {
                 return c == '-' || c == '.' || (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9');
             }
-            
+
             [Benchmark]
             public bool ForeachLongName()
             {

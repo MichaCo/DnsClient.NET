@@ -1,4 +1,5 @@
-﻿using System;
+﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+using System;
 using System.Net;
 
 namespace DnsClient.Protocol.Options
@@ -64,7 +65,7 @@ namespace DnsClient.Protocol.Options
     /// <summary>
     /// A options resource record.
     /// </summary>
-    internal class OptRecord : DnsResourceRecord
+    public class OptRecord : DnsResourceRecord
     {
         private const uint ResponseCodeMask = 0xff000000;
         private const int ResponseCodeShift = 20;
@@ -118,9 +119,12 @@ namespace DnsClient.Protocol.Options
             }
         }
 
-        public OptRecord(int size = 4096, int version = 0, int length = 0)
+        public byte[] Data { get; }
+
+        public OptRecord(int size = 4096, int version = 0, int length = 0, byte[] data = null)
             : base(new ResourceRecordInfo(DnsString.RootLabel, ResourceRecordType.OPT, (QueryClass)size, version, length))
         {
+            this.Data = data;
         }
 
         private protected override string RecordToString()
@@ -129,3 +133,4 @@ namespace DnsClient.Protocol.Options
         }
     }
 }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member

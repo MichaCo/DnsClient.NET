@@ -9,7 +9,7 @@
     <Product>DnsClient.NET</Product>
     <Description>DnsClient.NET is a simple yet very powerful and high performant open source library for the .NET Framework to do DNS lookups</Description>
 
-    <Copyright>Copyright (c) 2017 MichaConrad</Copyright>
+    <Copyright>Copyright (c) 2020 MichaConrad</Copyright>
     <Authors>MichaCo</Authors>
     <AssemblyName>DnsClient</AssemblyName>
 
@@ -20,17 +20,20 @@
     <PackageId>DnsClient</PackageId>
     <PackageTags>dns;client;stub;resolver;name;server;core;service;discovery</PackageTags>
 
-    <PackageIconUrl>http://dnsclient.michaco.net/favicon-196x196.png</PackageIconUrl>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>http://dnsclient.michaco.net</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/MichaCo/DnsClient.NET/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <WebPage>http://dnsclient.michaco.net</WebPage>
-
     <RepositoryType>git</RepositoryType>
     <RepositoryUrl>https://github.com/MichaCo/DnsClient.NET</RepositoryUrl>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\icon.png" Pack="true" PackagePath="" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Buffers" Version="4.4.0" />

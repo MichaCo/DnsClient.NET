@@ -60,13 +60,16 @@ namespace DnsClient
 
             DnsResponseMessage response = null;
 
-            while (response == null)
+            // Simple retry in case the pooled clients are
+            var tries = 0;
+            while (response == null && tries < 3)
             {
-                entry = await pool.GetNexClient().ConfigureAwait(false);
+                tries++;
+                entry = await pool.GetNextClient().ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
-                response = await QueryAsyncInternal(entry.Client, entry.Client.GetStream(), request, cancellationToken)
+                response = await QueryAsyncInternal(entry.Client, request, cancellationToken)
                     .ConfigureAwait(false);
 
                 if (response != null)
@@ -82,9 +85,12 @@ namespace DnsClient
             return response;
         }
 
-        private async Task<DnsResponseMessage> QueryAsyncInternal(TcpClient client, NetworkStream stream, DnsRequestMessage request, CancellationToken cancellationToken)
+        private async Task<DnsResponseMessage> QueryAsyncInternal(TcpClient client, DnsRequestMessage request, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            var stream = client.GetStream();
+
             // use a pooled buffer to writer the data + the length of the data later into the frist two bytes
             using (var memory = new PooledBytes(DnsDatagramWriter.BufferSize + 2))
             using (var writer = new DnsDatagramWriter(new ArraySegment<byte>(memory.Buffer, 2, memory.Buffer.Length - 2)))
@@ -110,30 +116,45 @@ namespace DnsClient
 
             do
             {
-                int length = 0;
+                int length;
                 try
                 {
-                    length = stream.ReadByte() << 8 | stream.ReadByte();
+                    //length = stream.ReadByte() << 8 | stream.ReadByte();
+                    using (var lengthBuffer = new PooledBytes(2))
+                    {
+                        int bytesReceived = 0, read;
+                        while ((bytesReceived += (read = await stream.ReadAsync(lengthBuffer.Buffer, bytesReceived, 2, cancellationToken).ConfigureAwait(false))) < 2)
+                        {
+                            if (read <= 0)
+                            {
+                                // disconnected, might retry
+                                return null;
+                            }
+                        }
+
+                        length = lengthBuffer.Buffer[0] << 8 | lengthBuffer.Buffer[1];
+                    }
                 }
                 catch (Exception ex) when (ex is IOException || ex is SocketException)
                 {
-                    break;
+                    return null;
                 }
 
                 if (length <= 0)
                 {
                     // server signals close/disconnecting
-                    break;
+                    return null;
                 }
 
                 using (var memory = new PooledBytes(length))
                 {
-                    int bytesReceived = 0;
+                    int bytesReceived = 0, read;
                     int readSize = length > 4096 ? 4096 : length;
 
-                    while (!cancellationToken.IsCancellationRequested && (bytesReceived += await stream.ReadAsync(memory.Buffer, bytesReceived, readSize).ConfigureAwait(false)) < length)
+                    while (!cancellationToken.IsCancellationRequested
+                        && (bytesReceived += (read = await stream.ReadAsync(memory.Buffer, bytesReceived, readSize, cancellationToken).ConfigureAwait(false))) < length)
                     {
-                        if (bytesReceived <= 0)
+                        if (read <= 0)
                         {
                             // disconnected
                             return null;
@@ -175,7 +196,7 @@ namespace DnsClient
                 _endpoint = endpoint;
             }
 
-            public async Task<ClientEntry> GetNexClient()
+            public async Task<ClientEntry> GetNextClient()
             {
                 if (disposedValue) throw new ObjectDisposedException(nameof(ClientPool));
 
@@ -184,14 +205,12 @@ namespace DnsClient
                 {
                     while (entry == null && !TryDequeue(out entry))
                     {
-                        ////Interlocked.Increment(ref StaticLog.CreatedClients);
                         entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily) { LingerState = new LingerOption(true, 0) }, _endpoint);
                         await entry.Client.ConnectAsync(_endpoint.Address, _endpoint.Port).ConfigureAwait(false);
                     }
                 }
                 else
                 {
-                    ////Interlocked.Increment(ref StaticLog.CreatedClients);
                     entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily), _endpoint);
                     await entry.Client.ConnectAsync(_endpoint.Address, _endpoint.Port).ConfigureAwait(false);
                 }

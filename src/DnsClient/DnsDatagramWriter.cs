@@ -41,7 +41,7 @@ namespace DnsClient
             _buffer = useBuffer;
         }
 
-        public void WriteHostName(string queryName)
+        public virtual void WriteHostName(string queryName)
         {
             var bytes = Encoding.UTF8.GetBytes(queryName);
             int lastOctet = 0;
@@ -66,35 +66,35 @@ namespace DnsClient
             WriteByte(0);
         }
 
-        public void WriteByte(byte b)
+        public virtual void WriteByte(byte b)
         {
             _buffer.Array[_buffer.Offset + Index++] = b;
         }
 
-        public void WriteBytes(byte[] data, int length) => WriteBytes(data, 0, length);
+        public virtual void WriteBytes(byte[] data, int length) => WriteBytes(data, 0, length);
 
-        public void WriteBytes(byte[] data, int dataOffset, int length)
+        public virtual void WriteBytes(byte[] data, int dataOffset, int length)
         {
             Buffer.BlockCopy(data, dataOffset, _buffer.Array, _buffer.Offset + Index, length);
 
             Index += length;
         }
 
-        public void WriteInt16NetworkOrder(short value)
+        public virtual void WriteInt16NetworkOrder(short value)
         {
             var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(value));
             WriteBytes(bytes, bytes.Length);
         }
 
-        public void WriteInt32NetworkOrder(int value)
+        public virtual void WriteInt32NetworkOrder(int value)
         {
             var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(value));
             WriteBytes(bytes, bytes.Length);
         }
 
-        public void WriteUInt16NetworkOrder(ushort value) => WriteInt16NetworkOrder((short)value);
+        public virtual void WriteUInt16NetworkOrder(ushort value) => WriteInt16NetworkOrder((short)value);
 
-        public void WriteUInt32NetworkOrder(uint value) => WriteInt32NetworkOrder((int)value);
+        public virtual void WriteUInt32NetworkOrder(uint value) => WriteInt32NetworkOrder((int)value);
 
         protected virtual void Dispose(bool disposing)
         {

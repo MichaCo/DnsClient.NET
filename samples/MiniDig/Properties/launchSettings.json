@@ -2,7 +2,7 @@
   "profiles": {
     "MiniDig": {
       "commandName": "Project",
-      "commandLineArgs": "google.com"
+      "commandLineArgs": "--cache -s localhost --tcp --maxttl 5 mcnet.com any "
     }
   }
 }

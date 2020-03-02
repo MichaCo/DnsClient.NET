@@ -158,7 +158,7 @@ namespace DnsClient
         public DnsResponseCode Code { get; }
 
         /// <summary>
-        /// Gets the audit trail if <see cref="ILookupClient.EnableAuditTrail"/>. as set to <c>true</c>, <c>null</c> otherwise.
+        /// Gets the audit trail if <see cref="DnsQueryOptions.EnableAuditTrail"/>. as set to <c>true</c>, <c>null</c> otherwise.
         /// </summary>
         /// <value>
         /// The audit trail.
@@ -174,7 +174,7 @@ namespace DnsClient
         public string DnsError { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DnsResponseException"/> class 
+        /// Initializes a new instance of the <see cref="DnsResponseException"/> class
         /// with <see cref="Code"/> set to <see cref="DnsResponseCode.Unassigned"/>.
         /// </summary>
         public DnsResponseException() : base(DnsResponseCodeText.Unassigned)
@@ -184,7 +184,7 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DnsResponseException"/> class 
+        /// Initializes a new instance of the <see cref="DnsResponseException"/> class
         /// with <see cref="Code"/> set to <see cref="DnsResponseCode.Unassigned"/>
         /// and a custom <paramref name="message"/>.
         /// </summary>
@@ -195,7 +195,7 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DnsResponseException"/> class 
+        /// Initializes a new instance of the <see cref="DnsResponseException"/> class
         /// with the standard error text for the given <paramref name="code"/>.
         /// </summary>
         public DnsResponseException(DnsResponseCode code) : base(DnsResponseCodeText.GetErrorText(code))
@@ -205,7 +205,7 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DnsResponseException"/> class 
+        /// Initializes a new instance of the <see cref="DnsResponseException"/> class
         /// with <see cref="Code"/> set to <see cref="DnsResponseCode.Unassigned"/>
         /// and a custom <paramref name="message"/> and inner <see cref="Exception"/>.
         /// </summary>
@@ -216,7 +216,7 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DnsResponseException"/> class 
+        /// Initializes a new instance of the <see cref="DnsResponseException"/> class
         /// with a custom <paramref name="message"/> and the given <paramref name="code"/>.
         /// </summary>
         public DnsResponseException(DnsResponseCode code, string message) : base(message)
@@ -226,7 +226,7 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="DnsResponseException"/> class 
+        /// Initializes a new instance of the <see cref="DnsResponseException"/> class
         /// with a custom <paramref name="message"/> and the given <paramref name="code"/>.
         /// </summary>
         public DnsResponseException(DnsResponseCode code, string message, Exception innerException) : base(message, innerException)

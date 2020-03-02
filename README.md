@@ -23,7 +23,7 @@ var address = record?.Address;
 
 ## Builds
 
-[![Build status](https://ci.appveyor.com/api/projects/status/y1nlxim8tkv7w3f4?svg=true)](https://ci.appveyor.com/project/MichaCo/dnsclient-net)
+[![Build Status](https://dev.azure.com/michaco/DnsClient/_apis/build/status/MichaCo.DnsClient.NET?branchName=dev)](https://dev.azure.com/michaco/DnsClient/_build/latest?definitionId=1&branchName=dev)
 
 Get it via NuGet https://www.nuget.org/packages/DnsClient/
 
