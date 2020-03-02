@@ -2,6 +2,7 @@ name: '$(Date:yyyyMMdd)$(Rev:.r)'
 
 trigger:
 - dev
+- master
 
 # pool:
 #   vmImage: 'windows-latest'
