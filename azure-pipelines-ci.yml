@@ -38,8 +38,8 @@ steps:
     packagesToPack: 'src/DnsClient/*.csproj'
     includesymbols: false
     versioningScheme: 'off'
-    verbosityPack: Minimal
-    arguments: '-c $(buildConfiguration) --no-build --no-restore --output $(Build.ArtifactStagingDirectory)/beta --version-suffix $(versionSuffix)'
+    verbosityPack: Minimal    
+    arguments: '-c $(buildConfiguration) --no-build --no-restore --output $(Build.ArtifactStagingDirectory)\beta --version-suffix $(versionSuffix)'
 
 - task: DotNetCoreCLI@2
   inputs:
@@ -48,11 +48,13 @@ steps:
     includesymbols: false
     versioningScheme: 'off'
     verbosityPack: Minimal
-    arguments: '-c $(buildConfiguration) --no-build --no-restore --output $(Build.ArtifactStagingDirectory)/release'
+    arguments: '-c $(buildConfiguration) --no-build --no-restore --output $(Build.ArtifactStagingDirectory)\release'
+
 
 - task: PublishBuildArtifacts@1
   inputs:
     pathtoPublish: '$(Build.ArtifactStagingDirectory)/beta' 
+    TargetPath: 
     artifactName: 'beta'
 
 - task: PublishBuildArtifacts@1
