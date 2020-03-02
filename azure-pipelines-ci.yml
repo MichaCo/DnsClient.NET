@@ -29,7 +29,7 @@ jobs:
       projects: |
         src/**/*.csproj
   #      test/DnsClient.Tests/*.csproj
-      configuration: Release
+      arguments: '-c Release'
     name: 'Build'
     displayName: 'dotnet build'
 
@@ -44,7 +44,7 @@ jobs:
       command: 'test'
       projects: 'test/DnsClient.Tests/*.csproj'
       publishTestResults: true
-      arguments: '-c $(buildConfiguration) --no-build --no-restore'
+      arguments: '-c Release --no-build --no-restore'
       
   # - task: DotNetCoreCLI@2
   #   inputs:
@@ -69,7 +69,7 @@ jobs:
   #     noCache: true
   #     arguments: '--version-suffix beta-$(Build.BuildNumber)'
 
-  - script: 'dotnet pack src\DnsClient\DnsClient.csproj -c $(buildConfiguration) --no-build --no-restore --version-suffix $(versionSuffix) -v normal -o $(Build.ArtifactStagingDirectory)'
+  - script: 'dotnet pack src\DnsClient\DnsClient.csproj -c Release --no-build --no-restore --version-suffix $(versionSuffix) -v normal -o $(Build.ArtifactStagingDirectory)'
     name: 'PackBeta'
     displayName: 'dotnet pack for beta'
 
