@@ -9,7 +9,7 @@ pool:
 variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  # versionSuffix: 'beta-$(Build.BuildNumber)'
+  versionSuffix: 'beta-$(Build.BuildNumber)'
 
 steps:
 # - task: DotNetCoreCLI@2
@@ -64,20 +64,11 @@ steps:
 #     noCache: true
 #     arguments: '--version-suffix beta-$(Build.BuildNumber)'
 
-- script: 'dotnet pack src\DnsClient\DnsClient.csproj --no-build --no-restore --version-suffix beta-$(Build.BuildNumber) -v normal -o $(Build.ArtifactStagingDirectory)\beta'
+- script: 'dotnet pack src\DnsClient\DnsClient.csproj --no-build --no-restore --version-suffix $(versionSuffix) -v normal -o $(Build.ArtifactStagingDirectory)'
   name: 'PackBeta'
   displayName: 'dotnet pack for beta'
 
-- script: 'dotnet pack src\DnsClient\DnsClient.csproj --no-build --no-restore -v normal -o $(Build.ArtifactStagingDirectory)\release'
-  name: 'PackRelease'
-  displayName: 'dotnet pack for release'
-
 - task: PublishBuildArtifacts@1
   inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)/beta' 
+    pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
     artifactName: 'beta'
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)/release' 
-    artifactName: 'release'
