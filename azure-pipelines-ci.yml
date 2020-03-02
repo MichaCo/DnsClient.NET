@@ -25,12 +25,12 @@ steps:
     projects: '**/*.csproj'
     arguments: '-c $(buildConfiguration) --no-restore'
 
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'test'
-    projects: 'test/DnsClient.Tests/*.csproj'
-    publishTestResults: true
-    arguments: '-c $(buildConfiguration) --no-build --no-restore'
+# - task: DotNetCoreCLI@2
+#   inputs:
+#     command: 'test'
+#     projects: 'test/DnsClient.Tests/*.csproj'
+#     publishTestResults: true
+#     arguments: '-c $(buildConfiguration) --no-build --no-restore'
     
 - task: DotNetCoreCLI@2
   inputs:
@@ -38,8 +38,10 @@ steps:
     packagesToPack: 'src/DnsClient/*.csproj'
     includesymbols: false
     versioningScheme: 'off'
-    verbosityPack: Minimal    
-    arguments: '-c $(buildConfiguration) --no-build --no-restore --output $(Build.ArtifactStagingDirectory)\beta --version-suffix $(versionSuffix)'
+    verbosityPack: Minimal
+    packDirectory: '$(Build.ArtifactStagingDirectory)\beta'
+    configuration: '$(buildConfiguration)'
+    arguments: '--no-build --no-restore --version-suffix $(versionSuffix)'
 
 - task: DotNetCoreCLI@2
   inputs:
@@ -51,13 +53,13 @@ steps:
     arguments: '-c $(buildConfiguration) --no-build --no-restore --output $(Build.ArtifactStagingDirectory)\release'
 
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)/beta' 
-    TargetPath: 
-    artifactName: 'beta'
+# - task: PublishBuildArtifacts@1
+#   inputs:
+#     pathtoPublish: '$(Build.ArtifactStagingDirectory)/beta' 
+#     TargetPath: 
+#     artifactName: 'beta'
 
-- task: PublishBuildArtifacts@1
-  inputs:
-    pathtoPublish: '$(Build.ArtifactStagingDirectory)/release' 
-    artifactName: 'release'
+# - task: PublishBuildArtifacts@1
+#   inputs:
+#     pathtoPublish: '$(Build.ArtifactStagingDirectory)/release' 
+#     artifactName: 'release'
