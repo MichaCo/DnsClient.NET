@@ -66,7 +66,7 @@ namespace DigApp
             Logger = loggerFactory.CreateLogger(GetType());
             App = app ?? throw new ArgumentNullException(nameof(app));
             OriginalArgs = originalArgs;
-            App.OnExecute(() => Execute().GetAwaiter().GetResult());
+            App.OnExecuteAsync((t) => Execute());
             Configure();
         }
 

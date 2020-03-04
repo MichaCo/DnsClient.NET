@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -114,8 +113,8 @@ namespace DigApp
                 Console.WriteLine($"; Servers: {string.Join(", ", lookup.NameServers)}");
 
                 var result = useQClass == 0 ?
-                    await lookup.QueryAsync(useDomain, useQType) :
-                    await lookup.QueryAsync(useDomain, useQType, useQClass);
+                    await lookup.QueryAsync(useDomain, useQType).ConfigureAwait(false) :
+                    await lookup.QueryAsync(useDomain, useQType, useQClass).ConfigureAwait(false);
 
                 Console.WriteLine(result.AuditTrail);
             }

@@ -2,7 +2,7 @@
   "profiles": {
     "MiniDig": {
       "commandName": "Project",
-      "commandLineArgs": "--cache -s localhost --tcp --maxttl 5 mcnet.com any "
+      "commandLineArgs": "dnsclient.michaco.net a"
     }
   }
 }

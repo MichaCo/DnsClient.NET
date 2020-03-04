@@ -1,34 +1,19 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
-using Serilog;
 
 namespace DigApp
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
+            Trace.Listeners.Add(new ConsoleTraceListener());
+
             var loggerFactory = new LoggerFactory();
-            //loggerFactory.AddConsole();
-
-            var logFilename = $"Log/dig.log";
-
-            try
-            {
-                if (File.Exists(logFilename))
-                {
-                    File.Delete(logFilename);
-                }
-            }
-            catch { }
-
-            loggerFactory.AddSerilog(new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .Filter.ByExcluding(e => e.Level < Serilog.Events.LogEventLevel.Information)
-                // .WriteTo.File(logFilename, shared: true)
-                .CreateLogger());
 
             var app = new CommandLineApplication(throwOnUnexpectedArg: true);
 
@@ -39,7 +24,7 @@ namespace DigApp
 
             try
             {
-                app.Execute(args);
+                await app.ExecuteAsync(args).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

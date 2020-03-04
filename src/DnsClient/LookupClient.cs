@@ -37,7 +37,6 @@ namespace DnsClient
     /// </example>
     public class LookupClient : ILookupClient, IDnsQuery
     {
-        private static int _uniqueId = 0;
         private readonly DnsMessageHandler _messageHandler;
         private readonly DnsMessageHandler _tcpFallbackHandler;
         private readonly Random _random = new Random();
@@ -1081,13 +1080,7 @@ namespace DnsClient
 
         private ushort GetNextUniqueId()
         {
-            if (_uniqueId == ushort.MaxValue || _uniqueId == 0)
-            {
-                Interlocked.Exchange(ref _uniqueId, _random.Next(ushort.MaxValue / 2));
-                return (ushort)_uniqueId;
-            }
-
-            return unchecked((ushort)Interlocked.Increment(ref _uniqueId));
+            return (ushort)_random.Next(1, ushort.MaxValue);
         }
     }
 
