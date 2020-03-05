@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DnsClient;
 using McMaster.Extensions.CommandLineUtils;
-using Microsoft.Extensions.Logging;
 
 namespace DigApp
 {
@@ -33,7 +32,7 @@ namespace DigApp
 
         public CommandOption SyncArg { get; private set; }
 
-        public PerfCommand(CommandLineApplication app, ILoggerFactory loggerFactory, string[] originalArgs) : base(app, loggerFactory, originalArgs)
+        public PerfCommand(CommandLineApplication app, string[] originalArgs) : base(app, originalArgs)
         {
         }
 
@@ -138,16 +137,10 @@ namespace DigApp
                         await Task.Delay(0);
                     }
 
-                    if (Logger.IsEnabled(LogLevel.Information))
-                    {
-                        Logger.LogInformation("Response received for {0} {1}", _query, response.Header);
-                    }
-
                     Interlocked.Increment(ref _allExcecutions);
                     Interlocked.Increment(ref _reportExcecutions);
                     if (response.HasError)
                     {
-                        Logger.LogWarning("Response has error.\n{0}", response.AuditTrail);
                         Interlocked.Increment(ref _errors);
                     }
                     else
@@ -158,7 +151,6 @@ namespace DigApp
                 catch (Exception ex)
                 {
                     Console.WriteLine(ex.Message);
-                    Logger.LogError(101, ex, "Error running query {0}.", _query);
                     Interlocked.Increment(ref _errors);
                 }
             }

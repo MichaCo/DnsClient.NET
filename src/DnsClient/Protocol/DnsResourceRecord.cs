@@ -38,8 +38,10 @@ namespace DnsClient.Protocol
         /// <returns>A string representing this instance.</returns>
         public virtual string ToString(int offset = 0)
         {
-            return string.Format("{0," + offset + "}{1} \t{2} \t{3} \t{4}",
+            var printTab = offset == 0 ? string.Empty : "\t";
+            return string.Format("{0," + offset + "} {1}{2} {1}{3} {1}{4} {1}{5}",
                 DomainName,
+                printTab,
                 TimeToLive,
                 RecordClass,
                 RecordType,

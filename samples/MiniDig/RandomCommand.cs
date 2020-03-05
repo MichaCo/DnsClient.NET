@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using DnsClient;
 using McMaster.Extensions.CommandLineUtils;
-using Microsoft.Extensions.Logging;
 
 namespace DigApp
 {
@@ -36,7 +35,7 @@ namespace DigApp
 
         public CommandOption SyncArg { get; private set; }
 
-        public RandomCommand(CommandLineApplication app, ILoggerFactory loggerFactory, string[] originalArgs) : base(app, loggerFactory, originalArgs)
+        public RandomCommand(CommandLineApplication app, string[] originalArgs) : base(app, originalArgs)
         {
         }
 
@@ -159,16 +158,10 @@ namespace DigApp
                         await Task.Delay(0);
                     }
 
-                    if (Logger.IsEnabled(LogLevel.Information))
-                    {
-                        Logger.LogInformation("Response received for {0} {1} {2}", query, response.Header, response.Answers.ARecords().FirstOrDefault());
-                    }
-
                     Interlocked.Increment(ref _allExcecutions);
                     Interlocked.Increment(ref _reportExcecutions);
                     if (response.HasError)
                     {
-                        Logger.LogWarning("Response has error.\n{0}", response.AuditTrail);
                         _errorsPerCode.AddOrUpdate(response.Header.ResponseCode.ToString(), 1, (c, v) => v + 1);
                         Interlocked.Increment(ref _errors);
                     }
@@ -180,13 +173,11 @@ namespace DigApp
                 catch (DnsResponseException ex)
                 {
                     _errorsPerCode.AddOrUpdate(ex.Code.ToString(), 1, (c, v) => v + 1);
-                    Logger.LogError(101, ex, "Error running query {0}.", query);
                     Interlocked.Increment(ref _errors);
                 }
                 catch (Exception ex)
                 {
                     _errorsPerCode.AddOrUpdate(ex.GetType().Name, 1, (c, v) => v + 1);
-                    Logger.LogError(101, ex, "Error running query {0}.", query);
                     Interlocked.Increment(ref _errors);
                 }
             }

@@ -5,7 +5,6 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using DnsClient;
 using McMaster.Extensions.CommandLineUtils;
-using Microsoft.Extensions.Logging;
 
 namespace DigApp
 {
@@ -35,7 +34,7 @@ namespace DigApp
 
         public CommandOption ReversArg { get; }
 
-        public DigCommand(CommandLineApplication app, ILoggerFactory loggerFactory, string[] originalArgs) : base(app, loggerFactory, originalArgs)
+        public DigCommand(CommandLineApplication app, string[] originalArgs) : base(app, originalArgs)
         {
             DomainArg = app.Argument("domain", "domain name", false);
             QTypeArg = app.Argument("q-type", "QType", false);
