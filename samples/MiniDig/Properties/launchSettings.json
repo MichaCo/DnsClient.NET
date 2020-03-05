@@ -2,7 +2,7 @@
   "profiles": {
     "MiniDig": {
       "commandName": "Project",
-      "commandLineArgs": "dnsclient.michaco.net a"
+      "commandLineArgs": "-s localhost mcnet.com any --time -1"
     }
   }
 }

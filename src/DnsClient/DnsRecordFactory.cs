@@ -100,7 +100,7 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.HINFO:
-                    result = new HInfoRecord(info, _reader.ReadString(), _reader.ReadString());
+                    result = new HInfoRecord(info, _reader.ReadStringWithLengthPrefix(), _reader.ReadStringWithLengthPrefix());
                     break;
 
                 case ResourceRecordType.MINFO:
@@ -155,10 +155,7 @@ namespace DnsClient
             }
 
             // sanity check
-            if (_reader.Index != oldIndex + info.RawDataLength)
-            {
-                throw new InvalidOperationException("Record reader index out of sync.");
-            }
+            _reader.SanitizeResult(oldIndex + info.RawDataLength, info.RawDataLength);
 
             return result;
         }
@@ -228,7 +225,6 @@ namespace DnsClient
             {
                 var length = _reader.ReadByte();
                 var bytes = _reader.ReadBytes(length);
-                var array = new ArraySegment<byte>(bytes.Array, bytes.Offset, length);
                 var escaped = DnsDatagramReader.ParseString(bytes);
                 var utf = DnsDatagramReader.ReadUTF8String(bytes);
                 values.Add(escaped);
@@ -250,7 +246,7 @@ namespace DnsClient
         private DnsResourceRecord ResolveCaaRecord(ResourceRecordInfo info)
         {
             var flag = _reader.ReadByte();
-            var tag = _reader.ReadString();
+            var tag = _reader.ReadStringWithLengthPrefix();
             var stringValue = DnsDatagramReader.ParseString(_reader, info.RawDataLength - 2 - tag.Length);
             return new CaaRecord(info, flag, tag, stringValue);
         }

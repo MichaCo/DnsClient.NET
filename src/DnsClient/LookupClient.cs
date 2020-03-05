@@ -879,6 +879,19 @@ namespace DnsClient
 
                         throw;
                     }
+                    catch (DnsResponseParseException ex)
+                    {
+                        // Response parsing can be retried on the same server...
+                        lastException = ex;
+                        this._logger.LogWarning(
+                            c_eventQueryRetryError,
+                            ex,
+                            "Error parsing the response. Re-trying {0}/{1}...",
+                            tries,
+                            settings.Retries + 1);
+
+                        continue;
+                    }
                     catch (SocketException ex) when (
                         ex.SocketErrorCode == SocketError.AddressFamilyNotSupported
                         || ex.SocketErrorCode == SocketError.ConnectionRefused
@@ -1169,6 +1182,19 @@ namespace DnsClient
                         }
 
                         throw;
+                    }
+                    catch (DnsResponseParseException ex)
+                    {
+                        // Response parsing can be retried on the same server...
+                        lastException = ex;
+                        this._logger.LogWarning(
+                            c_eventQueryRetryError,
+                            ex,
+                            "Error parsing the response. Re-trying {0}/{1}...",
+                            tries,
+                            settings.Retries + 1);
+
+                        continue;
                     }
                     catch (SocketException ex) when (
                         ex.SocketErrorCode == SocketError.AddressFamilyNotSupported
