@@ -196,13 +196,13 @@ namespace DnsClient
         /// </returns>
         public static IReadOnlyCollection<NameServer> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true)
         {
-            IReadOnlyCollection<NameServer> endPoints = new NameServer[0];
+            IReadOnlyCollection<IPAddress> endPoints = new IPAddress[0];
 
             List<Exception> exceptions = new List<Exception>();
 
             try
             {
-                endPoints = QueryNetworkInterfaces(skipIPv6SiteLocal);
+                endPoints = QueryNetworkInterfaces();
             }
             catch (Exception ex)
             {
@@ -224,7 +224,7 @@ namespace DnsClient
             }
 #endif
 
-            if (exceptions.Count > 0)
+            if (!fallbackToGooglePublicDns && exceptions.Count > 0)
             {
                 if (exceptions.Count > 1)
                 {
@@ -236,7 +236,13 @@ namespace DnsClient
                 }
             }
 
-            if (endPoints.Count == 0 && fallbackToGooglePublicDns)
+            var filtered = endPoints
+                .Where(p => (p.AddressFamily == AddressFamily.InterNetwork || p.AddressFamily == AddressFamily.InterNetworkV6)
+                    && (!p.IsIPv6SiteLocal || !skipIPv6SiteLocal))
+                .Select(p => new NameServer(p))
+                .ToArray();
+
+            if (filtered.Length == 0 && fallbackToGooglePublicDns)
             {
                 return new NameServer[]
                 {
@@ -247,7 +253,7 @@ namespace DnsClient
                 };
             }
 
-            return endPoints;
+            return filtered;
         }
 
 #if !NET45
@@ -263,7 +269,7 @@ namespace DnsClient
         /// <returns>
         /// The list of name servers.
         /// </returns>
-        public static IReadOnlyCollection<NameServer> ResolveNameServersNative()
+        public static IReadOnlyCollection<IPAddress> ResolveNameServersNative()
         {
             IPAddress[] addresses = null;
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -277,37 +283,42 @@ namespace DnsClient
                 addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(EtcResolvConfFile).ToArray();
             }
 
-            return addresses?.Select(p => new NameServer(p, DefaultPort)).ToArray();
+            ////Console.WriteLine($"{string.Join(",", addresses.Select(p => p.AddressFamily))} " +
+            ////    $"| ipV6LinkLocal: {string.Join(",", addresses.Select(p => p.IsIPv6LinkLocal))}" +
+            ////    $"| ipV6SiteLocal: {string.Join(",", addresses.Select(p => p.IsIPv6SiteLocal))}" +
+            ////    $"({string.Join(",", addresses.Select(p => p.ToString()))})");
+
+            return addresses;
         }
 
 #endif
 
-        private static NameServer[] QueryNetworkInterfaces(bool skipIPv6SiteLocal)
+        private static IReadOnlyCollection<IPAddress> QueryNetworkInterfaces()
         {
-            var result = new HashSet<NameServer>();
+            var result = new HashSet<IPAddress>();
 
             var adapters = NetworkInterface.GetAllNetworkInterfaces();
+
+            ////foreach (var adapter in adapters)
+            ////{
+            ////    Console.WriteLine($"{adapter.Name}: {adapter.OperationalStatus} {adapter.NetworkInterfaceType} ({string.Join(",", adapter.GetIPProperties().DnsAddresses)})");
+            ////}
+
             foreach (NetworkInterface networkInterface in
                 adapters
-                    .Where(p => p.OperationalStatus == OperationalStatus.Up
+                    .Where(p => (p.OperationalStatus == OperationalStatus.Up || p.OperationalStatus == OperationalStatus.Unknown)
                     && p.NetworkInterfaceType != NetworkInterfaceType.Loopback))
             {
+                ////Console.WriteLine($"{string.Join(",", networkInterface.GetIPProperties().DnsAddresses.Select(p => p.AddressFamily))} " +
+                ////    $"| ipV6LinkLocal: {string.Join(",", networkInterface.GetIPProperties().DnsAddresses.Select(p => p.IsIPv6LinkLocal))}" +
+                ////    $"| ipV6SiteLocal: {string.Join(",", networkInterface.GetIPProperties().DnsAddresses.Select(p => p.IsIPv6SiteLocal))}" +
+                ////    $"({string.Join(",", networkInterface.GetIPProperties().DnsAddresses)})");
+
                 foreach (IPAddress dnsAddress in networkInterface
                     .GetIPProperties()
-                    .DnsAddresses
-                    .Where(i =>
-                        i.AddressFamily == AddressFamily.InterNetwork
-                        || i.AddressFamily == AddressFamily.InterNetworkV6))
+                    .DnsAddresses)
                 {
-                    if (dnsAddress.AddressFamily == AddressFamily.InterNetworkV6)
-                    {
-                        if (skipIPv6SiteLocal && dnsAddress.IsIPv6SiteLocal)
-                        {
-                            continue;
-                        }
-                    }
-
-                    result.Add(new IPEndPoint(dnsAddress, DefaultPort));
+                    result.Add(dnsAddress);
                 }
             }
 

@@ -1,45 +1,27 @@
 ﻿using System;
-using System.IO;
+using System.Diagnostics;
+using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
-using Microsoft.Extensions.Logging;
-using Serilog;
 
 namespace DigApp
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
-            var loggerFactory = new LoggerFactory();
-            //loggerFactory.AddConsole();
-
-            var logFilename = $"Log/dig.log";
-
-            try
-            {
-                if (File.Exists(logFilename))
-                {
-                    File.Delete(logFilename);
-                }
-            }
-            catch { }
-
-            loggerFactory.AddSerilog(new LoggerConfiguration()
-                .Enrich.FromLogContext()
-                .Filter.ByExcluding(e => e.Level < Serilog.Events.LogEventLevel.Information)
-                // .WriteTo.File(logFilename, shared: true)
-                .CreateLogger());
+            DnsClient.Tracing.Source.Switch.Level = SourceLevels.Warning;
+            DnsClient.Tracing.Source.Listeners.Add(new ConsoleTraceListener());
 
             var app = new CommandLineApplication(throwOnUnexpectedArg: true);
 
-            app.Command("perf", (perfApp) => new PerfCommand(perfApp, loggerFactory, args), throwOnUnexpectedArg: true);
-            app.Command("random", (randApp) => new RandomCommand(randApp, loggerFactory, args), throwOnUnexpectedArg: true);
+            app.Command("perf", (perfApp) => new PerfCommand(perfApp, args), throwOnUnexpectedArg: true);
+            app.Command("random", (randApp) => new RandomCommand(randApp, args), throwOnUnexpectedArg: true);
 
-            var defaultCommand = new DigCommand(app, loggerFactory, args);
+            var defaultCommand = new DigCommand(app, args);
 
             try
             {
-                app.Execute(args);
+                await app.ExecuteAsync(args).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -47,4 +29,52 @@ namespace DigApp
             }
         }
     }
+
+    /* Example code to hook Microsoft.Extensions.Logging up with DnsClient */
+
+    ////var services = new ServiceCollection();
+    ////services.AddLogging(o =>
+    ////{
+    ////    o.AddConsole();
+    ////    o.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace);
+    ////});
+
+    ////var provider = services.BuildServiceProvider();
+    ////var factory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
+    ////DnsClient.Logging.LoggerFactory = new LoggerFactoryWrapper(factory);
+
+    ////internal class LoggerFactoryWrapper : DnsClient.Internal.ILoggerFactory
+    ////{
+    ////    private readonly Microsoft.Extensions.Logging.ILoggerFactory _microsoftLoggerFactory;
+
+    ////    public LoggerFactoryWrapper(Microsoft.Extensions.Logging.ILoggerFactory microsoftLoggerFactory)
+    ////    {
+    ////        _microsoftLoggerFactory = microsoftLoggerFactory ?? throw new ArgumentNullException(nameof(microsoftLoggerFactory));
+    ////    }
+
+    ////    public DnsClient.Internal.ILogger CreateLogger(string categoryName)
+    ////    {
+    ////        return new DnsLogger(_microsoftLoggerFactory.CreateLogger(categoryName));
+    ////    }
+
+    ////    private class DnsLogger : DnsClient.Internal.ILogger
+    ////    {
+    ////        private readonly Microsoft.Extensions.Logging.ILogger _logger;
+
+    ////        public DnsLogger(Microsoft.Extensions.Logging.ILogger logger)
+    ////        {
+    ////            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    ////        }
+
+    ////        public bool IsEnabled(DnsClient.Internal.LogLevel logLevel)
+    ////        {
+    ////            return _logger.IsEnabled((Microsoft.Extensions.Logging.LogLevel)logLevel);
+    ////        }
+
+    ////        public void Log(DnsClient.Internal.LogLevel logLevel, int eventId, Exception exception, string message, params object[] args)
+    ////        {
+    ////            _logger.Log((Microsoft.Extensions.Logging.LogLevel)logLevel, eventId, exception, message, args);
+    ////        }
+    ////    }
+    ////}
 }

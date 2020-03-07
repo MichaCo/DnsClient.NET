@@ -73,7 +73,8 @@ namespace DnsClient
         /// <returns>The string representation of this instance.</returns>
         public string ToString(int offset = -32)
         {
-            return string.Format("{0," + offset + "} \t{1} \t{2}", QueryName.Original, QuestionClass, QuestionType);
+            var printTab = offset == 0 ? string.Empty : "\t";
+            return string.Format("{0," + offset + "} {1}{2} {1}{3}", QueryName.Original, printTab, QuestionClass, QuestionType);
         }
     }
 }

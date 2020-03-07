@@ -22,9 +22,7 @@ namespace DnsClient.Tests
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.PTR, QueryClass.IN, 0, data.Length);
 
-            Action act = () => factory.GetRecord(info);
-
-            Assert.ThrowsAny<IndexOutOfRangeException>(act);
+            Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
         }
 
         [Fact]
@@ -75,9 +73,10 @@ namespace DnsClient.Tests
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("example.com", ResourceRecordType.A, QueryClass.IN, 0, data.Length);
 
-            Action act = () => factory.GetRecord(info);
-
-            Assert.ThrowsAny<IndexOutOfRangeException>(act);
+            var ex = Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
+            Assert.Contains("IPv4", ex.Message);
+            Assert.Equal(0, ex.Index);
+            Assert.Equal(4, ex.Length);
         }
 
         [Fact]
@@ -99,9 +98,10 @@ namespace DnsClient.Tests
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("example.com", ResourceRecordType.AAAA, QueryClass.IN, 0, data.Length);
 
-            Action act = () => factory.GetRecord(info);
-
-            Assert.ThrowsAny<IndexOutOfRangeException>(act);
+            var ex = Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
+            Assert.Contains("IPv6", ex.Message);
+            Assert.Equal(0, ex.Index);
+            Assert.Equal(16, ex.Length);
         }
 
         [Fact]
@@ -124,9 +124,8 @@ namespace DnsClient.Tests
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.NS, QueryClass.IN, 0, data.Length);
 
-            Action act = () => factory.GetRecord(info);
-
-            Assert.ThrowsAny<IndexOutOfRangeException>(act);
+            var ex = Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
+            Assert.Equal(0, ex.Index);
         }
 
         [Fact]
@@ -162,9 +161,7 @@ namespace DnsClient.Tests
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.MX, QueryClass.IN, 0, data.Length);
 
-            Action act = () => factory.GetRecord(info);
-
-            Assert.ThrowsAny<IndexOutOfRangeException>(act);
+            Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
         }
 
         [Fact]
@@ -174,9 +171,7 @@ namespace DnsClient.Tests
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.MX, QueryClass.IN, 0, data.Length);
 
-            Action act = () => factory.GetRecord(info);
-
-            Assert.ThrowsAny<IndexOutOfRangeException>(act);
+            Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
         }
 
         [Fact]
@@ -217,9 +212,7 @@ namespace DnsClient.Tests
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.SOA, QueryClass.IN, 0, data.Length);
 
-            Action act = () => factory.GetRecord(info);
-
-            Assert.ThrowsAny<IndexOutOfRangeException>(act);
+            Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
         }
 
         [Fact]
@@ -247,9 +240,7 @@ namespace DnsClient.Tests
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.SRV, QueryClass.IN, 0, data.Length);
 
-            Action act = () => factory.GetRecord(info);
-
-            Assert.ThrowsAny<IndexOutOfRangeException>(act);
+            Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
         }
 
         [Fact]
@@ -282,9 +273,7 @@ namespace DnsClient.Tests
             var factory = GetFactory(data.ToArray());
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.TXT, QueryClass.IN, 0, data.Count);
 
-            Action act = () => factory.GetRecord(info);
-
-            Assert.ThrowsAny<IndexOutOfRangeException>(act);
+            Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
         }
 
         [Fact]

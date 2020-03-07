@@ -649,7 +649,9 @@ namespace DnsClient
                 {
                     AddressList = addresses.ToArray(),
                     HostName = hostName,
-                    Port = entry.Port
+                    Port = entry.Port,
+                    Priority = entry.Priority,
+                    Weight = entry.Weight,
                 });
             }
 
@@ -667,8 +669,26 @@ namespace DnsClient
         /// Gets or sets the port.
         /// </summary>
         /// <value>
-        /// The port.
+        /// The port of this entry.
         /// </value>
         public int Port { get; set; }
+
+        /// <summary>
+        /// Gets or sets priortiy of the original <see cref="ResourceRecordType.SRV"/> record.
+        /// Might be zero if not provided.
+        /// </summary>
+        /// <value>
+        /// The priority of this entry.
+        /// </value>
+        public int Priority { get; set; }
+
+        /// <summary>
+        /// Gets or sets weight of the original <see cref="ResourceRecordType.SRV"/> record.
+        /// Might be zero if not provided.
+        /// </summary>
+        /// <value>
+        /// The weight of this entry.
+        /// </value>
+        public int Weight { get; set; }
     }
 }

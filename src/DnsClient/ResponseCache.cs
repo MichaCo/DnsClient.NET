@@ -104,7 +104,8 @@ namespace DnsClient
         public bool Add(string key, IDnsQueryResponse response)
         {
             if (key == null) throw new ArgumentNullException(key);
-            if (Enabled && response != null && !response.HasError)
+
+            if (Enabled && response != null && !response.HasError && response.Answers.Count > 0)
             {
                 var all = response.AllRecords.Where(p => !(p is Protocol.Options.OptRecord));
                 if (all.Any())

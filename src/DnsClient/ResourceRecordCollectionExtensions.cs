@@ -14,6 +14,16 @@ namespace System.Linq
         /// </summary>
         /// <param name="records">The records.</param>
         /// <returns>The list of <see cref="ARecord"/>.</returns>
+        public static IEnumerable<AddressRecord> AddressRecords(this IEnumerable<DnsResourceRecord> records)
+        {
+            return records.OfType<AddressRecord>();
+        }
+
+        /// <summary>
+        /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="ARecord"/>s only.
+        /// </summary>
+        /// <param name="records">The records.</param>
+        /// <returns>The list of <see cref="ARecord"/>.</returns>
         public static IEnumerable<ARecord> ARecords(this IEnumerable<DnsResourceRecord> records)
         {
             return records.OfType<ARecord>();

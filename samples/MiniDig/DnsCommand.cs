@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using DnsClient;
 using DnsClient.Protocol;
 using McMaster.Extensions.CommandLineUtils;
-using Microsoft.Extensions.Logging;
 
 namespace DigApp
 {
@@ -54,19 +52,11 @@ namespace DigApp
 
         public CommandOption NoTcpArg { get; set; }
 
-        public ILogger Logger { get; }
-
-        public DnsCommand(CommandLineApplication app, ILoggerFactory loggerFactory, string[] originalArgs)
+        public DnsCommand(CommandLineApplication app, string[] originalArgs)
         {
-            if (loggerFactory == null)
-            {
-                throw new ArgumentNullException(nameof(loggerFactory));
-            }
-
-            Logger = loggerFactory.CreateLogger(GetType());
             App = app ?? throw new ArgumentNullException(nameof(app));
             OriginalArgs = originalArgs;
-            App.OnExecute(() => Execute().GetAwaiter().GetResult());
+            App.OnExecuteAsync((t) => Execute());
             Configure();
         }
 
@@ -117,7 +107,7 @@ namespace DigApp
                 NameServers = GetEndpointsValue(),
                 Recursion = GetUseRecursionValue(),
                 Retries = GetTriesValue(),
-                Timeout = Timeout.InfiniteTimeSpan, // TimeSpan.FromMilliseconds(GetTimeoutValue()),
+                Timeout = TimeSpan.FromMilliseconds(GetTimeoutValue()),
                 MinimumCacheTimeout = GetMinimumTTL(),
                 UseCache = GetUseCache(),
                 UseTcpOnly = GetUseTcp(),
@@ -146,9 +136,9 @@ namespace DigApp
             return null;
         }
 
-        public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 5000;
+        public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 1000;
 
-        public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value()) : 10;
+        public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value()) : 5;
 
         public bool GetUseCache()
         {
