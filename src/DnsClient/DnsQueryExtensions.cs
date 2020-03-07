@@ -497,7 +497,6 @@ namespace DnsClient
         /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
         /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
-        [CLSCompliant(false)]
         public static ServiceHostEntry[] ResolveService(this IDnsQuery query, string baseDomain, string serviceName, ProtocolType protocol)
         {
             if (protocol == ProtocolType.Unspecified || protocol == ProtocolType.Unknown)
@@ -529,7 +528,6 @@ namespace DnsClient
         /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
         /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
-        [CLSCompliant(false)]
         public static Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, ProtocolType protocol)
         {
             if (protocol == ProtocolType.Unspecified || protocol == ProtocolType.Unknown)
@@ -558,7 +556,6 @@ namespace DnsClient
         /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
         /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
-        [CLSCompliant(false)]
         public static ServiceHostEntry[] ResolveService(this IDnsQuery query, string baseDomain, string serviceName, string tag = null)
         {
             if (query == null)
@@ -599,7 +596,6 @@ namespace DnsClient
         /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
         /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
-        [CLSCompliant(false)]
         public static async Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, string tag = null)
         {
             if (query == null)
@@ -654,7 +650,8 @@ namespace DnsClient
                     AddressList = addresses.ToArray(),
                     HostName = hostName,
                     Port = entry.Port,
-                    SrvRecord = entry
+                    Priority = entry.Priority,
+                    Weight = entry.Weight,
                 });
             }
 
@@ -666,22 +663,32 @@ namespace DnsClient
     /// Extends <see cref="IPHostEntry"/> by the <see cref="ServiceHostEntry.Port"/> property.
     /// </summary>
     /// <seealso cref="System.Net.IPHostEntry" />
-    [CLSCompliant(false)]
     public class ServiceHostEntry : IPHostEntry
     {
         /// <summary>
         /// Gets or sets the port.
         /// </summary>
         /// <value>
-        /// The port.
+        /// The port of this entry.
         /// </value>
         public int Port { get; set; }
 
         /// <summary>
-        /// Gets or sets the original `<see cref="ResourceRecordType.SRV"/> record
-        /// containing the <see cref="SrvRecord.Priority"/> and <see cref="SrvRecord.Weight"/>
-        /// which can be used to further sort/filter the results.
+        /// Gets or sets priortiy of the original <see cref="ResourceRecordType.SRV"/> record.
+        /// Might be zero if not provided.
         /// </summary>
-        public SrvRecord SrvRecord { get; set; }
+        /// <value>
+        /// The priority of this entry.
+        /// </value>
+        public int Priority { get; set; }
+
+        /// <summary>
+        /// Gets or sets weight of the original <see cref="ResourceRecordType.SRV"/> record.
+        /// Might be zero if not provided.
+        /// </summary>
+        /// <value>
+        /// The weight of this entry.
+        /// </value>
+        public int Weight { get; set; }
     }
 }
