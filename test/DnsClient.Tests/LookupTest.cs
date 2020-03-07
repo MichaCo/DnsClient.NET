@@ -4,6 +4,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
+using DnsClient.Protocol.Options;
 using Xunit;
 
 namespace DnsClient.Tests
@@ -11,6 +12,11 @@ namespace DnsClient.Tests
     public class LookupTest
     {
         private static readonly IPAddress DoesNotExist = IPAddress.Parse("192.0.21.43");
+
+        static LookupTest()
+        {
+            DnsClient.Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.Information;
+        }
 
         [Fact]
         public void Lookup_Query_QuestionCannotBeNull()
@@ -117,6 +123,33 @@ namespace DnsClient.Tests
             var result = dns.Query("big.basic.caatestsuite.com", QueryType.CAA);
 
             Assert.True(result.Answers.CaaRecords().Count() >= 1000);
+        }
+
+        [Fact]
+        public void Lookup_DisabledEdns_NoAdditionals()
+        {
+            var dns = new LookupClient(NameServer.GooglePublicDns);
+
+            var result = dns.Query("google.com", QueryType.A, queryOptions: new DnsQueryAndServerOptions()
+            {
+                RequestDnsSecRecords = false,
+                ExtendedDnsPayloadSize = 512
+            });
+
+            Assert.Empty(result.Additionals);
+        }
+
+        [Fact]
+        public void Lookup_EnabledEdns_DoFlag()
+        {
+            var dns = new LookupClient(NameServer.GooglePublicDns);
+
+            var result = dns.Query("google.com", QueryType.A, queryOptions: new DnsQueryAndServerOptions()
+            {
+                RequestDnsSecRecords = true
+            });
+
+            Assert.True(result.Additionals.OfType<OptRecord>().First().IsDnsSecOk);
         }
 
         [Fact]
@@ -738,7 +771,10 @@ namespace DnsClient.Tests
         [Fact]
         public void GetHostEntry_ByName_OneIp_ManyAliases()
         {
-            var client = new LookupClient();
+            var client = new LookupClient(new LookupClientOptions()
+            {
+                ThrowDnsErrors = true
+            });
 
             var result = client.GetHostEntry("dnsclient.michaco.net");
 

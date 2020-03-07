@@ -280,7 +280,8 @@ namespace DnsClient.Tests
                 ContinueOnDnsError = true,
                 ThrowDnsErrors = true,
                 UseCache = false,
-                UseRandomNameServer = false
+                UseRandomNameServer = false,
+                Retries = 1
             };
 
             var lookup = new LookupClient(options);
@@ -293,6 +294,7 @@ namespace DnsClient.Tests
                 if (ip.Address.Equals(IPAddress.Parse("127.0.0.3")))
                 {
                     // last one returns different result
+                    // FormatError gets retried now (1.3.0)
                     return new DnsResponseMessage(
                         new DnsResponseHeader(1, (int)DnsResponseCode.FormatError, 0, 0, 0, 0),
                         0);
@@ -313,8 +315,8 @@ namespace DnsClient.Tests
             // ensure the error is the one from the last call
             Assert.Equal(DnsResponseCode.FormatError, result.Code);
 
-            // ensuer all 3 configured servers were called before throwing the exception
-            Assert.Equal(3, calledIps.Count);
+            // ensuer all 3 configured servers were called before throwing the exception + 1 retry of FormatError
+            Assert.Equal(4, calledIps.Count);
         }
 
         [Fact]
@@ -328,7 +330,8 @@ namespace DnsClient.Tests
                 EnableAuditTrail = true,
                 ContinueOnDnsError = true,
                 ThrowDnsErrors = true,
-                UseRandomNameServer = false
+                UseRandomNameServer = false,
+                Retries = 1
             };
 
             var lookup = new LookupClient(options);
@@ -341,8 +344,9 @@ namespace DnsClient.Tests
                 if (ip.Address.Equals(IPAddress.Parse("127.0.0.3")))
                 {
                     // last one returns different result
+                    // ConnectionTimeout gets retried now (1.3.0)
                     return new DnsResponseMessage(
-                        new DnsResponseHeader(1, (int)DnsResponseCode.FormatError, 0, 0, 0, 0),
+                        new DnsResponseHeader(1, (int)DnsResponseCode.ConnectionTimeout, 0, 0, 0, 0),
                         0);
                 }
 
@@ -360,10 +364,10 @@ namespace DnsClient.Tests
             var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.ResolveQueryAsync(servers, lookup.Settings, messageHandler, request));
 
             // ensure the error is the one from the last call
-            Assert.Equal(DnsResponseCode.FormatError, result.Code);
+            Assert.Equal(DnsResponseCode.ConnectionTimeout, result.Code);
 
-            // ensuer all 3 configured servers were called before throwing the exception
-            Assert.Equal(3, calledIps.Count);
+            // ensuer all 3 configured servers were called before throwing the exception + 1 retry of FormatError
+            Assert.Equal(4, calledIps.Count);
         }
 
         [Fact]

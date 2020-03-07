@@ -9,25 +9,6 @@ using McMaster.Extensions.CommandLineUtils;
 
 namespace DigApp
 {
-    public class LookupSettings
-    {
-        public IPEndPoint[] Endpoints { get; set; }
-
-        public TimeSpan MinTTL { get; set; }
-
-        public bool NoTcp { get; set; }
-
-        public bool Recursion { get; set; }
-
-        public int Retries { get; set; }
-
-        public bool TcpOnly { get; set; }
-
-        public TimeSpan Timeout { get; set; }
-
-        public bool UseCache { get; set; }
-    }
-
     public abstract class DnsCommand
     {
         public CommandOption ConnectTimeoutArg { get; set; }
@@ -35,6 +16,10 @@ namespace DigApp
         public CommandOption MinimumTTLArg { get; set; }
 
         public CommandOption MaximumTTLArg { get; set; }
+
+        public CommandOption MaximumBufferSizeArg { get; set; }
+
+        public CommandOption RequestDnsSecRecordsArg { get; set; }
 
         public CommandOption NoRecurseArg { get; set; }
 
@@ -112,7 +97,9 @@ namespace DigApp
                 UseCache = GetUseCache(),
                 UseTcpOnly = GetUseTcp(),
                 UseTcpFallback = !GetNoTcp(),
-                MaximumCacheTimeout = GetMaximumTTL()
+                MaximumCacheTimeout = GetMaximumTTL(),
+                ExtendedDnsPayloadSize = GetMaximumBufferSize(),
+                RequestDnsSecRecords = GetRequestDnsSec()
             };
         }
 
@@ -135,6 +122,11 @@ namespace DigApp
 
             return null;
         }
+
+        public int GetMaximumBufferSize()
+            => MaximumBufferSizeArg.HasValue() ? int.Parse(MaximumBufferSizeArg.Value()) : DnsQueryOptions.MaximumPayloadSize;
+
+        public bool GetRequestDnsSec() => RequestDnsSecRecordsArg.HasValue();
 
         public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 1000;
 
@@ -192,6 +184,16 @@ namespace DigApp
                 "--maxttl",
                 "Maximum cache ttl.",
                 CommandOptionType.SingleValue);
+
+            MaximumBufferSizeArg = App.Option(
+                "--bufsize",
+                "Maximum EDNS buffer size.",
+                CommandOptionType.SingleValue);
+
+            RequestDnsSecRecordsArg = App.Option(
+                "--dnssec",
+                "Request DNS SEC records (do flag).",
+                CommandOptionType.NoValue);
 
             App.HelpOption("-? | -h | --help");
         }

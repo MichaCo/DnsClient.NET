@@ -38,6 +38,8 @@ namespace DnsClient.Protocol.Options
     2: | DO|                           Z                               |
        +---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+---+
 
+   DO flag => https://tools.ietf.org/html/rfc3225
+
    EXTENDED-RCODE
       Forms the upper 8 bits of extended 12-bit RCODE (together with the
       4 bits defined in [RFC1035].  Note that EXTENDED-RCODE value 0
@@ -121,10 +123,19 @@ namespace DnsClient.Protocol.Options
 
         public byte[] Data { get; }
 
-        public OptRecord(int size = 4096, int version = 0, int length = 0, byte[] data = null)
+        // used to initiate
+        public OptRecord(int size = 4096, int version = 0, bool doFlag = false, int length = 0, byte[] data = null)
             : base(new ResourceRecordInfo(DnsString.RootLabel, ResourceRecordType.OPT, (QueryClass)size, version, length))
         {
-            this.Data = data;
+            Data = data;
+            IsDnsSecOk = doFlag;
+        }
+
+        // returned record
+        public OptRecord(int size, int ttlFlag, int length, byte[] data)
+            : base(new ResourceRecordInfo(DnsString.RootLabel, ResourceRecordType.OPT, (QueryClass)size, ttlFlag, length))
+        {
+            Data = data;
         }
 
         private protected override string RecordToString()

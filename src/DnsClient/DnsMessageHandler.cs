@@ -43,32 +43,30 @@ namespace DnsClient
             writer.WriteInt16NetworkOrder(1);   // we support single question only... (as most DNS servers anyways).
             writer.WriteInt16NetworkOrder(0);
             writer.WriteInt16NetworkOrder(0);
-            writer.WriteInt16NetworkOrder(1); // one additional for the Opt record.
+
+            if (request.QuerySettings.UseExtendedDns)
+            {
+                writer.WriteInt16NetworkOrder(1); // one additional for the Opt record.
+            }
+            else
+            {
+                writer.WriteInt16NetworkOrder(0);
+            }
 
             writer.WriteHostName(question.QueryName);
             writer.WriteUInt16NetworkOrder((ushort)question.QuestionType);
             writer.WriteUInt16NetworkOrder((ushort)question.QuestionClass);
 
-            /*
-               +------------+--------------+------------------------------+
-               | Field Name | Field Type   | Description                  |
-               +------------+--------------+------------------------------+
-               | NAME       | domain name  | MUST be 0 (root domain)      |
-               | TYPE       | u_int16_t    | OPT (41)                     |
-               | CLASS      | u_int16_t    | requestor's UDP payload size |
-               | TTL        | u_int32_t    | extended RCODE and flags     |
-               | RDLEN      | u_int16_t    | length of all RDATA          |
-               | RDATA      | octet stream | {attribute,value} pairs      |
-               +------------+--------------+------------------------------+
-            * */
+            if (request.QuerySettings.UseExtendedDns)
+            {
+                var opt = new OptRecord(size: request.QuerySettings.ExtendedDnsPayloadSize, doFlag: request.QuerySettings.RequestDnsSecRecords);
 
-            var opt = new OptRecord();
-
-            writer.WriteHostName("");
-            writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
-            writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
-            writer.WriteUInt32NetworkOrder((ushort)opt.InitialTimeToLive);
-            writer.WriteUInt16NetworkOrder(0);
+                writer.WriteHostName("");
+                writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
+                writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
+                writer.WriteUInt32NetworkOrder((ushort)opt.InitialTimeToLive);
+                writer.WriteUInt16NetworkOrder(0);
+            }
         }
 
         public virtual DnsResponseMessage GetResponseMessage(ArraySegment<byte> responseData)

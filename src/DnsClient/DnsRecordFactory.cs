@@ -148,9 +148,7 @@ namespace DnsClient
                     break;
 
                 default:
-                    // update reader index because we don't read full data for the empty record
-                    _reader.Advance(info.RawDataLength);
-                    result = new EmptyRecord(info);
+                    result = new UnknownRecord(info, _reader.ReadBytes(info.RawDataLength).ToArray());
                     break;
             }
 
@@ -172,7 +170,7 @@ namespace DnsClient
         {
             // Consume bytes in case the OPT record has any.
             var bytes = _reader.ReadBytes(info.RawDataLength).ToArray();
-            return new OptRecord((int)info.RecordClass, info.InitialTimeToLive, info.RawDataLength, bytes);
+            return new OptRecord((int)info.RecordClass, ttlFlag: info.InitialTimeToLive, length: info.RawDataLength, data: bytes);
         }
 
         private DnsResourceRecord ResolveWksRecord(ResourceRecordInfo info)

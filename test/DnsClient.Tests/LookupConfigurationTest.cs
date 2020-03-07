@@ -28,6 +28,8 @@ namespace DnsClient.Tests
             Assert.False(options.UseTcpOnly);
             Assert.True(options.ContinueOnDnsError);
             Assert.True(options.UseRandomNameServer);
+            Assert.Equal(DnsQueryOptions.MaximumPayloadSize, options.ExtendedDnsPayloadSize);
+            Assert.False(options.RequestDnsSecRecords);
         }
 
         [Fact]
@@ -48,6 +50,8 @@ namespace DnsClient.Tests
             Assert.False(options.UseTcpOnly);
             Assert.True(options.ContinueOnDnsError);
             Assert.True(options.UseRandomNameServer);
+            Assert.Equal(DnsQueryOptions.MaximumPayloadSize, options.ExtendedDnsPayloadSize);
+            Assert.False(options.RequestDnsSecRecords);
         }
 
         [Fact]
@@ -68,7 +72,9 @@ namespace DnsClient.Tests
                 UseCache = !defaultOptions.UseCache,
                 UseRandomNameServer = !defaultOptions.UseRandomNameServer,
                 UseTcpFallback = !defaultOptions.UseTcpFallback,
-                UseTcpOnly = !defaultOptions.UseTcpOnly
+                UseTcpOnly = !defaultOptions.UseTcpOnly,
+                ExtendedDnsPayloadSize = 1234,
+                RequestDnsSecRecords = true
             };
 
             var client = new LookupClient(options);
@@ -86,8 +92,46 @@ namespace DnsClient.Tests
             Assert.Equal(!defaultOptions.UseRandomNameServer, client.Settings.UseRandomNameServer);
             Assert.Equal(!defaultOptions.UseTcpFallback, client.Settings.UseTcpFallback);
             Assert.Equal(!defaultOptions.UseTcpOnly, client.Settings.UseTcpOnly);
+            Assert.Equal(1234, client.Settings.ExtendedDnsPayloadSize);
+            Assert.Equal(!defaultOptions.RequestDnsSecRecords, client.Settings.RequestDnsSecRecords);
 
             Assert.Equal(options, client.Settings);
+        }
+
+        [Fact]
+        public void QueryOptions_EdnsDisabled_WithSmallPayload()
+        {
+            var options = (DnsQuerySettings)new DnsQueryOptions()
+            {
+                ExtendedDnsPayloadSize = DnsQueryOptions.MinimumPayloadSize,
+                RequestDnsSecRecords = false
+            };
+
+            Assert.False(options.UseExtendedDns);
+        }
+
+        [Fact]
+        public void QueryOptions_EdnsEnabled_ByLargePayload()
+        {
+            var options = (DnsQuerySettings)new DnsQueryOptions()
+            {
+                ExtendedDnsPayloadSize = DnsQueryOptions.MinimumPayloadSize + 1,
+                RequestDnsSecRecords = false
+            };
+
+            Assert.True(options.UseExtendedDns);
+        }
+
+        [Fact]
+        public void QueryOptions_EdnsEnabled_ByRequestDnsSec()
+        {
+            var options = (DnsQuerySettings)new DnsQueryOptions()
+            {
+                ExtendedDnsPayloadSize = DnsQueryOptions.MinimumPayloadSize,
+                RequestDnsSecRecords = true
+            };
+
+            Assert.True(options.UseExtendedDns);
         }
 
         [Fact]
@@ -246,7 +290,9 @@ namespace DnsClient.Tests
                 UseCache = !defaultOptions.UseCache,
                 UseRandomNameServer = !defaultOptions.UseRandomNameServer,
                 UseTcpFallback = !defaultOptions.UseTcpFallback,
-                UseTcpOnly = !defaultOptions.UseTcpOnly
+                UseTcpOnly = !defaultOptions.UseTcpOnly,
+                RequestDnsSecRecords = true,
+                ExtendedDnsPayloadSize = 3333
             };
 
             var result = test.Invoke(lookupClientOptions: defaultOptions, useOptions: queryOptions);

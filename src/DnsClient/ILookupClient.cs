@@ -65,6 +65,8 @@ namespace DnsClient
     /// </summary>
     public class DnsQueryOptions
     {
+        public const int MinimumPayloadSize = 512;
+        public const int MaximumPayloadSize = 4096;
         private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
@@ -207,6 +209,10 @@ namespace DnsClient
         /// </para>
         /// </summary>
         public bool UseTcpOnly { get; set; } = false;
+
+        public int ExtendedDnsPayloadSize { get; set; } = MaximumPayloadSize;
+
+        public bool RequestDnsSecRecords { get; set; } = false;
 
         /// <summary>
         /// Converts the query options into readonly settings.
@@ -590,6 +596,12 @@ namespace DnsClient
         /// </summary>
         public bool UseTcpOnly { get; }
 
+        public bool UseExtendedDns => ExtendedDnsPayloadSize > DnsQueryOptions.MinimumPayloadSize || RequestDnsSecRecords;
+
+        public int ExtendedDnsPayloadSize { get; }
+
+        public bool RequestDnsSecRecords { get; }
+
         /// <summary>
         /// Creates a new instance of <see cref="DnsQueryAndServerSettings"/>.
         /// </summary>
@@ -610,6 +622,8 @@ namespace DnsClient
             UseRandomNameServer = options.UseRandomNameServer;
             UseTcpFallback = options.UseTcpFallback;
             UseTcpOnly = options.UseTcpOnly;
+            ExtendedDnsPayloadSize = options.ExtendedDnsPayloadSize;
+            RequestDnsSecRecords = options.RequestDnsSecRecords;
         }
 
         /// <inheritdocs />
@@ -650,7 +664,9 @@ namespace DnsClient
                    ContinueOnDnsError == other.ContinueOnDnsError &&
                    Timeout.Equals(other.Timeout) &&
                    UseTcpFallback == other.UseTcpFallback &&
-                   UseTcpOnly == other.UseTcpOnly;
+                   UseTcpOnly == other.UseTcpOnly &&
+                   ExtendedDnsPayloadSize == other.ExtendedDnsPayloadSize &&
+                   RequestDnsSecRecords == other.RequestDnsSecRecords;
         }
     }
 

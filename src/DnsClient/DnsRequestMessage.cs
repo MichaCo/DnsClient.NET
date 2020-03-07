@@ -12,10 +12,13 @@ namespace DnsClient
 
         public DnsQuestion Question { get; }
 
-        public DnsRequestMessage(DnsRequestHeader header, DnsQuestion question)
+        public DnsQuerySettings QuerySettings { get; }
+
+        public DnsRequestMessage(DnsRequestHeader header, DnsQuestion question, DnsQuerySettings dnsQuerySettings = null)
         {
             Header = header ?? throw new ArgumentNullException(nameof(header));
             Question = question ?? throw new ArgumentNullException(nameof(question));
+            QuerySettings = dnsQuerySettings ?? new DnsQuerySettings(new DnsQueryOptions());
         }
     }
 }

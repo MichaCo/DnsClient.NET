@@ -669,7 +669,7 @@ namespace DnsClient
             }
 
             var head = new DnsRequestHeader(GetNextUniqueId(), settings.Recursion, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, question);
+            var request = new DnsRequestMessage(head, question, settings);
             var handler = settings.UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
 
             if (_logger.IsEnabled(LogLevel.Debug))
@@ -692,7 +692,7 @@ namespace DnsClient
             }
 
             var head = new DnsRequestHeader(GetNextUniqueId(), settings.Recursion, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, question);
+            var request = new DnsRequestMessage(head, question, settings);
             var handler = settings.UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
 
             if (_logger.IsEnabled(LogLevel.Debug))
@@ -784,7 +784,7 @@ namespace DnsClient
 
                             if (_logger.IsEnabled(LogLevel.Information))
                             {
-                                _logger.LogInformation(c_eventQueryTruncated, "Query {0} using UDP was truncated, re-trying with TCP.", request.Header.Id);
+                                _logger.LogInformation(c_eventQueryTruncated, "Query {0} => {1} using UDP was truncated, re-trying with TCP.", request.Header.Id, request.Question);
                             }
 
                             return ResolveQuery(new[] { serverInfo }, settings, _tcpFallbackHandler, request, audit);
@@ -853,6 +853,24 @@ namespace DnsClient
 
                         if (settings.ContinueOnDnsError)
                         {
+                            if (ex.Code == DnsResponseCode.ConnectionTimeout
+                                || ex.Code == DnsResponseCode.FormatError)
+                            {
+                                if (_logger.IsEnabled(LogLevel.Information))
+                                {
+                                    _logger.LogInformation(
+                                        c_eventQueryRetryError,
+                                        "Query {0} => {1} on {2} returned a response error. Re-trying {3}/{4}...",
+                                        request.Header.Id,
+                                        request.Question,
+                                        serverInfo,
+                                        tries,
+                                        settings.Retries + 1);
+                                }
+
+                                continue;
+                            }
+
                             if (_logger.IsEnabled(LogLevel.Information))
                             {
                                 _logger.LogInformation(
@@ -886,7 +904,9 @@ namespace DnsClient
                         this._logger.LogWarning(
                             c_eventQueryRetryError,
                             ex,
-                            "Error parsing the response. Re-trying {0}/{1}...",
+                            "Query {0} => {1} error parsing the response. Re-trying {0}/{1}...",
+                            request.Header.Id,
+                            request.Question,
                             tries,
                             settings.Retries + 1);
 
@@ -1088,7 +1108,7 @@ namespace DnsClient
 
                             if (_logger.IsEnabled(LogLevel.Information))
                             {
-                                _logger.LogInformation(c_eventQueryTruncated, "Query {0} using UDP was truncated, re-trying with TCP.", request.Header.Id);
+                                _logger.LogInformation(c_eventQueryTruncated, "Query {0} => {1} using UDP was truncated, re-trying with TCP.", request.Header.Id, request.Question);
                             }
 
                             return await ResolveQueryAsync(new[] { serverInfo }, settings, _tcpFallbackHandler, request, audit, cancellationToken).ConfigureAwait(false);
@@ -1157,6 +1177,24 @@ namespace DnsClient
 
                         if (settings.ContinueOnDnsError)
                         {
+                            if (ex.Code == DnsResponseCode.ConnectionTimeout
+                                || ex.Code == DnsResponseCode.FormatError)
+                            {
+                                if (_logger.IsEnabled(LogLevel.Information))
+                                {
+                                    _logger.LogInformation(
+                                        c_eventQueryRetryError,
+                                        "Query {0} => {1} on {2} returned a response error. Re-trying {3}/{4}...",
+                                        request.Header.Id,
+                                        request.Question,
+                                        serverInfo,
+                                        tries,
+                                        settings.Retries + 1);
+                                }
+
+                                continue;
+                            }
+
                             if (_logger.IsEnabled(LogLevel.Information))
                             {
                                 _logger.LogInformation(
@@ -1190,7 +1228,9 @@ namespace DnsClient
                         this._logger.LogWarning(
                             c_eventQueryRetryError,
                             ex,
-                            "Error parsing the response. Re-trying {0}/{1}...",
+                            "Query {0} => {1} error parsing the response. Re-trying {0}/{1}...",
+                            request.Header.Id,
+                            request.Question,
                             tries,
                             settings.Retries + 1);
 
@@ -1323,20 +1363,16 @@ namespace DnsClient
 
         private void HandleOptRecords(DnsQuerySettings settings, LookupClientAudit audit, NameServer serverInfo, DnsResponseMessage response)
         {
-            // The returned options are never used for anything and purely cosmetic at this point
-            // => let's iterate the results only if needed (if auditing is enabled).
-            if (settings.EnableAuditTrail)
+            // TODO: add logging about the opt record
+            var record = response.Additionals.OfRecordType(Protocol.ResourceRecordType.OPT).FirstOrDefault();
+
+            if (record != null && record is OptRecord optRecord)
             {
-                var record = response.Additionals.OfRecordType(Protocol.ResourceRecordType.OPT).FirstOrDefault();
+                audit?.AuditOptPseudo();
 
-                if (record != null && record is OptRecord optRecord)
-                {
-                    audit.AuditOptPseudo();
+                serverInfo.SupportedUdpPayloadSize = optRecord.UdpSize;
 
-                    serverInfo.SupportedUdpPayloadSize = optRecord.UdpSize;
-
-                    audit.AuditEdnsOpt(optRecord.UdpSize, optRecord.Version, optRecord.ResponseCodeEx);
-                }
+                audit?.AuditEdnsOpt(optRecord.UdpSize, optRecord.Version, optRecord.IsDnsSecOk, optRecord.ResponseCodeEx);
             }
         }
 
@@ -1348,7 +1384,6 @@ namespace DnsClient
 
     internal class LookupClientAudit
     {
-        private const string c_placeHolder = "$$REPLACEME$$";
         private static readonly int s_printOffset = -32;
         private StringBuilder _auditWriter = new StringBuilder();
         private Stopwatch _swatch;
@@ -1388,56 +1423,7 @@ namespace DnsClient
                 return string.Empty;
             }
 
-            var writer = new StringBuilder();
-
-            if (queryResponse != null)
-            {
-                if (queryResponse.Questions.Count > 0)
-                {
-                    writer.AppendLine(";; QUESTION SECTION:");
-                    foreach (var question in queryResponse.Questions)
-                    {
-                        writer.AppendLine(question.ToString(s_printOffset));
-                    }
-                    writer.AppendLine();
-                }
-
-                if (queryResponse.Answers.Count > 0)
-                {
-                    writer.AppendLine(";; ANSWER SECTION:");
-                    foreach (var answer in queryResponse.Answers)
-                    {
-                        writer.AppendLine(answer.ToString(s_printOffset));
-                    }
-                    writer.AppendLine();
-                }
-
-                if (queryResponse.Authorities.Count > 0)
-                {
-                    writer.AppendLine(";; AUTHORITIES SECTION:");
-                    foreach (var auth in queryResponse.Authorities)
-                    {
-                        writer.AppendLine(auth.ToString(s_printOffset));
-                    }
-                    writer.AppendLine();
-                }
-
-                var additionals = queryResponse.Additionals.Where(p => !(p is OptRecord)).ToArray();
-                if (additionals.Length > 0)
-                {
-                    writer.AppendLine(";; ADDITIONALS SECTION:");
-                    foreach (var additional in additionals)
-                    {
-                        writer.AppendLine(additional.ToString(s_printOffset));
-                    }
-                    writer.AppendLine();
-                }
-            }
-
-            var all = _auditWriter.ToString();
-            var dynamic = writer.ToString();
-
-            return all.Replace(c_placeHolder, dynamic);
+            return _auditWriter.ToString();
         }
 
         public void AuditTruncatedRetryTcp()
@@ -1487,7 +1473,7 @@ namespace DnsClient
             _auditWriter.AppendLine();
         }
 
-        public void AuditEdnsOpt(short udpSize, byte version, DnsResponseCode responseCodeEx)
+        public void AuditEdnsOpt(short udpSize, byte version, bool doFlag, DnsResponseCode responseCode)
         {
             if (!Settings.EnableAuditTrail)
             {
@@ -1495,17 +1481,17 @@ namespace DnsClient
             }
 
             // TODO: flags
-            _auditWriter.AppendLine($"; EDNS: version: {version}, flags:; udp: {udpSize}");
+            _auditWriter.AppendLine($"; EDNS: version: {version}, flags:{(doFlag ? " do" : string.Empty)}; udp: {udpSize}; code: {responseCode}");
         }
 
         public void AuditResponse()
         {
-            if (!Settings.EnableAuditTrail)
-            {
-                return;
-            }
+            ////    if (!Settings.EnableAuditTrail)
+            ////    {
+            ////        return;
+            ////    }
 
-            _auditWriter.AppendLine(c_placeHolder);
+            ////    _auditWriter.AppendLine(c_placeHolder);
         }
 
         public void AuditEnd(DnsResponseMessage queryResponse, NameServer nameServer)
@@ -1526,6 +1512,52 @@ namespace DnsClient
             }
 
             var elapsed = _swatch.ElapsedMilliseconds;
+
+            // TODO: find better way to print the actual ttl of cached values
+            if (queryResponse != null)
+            {
+                if (queryResponse.Questions.Count > 0)
+                {
+                    _auditWriter.AppendLine(";; QUESTION SECTION:");
+                    foreach (var question in queryResponse.Questions)
+                    {
+                        _auditWriter.AppendLine(question.ToString(s_printOffset));
+                    }
+                    _auditWriter.AppendLine();
+                }
+
+                if (queryResponse.Answers.Count > 0)
+                {
+                    _auditWriter.AppendLine(";; ANSWER SECTION:");
+                    foreach (var answer in queryResponse.Answers)
+                    {
+                        _auditWriter.AppendLine(answer.ToString(s_printOffset));
+                    }
+                    _auditWriter.AppendLine();
+                }
+
+                if (queryResponse.Authorities.Count > 0)
+                {
+                    _auditWriter.AppendLine(";; AUTHORITIES SECTION:");
+                    foreach (var auth in queryResponse.Authorities)
+                    {
+                        _auditWriter.AppendLine(auth.ToString(s_printOffset));
+                    }
+                    _auditWriter.AppendLine();
+                }
+
+                var additionals = queryResponse.Additionals.Where(p => !(p is OptRecord)).ToArray();
+                if (additionals.Length > 0)
+                {
+                    _auditWriter.AppendLine(";; ADDITIONALS SECTION:");
+                    foreach (var additional in additionals)
+                    {
+                        _auditWriter.AppendLine(additional.ToString(s_printOffset));
+                    }
+                    _auditWriter.AppendLine();
+                }
+            }
+
             _auditWriter.AppendLine($";; Query time: {elapsed} msec");
             _auditWriter.AppendLine($";; SERVER: {nameServer.Address}#{nameServer.Port}");
             _auditWriter.AppendLine($";; WHEN: {DateTime.UtcNow.ToString("ddd MMM dd HH:mm:ss K yyyy", CultureInfo.InvariantCulture)}");
