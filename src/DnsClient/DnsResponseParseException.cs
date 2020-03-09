@@ -11,7 +11,7 @@ namespace DnsClient
 
         public int Index { get; }
 
-        public int Length { get; }
+        public int ReadLength { get; }
 
         public DnsResponseParseException()
         {
@@ -32,7 +32,7 @@ namespace DnsClient
         {
             ResponseData = data ?? throw new ArgumentNullException(nameof(data));
             Index = index;
-            Length = length;
+            ReadLength = length;
         }
 
         private static readonly Func<int, int, int, string, string> DefaultMessage = (dataLength, index, length, message)

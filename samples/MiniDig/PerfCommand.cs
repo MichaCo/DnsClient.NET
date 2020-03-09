@@ -40,7 +40,7 @@ namespace DigApp
         {
             QueryArg = App.Argument("query", "the domain query to run.", false);
             ClientsArg = App.Option("-c | --clients", "Number of clients to run", CommandOptionType.SingleValue);
-            RuntimeArg = App.Option("-r | --runtime", "Time in seconds to run", CommandOptionType.SingleValue);
+            RuntimeArg = App.Option("-r | --run", "Time in seconds to run", CommandOptionType.SingleValue);
             SyncArg = App.Option("--sync", "Run synchronous api", CommandOptionType.NoValue);
             base.Configure();
         }

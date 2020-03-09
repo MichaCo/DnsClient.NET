@@ -7,6 +7,7 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class DnsMessageHandlerTest
     {
         // https://github.com/MichaCo/DnsClient.NET/issues/51

@@ -14,7 +14,6 @@ namespace DigApp
     public class RandomCommand : DnsCommand
     {
         private ConcurrentQueue<string> _domainNames;
-        private static readonly object _nameLock = new object();
         private static Random _randmom = new Random();
         private int _clients;
         private int _runtime;
@@ -55,7 +54,7 @@ namespace DigApp
         protected override void Configure()
         {
             ClientsArg = App.Option("-c | --clients", "Number of clients to run", CommandOptionType.SingleValue);
-            RuntimeArg = App.Option("-r | --runtime", "Time in seconds to run", CommandOptionType.SingleValue);
+            RuntimeArg = App.Option("-r | --run", "Time in seconds to run", CommandOptionType.SingleValue);
             SyncArg = App.Option("--sync", "Run synchronous api", CommandOptionType.NoValue);
             base.Configure();
         }
@@ -63,7 +62,7 @@ namespace DigApp
         protected override async Task<int> Execute()
         {
             var lines = File.ReadAllLines("names.txt");
-            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(',') + 1)));
+            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(',') + 1)).OrderBy(x => _randmom.Next(0, lines.Length * 2)));
 
             _clients = ClientsArg.HasValue() ? int.Parse(ClientsArg.Value()) : 10;
             _runtime = RuntimeArg.HasValue() ? int.Parse(RuntimeArg.Value()) <= 1 ? 5 : int.Parse(RuntimeArg.Value()) : 5;
@@ -71,6 +70,8 @@ namespace DigApp
 
             _settings = GetLookupSettings();
             _settings.EnableAuditTrail = true;
+            _settings.ThrowDnsErrors = true;
+            _settings.ContinueOnDnsError = false;
             _lookup = GetDnsLookup(_settings);
             _running = true;
 

@@ -160,7 +160,7 @@ namespace DnsClient
         /// </returns>
         public override string ToString()
         {
-            return $"{Address}:{Port} (Udp: {SupportedUdpPayloadSize ?? DnsQueryOptions.MinimumPayloadSize})";
+            return $"{Address}:{Port} (Udp: {SupportedUdpPayloadSize ?? DnsQueryOptions.MinimumBufferSize})";
         }
 
         /// <inheritdocs />

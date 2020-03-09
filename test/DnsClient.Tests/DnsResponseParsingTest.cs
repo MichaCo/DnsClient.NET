@@ -8,10 +8,11 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class DnsResponseParsingTest
     {
         private static readonly DnsRequestMessage _nullRequestMessage =
-            new DnsRequestMessage(new DnsRequestHeader(0, DnsOpCode.Query), new DnsQuestion("bla", QueryType.A, QueryClass.IN));
+            new DnsRequestMessage(new DnsRequestHeader(DnsOpCode.Query), new DnsQuestion("bla", QueryType.A, QueryClass.IN));
 
         private readonly LookupClient _client;
 

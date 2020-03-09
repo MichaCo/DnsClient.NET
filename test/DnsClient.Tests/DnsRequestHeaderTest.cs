@@ -3,14 +3,14 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class DnsRequestHeaderTest
     {
         [Fact]
         public void DnsRequestHeader_ValidateCtor1()
         {
-            var header = new DnsRequestHeader(23, DnsOpCode.Notify);
+            var header = new DnsRequestHeader(DnsOpCode.Notify);
 
-            Assert.Equal(23, header.Id);
             Assert.True(header.UseRecursion);
             Assert.Equal(DnsOpCode.Notify, header.OpCode);
         }
@@ -18,9 +18,8 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRequestHeader_ValidateCtor2()
         {
-            var header = new DnsRequestHeader(23, true, DnsOpCode.Notify);
+            var header = new DnsRequestHeader(true, DnsOpCode.Notify);
 
-            Assert.Equal(23, header.Id);
             Assert.True(header.UseRecursion);
             Assert.Equal(DnsOpCode.Notify, header.OpCode);
         }
@@ -28,7 +27,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRequestHeader_ChangeRecursion()
         {
-            var header = new DnsRequestHeader(23, true, DnsOpCode.Notify);
+            var header = new DnsRequestHeader(true, DnsOpCode.Notify);
 
             Assert.Equal(8448, header.RawFlags);
 
@@ -48,7 +47,6 @@ namespace DnsClient.Tests
             Assert.True(header.UseRecursion);
             Assert.Equal(8448, header.RawFlags);
 
-            Assert.Equal(23, header.Id);
             Assert.Equal(DnsOpCode.Notify, header.OpCode);
         }
     }

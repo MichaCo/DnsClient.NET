@@ -5,6 +5,7 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class PooledByteTest
     {
         [Fact]

@@ -65,12 +65,21 @@ namespace DnsClient
     /// </summary>
     public class DnsQueryOptions
     {
-        public const int MinimumPayloadSize = 512;
-        public const int MaximumPayloadSize = 4096;
+        /// <summary>
+        /// The minimum payload size. Anything equal or less than that will default back to this value and might disable EDNS.
+        /// </summary>
+        public const int MinimumBufferSize = 512;
+
+        /// <summary>
+        /// The maximum reasonable payload size.
+        /// </summary>
+        public const int MaximumBufferSize = 4096;
+
         private static readonly TimeSpan s_defaultTimeout = TimeSpan.FromSeconds(5);
         private static readonly TimeSpan s_infiniteTimeout = System.Threading.Timeout.InfiniteTimeSpan;
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
         private TimeSpan _timeout = s_defaultTimeout;
+        private int _ednsBufferSize = MaximumBufferSize;
 
         /// <summary>
         /// Gets or sets a flag indicating whether each <see cref="IDnsQueryResponse"/> will contain a full documentation of the response(s).
@@ -160,6 +169,9 @@ namespace DnsClient
         /// if no <see cref="DnsQueryAndServerOptions.NameServers"/> yield a valid result, the last response with the error will be returned.
         /// In case no server yields a valid result and <see cref="ThrowDnsErrors"/> is also enabled, an exception
         /// will be thrown containing the error of the last response.
+        /// <para>
+        /// If  <c>True</c> and <see cref="ThrowDnsErrors"/> is enabled, the exception will be thrown on first encounter without trying any other servers.
+        /// </para>
         /// </remarks>
         /// <seealso cref="ThrowDnsErrors"/>
         public bool ContinueOnDnsError { get; set; } = true;
@@ -210,8 +222,40 @@ namespace DnsClient
         /// </summary>
         public bool UseTcpOnly { get; set; } = false;
 
-        public int ExtendedDnsPayloadSize { get; set; } = MaximumPayloadSize;
+        /// <summary>
+        /// Gets or sets the maximum buffer used for UDP requests.
+        /// Defaults to <c>4096</c>.
+        /// <para>
+        /// If this value is less or equal to <c>512</c> bytes, EDNS might be disabled.
+        /// </para>
+        /// </summary>
+        public int ExtendedDnsBufferSize
+        {
+            get
+            {
+                return _ednsBufferSize;
+            }
+            set
+            {
+                if (value < MinimumBufferSize)
+                {
+                    _ednsBufferSize = MinimumBufferSize;
+                }
+                else if (value > MaximumBufferSize)
+                {
+                    _ednsBufferSize = MaximumBufferSize;
+                }
+                else
+                {
+                    _ednsBufferSize = value;
+                }
+            }
+        }
 
+        /// <summary>
+        /// Gets or sets a flag indicating whether EDNS should be enabled and the <c>DO</c> flag should be set.
+        /// Defaults to <c>False</c>.
+        /// </summary>
         public bool RequestDnsSecRecords { get; set; } = false;
 
         /// <summary>
@@ -244,32 +288,9 @@ namespace DnsClient
         /// <param name="resolveNameServers">If set to <c>true</c>, <see cref="NameServer.ResolveNameServers(bool, bool)"/>
         /// will be used to get a list of nameservers.</param>
         public DnsQueryAndServerOptions(bool resolveNameServers = false)
-            : this(resolveNameServers ? NameServer.ResolveNameServers() : null)
+            : this(resolveNameServers ? NameServer.ResolveNameServers()?.ToArray() : null)
         {
             AutoResolvedNameServers = resolveNameServers;
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="DnsQueryAndServerOptions"/> with one name server.
-        /// <see cref="IPAddress"/> or <see cref="IPEndPoint"/> can be used as well thanks to implicit conversion.
-        /// </summary>
-        /// <param name="nameServer">The name servers.</param>
-        public DnsQueryAndServerOptions(NameServer nameServer)
-            : this(new[] { nameServer })
-        {
-        }
-
-        /// <summary>
-        /// Creates a new instance of <see cref="DnsQueryAndServerOptions"/>.
-        /// </summary>
-        /// <param name="nameServers">A collection of name servers.</param>
-        public DnsQueryAndServerOptions(IReadOnlyCollection<NameServer> nameServers)
-            : base()
-        {
-            if (nameServers != null && nameServers.Count > 0)
-            {
-                NameServers = nameServers.ToList();
-            }
         }
 
         /// <summary>
@@ -351,16 +372,6 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="LookupClientOptions"/> with one name server.
-        /// <see cref="IPAddress"/> or <see cref="IPEndPoint"/> can be used as well thanks to implicit conversion.
-        /// </summary>
-        /// <param name="nameServer">The name servers.</param>
-        public LookupClientOptions(NameServer nameServer)
-            : base(nameServer)
-        {
-        }
-
-        /// <summary>
         /// Creates a new instance of <see cref="LookupClientOptions"/>.
         /// </summary>
         /// <param name="nameServers">A collection of name servers.</param>
@@ -388,25 +399,17 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Creates a new instance of <see cref="LookupClientOptions"/>.
-        /// </summary>
-        /// <param name="nameServers">A collection of name servers.</param>
-        public LookupClientOptions(IReadOnlyCollection<NameServer> nameServers)
-            : base(nameServers)
-        {
-        }
-
-        /// <summary>
         /// Gets or sets a <see cref="TimeSpan"/> which can override the TTL of a resource record in case the
         /// TTL of the record is lower than this minimum value.
         /// Default is <c>Null</c>.
         /// <para>
-        /// This is useful in cases where the server retruns records with zero TTL.
+        /// This is useful in case the server retruns records with zero TTL.
         /// </para>
         /// </summary>
         /// <remarks>
-        /// This setting gets igonred in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>.
-        /// The maximum value is 24 days or <see cref="Timeout.Infinite"/>.
+        /// This setting gets igonred in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>,
+        /// or the value is set to <c>Null</c> or <see cref="TimeSpan.Zero"/>.
+        /// The maximum value is 24 days or <see cref="Timeout.Infinite"/> (choose a wise setting).
         /// </remarks>
         public TimeSpan? MinimumCacheTimeout
         {
@@ -419,7 +422,14 @@ namespace DnsClient
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
 
-                _minimumCacheTimeout = value;
+                if (value == TimeSpan.Zero)
+                {
+                    _minimumCacheTimeout = null;
+                }
+                else
+                {
+                    _minimumCacheTimeout = value;
+                }
             }
         }
 
@@ -429,9 +439,9 @@ namespace DnsClient
         /// Default is <c>Null</c>.
         /// </summary>
         /// <remarks>
-        /// This setting gets igonred in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>.
-        /// The maximum value is 24 days.
-        /// Setting it to <see cref="Timeout.Infinite"/> would be equal to not providing a value.
+        /// This setting gets igonred in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>,
+        /// or the value is set to <c>Null</c>, <see cref="Timeout.Infinite"/> or <see cref="TimeSpan.Zero"/>.
+        /// The maximum value is 24 days (which shouldn't be used).
         /// </remarks>
         public TimeSpan? MaximumCacheTimeout
         {
@@ -444,7 +454,14 @@ namespace DnsClient
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
 
-                _maximumCacheTimeout = value;
+                if (value == TimeSpan.Zero)
+                {
+                    _maximumCacheTimeout = null;
+                }
+                else
+                {
+                    _maximumCacheTimeout = value;
+                }
             }
         }
 
@@ -558,6 +575,9 @@ namespace DnsClient
         /// if no <see cref="DnsQueryAndServerSettings.NameServers"/> yield a valid result, the last response with the error will be returned.
         /// In case no server yields a valid result and <see cref="ThrowDnsErrors"/> is also enabled, an exception
         /// will be thrown containing the error of the last response.
+        /// <para>
+        /// If  <c>True</c> and <see cref="ThrowDnsErrors"/> is enabled, the exception will be thrown on first encounter without trying any other servers.
+        /// </para>
         /// </remarks>
         /// <seealso cref="ThrowDnsErrors"/>
         public bool ContinueOnDnsError { get; }
@@ -596,10 +616,25 @@ namespace DnsClient
         /// </summary>
         public bool UseTcpOnly { get; }
 
-        public bool UseExtendedDns => ExtendedDnsPayloadSize > DnsQueryOptions.MinimumPayloadSize || RequestDnsSecRecords;
+        /// <summary>
+        /// Gets a flag indicating whether EDNS is enabled based on the values
+        /// of <see cref="ExtendedDnsBufferSize"/> and <see cref="RequestDnsSecRecords"/>.
+        /// </summary>
+        public bool UseExtendedDns => ExtendedDnsBufferSize > DnsQueryOptions.MinimumBufferSize || RequestDnsSecRecords;
 
-        public int ExtendedDnsPayloadSize { get; }
+        /// <summary>
+        /// Gets the maximum buffer used for UDP requests.
+        /// Defaults to <c>4096</c>.
+        /// <para>
+        /// If this value is less or equal to <c>512</c> bytes, EDNS might be disabled.
+        /// </para>
+        /// </summary>
+        public int ExtendedDnsBufferSize { get; }
 
+        /// <summary>
+        /// Gets a flag indicating whether EDNS should be enabled and the <c>DO</c> flag should be set.
+        /// Defaults to <c>False</c>.
+        /// </summary>
         public bool RequestDnsSecRecords { get; }
 
         /// <summary>
@@ -622,7 +657,7 @@ namespace DnsClient
             UseRandomNameServer = options.UseRandomNameServer;
             UseTcpFallback = options.UseTcpFallback;
             UseTcpOnly = options.UseTcpOnly;
-            ExtendedDnsPayloadSize = options.ExtendedDnsPayloadSize;
+            ExtendedDnsBufferSize = options.ExtendedDnsBufferSize;
             RequestDnsSecRecords = options.RequestDnsSecRecords;
         }
 
@@ -665,7 +700,7 @@ namespace DnsClient
                    Timeout.Equals(other.Timeout) &&
                    UseTcpFallback == other.UseTcpFallback &&
                    UseTcpOnly == other.UseTcpOnly &&
-                   ExtendedDnsPayloadSize == other.ExtendedDnsPayloadSize &&
+                   ExtendedDnsBufferSize == other.ExtendedDnsBufferSize &&
                    RequestDnsSecRecords == other.RequestDnsSecRecords;
         }
     }
@@ -681,7 +716,7 @@ namespace DnsClient
         /// <summary>
         /// Gets a collection of name servers which should be used to query.
         /// </summary>
-        public IReadOnlyCollection<NameServer> NameServers => _endpoints;
+        public IReadOnlyList<NameServer> NameServers => _endpoints;
 
         /// <summary>
         /// Gets a flag indicating whether the name server collection was manually defined or automatically resolved
@@ -747,7 +782,7 @@ namespace DnsClient
                    && base.Equals(other);
         }
 
-        internal IReadOnlyCollection<NameServer> ShuffleNameServers()
+        internal IReadOnlyList<NameServer> ShuffleNameServers()
         {
             if (_endpoints.Length > 1 && UseRandomNameServer)
             {
@@ -763,10 +798,8 @@ namespace DnsClient
 
                 return servers;
             }
-            else
-            {
-                return NameServers;
-            }
+
+            return NameServers;
         }
     }
 
@@ -862,7 +895,7 @@ namespace DnsClient
             bool? useTcpOnly = null)
         {
             // auto resolved flag might get lost here. But this stuff gets deleted anyways.
-            return new LookupClientOptions(nameServers)
+            return new LookupClientOptions(nameServers?.ToArray())
             {
                 MinimumCacheTimeout = minimumCacheTimeout,
                 MaximumCacheTimeout = maximumCacheTimeout,

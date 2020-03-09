@@ -9,9 +9,10 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class LookupTest
     {
-        private static readonly IPAddress DoesNotExist = IPAddress.Parse("192.0.21.43");
+        private static readonly IPAddress DoesNotExist = IPAddress.Parse("192.168.21.43");
 
         static LookupTest()
         {
@@ -27,12 +28,16 @@ namespace DnsClient.Tests
             Assert.ThrowsAsync<ArgumentNullException>("question", () => client.QueryAsync(null));
         }
 
+#if !NET461
+
         [Fact]
         public void NativeDnsServerResolution()
         {
             var ex = Record.Exception(() => NameServer.ResolveNameServersNative());
             Assert.Null(ex);
         }
+
+#endif
 
         [Fact]
         public async Task Lookup_GetHostAddresses_Local()
@@ -133,7 +138,7 @@ namespace DnsClient.Tests
             var result = dns.Query("google.com", QueryType.A, queryOptions: new DnsQueryAndServerOptions()
             {
                 RequestDnsSecRecords = false,
-                ExtendedDnsPayloadSize = 512
+                ExtendedDnsBufferSize = 512
             });
 
             Assert.Empty(result.Additionals);
@@ -322,12 +327,11 @@ namespace DnsClient.Tests
                         UseTcpFallback = false
                     });
 
-                var exe = await Record.ExceptionAsync(() => client.QueryAsync("lala.com", QueryType.A));
+                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A));
 
-                var ex = exe as DnsResponseException;
                 Assert.NotNull(ex);
                 Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
-                Assert.Contains("No connection", ex.Message);
+                Assert.Contains("timed out", ex.Message);
             }
 
             [Fact]
@@ -365,7 +369,7 @@ namespace DnsClient.Tests
                 var ex = exe as DnsResponseException;
                 Assert.NotNull(ex);
                 Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
-                Assert.Contains("No connection", ex.Message);
+                Assert.Contains("timed out", ex.Message);
             }
 
             [Fact]

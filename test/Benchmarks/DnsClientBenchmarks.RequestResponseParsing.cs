@@ -13,7 +13,7 @@ namespace Benchmarks
         public class RequestResponseParsing
         {
             private static readonly DnsRequestMessage _request = new DnsRequestMessage(
-                   new DnsRequestHeader(123, DnsOpCode.Query),
+                   new DnsRequestHeader(DnsOpCode.Query),
                    new DnsQuestion("google.com", QueryType.ANY, QueryClass.IN));
 
             private static readonly BenchmarkMessageHandler _handler = new BenchmarkMessageHandler();

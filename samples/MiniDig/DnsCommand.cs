@@ -98,7 +98,7 @@ namespace DigApp
                 UseTcpOnly = GetUseTcp(),
                 UseTcpFallback = !GetNoTcp(),
                 MaximumCacheTimeout = GetMaximumTTL(),
-                ExtendedDnsPayloadSize = GetMaximumBufferSize(),
+                ExtendedDnsBufferSize = GetMaximumBufferSize(),
                 RequestDnsSecRecords = GetRequestDnsSec()
             };
         }
@@ -124,7 +124,7 @@ namespace DigApp
         }
 
         public int GetMaximumBufferSize()
-            => MaximumBufferSizeArg.HasValue() ? int.Parse(MaximumBufferSizeArg.Value()) : DnsQueryOptions.MaximumPayloadSize;
+            => MaximumBufferSizeArg.HasValue() ? int.Parse(MaximumBufferSizeArg.Value()) : DnsQueryOptions.MaximumBufferSize;
 
         public bool GetRequestDnsSec() => RequestDnsSecRecordsArg.HasValue();
 
@@ -195,7 +195,7 @@ namespace DigApp
                 "Request DNS SEC records (do flag).",
                 CommandOptionType.NoValue);
 
-            App.HelpOption("-? | -h | --help");
+            App.HelpOption("-? | -h | --help | --helpme");
         }
 
         protected abstract Task<int> Execute();

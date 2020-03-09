@@ -115,6 +115,7 @@ namespace DnsClient
 
                     if (MinimumTimout == Timeout.InfiniteTimeSpan)
                     {
+                        // TODO: Log warning once?
                         minTtl = s_maxTimeout.TotalMilliseconds;
                     }
                     else if (MinimumTimout.HasValue && minTtl < MinimumTimout.Value.TotalMilliseconds)

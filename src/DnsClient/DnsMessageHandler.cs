@@ -59,7 +59,7 @@ namespace DnsClient
 
             if (request.QuerySettings.UseExtendedDns)
             {
-                var opt = new OptRecord(size: request.QuerySettings.ExtendedDnsPayloadSize, doFlag: request.QuerySettings.RequestDnsSecRecords);
+                var opt = new OptRecord(size: request.QuerySettings.ExtendedDnsBufferSize, doFlag: request.QuerySettings.RequestDnsSecRecords);
 
                 writer.WriteHostName("");
                 writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
