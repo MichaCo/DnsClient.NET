@@ -862,8 +862,8 @@ namespace DnsClient.Tests
         {
             public TestClient(LookupClientOptions options)
             {
-                UdpHandler = new ConfigurationTrackingMessageHandler(false);
-                TcpHandler = new ConfigurationTrackingMessageHandler(true);
+                UdpHandler = new ConfigurationTrackingMessageHandler();
+                TcpHandler = new ConfigurationTrackingMessageHandler(DnsMessageHandleType.TCP);
                 Client = new LookupClient(options, UdpHandler, TcpHandler);
             }
 
@@ -882,22 +882,18 @@ namespace DnsClient.Tests
                95, 207, 129, 128, 0, 1, 0, 11, 0, 0, 0, 1, 6, 103, 111, 111, 103, 108, 101, 3, 99, 111, 109, 0, 0, 255, 0, 1, 192, 12, 0, 1, 0, 1, 0, 0, 1, 8, 0, 4, 172, 217, 17, 238, 192, 12, 0, 28, 0, 1, 0, 0, 0, 71, 0, 16, 42, 0, 20, 80, 64, 22, 8, 13, 0, 0, 0, 0, 0, 0, 32, 14, 192, 12, 0, 15, 0, 1, 0, 0, 2, 30, 0, 17, 0, 50, 4, 97, 108, 116, 52, 5, 97, 115, 112, 109, 120, 1, 108, 192, 12, 192, 12, 0, 15, 0, 1, 0, 0, 2, 30, 0, 4, 0, 10, 192, 91, 192, 12, 0, 15, 0, 1, 0, 0, 2, 30, 0, 9, 0, 30, 4, 97, 108, 116, 50, 192, 91, 192, 12, 0, 15, 0, 1, 0, 0, 2, 30, 0, 9, 0, 20, 4, 97, 108, 116, 49, 192, 91, 192, 12, 0, 15, 0, 1, 0, 0, 2, 30, 0, 9, 0, 40, 4, 97, 108, 116, 51, 192, 91, 192, 12, 0, 2, 0, 1, 0, 4, 31, 116, 0, 6, 3, 110, 115, 51, 192, 12, 192, 12, 0, 2, 0, 1, 0, 4, 31, 116, 0, 6, 3, 110, 115, 50, 192, 12, 192, 12, 0, 2, 0, 1, 0, 4, 31, 116, 0, 6, 3, 110, 115, 52, 192, 12, 192, 12, 0, 2, 0, 1, 0, 4, 31, 116, 0, 6, 3, 110, 115, 49, 192, 12, 0, 0, 41, 16, 0, 0, 0, 0, 0, 0, 0
             };
 
-            public IReadOnlyList<DnsQueryAndServerSettings> UsedSettings { get; }
+            public override DnsMessageHandleType Type { get; }
 
-            public bool IsTcp { get; }
+            public IReadOnlyList<DnsQueryAndServerSettings> UsedSettings { get; }
+            
 
             public IPEndPoint LastServer { get; private set; }
 
             public DnsRequestMessage LastRequest { get; private set; }
 
-            public ConfigurationTrackingMessageHandler(bool isTcp)
+            public ConfigurationTrackingMessageHandler(DnsMessageHandleType type = DnsMessageHandleType.UDP)
             {
-                IsTcp = isTcp;
-            }
-
-            public override bool IsTransientException<T>(T exception)
-            {
-                return false;
+                Type = type;
             }
 
             public override DnsResponseMessage Query(

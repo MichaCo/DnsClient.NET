@@ -15,11 +15,7 @@ namespace DnsClient
     {
         private readonly ConcurrentDictionary<IPEndPoint, ClientPool> _pools = new ConcurrentDictionary<IPEndPoint, ClientPool>();
 
-        public override bool IsTransientException<T>(T exception)
-        {
-            //if (exception is SocketException) return true;
-            return false;
-        }
+        public override DnsMessageHandleType Type { get; } = DnsMessageHandleType.TCP;
 
         public override DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request, TimeSpan timeout)
         {

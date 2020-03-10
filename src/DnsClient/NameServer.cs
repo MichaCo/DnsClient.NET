@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using DnsClient.Internal;
 
 namespace DnsClient
 {
@@ -200,12 +201,16 @@ namespace DnsClient
 
             List<Exception> exceptions = new List<Exception>();
 
+            var logger = Logging.LoggerFactory?.CreateLogger(nameof(NameServer));
+
+            logger?.LogDebug("Starting to resolve NameServers, skipIPv6SiteLocal:{0}.", skipIPv6SiteLocal);
             try
             {
                 endPoints = QueryNetworkInterfaces();
             }
             catch (Exception ex)
             {
+                logger?.LogInformation(ex, "Resolving name servers using .NET framework failed.");
                 exceptions.Add(ex);
             }
 
@@ -219,6 +224,7 @@ namespace DnsClient
                 }
                 catch (Exception ex)
                 {
+                    logger?.LogInformation(ex, "Resolving name servers using native implementation failed.");
                     exceptions.Add(ex);
                 }
             }
@@ -244,6 +250,7 @@ namespace DnsClient
 
             if (filtered.Length == 0 && fallbackToGooglePublicDns)
             {
+                logger?.LogWarning("Could not resolve any NameServers, falling back to Google public servers.");
                 return new NameServer[]
                 {
                     GooglePublicDnsIPv6,
@@ -253,6 +260,7 @@ namespace DnsClient
                 };
             }
 
+            logger?.LogDebug("Resolved {0} name servers: [{1}].", filtered.Length, string.Join(",", filtered.AsEnumerable()));
             return filtered;
         }
 
@@ -283,11 +291,6 @@ namespace DnsClient
                 addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(EtcResolvConfFile).ToArray();
             }
 
-            ////Console.WriteLine($"{string.Join(",", addresses.Select(p => p.AddressFamily))} " +
-            ////    $"| ipV6LinkLocal: {string.Join(",", addresses.Select(p => p.IsIPv6LinkLocal))}" +
-            ////    $"| ipV6SiteLocal: {string.Join(",", addresses.Select(p => p.IsIPv6SiteLocal))}" +
-            ////    $"({string.Join(",", addresses.Select(p => p.ToString()))})");
-
             return addresses;
         }
 
@@ -299,21 +302,11 @@ namespace DnsClient
 
             var adapters = NetworkInterface.GetAllNetworkInterfaces();
 
-            ////foreach (var adapter in adapters)
-            ////{
-            ////    Console.WriteLine($"{adapter.Name}: {adapter.OperationalStatus} {adapter.NetworkInterfaceType} ({string.Join(",", adapter.GetIPProperties().DnsAddresses)})");
-            ////}
-
             foreach (NetworkInterface networkInterface in
                 adapters
                     .Where(p => (p.OperationalStatus == OperationalStatus.Up || p.OperationalStatus == OperationalStatus.Unknown)
                     && p.NetworkInterfaceType != NetworkInterfaceType.Loopback))
             {
-                ////Console.WriteLine($"{string.Join(",", networkInterface.GetIPProperties().DnsAddresses.Select(p => p.AddressFamily))} " +
-                ////    $"| ipV6LinkLocal: {string.Join(",", networkInterface.GetIPProperties().DnsAddresses.Select(p => p.IsIPv6LinkLocal))}" +
-                ////    $"| ipV6SiteLocal: {string.Join(",", networkInterface.GetIPProperties().DnsAddresses.Select(p => p.IsIPv6SiteLocal))}" +
-                ////    $"({string.Join(",", networkInterface.GetIPProperties().DnsAddresses)})");
-
                 foreach (IPAddress dnsAddress in networkInterface
                     .GetIPProperties()
                     .DnsAddresses)

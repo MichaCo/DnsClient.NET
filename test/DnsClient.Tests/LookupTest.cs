@@ -28,6 +28,18 @@ namespace DnsClient.Tests
             Assert.ThrowsAsync<ArgumentNullException>("question", () => client.QueryAsync(null));
         }
 
+        [Fact]
+        public void Lookup_Query_SettingsCannotBeNull()
+        {
+            IDnsQuery client = new LookupClient();
+
+            Assert.Throws<ArgumentNullException>("queryOptions", () => client.Query("query", QueryType.A, null));
+            Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryAsync("query", QueryType.A, null));
+
+            Assert.Throws<ArgumentNullException>("queryOptions", () => client.QueryReverse(IPAddress.Loopback, null));
+            Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryReverseAsync(IPAddress.Loopback, null));
+        }
+
 #if !NET461
 
         [Fact]
@@ -103,33 +115,6 @@ namespace DnsClient.Tests
             Assert.True(result.Header.AnswerCount == 0);
         }
 
-#if ENABLE_REMOTE_DNS
-
-        [Fact(Skip = "Required bind")]
-        public void Lookup_LargeAXFR()
-        {
-            var client = new LookupClient(
-                   new LookupClientOptions(IPAddress.Loopback)
-                   {
-                       UseTcpOnly = true
-                   });
-
-            var result = client.Query("mcnet.com", QueryType.AXFR);
-
-            Assert.True(result.Answers.Count > 0);
-        }
-
-        // see #10, wrong TCP result handling if the result contains like 1000 answers
-        [Fact]
-        public void Lookup_LargeResultWithTCP()
-        {
-            var dns = new LookupClient(NameServer.GooglePublicDns);
-
-            var result = dns.Query("big.basic.caatestsuite.com", QueryType.CAA);
-
-            Assert.True(result.Answers.CaaRecords().Count() >= 1000);
-        }
-
         [Fact]
         public void Lookup_DisabledEdns_NoAdditionals()
         {
@@ -155,6 +140,19 @@ namespace DnsClient.Tests
             });
 
             Assert.True(result.Additionals.OfType<OptRecord>().First().IsDnsSecOk);
+        }
+
+#if ENABLE_REMOTE_DNS
+
+        // see #10, wrong TCP result handling if the result contains like 1000 answers
+        [Fact]
+        public void Lookup_LargeResultWithTCP()
+        {
+            var dns = new LookupClient(NameServer.GooglePublicDns);
+
+            var result = dns.Query("big.basic.caatestsuite.com", QueryType.CAA);
+
+            Assert.True(result.Answers.CaaRecords().Count() >= 1000);
         }
 
         [Fact]
@@ -350,7 +348,7 @@ namespace DnsClient.Tests
                 var ex = exe as DnsResponseException;
                 Assert.NotNull(ex);
                 Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
-                Assert.Contains("No connection", ex.Message);
+                Assert.Contains("timed out", ex.Message);
             }
 
             [Fact]
@@ -388,7 +386,7 @@ namespace DnsClient.Tests
                 var ex = exe as DnsResponseException;
                 Assert.NotNull(ex);
                 Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
-                Assert.Contains("No connection", ex.Message);
+                Assert.Contains("timed out", ex.Message);
             }
         }
 
@@ -758,8 +756,6 @@ namespace DnsClient.Tests
             Assert.True(hostEntry.AddressList.Length > 0);
         }
 
-#if ENABLE_REMOTE_DNS
-
         [Fact]
         public void GetHostEntry_ByName_ManyIps_NoAlias()
         {
@@ -798,8 +794,6 @@ namespace DnsClient.Tests
             Assert.True(result.Aliases.Length == 0);
             Assert.Equal("localhost", result.HostName);
         }
-
-#endif
 
         [Fact]
         public void GetHostEntry_ByName_EmptyString()
@@ -867,8 +861,6 @@ namespace DnsClient.Tests
             Assert.NotNull(ex);
             Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
         }
-
-#if ENABLE_REMOTE_DNS
 
         [Fact]
         public void GetHostEntry_ByIp()
@@ -944,8 +936,6 @@ namespace DnsClient.Tests
             Assert.Equal("localhost", result.HostName);
         }
 
-#endif
-
         [Fact]
         public async Task GetHostEntryAsync_ByName_EmptyString()
         {
@@ -1013,8 +1003,6 @@ namespace DnsClient.Tests
             Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
         }
 
-#if ENABLE_REMOTE_DNS
-
         [Fact]
         public async Task GetHostEntryAsync_ByIp()
         {
@@ -1025,8 +1013,6 @@ namespace DnsClient.Tests
             Assert.True(result.AddressList.Length == 1);
             Assert.True(result.Aliases.Length == 0);
         }
-
-#endif
 
         [Fact]
         public async Task GetHostEntryAsync_ByManyIps()
@@ -1051,6 +1037,98 @@ namespace DnsClient.Tests
                 // expecting always the name without . at the end!
                 Assert.Equal(server.NSDName.Value.Substring(0, server.NSDName.Value.Length - 1), result.HostName);
             }
+        }
+
+        [Fact]
+        public void Lookup_SettingsFallback_UseClients()
+        {
+            var client = new LookupClient(NameServer.CloudflareIPv6);
+
+            var settings = client.GetSettings(queryOptions: null);
+
+            Assert.Equal(client.Settings, settings);
+        }
+
+        [Fact]
+        public void Lookup_SettingsFallback_UseClientsServers()
+        {
+            var client = new LookupClient(NameServer.CloudflareIPv6);
+
+            // Test that the settings in the end has the name servers configured on the client above and
+            // still the settings provided apart from the servers (everything else will not fallback to the client's settings...)
+            var settings = client.GetSettings(queryOptions: new DnsQueryAndServerOptions(resolveNameServers: false)
+            {
+                ContinueOnDnsError = false,
+                Recursion = false,
+                RequestDnsSecRecords = true
+            });
+
+            Assert.Equal(client.NameServers, settings.NameServers);
+            Assert.Single(settings.NameServers);
+            Assert.NotEqual(client.Settings, settings);
+            Assert.NotEqual(client.Settings.ContinueOnDnsError, settings.ContinueOnDnsError);
+            Assert.NotEqual(client.Settings.Recursion, settings.Recursion);
+            Assert.NotEqual(client.Settings.RequestDnsSecRecords, settings.RequestDnsSecRecords);
+        }
+
+        [Fact]
+        public void Lookup_SettingsFallback_KeepResolvedServers()
+        {
+            var client = new LookupClient(NameServer.CloudflareIPv6);
+
+            // Should keep all the provided settings including the resolved servers.
+            var settings = client.GetSettings(queryOptions: new DnsQueryAndServerOptions(resolveNameServers: true));
+
+            Assert.NotEqual(client.Settings, settings);
+            Assert.NotEqual(client.NameServers, settings.NameServers);
+        }
+
+        [Fact]
+        public void Lookup_SettingsFallback_KeepResolvedServers_EvenIfEmpty()
+        {
+            var client = new LookupClient(NameServer.CloudflareIPv6);
+
+            // Trick the logic to think it was using auto resolve and should prefer these servers but then there are none
+            var options = new DnsQueryAndServerOptions(resolveNameServers: true);
+            options.NameServers.Clear();
+            var settings = client.GetSettings(queryOptions: options);
+
+            Assert.NotEqual(client.Settings, settings);
+            Assert.NotEqual(client.NameServers, settings.NameServers);
+            Assert.Empty(settings.NameServers);
+        }
+
+        [Fact]
+        public void Lookup_SettingsFallback_KeepProvidedServers1()
+        {
+            var client = new LookupClient(NameServer.CloudflareIPv6);
+
+            var settings = client.GetSettings(queryOptions: new DnsQueryAndServerOptions(NameServer.GooglePublicDns));
+
+            Assert.NotEqual(client.Settings, settings);
+            Assert.NotEqual(client.NameServers, settings.NameServers);
+        }
+
+        [Fact]
+        public void Lookup_SettingsFallback_KeepProvidedServers2()
+        {
+            var client = new LookupClient(NameServer.CloudflareIPv6);
+
+            var settings = client.GetSettings(queryOptions: new DnsQueryAndServerOptions(IPAddress.Loopback));
+
+            Assert.NotEqual(client.Settings, settings);
+            Assert.NotEqual(client.NameServers, settings.NameServers);
+        }
+
+        [Fact]
+        public void Lookup_SettingsFallback_KeepProvidedServers3()
+        {
+            var client = new LookupClient(NameServer.CloudflareIPv6);
+
+            var settings = client.GetSettings(queryOptions: new DnsQueryAndServerOptions(new IPEndPoint(IPAddress.Loopback, 33)));
+
+            Assert.NotEqual(client.Settings, settings);
+            Assert.NotEqual(client.NameServers, settings.NameServers);
         }
     }
 }

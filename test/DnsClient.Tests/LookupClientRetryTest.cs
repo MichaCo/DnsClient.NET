@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
@@ -36,7 +37,7 @@ namespace DnsClient.Tests
             var lookup = new LookupClient(options);
 
             var calledIps = new List<IPAddress>();
-            var messageHandler = new TestMessageHandler((ip, req) =>
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 return new DnsResponseMessage(
@@ -77,7 +78,7 @@ namespace DnsClient.Tests
             };
 
             var calledIps = new List<IPAddress>();
-            var messageHandler = new TestMessageHandler((ip, req) =>
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 return new DnsResponseMessage(
@@ -85,7 +86,7 @@ namespace DnsClient.Tests
                     0);
             });
 
-            var lookup = new LookupClient(options, messageHandler, messageHandler);
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
 
             // calling multiple times will always use the first server when it returns NoError.
             // No other servers should be called
@@ -119,7 +120,7 @@ namespace DnsClient.Tests
 
             var calledIps = new List<IPAddress>();
             var uniqueIps = new HashSet<IPAddress>();
-            var messageHandler = new TestMessageHandler((ip, req) =>
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 uniqueIps.Add(ip.Address);
@@ -159,10 +160,8 @@ namespace DnsClient.Tests
                 UseCache = false
             };
 
-            var lookup = new LookupClient(options);
-
             var calledIps = new List<IPAddress>();
-            var messageHandler = new TestMessageHandler((ip, req) =>
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 return new DnsResponseMessage(
@@ -170,18 +169,14 @@ namespace DnsClient.Tests
                     0);
             });
 
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
+
             // consecutive calls should cycle through the servers (not always using the first one)
             // because this is only one thread, the order is always the same. But this can be very
             // different with multiple tasks)
             for (var i = 0; i < 6; i++)
             {
-                var request = new DnsRequestMessage(
-                   new DnsRequestHeader(DnsOpCode.Query),
-                   new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
-
-                var servers = lookup.Settings.ShuffleNameServers();
-
-                var result = await lookup.ResolveQueryAsync(servers, lookup.Settings, request, messageHandler);
+                var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
                 Assert.True(result.HasError);
             }
 
@@ -208,7 +203,7 @@ namespace DnsClient.Tests
             };
 
             var calledIps = new List<IPAddress>();
-            var messageHandler = new TestMessageHandler((ip, req) =>
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 var status = DnsHeaderResponseCode.NotExistentDomain;
 
@@ -226,7 +221,7 @@ namespace DnsClient.Tests
                 return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (ushort)status, 0, 0, 0, 0), 0);
             });
 
-            var lookup = new LookupClient(options, messageHandler, messageHandler);
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
             var result = lookup.Query(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             // no exception but error in the response after calling all endpoints!
@@ -257,7 +252,7 @@ namespace DnsClient.Tests
             };
 
             var calledIps = new List<IPAddress>();
-            var messageHandler = new TestMessageHandler((ip, req) =>
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 var status = DnsHeaderResponseCode.NotExistentDomain;
 
@@ -275,7 +270,7 @@ namespace DnsClient.Tests
                 return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (ushort)status, 0, 0, 0, 0), 0);
             });
 
-            var lookup = new LookupClient(options, messageHandler, messageHandler);
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
             var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             // no exception but error in the response after calling all 3 endpoints!
@@ -306,7 +301,7 @@ namespace DnsClient.Tests
             };
 
             var calledIps = new List<IPAddress>();
-            var messageHandler = new TestMessageHandler((ip, req) =>
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 var status = DnsHeaderResponseCode.NotExistentDomain;
 
@@ -324,7 +319,7 @@ namespace DnsClient.Tests
                 return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (ushort)status, 0, 0, 0, 0), 0);
             });
 
-            var lookup = new LookupClient(options, messageHandler, messageHandler);
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
             var request = new DnsQuestion("test.com", QueryType.A, QueryClass.IN);
 
             // all three servers have been called and we get the last exception thrown
@@ -356,7 +351,7 @@ namespace DnsClient.Tests
             };
 
             var calledIps = new List<IPAddress>();
-            var messageHandler = new TestMessageHandler((ip, req) =>
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 var status = DnsHeaderResponseCode.NotExistentDomain;
 
@@ -374,7 +369,7 @@ namespace DnsClient.Tests
                 return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (ushort)status, 0, 0, 0, 0), 0);
             });
 
-            var lookup = new LookupClient(options, messageHandler, messageHandler);
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
             var request = new DnsQuestion("test.com", QueryType.A, QueryClass.IN);
             var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(request));
 
@@ -402,13 +397,13 @@ namespace DnsClient.Tests
             };
 
             var calledIps = new List<IPAddress>();
-            var messageHandler = new TestMessageHandler((ip, req) =>
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (int)DnsHeaderResponseCode.NotExistentDomain, 0, 0, 0, 0), 0);
             });
 
-            var lookup = new LookupClient(options, messageHandler, messageHandler);
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
             var result = lookup.Query(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             Assert.True(result.HasError);
@@ -436,13 +431,13 @@ namespace DnsClient.Tests
             };
 
             var calledIps = new List<IPAddress>();
-            var messageHandler = new TestMessageHandler((ip, req) =>
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (int)DnsHeaderResponseCode.NotExistentDomain, 0, 0, 0, 0), 0);
             });
 
-            var lookup = new LookupClient(options, messageHandler, messageHandler);
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
             var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             Assert.True(result.HasError);
@@ -470,13 +465,13 @@ namespace DnsClient.Tests
             };
 
             var calledIps = new List<IPAddress>();
-            var messageHandler = new TestMessageHandler((ip, req) =>
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (int)DnsHeaderResponseCode.NotExistentDomain, 0, 0, 0, 0), 0);
             });
 
-            var lookup = new LookupClient(options, messageHandler, messageHandler);
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
             var request = new DnsQuestion("test.com", QueryType.A, QueryClass.IN);
             var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.Query(request));
 
@@ -503,13 +498,13 @@ namespace DnsClient.Tests
             };
 
             var calledIps = new List<IPAddress>();
-            var messageHandler = new TestMessageHandler((ip, req) =>
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (int)DnsHeaderResponseCode.NotExistentDomain, 0, 0, 0, 0), 0);
             });
 
-            var lookup = new LookupClient(options, messageHandler, messageHandler);
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
             var request = new DnsQuestion("test.com", QueryType.A, QueryClass.IN);
             var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(request));
 
@@ -540,7 +535,7 @@ namespace DnsClient.Tests
 
             var calledIps = new List<IPAddress>();
             bool calledUdp = false, calledTcp = false;
-            var udpMessageHandler = new TestMessageHandler((ip, req) =>
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledUdp = true;
@@ -552,12 +547,12 @@ namespace DnsClient.Tests
                 return handle.GetResponseMessage(new System.ArraySegment<byte>(s_issue52data));
             });
 
-            var tcpMessageHandler = new TestMessageHandler((ip, req) =>
-            {
-                calledIps.Add(ip.Address);
-                calledTcp = true;
-                return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (int)DnsHeaderResponseCode.NoError, 0, 0, 0, 0), 0);
-            });
+            var tcpMessageHandler = new TestMessageHandler(DnsMessageHandleType.TCP, (ip, req) =>
+         {
+             calledIps.Add(ip.Address);
+             calledTcp = true;
+             return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (int)DnsHeaderResponseCode.NoError, 0, 0, 0, 0), 0);
+         });
 
             var lookup = new LookupClient(options, udpMessageHandler, tcpMessageHandler);
             var result = lookup.Query(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
@@ -592,7 +587,7 @@ namespace DnsClient.Tests
 
             var calledIps = new List<IPAddress>();
             bool calledUdp = false, calledTcp = false;
-            var udpMessageHandler = new TestMessageHandler((ip, req) =>
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledUdp = true;
@@ -604,7 +599,7 @@ namespace DnsClient.Tests
                 return handle.GetResponseMessage(new System.ArraySegment<byte>(s_issue52data));
             });
 
-            var tcpMessageHandler = new TestMessageHandler((ip, req) =>
+            var tcpMessageHandler = new TestMessageHandler(DnsMessageHandleType.TCP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledTcp = true;
@@ -644,7 +639,7 @@ namespace DnsClient.Tests
 
             var calledIps = new List<IPAddress>();
             bool calledUdp = false, calledTcp = false;
-            var udpMessageHandler = new TestMessageHandler((ip, req) =>
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledUdp = true;
@@ -653,7 +648,7 @@ namespace DnsClient.Tests
                 throw new DnsResponseParseException("Some error at the end", new byte[1000], 995, 10);
             });
 
-            var tcpMessageHandler = new TestMessageHandler((ip, req) =>
+            var tcpMessageHandler = new TestMessageHandler(DnsMessageHandleType.TCP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledTcp = true;
@@ -692,7 +687,7 @@ namespace DnsClient.Tests
 
             var calledIps = new List<IPAddress>();
             bool calledUdp = false, calledTcp = false;
-            var udpMessageHandler = new TestMessageHandler((ip, req) =>
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledUdp = true;
@@ -701,7 +696,7 @@ namespace DnsClient.Tests
                 throw new DnsResponseParseException("Some error at the end", new byte[1000], 995, 10);
             });
 
-            var tcpMessageHandler = new TestMessageHandler((ip, req) =>
+            var tcpMessageHandler = new TestMessageHandler(DnsMessageHandleType.TCP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledTcp = true;
@@ -738,7 +733,7 @@ namespace DnsClient.Tests
             };
 
             var calledIps = new List<IPAddress>();
-            var udpMessageHandler = new TestMessageHandler((ip, req) =>
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
 
@@ -746,7 +741,7 @@ namespace DnsClient.Tests
                 return handle.GetResponseMessage(new System.ArraySegment<byte>(s_issue52data));
             });
 
-            var lookup = new LookupClient(options, udpMessageHandler, udpMessageHandler);
+            var lookup = new LookupClient(options, udpMessageHandler, TestMessageHandler.Tcp);
             var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.Query(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
             Assert.Single(calledIps);
@@ -771,7 +766,7 @@ namespace DnsClient.Tests
             };
 
             var calledIps = new List<IPAddress>();
-            var udpMessageHandler = new TestMessageHandler((ip, req) =>
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
 
@@ -779,7 +774,7 @@ namespace DnsClient.Tests
                 return handle.GetResponseMessage(new System.ArraySegment<byte>(s_issue52data));
             });
 
-            var lookup = new LookupClient(options, udpMessageHandler, udpMessageHandler);
+            var lookup = new LookupClient(options, udpMessageHandler, TestMessageHandler.Tcp);
             var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
             Assert.Single(calledIps);
@@ -805,7 +800,7 @@ namespace DnsClient.Tests
 
             var calledIps = new List<IPAddress>();
             bool calledUdp = false, calledTcp = false;
-            var udpMessageHandler = new TestMessageHandler((ip, req) =>
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledUdp = true;
@@ -816,7 +811,7 @@ namespace DnsClient.Tests
                 throw new DnsResponseParseException("Some error in the middle", new byte[1000], 20, 10);
             });
 
-            var tcpMessageHandler = new TestMessageHandler((ip, req) =>
+            var tcpMessageHandler = new TestMessageHandler(DnsMessageHandleType.TCP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledTcp = true;
@@ -854,7 +849,7 @@ namespace DnsClient.Tests
 
             var calledIps = new List<IPAddress>();
             bool calledUdp = false, calledTcp = false;
-            var udpMessageHandler = new TestMessageHandler((ip, req) =>
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledUdp = true;
@@ -865,7 +860,7 @@ namespace DnsClient.Tests
                 throw new DnsResponseParseException("Some error in the middle", new byte[1000], 20, 10);
             });
 
-            var tcpMessageHandler = new TestMessageHandler((ip, req) =>
+            var tcpMessageHandler = new TestMessageHandler(DnsMessageHandleType.TCP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledTcp = true;
@@ -906,14 +901,14 @@ namespace DnsClient.Tests
 
             var calledIps = new List<IPAddress>();
             bool calledUdp = false, calledTcp = false;
-            var udpMessageHandler = new TestMessageHandler((ip, req) =>
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledUdp = true;
                 return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (int)DnsHeaderFlag.ResultTruncated, 0, 0, 0, 0), 0);
             });
 
-            var tcpMessageHandler = new TestMessageHandler((ip, req) =>
+            var tcpMessageHandler = new TestMessageHandler(DnsMessageHandleType.TCP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledTcp = true;
@@ -953,14 +948,14 @@ namespace DnsClient.Tests
 
             var calledIps = new List<IPAddress>();
             bool calledUdp = false, calledTcp = false;
-            var udpMessageHandler = new TestMessageHandler((ip, req) =>
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledUdp = true;
                 return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (int)DnsHeaderFlag.ResultTruncated, 0, 0, 0, 0), 0);
             });
 
-            var tcpMessageHandler = new TestMessageHandler((ip, req) =>
+            var tcpMessageHandler = new TestMessageHandler(DnsMessageHandleType.TCP, (ip, req) =>
             {
                 calledIps.Add(ip.Address);
                 calledTcp = true;
@@ -979,21 +974,480 @@ namespace DnsClient.Tests
             Assert.Equal(2, calledIps.Count);
             Assert.Equal(new[] { ip1, ip1 }, calledIps);
         }
+
+        [Fact]
+        public void TruncatedResponse_ShouldTryTcp_AndFail()
+        {
+            var options = new LookupClientOptions(
+                new NameServer(IPAddress.Parse("127.0.10.1")),
+                new NameServer(IPAddress.Parse("127.0.10.2")),
+                new NameServer(IPAddress.Parse("127.0.10.3")))
+            {
+                EnableAuditTrail = true,
+                ContinueOnDnsError = false,
+                ThrowDnsErrors = false,
+                UseCache = true,
+                Retries = 3,
+                UseRandomNameServer = false,
+                UseTcpFallback = false // Disabling this will produce an error when we have to fall back to TCP => expected
+            };
+
+            var calledIps = new List<IPAddress>();
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+                return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (int)DnsHeaderFlag.ResultTruncated, 0, 0, 0, 0), 0);
+            });
+
+            var tcpMessageHandler = new TestMessageHandler(DnsMessageHandleType.TCP, (ip, req) =>
+            {
+                throw new NotImplementedException("This shouldn't get called");
+            });
+
+            var lookup = new LookupClient(options, udpMessageHandler, tcpMessageHandler);
+            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.Query(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
+
+            // This should fail right away because there is no need to ask other servers for the same truncated response
+            Assert.Single(calledIps);
+            Assert.Contains("Response was truncated and UseTcpFallback is disabled", result.Message);
+        }
+
+        [Fact]
+        public async Task TruncatedResponse_ShouldTryTcp_AndFail_Async()
+        {
+            var options = new LookupClientOptions(
+                new NameServer(IPAddress.Parse("127.0.10.1")),
+                new NameServer(IPAddress.Parse("127.0.10.2")),
+                new NameServer(IPAddress.Parse("127.0.10.3")))
+            {
+                EnableAuditTrail = true,
+                ContinueOnDnsError = false,
+                ThrowDnsErrors = false,
+                UseCache = true,
+                Retries = 3,
+                UseRandomNameServer = false,
+                UseTcpFallback = false // Disabling this will produce an error when we have to fall back to TCP => expected
+            };
+
+            var calledIps = new List<IPAddress>();
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+                return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (int)DnsHeaderFlag.ResultTruncated, 0, 0, 0, 0), 0);
+            });
+
+            var tcpMessageHandler = new TestMessageHandler(DnsMessageHandleType.TCP, (ip, req) =>
+            {
+                throw new NotImplementedException("This shouldn't get called");
+            });
+
+            var lookup = new LookupClient(options, udpMessageHandler, tcpMessageHandler);
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
+
+            // This should fail right away because there is no need to ask other servers for the same truncated response
+            Assert.Single(calledIps);
+            Assert.Contains("Response was truncated and UseTcpFallback is disabled", result.Message);
+        }
+
+        /* transient timeout errors */
+
+        [Fact]
+        public void TransientTimeoutExceptions_ShouldRetry()
+        {
+            var options = new LookupClientOptions(
+                new NameServer(IPAddress.Parse("127.0.10.1")),
+                new NameServer(IPAddress.Parse("127.0.10.2")),
+                new NameServer(IPAddress.Parse("127.0.10.3")))
+            {
+                EnableAuditTrail = true,
+                ContinueOnDnsError = false,
+                ThrowDnsErrors = false,
+                UseCache = true,
+                Retries = 3,
+                UseRandomNameServer = false,
+                UseTcpFallback = true
+            };
+
+            var calledIps = new List<IPAddress>();
+            var count = 0;
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+                count++;
+                if (count == 1)
+                {
+                    throw new TimeoutException();
+                }
+
+                throw new OperationCanceledException();
+            });
+
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
+            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.Query(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
+
+            Assert.NotNull(result.InnerException);
+            Assert.IsType<OperationCanceledException>(result.InnerException);
+            Assert.Equal(12, calledIps.Count);
+        }
+
+        [Fact]
+        public async Task TransientTimeoutExceptions_ShouldRetry_Async()
+        {
+            var options = new LookupClientOptions(
+                new NameServer(IPAddress.Parse("127.0.10.1")),
+                new NameServer(IPAddress.Parse("127.0.10.2")),
+                new NameServer(IPAddress.Parse("127.0.10.3")))
+            {
+                EnableAuditTrail = true,
+                ContinueOnDnsError = false,
+                ThrowDnsErrors = false,
+                UseCache = true,
+                Retries = 3,
+                UseRandomNameServer = false,
+                UseTcpFallback = true
+            };
+
+            var calledIps = new List<IPAddress>();
+            var count = 0;
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+                count++;
+                if (count == 1)
+                {
+                    throw new TimeoutException();
+                }
+
+                throw new OperationCanceledException();
+            });
+
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
+
+            Assert.NotNull(result.InnerException);
+            Assert.IsType<OperationCanceledException>(result.InnerException);
+
+            // 3 servers x (1 + 3 re-tries)
+            Assert.Equal(12, calledIps.Count);
+        }
+
+        /* transient SocketExceptions
+
+            case SocketError.TimedOut:
+            case SocketError.ConnectionAborted:
+            case SocketError.ConnectionReset:
+            case SocketError.OperationAborted:
+            case SocketError.TryAgain:
+         * */
+
+        [Fact]
+        public void TransientSocketExceptions_ShouldRetry()
+        {
+            var options = new LookupClientOptions(
+                new NameServer(IPAddress.Parse("127.0.10.1")),
+                new NameServer(IPAddress.Parse("127.0.10.2")),
+                new NameServer(IPAddress.Parse("127.0.10.3")),
+                new NameServer(IPAddress.Parse("127.0.10.4")),
+                new NameServer(IPAddress.Parse("127.0.10.5")))
+            {
+                EnableAuditTrail = true,
+                ContinueOnDnsError = false,
+                ThrowDnsErrors = false,
+                UseCache = true,
+                Retries = 3,
+                UseRandomNameServer = false,
+                UseTcpFallback = true
+            };
+
+            var calledIps = new List<IPAddress>();
+            var count = 0;
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+                count++;
+                if (count == 1)
+                {
+                    throw new SocketException((int)SocketError.TimedOut);
+                }
+                if (count == 2)
+                {
+                    throw new SocketException((int)SocketError.ConnectionAborted);
+                }
+                if (count == 3)
+                {
+                    throw new SocketException((int)SocketError.ConnectionReset);
+                }
+                if (count == 4)
+                {
+                    throw new SocketException((int)SocketError.OperationAborted);
+                }
+
+                throw new SocketException((int)SocketError.TryAgain);
+            });
+
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
+            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.Query(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
+
+            Assert.Equal(SocketError.TryAgain, ((SocketException)result.InnerException).SocketErrorCode);
+
+            Assert.Equal(20, calledIps.Count);
+        }
+
+        [Fact]
+        public async Task TransientSocketExceptions_ShouldRetry_Async()
+        {
+            var options = new LookupClientOptions(
+                new NameServer(IPAddress.Parse("127.0.10.1")),
+                new NameServer(IPAddress.Parse("127.0.10.2")),
+                new NameServer(IPAddress.Parse("127.0.10.3")),
+                new NameServer(IPAddress.Parse("127.0.10.4")),
+                new NameServer(IPAddress.Parse("127.0.10.5")))
+            {
+                EnableAuditTrail = true,
+                ContinueOnDnsError = false,
+                ThrowDnsErrors = false,
+                UseCache = true,
+                Retries = 3,
+                UseRandomNameServer = false,
+                UseTcpFallback = true
+            };
+
+            var calledIps = new List<IPAddress>();
+            var count = 0;
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+                count++;
+                if (count == 1)
+                {
+                    throw new SocketException((int)SocketError.TimedOut);
+                }
+                if (count == 2)
+                {
+                    throw new SocketException((int)SocketError.ConnectionAborted);
+                }
+                if (count == 3)
+                {
+                    throw new SocketException((int)SocketError.ConnectionReset);
+                }
+                if (count == 4)
+                {
+                    throw new SocketException((int)SocketError.OperationAborted);
+                }
+
+                throw new SocketException((int)SocketError.TryAgain);
+            });
+
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
+
+            Assert.Equal(SocketError.TryAgain, ((SocketException)result.InnerException).SocketErrorCode);
+
+            // 5 servers x (1 + 3 re-tries)
+            Assert.Equal(20, calledIps.Count);
+        }
+
+        /* Other exceptions like SocketExceptions which we should re-try on the next server... */
+
+        [Fact]
+        public void OtherExceptions_ShouldTryNextServer()
+        {
+            var options = new LookupClientOptions(
+                new NameServer(IPAddress.Parse("127.0.10.1")),
+                new NameServer(IPAddress.Parse("127.0.10.2")),
+                new NameServer(IPAddress.Parse("127.0.10.3")),
+                new NameServer(IPAddress.Parse("127.0.10.4")))
+            {
+                EnableAuditTrail = true,
+                ContinueOnDnsError = false,
+                ThrowDnsErrors = false,
+                UseCache = true,
+                Retries = 3,
+                UseRandomNameServer = false,
+                UseTcpFallback = true
+            };
+
+            var calledIps = new List<IPAddress>();
+            var count = 0;
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+                count++;
+                if (count == 1)
+                {
+                    // Trying some non-transient socket exceptions to make sure those do not get retried...
+                    throw new SocketException((int)SocketError.AddressFamilyNotSupported);
+                }
+                if (count == 2)
+                {
+                    throw new SocketException((int)SocketError.ConnectionRefused);
+                }
+                if (count == 3)
+                {
+                    throw new FormatException("Some random exception we didn't expect.");
+                }
+
+                throw new SocketException((int)SocketError.SocketError);
+            });
+
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
+            var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.Query(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
+
+            Assert.Equal(SocketError.SocketError, ((SocketException)result.InnerException).SocketErrorCode);
+
+            Assert.Equal(4, calledIps.Count);
+        }
+
+        [Fact]
+        public async Task OtherExceptions_ShouldTryNextServer_Async()
+        {
+            var options = new LookupClientOptions(
+                new NameServer(IPAddress.Parse("127.0.10.1")),
+                new NameServer(IPAddress.Parse("127.0.10.2")),
+                new NameServer(IPAddress.Parse("127.0.10.3")),
+                new NameServer(IPAddress.Parse("127.0.10.4")))
+            {
+                EnableAuditTrail = true,
+                ContinueOnDnsError = false,
+                ThrowDnsErrors = false,
+                UseCache = true,
+                Retries = 3,
+                UseRandomNameServer = false,
+                UseTcpFallback = true
+            };
+
+            var calledIps = new List<IPAddress>();
+            var count = 0;
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+                count++;
+                if (count == 1)
+                {
+                    // Trying some non-transient socket exceptions to make sure those do not get retried...
+                    throw new SocketException((int)SocketError.AddressFamilyNotSupported);
+                }
+                if (count == 2)
+                {
+                    throw new SocketException((int)SocketError.ConnectionRefused);
+                }
+                if (count == 3)
+                {
+                    throw new FormatException("Some random exception we didn't expect.");
+                }
+
+                throw new SocketException((int)SocketError.SocketError);
+            });
+
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
+
+            Assert.Equal(SocketError.SocketError, ((SocketException)result.InnerException).SocketErrorCode);
+
+            Assert.Equal(4, calledIps.Count);
+        }
+
+        /* Not handled exceptions. Should be thrown */
+
+        [Fact]
+        public void ArgumentExceptions_ShouldNotBeHandled()
+        {
+            var options = new LookupClientOptions(
+                new NameServer(IPAddress.Parse("127.0.10.1")),
+                new NameServer(IPAddress.Parse("127.0.10.2")),
+                new NameServer(IPAddress.Parse("127.0.10.3")));
+
+            var calledIps = new List<IPAddress>();
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+                throw new ArgumentNullException("Some random argument exception");
+            });
+
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
+            var result = Assert.ThrowsAny<ArgumentException>(() => lookup.Query(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
+
+            Assert.Single(calledIps);
+        }
+
+        [Fact]
+        public async Task ArgumentExceptions_ShouldNotBeHandled_Async()
+        {
+            var options = new LookupClientOptions(
+                new NameServer(IPAddress.Parse("127.0.10.1")),
+                new NameServer(IPAddress.Parse("127.0.10.2")),
+                new NameServer(IPAddress.Parse("127.0.10.3")));
+
+            var calledIps = new List<IPAddress>();
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+                throw new ArgumentNullException("Some random argument exception");
+            });
+
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
+            var result = await Assert.ThrowsAnyAsync<ArgumentException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
+
+            Assert.Single(calledIps);
+        }
+
+        [Fact]
+        public void InvalidOperationExceptions_ShouldNotBeHandled()
+        {
+            var options = new LookupClientOptions(
+                new NameServer(IPAddress.Parse("127.0.10.1")),
+                new NameServer(IPAddress.Parse("127.0.10.2")),
+                new NameServer(IPAddress.Parse("127.0.10.3")));
+
+            var calledIps = new List<IPAddress>();
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+                throw new InvalidOperationException("Some random argument exception");
+            });
+
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
+            var result = Assert.ThrowsAny<InvalidOperationException>(() => lookup.Query(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
+
+            Assert.Single(calledIps);
+        }
+
+        [Fact]
+        public async Task InvalidOperationExceptions_ShouldNotBeHandled_Async()
+        {
+            var options = new LookupClientOptions(
+                new NameServer(IPAddress.Parse("127.0.10.1")),
+                new NameServer(IPAddress.Parse("127.0.10.2")),
+                new NameServer(IPAddress.Parse("127.0.10.3")));
+
+            var calledIps = new List<IPAddress>();
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+                throw new InvalidOperationException("Some random argument exception");
+            });
+
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
+            var result = await Assert.ThrowsAnyAsync<InvalidOperationException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
+
+            Assert.Single(calledIps);
+        }
     }
 
     [ExcludeFromCodeCoverage]
     internal class TestMessageHandler : DnsMessageHandler
     {
+        public static readonly TestMessageHandler Udp = new TestMessageHandler(DnsMessageHandleType.UDP, (a, b) => null);
+        public static readonly TestMessageHandler Tcp = new TestMessageHandler(DnsMessageHandleType.TCP, (a, b) => null);
+
         private readonly Func<IPEndPoint, DnsRequestMessage, DnsResponseMessage> _onQuery;
 
-        public TestMessageHandler(Func<IPEndPoint, DnsRequestMessage, DnsResponseMessage> onQuery)
-        {
-            _onQuery = onQuery ?? throw new ArgumentNullException(nameof(onQuery));
-        }
+        public override DnsMessageHandleType Type { get; }
 
-        public override bool IsTransientException<T>(T exception)
+        public TestMessageHandler(DnsMessageHandleType type, Func<IPEndPoint, DnsRequestMessage, DnsResponseMessage> onQuery)
         {
-            return false;
+            Type = type;
+            _onQuery = onQuery ?? throw new ArgumentNullException(nameof(onQuery));
         }
 
         public override DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request, TimeSpan timeout)

@@ -74,15 +74,12 @@ namespace Benchmarks
         private readonly bool _response;
         private const int MaxSize = 4096;
 
+        public override DnsMessageHandleType Type => DnsMessageHandleType.UDP;
+
         public BenchmarkMessageHandler(bool request = true, bool response = true)
         {
             _request = request;
             _response = response;
-        }
-
-        public override bool IsTransientException<T>(T exception)
-        {
-            return false;
         }
 
         public override DnsResponseMessage Query(

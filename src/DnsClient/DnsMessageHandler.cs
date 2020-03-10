@@ -1,19 +1,50 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol.Options;
 
 namespace DnsClient
 {
+    internal enum DnsMessageHandleType
+    {
+        None = 0,
+        UDP,
+        TCP
+    }
+
     internal abstract class DnsMessageHandler
     {
+        public abstract DnsMessageHandleType Type { get; }
+
         public abstract DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request, TimeSpan timeout);
 
         public abstract Task<DnsResponseMessage> QueryAsync(IPEndPoint endpoint, DnsRequestMessage request, CancellationToken cancellationToken,
             Action<Action> cancelationCallback);
 
-        public abstract bool IsTransientException<T>(T exception) where T : Exception;
+        // Transient errors will be retried on the same NameServer before the resolver moves on
+        // to the next configured NameServer (if any).
+        public bool IsTransientException<T>(T exception) where T : Exception
+        {
+            if (exception is SocketException socketException)
+            {
+                // I think those are reasonable socket errors which can be retried
+                // with the same NameServer. Hard to tell though and might change...
+                // Any other socket exception will cause the LookupClient to move on to the next server.
+                switch (socketException.SocketErrorCode)
+                {
+                    case SocketError.TimedOut:
+                    case SocketError.ConnectionAborted:
+                    case SocketError.ConnectionReset:
+                    case SocketError.OperationAborted:
+                    case SocketError.TryAgain:
+                        return true;
+                }
+            }
+
+            return false;
+        }
 
         public virtual void GetRequestData(DnsRequestMessage request, DnsDatagramWriter writer)
         {
