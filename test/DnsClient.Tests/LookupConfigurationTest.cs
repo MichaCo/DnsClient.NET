@@ -11,6 +11,11 @@ namespace DnsClient.Tests
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class LookupConfigurationTest
     {
+        static LookupConfigurationTest()
+        {
+            Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.All;
+        }
+
         [Fact]
         public void DnsQueryOptions_Implicit_Null()
         {
@@ -138,6 +143,59 @@ namespace DnsClient.Tests
 
             // object overload
             Assert.True(opt.Equals((object)opt2));
+        }
+
+        [Fact]
+        public void DnsQueryAndServerSettings_Null1()
+        {
+            Assert.ThrowsAny<ArgumentNullException>(() => new DnsQueryAndServerSettings(null));
+        }
+
+        [Fact]
+        public void DnsQueryAndServerSettings_Null2()
+        {
+            Assert.ThrowsAny<ArgumentNullException>(() => new DnsQueryAndServerSettings(new DnsQueryAndServerOptions(), null));
+        }
+
+        [Fact]
+        public void DnsQueryAndServerSettings_ChangeServers()
+        {
+            var settings = new DnsQueryAndServerSettings(new DnsQueryAndServerOptions(NameServer.Cloudflare2), new NameServer[] { NameServer.Cloudflare });
+
+            Assert.Single(settings.NameServers);
+            Assert.Contains(NameServer.Cloudflare, settings.NameServers);
+        }
+
+        [Fact]
+        public void DnsQueryAndServerSettings_AutoResolve()
+        {
+            var settings = new DnsQueryAndServerSettings(new DnsQueryAndServerOptions(resolveNameServers: true));
+
+            Assert.NotEmpty(settings.NameServers);
+        }
+
+        [Fact]
+        public void DnsQueryAndServerSettings_NullServers1()
+        {
+            var settings = new DnsQueryAndServerSettings(new DnsQueryAndServerOptions((IPAddress[])null));
+
+            Assert.Empty(settings.NameServers);
+        }
+
+        [Fact]
+        public void DnsQueryAndServerSettings_NullServers2()
+        {
+            var settings = new DnsQueryAndServerSettings(new DnsQueryAndServerOptions((IPEndPoint[])null));
+
+            Assert.Empty(settings.NameServers);
+        }
+
+        [Fact]
+        public void DnsQueryAndServerSettings_NullServers3()
+        {
+            var settings = new DnsQueryAndServerSettings(new DnsQueryAndServerOptions((NameServer[])null));
+
+            Assert.Empty(settings.NameServers);
         }
 
         public static IEnumerable<object[]> AllNonDefaultConfigurations
@@ -552,8 +610,8 @@ namespace DnsClient.Tests
         [MemberData(nameof(AllWithServers))]
         public void ConfigMatrix_ServersCannotBeNull(TestMatrixItem test)
         {
-            var unresolvedOptions = new LookupClientOptions(resolveNameServers: true);
-            Assert.Throws<ArgumentNullException>("servers", () => test.InvokeNoDefaults(lookupClientOptions: unresolvedOptions, useOptions: null, useServers: null));
+            var options = new LookupClientOptions(resolveNameServers: true);
+            Assert.Throws<ArgumentNullException>("servers", () => test.InvokeNoDefaults(lookupClientOptions: options, useOptions: null, useServers: null));
         }
 
         [Theory]
@@ -849,7 +907,18 @@ namespace DnsClient.Tests
             {
                 LastServer = server;
                 LastRequest = request;
-                var response = GetResponseMessage(new ArraySegment<byte>(ZoneData, 0, ZoneData.Length));
+
+                var writer = new DnsDatagramWriter(new ArraySegment<byte>(ZoneData.ToArray()));
+                writer.Index = 0;
+                writer.WriteInt16NetworkOrder((short)request.Header.Id);
+                writer.Index = ZoneData.Length;
+
+                var response = GetResponseMessage(writer.Data);
+
+                if (response.Header.Id != request.Header.Id)
+                {
+                    throw new Exception();
+                }
 
                 return response;
             }

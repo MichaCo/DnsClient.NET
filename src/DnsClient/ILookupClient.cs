@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -312,7 +311,7 @@ namespace DnsClient
         /// </summary>
         /// <param name="nameServers">A collection of name servers.</param>
         public DnsQueryAndServerOptions(params IPEndPoint[] nameServers)
-           : this(nameServers.Select(p => (NameServer)p).ToArray())
+           : this(nameServers?.Select(p => (NameServer)p).ToArray())
         {
         }
 
@@ -321,7 +320,7 @@ namespace DnsClient
         /// </summary>
         /// <param name="nameServers">A collection of name servers.</param>
         public DnsQueryAndServerOptions(params IPAddress[] nameServers)
-            : this(nameServers.Select(p => (NameServer)p).ToArray())
+            : this(nameServers?.Select(p => (NameServer)p).ToArray())
         {
         }
 
@@ -729,11 +728,6 @@ namespace DnsClient
         public DnsQueryAndServerSettings(DnsQueryAndServerOptions options)
             : base(options)
         {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
             _endpoints = options.NameServers?.ToArray() ?? new NameServer[0];
 
             AutoResolvedNameServers = options.AutoResolvedNameServers;
@@ -882,7 +876,6 @@ namespace DnsClient
         internal LookupClientSettings Copy(
             IReadOnlyCollection<NameServer> nameServers,
             TimeSpan? minimumCacheTimeout,
-            TimeSpan? maximumCacheTimeout = null,
             bool? continueOnDnsError = null,
             bool? enableAuditTrail = null,
             bool? recursion = null,
@@ -898,7 +891,6 @@ namespace DnsClient
             return new LookupClientOptions(nameServers?.ToArray())
             {
                 MinimumCacheTimeout = minimumCacheTimeout,
-                MaximumCacheTimeout = maximumCacheTimeout,
                 ContinueOnDnsError = continueOnDnsError ?? ContinueOnDnsError,
                 EnableAuditTrail = enableAuditTrail ?? EnableAuditTrail,
                 Recursion = recursion ?? Recursion,
@@ -908,7 +900,10 @@ namespace DnsClient
                 UseCache = useCache ?? UseCache,
                 UseRandomNameServer = useRandomNameServer ?? UseRandomNameServer,
                 UseTcpFallback = useTcpFallback ?? UseTcpFallback,
-                UseTcpOnly = useTcpOnly ?? UseTcpOnly
+                UseTcpOnly = useTcpOnly ?? UseTcpOnly,
+                MaximumCacheTimeout = MaximumCacheTimeout,
+                ExtendedDnsBufferSize = ExtendedDnsBufferSize,
+                RequestDnsSecRecords = RequestDnsSecRecords
             };
         }
 

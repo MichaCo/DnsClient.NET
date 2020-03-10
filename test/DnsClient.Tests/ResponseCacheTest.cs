@@ -11,6 +11,11 @@ namespace DnsClient.Tests
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class ResponseCacheTest
     {
+        static ResponseCacheTest()
+        {
+            Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.All;
+        }
+
         [Fact]
         public void Cache_InvalidLessThanZero()
         {

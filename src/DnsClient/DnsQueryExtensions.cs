@@ -69,10 +69,10 @@ namespace DnsClient
         /// <returns>
         /// An <see cref="IPHostEntry"/> instance that contains address information about the host specified in <paramref name="hostNameOrAddress"/>.
         /// In case the <paramref name="hostNameOrAddress"/> could not be resolved to a domain name, this method returns <c>null</c>,
-        /// unless <see cref="ILookupClient.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
+        /// unless <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="hostNameOrAddress"/> is null.</exception>
-        /// <exception cref="DnsResponseException">In case <see cref="ILookupClient.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
+        /// <exception cref="DnsResponseException">In case <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
         public static IPHostEntry GetHostEntry(this IDnsQuery query, string hostNameOrAddress)
         {
             if (query == null)
@@ -145,10 +145,10 @@ namespace DnsClient
         /// <returns>
         /// An <see cref="IPHostEntry"/> instance that contains address information about the host specified in <paramref name="hostNameOrAddress"/>.
         /// In case the <paramref name="hostNameOrAddress"/> could not be resolved to a domain name, this method returns <c>null</c>,
-        /// unless <see cref="ILookupClient.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
+        /// unless <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="hostNameOrAddress"/> is null.</exception>
-        /// <exception cref="DnsResponseException">In case <see cref="ILookupClient.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
+        /// <exception cref="DnsResponseException">In case <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
         public static Task<IPHostEntry> GetHostEntryAsync(this IDnsQuery query, string hostNameOrAddress)
         {
             if (query == null)
@@ -221,10 +221,10 @@ namespace DnsClient
         /// <returns>
         /// An <see cref="IPHostEntry"/> instance that contains address information about the host specified in <paramref name="address"/>.
         /// In case the <paramref name="address"/> could not be resolved to a domain name, this method returns <c>null</c>,
-        /// unless <see cref="ILookupClient.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
+        /// unless <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="address"/> is null.</exception>
-        /// <exception cref="DnsResponseException">In case <see cref="ILookupClient.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
+        /// <exception cref="DnsResponseException">In case <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
         public static IPHostEntry GetHostEntry(this IDnsQuery query, IPAddress address)
         {
             if (query == null)
@@ -298,10 +298,10 @@ namespace DnsClient
         /// <returns>
         /// An <see cref="IPHostEntry"/> instance that contains address information about the host specified in <paramref name="address"/>.
         /// In case the <paramref name="address"/> could not be resolved to a domain name, this method returns <c>null</c>,
-        /// unless <see cref="ILookupClient.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
+        /// unless <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to true, then it might throw a <see cref="DnsResponseException"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="address"/> is null.</exception>
-        /// <exception cref="DnsResponseException">In case <see cref="ILookupClient.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
+        /// <exception cref="DnsResponseException">In case <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
         public static async Task<IPHostEntry> GetHostEntryAsync(this IDnsQuery query, IPAddress address)
         {
             if (query == null)
@@ -414,10 +414,10 @@ namespace DnsClient
         /// <param name="address">The <see cref="IPAddress"/> to resolve.</param>
         /// <returns>
         /// The hostname if the reverse lookup was successful or <c>null</c>, in case the host was not found.
-        /// If <see cref="ILookupClient.ThrowDnsErrors"/> is set to <c>true</c>, this method will throw an <see cref="DnsResponseException"/> instead of returning <c>null</c>!
+        /// If <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to <c>true</c>, this method will throw an <see cref="DnsResponseException"/> instead of returning <c>null</c>!
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="address"/>is null.</exception>
-        /// <exception cref="DnsResponseException">If no host has been found and <see cref="ILookupClient.ThrowDnsErrors"/> is <c>true</c>.</exception>
+        /// <exception cref="DnsResponseException">If no host has been found and <see cref="DnsQueryOptions.ThrowDnsErrors"/> is <c>true</c>.</exception>
         public static string GetHostName(this IDnsQuery query, IPAddress address)
         {
             if (query == null)
@@ -440,10 +440,10 @@ namespace DnsClient
         /// <param name="address">The <see cref="IPAddress"/> to resolve.</param>
         /// <returns>
         /// The hostname if the reverse lookup was successful or <c>null</c>, in case the host was not found.
-        /// If <see cref="ILookupClient.ThrowDnsErrors"/> is set to <c>true</c>, this method will throw an <see cref="DnsResponseException"/> instead of returning <c>null</c>!
+        /// If <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to <c>true</c>, this method will throw an <see cref="DnsResponseException"/> instead of returning <c>null</c>!
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="address"/>is null.</exception>
-        /// <exception cref="DnsResponseException">If no host has been found and <see cref="ILookupClient.ThrowDnsErrors"/> is <c>true</c>.</exception>
+        /// <exception cref="DnsResponseException">If no host has been found and <see cref="DnsQueryOptions.ThrowDnsErrors"/> is <c>true</c>.</exception>
         public static async Task<string> GetHostNameAsync(this IDnsQuery query, IPAddress address)
         {
             if (query == null)

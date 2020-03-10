@@ -16,7 +16,7 @@ namespace DnsClient.Tests
 
         static LookupTest()
         {
-            DnsClient.Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.Information;
+            Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.Information;
         }
 
         [Fact]

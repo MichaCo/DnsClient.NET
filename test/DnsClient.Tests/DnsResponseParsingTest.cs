@@ -16,6 +16,11 @@ namespace DnsClient.Tests
 
         private readonly LookupClient _client;
 
+        static DnsResponseParsingTest()
+        {
+            Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.All;
+        }
+
         public DnsResponseParsingTest()
         {
             _client = new LookupClient(IPAddress.Loopback);

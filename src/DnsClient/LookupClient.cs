@@ -322,12 +322,6 @@ namespace DnsClient
         {
             Settings = options ?? throw new ArgumentNullException(nameof(options));
 
-            // TODO: revisit, do we need this check? Maybe throw on query instead, in case no default name servers nor the per query settings have any defined.
-            ////if (Settings.NameServers == null || Settings.NameServers.Count == 0)
-            ////{
-            ////    throw new ArgumentException("At least one name server must be configured.", nameof(options));
-            ////}
-
             _messageHandler = udpHandler ?? new DnsUdpMessageHandler(true);
             _tcpFallbackHandler = tcpHandler ?? new DnsTcpMessageHandler();
             _logger = Logging.LoggerFactory.CreateLogger(nameof(LookupClient));
@@ -660,8 +654,12 @@ namespace DnsClient
         private DnsQuerySettings GetSettings(DnsQueryOptions queryOptions = null)
             => queryOptions == null ? Settings : (DnsQuerySettings)queryOptions;
 
-        private IDnsQueryResponse QueryInternal(DnsQuestion question, DnsQuerySettings settings, IReadOnlyCollection<NameServer> useServers)
+        private IDnsQueryResponse QueryInternal(DnsQuestion question, DnsQuerySettings settings, IReadOnlyCollection<NameServer> servers)
         {
+            if (servers == null)
+            {
+                throw new ArgumentNullException(nameof(servers));
+            }
             if (question == null)
             {
                 throw new ArgumentNullException(nameof(question));
@@ -677,14 +675,18 @@ namespace DnsClient
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug(c_eventStartQuery, "Begin query {0} => {1} on [{2}]", head, question, string.Join(", ", useServers));
+                _logger.LogDebug(c_eventStartQuery, "Begin query {0} => {1} on [{2}]", head, question, string.Join(", ", servers));
             }
 
-            return ResolveQuery(useServers, settings, handler, request);
+            return ResolveQuery(servers, settings, handler, request);
         }
 
-        private Task<IDnsQueryResponse> QueryInternalAsync(DnsQuestion question, DnsQuerySettings settings, IReadOnlyCollection<NameServer> useServers, CancellationToken cancellationToken = default)
+        private Task<IDnsQueryResponse> QueryInternalAsync(DnsQuestion question, DnsQuerySettings settings, IReadOnlyCollection<NameServer> servers, CancellationToken cancellationToken = default)
         {
+            if (servers == null)
+            {
+                throw new ArgumentNullException(nameof(servers));
+            }
             if (question == null)
             {
                 throw new ArgumentNullException(nameof(question));
@@ -699,10 +701,10 @@ namespace DnsClient
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug(c_eventStartQuery, "Begin query {0} => {1} on [{2}].", head.Id, question, string.Join(", ", useServers));
+                _logger.LogDebug(c_eventStartQuery, "Begin query {0} => {1} on [{2}].", head.Id, question, string.Join(", ", servers));
             }
 
-            return ResolveQueryAsync(useServers?.ToList(), settings, request, handler: null, cancellationToken: cancellationToken);
+            return ResolveQueryAsync(servers.ToList(), settings, request, handler: null, cancellationToken: cancellationToken);
         }
 
         // making it internal for unit testing
@@ -1014,7 +1016,7 @@ namespace DnsClient
 
         internal async Task<IDnsQueryResponse> ResolveQueryAsync(
             IReadOnlyList<NameServer> servers,
-            DnsQuerySettings settings,            
+            DnsQuerySettings settings,
             DnsRequestMessage request,
             DnsMessageHandler handler = null,
             CancellationToken cancellationToken = default)
@@ -1048,14 +1050,20 @@ namespace DnsClient
 
             if (!settings.UseTcpFallback)
             {
-                throw new DnsResponseException(DnsResponseCode.Unassigned, "Response was truncated and UseTcpFallback is disabled, unable to resolve the question.");
+                throw new DnsResponseException(DnsResponseCode.Unassigned, "Response was truncated and UseTcpFallback is disabled, unable to resolve the question.")
+                {
+                    AuditTrail = audit?.Build(result)
+                };
             }
 
             request.Header.RefreshId();
             var tcpResult = await ResolveQueryAsync(servers, settings, _tcpFallbackHandler, true, request, audit, cancellationToken: cancellationToken).ConfigureAwait(false);
             if (tcpResult is TruncatedQueryResponse)
             {
-                throw new DnsResponseException("Unexpected truncated result from TCP response.");
+                throw new DnsResponseException("Unexpected truncated result from TCP response.")
+                {
+                    AuditTrail = audit?.Build(tcpResult)
+                };
             }
 
             return tcpResult;
@@ -1070,10 +1078,10 @@ namespace DnsClient
             LookupClientAudit audit,
             CancellationToken cancellationToken = default)
         {
-            for(var serverIndex = 0; serverIndex < servers.Count; serverIndex++)
+            for (var serverIndex = 0; serverIndex < servers.Count; serverIndex++)
             {
                 var serverInfo = servers[serverIndex];
-                var isLastServer = serverIndex >= servers.Count -1;
+                var isLastServer = serverIndex >= servers.Count - 1;
                 if (serverIndex > 0)
                 {
                     request.Header.RefreshId();
@@ -1083,7 +1091,7 @@ namespace DnsClient
                 if (settings.UseCache)
                 {
                     cacheKey = ResponseCache.GetCacheKey(request.Question);
-                    
+
                     if (TryGetCachedResult(cacheKey, request, settings, out var cachedResponse))
                     {
                         return cachedResponse;
@@ -1147,7 +1155,7 @@ namespace DnsClient
                         }
 
                         lastQueryResponse = ProcessResponseMessage(audit, request, response, settings, serverInfo, servers.Count, isTcpHandle);
-                        
+
                         if (lastQueryResponse is TruncatedQueryResponse)
                         {
                             // Return right away and try to fallback to TCP.
@@ -1157,8 +1165,7 @@ namespace DnsClient
                         audit?.AuditEnd(lastQueryResponse, serverInfo);
                         audit?.Build(lastQueryResponse);
 
-                        if (lastQueryResponse.HasError &&
-                            (settings.ThrowDnsErrors || settings.ContinueOnDnsError))
+                        if (lastQueryResponse.HasError)
                         {
                             throw new DnsResponseException((DnsResponseCode)response.Header.ResponseCode)
                             {
@@ -1176,7 +1183,7 @@ namespace DnsClient
                     catch (DnsResponseException ex)
                     {
                         // Response error handling and logging
-                        var handle = HandleDnsResponseException(ex, request, settings, serverInfo, isLastServer, isLastTry, tries);
+                        var handle = HandleDnsResponseException(ex, request, settings, serverInfo, isLastServer: isLastServer, isLastTry: isLastTry, tries);
 
                         if (handle == HandleError.Throw)
                         {
@@ -1191,7 +1198,7 @@ namespace DnsClient
                             break;
                         }
 
-                        // This should not happen, but might if something upstream throws this exception before 
+                        // This should not happen, but might if something upstream throws this exception before
                         // we got to parse the response.
                         if (lastQueryResponse == null)
                         {
@@ -1203,163 +1210,91 @@ namespace DnsClient
                     }
                     catch (DnsResponseParseException ex)
                     {
-                        if (!isTcpHandle)
+                        var handle = HandleDnsResponeParseException(ex, request, isTcpHandle: isTcpHandle, isLastServer: isLastServer);
+                        if (handle == HandleError.RetryNextServer)
                         {
-                            // If we are below max buffer size and we tried to read more bytes then available, 
-                            // lets assume the response was truncated and retry with TCP.
-                            this._logger.LogError(
-                                c_eventQueryRetryError,
-                                ex,
-                                "Query {0} => {1} error, response seems to be truncated without TC flag! Retrying via TCP...",
-                                request.Header.Id,
-                                request.Question);
-
-                            if (ex.ReadLength + ex.Index > ex.ResponseData.Length)
-                            {
-                                return new TruncatedQueryResponse();
-                            }
+                            break;
+                        }
+                        else if (handle == HandleError.ReturnResponse)
+                        {
+                            return new TruncatedQueryResponse();
                         }
 
-                        if (isLastServer)
-                        {
-                            this._logger.LogError(
-                                c_eventQueryFail,
-                                ex,
-                                "Query {0} => {1} error parsing the response.",
-                                request.Header.Id,
-                                request.Question);
-
-                            // Nothing else left todo.
-                            throw;
-                        }
-
-                        // Otherwise, lets continue at least with the next server
-                        this._logger.LogWarning(
-                            c_eventQueryRetryErrorSameServer,
-                            ex,
-                            "Query {0} => {1} error parsing the response. Re-trying {0}/{1}...",
-                            request.Header.Id,
-                            request.Question,
-                            tries,
-                            settings.Retries + 1);
-
-                        continue;
+                        throw;
                     }
                     catch (SocketException ex) when (
                         ex.SocketErrorCode == SocketError.AddressFamilyNotSupported
                         || ex.SocketErrorCode == SocketError.ConnectionRefused
                         || ex.SocketErrorCode == SocketError.ConnectionReset)
                     {
-                        if (isLastServer)
-                        {
-                            if (_logger.IsEnabled(LogLevel.Information))
-                            {
-                                _logger.LogInformation(
-                                    c_eventQueryFail,
-                                    ex,
-                                    "Query {0} => {1} on {2} failed to connect.",
-                                    request.Header.Id,
-                                    request.Question,
-                                    serverInfo);
-                            }
+                        var handle = HandleSocketException(ex, request, serverInfo, isLastServer);
 
-                            throw new DnsResponseException(
-                                DnsResponseCode.Unassigned,
-                                $"Query {request.Header.Id} => {request.Question} on {serverInfo} failed to connect.",
-                                ex)
-                            {
-                                AuditTrail = audit?.Build()
-                            };
+                        if (handle == HandleError.RetryCurrentServer)
+                        {
+                            continue;
+                        }
+                        else if (handle == HandleError.RetryNextServer)
+                        {
+                            break;
                         }
 
-                        if (_logger.IsEnabled(LogLevel.Information))
+                        throw new DnsResponseException(
+                            DnsResponseCode.Unassigned,
+                            $"Query {request.Header.Id} => {request.Question} on {serverInfo} failed to connect.",
+                            ex)
                         {
-                            _logger.LogInformation(
-                                c_eventQueryRetryError,
-                                ex,
-                                "Query {0} => {1} on {2} failed to connect. Trying next server...",
-                                request.Header.Id,
-                                request.Question,
-                                serverInfo);
-                        }
-
-                        break;
+                            AuditTrail = audit?.Build()
+                        };
                     }
                     catch (Exception ex) when (
                         ex is TimeoutException timeoutEx
                         || handler.IsTransientException(ex)
                         || ex is OperationCanceledException)
                     {
-                        // user's token got canceled, throw right away...
+                        // if user's token got canceled, throw right away.
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        if (isLastTry && isLastServer)
-                        {
-                            if (_logger.IsEnabled(LogLevel.Information))
-                            {
-                                _logger.LogInformation(
-                                    c_eventQueryFail,
-                                    ex,
-                                    "Query {0} => {1} on {2} timed out or is a transient error.",
-                                    request.Header.Id,
-                                    request.Question,
-                                    serverInfo,
-                                    tries,
-                                    settings.Retries + 1);
-                            }
+                        var handle = HandleTimeoutException(ex, request, settings, serverInfo, isLastServer: isLastServer, isLastTry: isLastTry, currentTry: tries);
 
-                            throw new DnsResponseException(
-                                DnsResponseCode.ConnectionTimeout,
-                                $"Query {request.Header.Id} => {request.Question} on {serverInfo} timed out or is a transient error.",
-                                ex)
-                            {
-                                AuditTrail = audit?.Build()
-                            };
+                        if (handle == HandleError.RetryCurrentServer)
+                        {
+                            continue;
+                        }
+                        else if (handle == HandleError.RetryNextServer)
+                        {
+                            break;
                         }
 
-                        if (_logger.IsEnabled(LogLevel.Information))
+                        throw new DnsResponseException(
+                            DnsResponseCode.ConnectionTimeout,
+                            $"Query {request.Header.Id} => {request.Question} on {serverInfo} timed out or is a transient error.",
+                            ex)
                         {
-                            _logger.LogInformation(
-                                c_eventQueryRetryErrorSameServer,
-                                ex,
-                                "Query {0} => {1} on {2} timed out or is a transient error. Re-trying {3}/{4}...",
-                                request.Header.Id,
-                                request.Question,
-                                serverInfo,
-                                tries,
-                                settings.Retries + 1);
-                        }
-
-                        continue;
+                            AuditTrail = audit?.Build()
+                        };
                     }
                     catch (Exception ex)
                     {
                         audit?.AuditException(ex);
 
-                        if (_logger.IsEnabled(LogLevel.Warning))
+                        var handle = HandleUnhandledException(ex, request, serverInfo, isLastServer: isLastServer);
+
+                        if (handle == HandleError.RetryCurrentServer)
                         {
-                            _logger.LogWarning(
-                                isLastServer ? c_eventQueryFail : c_eventQueryRetryError,
-                                ex,
-                                "Query {0} => {1} on {2} failed with an error."
-                                    + (isLastServer ? string.Empty : " Trying next server."),
-                                request.Header.Id,
-                                request.Question,
-                                serverInfo);
+                            continue;
+                        }
+                        else if (handle == HandleError.RetryNextServer)
+                        {
+                            break;
                         }
 
-                        if (isLastServer)
+                        throw new DnsResponseException(
+                            DnsResponseCode.Unassigned,
+                            $"Query {request.Header.Id} => {request.Question} on {serverInfo} failed with an error",
+                            ex)
                         {
-                            throw new DnsResponseException(
-                                DnsResponseCode.Unassigned,
-                                $"Query {request.Header.Id} => {request.Question} on {serverInfo} failed with an error",
-                                ex)
-                            {
-                                AuditTrail = audit?.Build()
-                            };
-                        }
-
-                        break;
+                            AuditTrail = audit?.Build()
+                        };
                     }
                 } while (tries <= settings.Retries && !cancellationToken.IsCancellationRequested);
 
@@ -1377,41 +1312,124 @@ namespace DnsClient
             };
         }
 
-        internal enum HandleError
+        private enum HandleError
         {
+            None,
             Throw,
             RetryCurrentServer,
             RetryNextServer,
             ReturnResponse
         }
 
-        /*
-         * 7 different outcomes here
-         * if not continue on error
-         *      if throwDnsErrors => throw
-         *      if not throwDnsErrors => return result
-         * if continue on error
-         *     if not last try and retryable error, try same server again
-         *     if not last try and other error, try next server
-         *     if last try and not last last server, try next server
-         *  then
-         *  if last server
-         *      if ThrowDnsErrors then throw
-         *      if not ThrowDnsErrors, return result
-         *      
-         * */
-        // Internal for unit testing
-        // TODO: unit test me
-        internal HandleError HandleDnsResponseException(DnsResponseException ex, DnsRequestMessage request, DnsQuerySettings settings, NameServer nameServer, bool isLastServer, bool isLastTry, int currentTry)
+        private HandleError HandleDnsResponseException(DnsResponseException ex, DnsRequestMessage request, DnsQuerySettings settings, NameServer nameServer, bool isLastServer, bool isLastTry, int currentTry)
         {
-            if (!settings.ContinueOnDnsError && settings.ThrowDnsErrors)
+            var handle = isLastServer ? settings.ThrowDnsErrors ? HandleError.Throw : HandleError.ReturnResponse : HandleError.RetryNextServer;
+
+            if (!settings.ContinueOnDnsError)
+            {
+                handle = settings.ThrowDnsErrors ? HandleError.Throw : HandleError.ReturnResponse;
+            }
+            else if (!isLastTry &&
+                (ex.Code == DnsResponseCode.ServerFailure || ex.Code == DnsResponseCode.FormatError))
+            {
+                handle = HandleError.RetryCurrentServer;
+            }
+
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                var eventId = 0;
+                var message = "Query {0} => {1} on {2} returned a response error '{3}'.";
+
+                switch (handle)
+                {
+                    case HandleError.Throw:
+                        eventId = c_eventQueryFail;
+                        message += " Throwing the error.";
+                        break;
+
+                    case HandleError.ReturnResponse:
+                        eventId = c_eventQueryResponseError;
+                        message += " Returning response.";
+                        break;
+
+                    case HandleError.RetryCurrentServer:
+                        eventId = c_eventQueryRetryErrorSameServer;
+                        message += " Re-trying {4}/{5}....";
+                        break;
+
+                    case HandleError.RetryNextServer:
+                        eventId = c_eventQueryRetryError;
+                        message += " Trying next server.";
+                        break;
+                }
+
+                if (handle == HandleError.RetryCurrentServer)
+                {
+                    _logger.LogInformation(eventId, message, request.Header.Id, request.Question, nameServer, ex.DnsError, currentTry + 1, settings.Retries + 1);
+                }
+                else
+                {
+                    _logger.LogInformation(eventId, message, request.Header.Id, request.Question, nameServer, ex.DnsError);
+                }
+            }
+
+            return handle;
+        }
+
+        private HandleError HandleDnsResponeParseException(DnsResponseParseException ex, DnsRequestMessage request, bool isTcpHandle, bool isLastServer)
+        {
+            if (!isTcpHandle
+                // Assuming that if we only got 512 or less bytes, its probably some network issue.
+                && (ex.ResponseData.Length <= DnsQueryOptions.MinimumBufferSize
+                // Second assumption: If the parser tried to read outside the provided data, this might also be a network issue.
+                || ex.ReadLength + ex.Index > ex.ResponseData.Length))
+            {
+                // lets assume the response was truncated and retry with TCP.
+                // (Not retrying other servers as it is very unlikely they would provide better results on this network)
+                this._logger.LogError(
+                    c_eventQueryRetryError,
+                    ex,
+                    "Query {0} => {1} error parsing the response. The response seems to be truncated without TC flag set! Re-trying via TCP anyways.",
+                    request.Header.Id,
+                    request.Question);
+
+                return HandleError.ReturnResponse;
+            }
+
+            if (isLastServer)
+            {
+                this._logger.LogError(
+                    c_eventQueryFail,
+                    ex,
+                    "Query {0} => {1} error parsing the response.",
+                    request.Header.Id,
+                    request.Question);
+
+                return HandleError.Throw;
+            }
+
+            // Otherwise, lets continue at least with the next server
+            this._logger.LogWarning(
+                c_eventQueryRetryError,
+                ex,
+                "Query {0} => {1} error parsing the response. Trying next server.",
+                request.Header.Id,
+                request.Question);
+
+            return HandleError.RetryNextServer;
+        }
+
+        // Logging and handling or retry-able socket errors.
+        private HandleError HandleSocketException(SocketException ex, DnsRequestMessage request, NameServer nameServer, bool isLastServer)
+        {
+            if (isLastServer)
             {
                 if (_logger.IsEnabled(LogLevel.Information))
                 {
                     _logger.LogInformation(
                         c_eventQueryFail,
                         ex,
-                        "Query {0} => {1} on {2} returned a response error, throwing the error because ContinueOnDnsError=False.",
+                        "Query {0} => {1} on {2} failed to connect.",
                         request.Header.Id,
                         request.Question,
                         nameServer);
@@ -1419,33 +1437,31 @@ namespace DnsClient
 
                 return HandleError.Throw;
             }
-            else if (!settings.ContinueOnDnsError)
-            {
-                // This should actually be the most normal case
-                if (_logger.IsEnabled(LogLevel.Information))
-                {
-                    _logger.LogInformation(
-                        c_eventQueryResponseError,
-                        ex,
-                        "Query {0} => {1} on {2} returned a response error, returning response.",
-                        request.Header.Id,
-                        request.Question,
-                        nameServer);
-                }
 
-                return HandleError.ReturnResponse;
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation(
+                    c_eventQueryRetryError,
+                    ex,
+                    "Query {0} => {1} on {2} failed to connect. Trying next server...",
+                    request.Header.Id,
+                    request.Question,
+                    nameServer);
             }
 
-            if (!isLastTry && 
-                (ex.Code == DnsResponseCode.ConnectionTimeout // extended only (not implemented/interpreted yet)
-                || ex.Code == DnsResponseCode.ServerFailure
-                || ex.Code == DnsResponseCode.FormatError))
+            return HandleError.RetryNextServer;
+        }
+
+        private HandleError HandleTimeoutException(Exception ex, DnsRequestMessage request, DnsQuerySettings settings, NameServer nameServer, bool isLastServer, bool isLastTry, int currentTry)
+        {
+            if (isLastTry && isLastServer)
             {
                 if (_logger.IsEnabled(LogLevel.Information))
                 {
                     _logger.LogInformation(
-                        c_eventQueryRetryErrorSameServer,
-                        "Query {0} => {1} on {2} returned a response error. Re-trying {3}/{4}...",
+                        c_eventQueryFail,
+                        ex,
+                        "Query {0} => {1} on {2} timed out or is a transient error.",
                         request.Header.Id,
                         request.Question,
                         nameServer,
@@ -1453,26 +1469,45 @@ namespace DnsClient
                         settings.Retries + 1);
                 }
 
-                return HandleError.RetryCurrentServer;
+                return HandleError.Throw;
             }
 
             if (_logger.IsEnabled(LogLevel.Information))
             {
                 _logger.LogInformation(
-                    isLastServer ? c_eventQueryRetryError : c_eventQueryRetryError,
-                    "Query {0} => {1} on {2} returned a response error."
+                    c_eventQueryRetryErrorSameServer,
+                    ex,
+                    "Query {0} => {1} on {2} timed out or is a transient error. Re-trying {3}/{4}...",
+                    request.Header.Id,
+                    request.Question,
+                    nameServer,
+                    currentTry,
+                    settings.Retries + 1);
+            }
+
+            return HandleError.RetryCurrentServer;
+        }
+
+        private HandleError HandleUnhandledException(Exception ex, DnsRequestMessage request, NameServer nameServer, bool isLastServer)
+        {
+            if (_logger.IsEnabled(LogLevel.Warning))
+            {
+                _logger.LogWarning(
+                    isLastServer ? c_eventQueryFail : c_eventQueryRetryError,
+                    ex,
+                    "Query {0} => {1} on {2} failed with an error."
                         + (isLastServer ? string.Empty : " Trying next server."),
                     request.Header.Id,
                     request.Question,
                     nameServer);
             }
 
-            if (settings.ThrowDnsErrors)
+            if (isLastServer)
             {
-                return isLastServer ? HandleError.Throw : HandleError.RetryNextServer;
+                return HandleError.Throw;
             }
 
-            return isLastServer ? HandleError.ReturnResponse : HandleError.RetryNextServer;
+            return HandleError.RetryNextServer;
         }
 
         private IDnsQueryResponse ProcessResponseMessage(
@@ -1496,26 +1531,17 @@ namespace DnsClient
                 return new TruncatedQueryResponse();
             }
 
+            if (request.Header.Id != response.Header.Id)
+            {
+                throw new DnsResponseException("Header id mismatch.");
+            }
+
             audit?.AuditResolveServers(serverCount);
             audit?.AuditResponseHeader(response.Header);
 
             if (response.Header.ResponseCode != DnsHeaderResponseCode.NoError)
             {
-                if (settings.EnableAuditTrail)
-                {
-                    audit?.AuditResponseError(response.Header.ResponseCode);
-                }
-
-                if (_logger.IsEnabled(LogLevel.Information))
-                {
-                    _logger.LogInformation(
-                        c_eventQueryResponseError,
-                        "Query {0} => {1} got a response error {2} from the server {3}.",
-                        request.Header.Id,
-                        request.Question,
-                        response.Header.ResponseCode,
-                        nameServer);
-                }
+                audit?.AuditResponseError(response.Header.ResponseCode);
             }
             else
             {
@@ -1601,8 +1627,6 @@ namespace DnsClient
                 }
             }
         }
-
-
     }
 
     internal class LookupClientAudit

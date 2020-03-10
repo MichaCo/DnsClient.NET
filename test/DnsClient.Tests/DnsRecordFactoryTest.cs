@@ -11,6 +11,11 @@ namespace DnsClient.Tests
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class DnsRecordFactoryTest
     {
+        static DnsRecordFactoryTest()
+        {
+            Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.All;
+        }
+
         internal DnsRecordFactory GetFactory(byte[] data)
         {
             return new DnsRecordFactory(new DnsDatagramReader(new ArraySegment<byte>(data)));
