@@ -118,13 +118,13 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_DisabledEdns_NoAdditionals()
         {
-            var dns = new LookupClient(NameServer.GooglePublicDns);
+var dns = new LookupClient(NameServer.GooglePublicDns);
 
-            var result = dns.Query("google.com", QueryType.A, queryOptions: new DnsQueryAndServerOptions()
-            {
-                RequestDnsSecRecords = false,
-                ExtendedDnsBufferSize = 512
-            });
+var result = dns.Query("google.com", QueryType.A, queryOptions: new DnsQueryAndServerOptions()
+{
+    RequestDnsSecRecords = false,
+    ExtendedDnsBufferSize = 512
+});
 
             Assert.Empty(result.Additionals);
         }
@@ -709,17 +709,6 @@ namespace DnsClient.Tests
             Assert.NotEmpty(result.Answers.ARecords());
         }
 
-        //// relaxing puni code rules
-        ////[Fact]
-        ////public void Lookup_Query_InvalidPuny()
-        ////{
-        ////    var client = new LookupClient(IPAddress.Parse("8.8.8.8"));
-
-        ////    Func<IDnsQueryResponse> act = () => client.QueryAsync("müsliiscool!.de", QueryType.A).Result;
-
-        ////    Assert.ThrowsAny<ArgumentException>(act);
-        ////}
-
         [Fact]
         public void Ip_Arpa_v4_Valid()
         {
@@ -865,13 +854,13 @@ namespace DnsClient.Tests
         [Fact]
         public void GetHostEntry_ByIp()
         {
-            var source = Dns.GetHostEntryAsync("localhost").Result;
+            var source = Dns.GetHostEntry("localhost");
             var client = new LookupClient();
-            var result = client.GetHostEntry(source.AddressList.First());
+            var result = client.GetHostEntry(source?.AddressList.First());
 
             Assert.NotNull(result);
-            Assert.True(result.AddressList.Length == 1);
-            Assert.True(result.Aliases.Length == 0);
+            Assert.True(result?.AddressList.Length == 1);
+            Assert.True(result?.Aliases.Length == 0);
         }
 
         [Fact]
@@ -1006,12 +995,12 @@ namespace DnsClient.Tests
         [Fact]
         public async Task GetHostEntryAsync_ByIp()
         {
-            var source = Dns.GetHostEntryAsync("localhost").Result;
+            var source = await Dns.GetHostEntryAsync("localhost");
             var client = new LookupClient();
-            var result = await client.GetHostEntryAsync(source.AddressList.First());
+            var result = await client.GetHostEntryAsync(source?.AddressList.First());
 
-            Assert.True(result.AddressList.Length == 1);
-            Assert.True(result.Aliases.Length == 0);
+            Assert.True(result?.AddressList.Length == 1);
+            Assert.True(result?.Aliases.Length == 0);
         }
 
         [Fact]
