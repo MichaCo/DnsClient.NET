@@ -1507,13 +1507,16 @@ namespace DnsClient
 
                     audit?.AuditEdnsOpt(optRecord.UdpSize, optRecord.Version, optRecord.IsDnsSecOk, optRecord.ResponseCodeEx);
 
-                    _logger.LogDebug(
-                        c_eventResponseOpt,
-                        "Response {0} => {1} opt record sets buffer of {2} to {3}.",
-                        response.Header.Id,
-                        response.Questions.FirstOrDefault(),
-                        serverInfo,
-                        optRecord.UdpSize);
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug(
+                            c_eventResponseOpt,
+                            "Response {0} => {1} opt record sets buffer of {2} to {3}.",
+                            response.Header.Id,
+                            response.Questions.FirstOrDefault(),
+                            serverInfo,
+                            optRecord.UdpSize);
+                    }
                 }
             }
         }
