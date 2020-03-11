@@ -118,13 +118,13 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_DisabledEdns_NoAdditionals()
         {
-var dns = new LookupClient(NameServer.GooglePublicDns);
+            var dns = new LookupClient(NameServer.GooglePublicDns);
 
-var result = dns.Query("google.com", QueryType.A, queryOptions: new DnsQueryAndServerOptions()
-{
-    RequestDnsSecRecords = false,
-    ExtendedDnsBufferSize = 512
-});
+            var result = dns.Query("google.com", QueryType.A, queryOptions: new DnsQueryAndServerOptions()
+            {
+                RequestDnsSecRecords = false,
+                ExtendedDnsBufferSize = 512
+            });
 
             Assert.Empty(result.Additionals);
         }
@@ -855,12 +855,13 @@ var result = dns.Query("google.com", QueryType.A, queryOptions: new DnsQueryAndS
         public void GetHostEntry_ByIp()
         {
             var source = Dns.GetHostEntry("localhost");
+            Assert.NotNull(source);
+
             var client = new LookupClient();
-            var result = client.GetHostEntry(source?.AddressList.First());
+            var result = client.GetHostEntry(source.AddressList.First());
 
             Assert.NotNull(result);
-            Assert.True(result?.AddressList.Length == 1);
-            Assert.True(result?.Aliases.Length == 0);
+            Assert.True(result.AddressList.Length >= 1);
         }
 
         [Fact]
@@ -996,11 +997,13 @@ var result = dns.Query("google.com", QueryType.A, queryOptions: new DnsQueryAndS
         public async Task GetHostEntryAsync_ByIp()
         {
             var source = await Dns.GetHostEntryAsync("localhost");
-            var client = new LookupClient();
-            var result = await client.GetHostEntryAsync(source?.AddressList.First());
+            Assert.NotNull(source);
 
-            Assert.True(result?.AddressList.Length == 1);
-            Assert.True(result?.Aliases.Length == 0);
+            var client = new LookupClient();
+            var result = await client.GetHostEntryAsync(source.AddressList.First());
+
+            Assert.NotNull(result);
+            Assert.True(result.AddressList.Length >= 1);
         }
 
         [Fact]
