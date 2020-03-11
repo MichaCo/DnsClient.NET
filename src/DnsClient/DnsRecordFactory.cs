@@ -147,6 +147,10 @@ namespace DnsClient
                     result = ResolveSshfpRecord(info);
                     break;
 
+                case ResourceRecordType.TLSA:
+                    result = ResolveTlsaRecord(info);
+                    break;
+
                 default:
                     // update reader index because we don't read full data for the empty record
                     _reader.Advance(info.RawDataLength);
@@ -249,6 +253,15 @@ namespace DnsClient
             var tag = _reader.ReadStringWithLengthPrefix();
             var stringValue = DnsDatagramReader.ParseString(_reader, info.RawDataLength - 2 - tag.Length);
             return new CaaRecord(info, flag, tag, stringValue);
+        }
+
+        private DnsResourceRecord ResolveTlsaRecord(ResourceRecordInfo info)
+        {
+            var certificateUsage = (TlsaCertificateUsageType)_reader.ReadByte();
+            var selector = (TlsaSelectorType)_reader.ReadByte();
+            var matching = (TlsaMatchingType)_reader.ReadByte();
+            var certificateAssociationData = _reader.ReadBytes(info.RawDataLength - 3);
+            return new TlsaRecord(info, certificateUsage, selector, matching, certificateAssociationData);
         }
     }
 }
