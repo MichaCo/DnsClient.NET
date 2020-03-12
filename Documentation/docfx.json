@@ -7,10 +7,7 @@
           "files": "**/*.csproj"
         }
       ],
-      "dest": "obj/api",
-      "properties": {
-        "TargetFramework": "netstandard1.3"
-      }
+      "dest": "obj/api"
     }
   ],
   "build": {
@@ -56,13 +53,12 @@
         ]
       }
     ],
-
     "globalMetadata": {
       "_gitContribute": {
         "branch": "dev",
         "apiSpecFolder": "Documentation/apispec"
       }
-    },
+    },    
     "postProcessors": [ "ExtractSearchIndex" ],
     "xref": "msdn.4.5.2/content/msdn.4.5.2.zip",
     "dest": "..\\..\\dnsclient.michaco.net\\website\\Docs",

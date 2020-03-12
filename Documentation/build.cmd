@@ -4,7 +4,7 @@ cd %~dp0
 call GetMsdn.cmd
 
 SETLOCAL
-SET DOCFX_VERSION=2.16.7
+SET DOCFX_VERSION=2.50
 SET CACHED_ZIP=%LocalAppData%\DocFx\docfx.%DOCFX_VERSION%.zip
 
 IF EXIST %CACHED_ZIP% goto extract
