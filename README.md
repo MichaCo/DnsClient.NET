@@ -1,5 +1,6 @@
 # DnsClient.NET
 
+[![Build Status](https://dev.azure.com/michaco/DnsClient/_apis/build/status/MichaCo.DnsClient.NET?branchName=dev)](https://dev.azure.com/michaco/DnsClient/_build/latest?definitionId=1&branchName=dev)
 [![NuGet](https://img.shields.io/nuget/v/DnsClient.svg?style=flat&label=Stable)](https://www.nuget.org/packages/DnsClient) 
 [![MyGet](https://img.shields.io/myget/dnsclient/vpre/DnsClient.svg?style=flat&label=Pre-release)](https://www.myget.org/feed/dnsclient/package/nuget/DnsClient) 
 
@@ -9,56 +10,47 @@ DnsClient.NET is a simple yet very powerful and high performant open source libr
 
 See http://dnsclient.michaco.net for more details and documentation.
 
-The following example instantiates a new `LookupClient` without specifying a DNS endpoint. 
-DnsClient.NET will query your system network adapters to determine available DNS servers.
+The following example instantiates a new `LookupClient` to query some IP address.
 
 ``` csharp
 
 var lookup = new LookupClient();
-var result = await lookup.QueryAsync("google.com", QueryType.ANY);
+var result = await lookup.QueryAsync("google.com", QueryType.A);
 
 var record = result.Answers.ARecords().FirstOrDefault();
-var address = record?.Address;
+var ip = record?.Address;
 ``` 
-
-## Builds
-
-[![Build Status](https://dev.azure.com/michaco/DnsClient/_apis/build/status/MichaCo.DnsClient.NET?branchName=dev)](https://dev.azure.com/michaco/DnsClient/_build/latest?definitionId=1&branchName=dev)
-
-Get it via NuGet https://www.nuget.org/packages/DnsClient/
-
-Get beta builds from [MyGet](https://www.myget.org/feed/dnsclient/package/nuget/DnsClient).
 
 ## Features
 
 ### General
 
-* Full Async API
-* UDP and TCP lookup, configurable if TCP should be used as fallback in case UDP result is truncated (default=true).
+* Sync & Async API
+* UDP and TCP lookup, configurable if TCP should be used as fallback in case the UDP result is truncated (default=true).
+* Configurable EDNS support to change the default UDP buffer size and request security relevant records
 * Caching
   * Query result cache based on provided TTL 
   * Minimum TTL setting to overrule the result's TTL and always cache the responses for at least that time. (Even very low value, like a few milliseconds, do make a huge difference if used in high traffic low latency scenarios)
-  * Cache can be disabled altogether
-* Supports multiple DNS endpoints to be configured
-* Configurable retry over configured DNS servers if one or more returned a server error
-* Configurable retry logic in case of timeouts and other exceptions
+  * Maximum TTL to limit cache duration
+  * Cache can be disabled
+* Multiple DNS endpoints can be configured. DnsClient will use them in random or sequential order (configurable), with re-tries.
+* Configurable retry of queries
 * Optional audit trail of each response and exception
 * Configurable error handling. Throwing DNS errors, like `NotExistentDomain` is turned off by default
+* Optional Trace/Logging
 
 ### Supported resource records
 
 * A, AAAA, NS, CNAME, SOA, MB, MG, MR, WKS, HINFO, MINFO, MX, RP, TXT, AFSDB, URI, CAA, NULL, SSHFP
 * PTR for reverse lookups
-* SRV For service discovery. `LookupClient` has some extensions to help with that.
-* OPT (currently only for reading the supported UDP buffer size, EDNS version)
+* SRV for service discovery. `LookupClient` has some extensions to help with that.
 * AXFR zone transfer (as per spec, LookupClient has to be set to TCP mode only for this type. Also, the result depends on if the DNS server trusts your current connection)
 
 ## Build from Source
 
-The solution requires a .NET Core 2.x SDK and the [.NET 4.7.1 Dev Pack](https://www.microsoft.com/net/download/dotnet-framework/net471) being installed.
+The solution requires a .NET Core 3.x SDK and the [.NET 4.7.1 Dev Pack](https://www.microsoft.com/net/download/dotnet-framework/net471) being installed.
 
-Just clone the repository and open the solution in Visual Studio 2017.
-Or use the dotnet client via command line.
+Just clone the repository and open the solution in Visual Studio 2017/2019.
 
 The unit tests don't require any additional setup right now.
 
@@ -70,18 +62,11 @@ Now, you can use **samples/MiniDig** to query the local DNS server.
 The following should return many different resource records:
 
 ``` cmd
-dotnet run -s localhost micha.mcnet.com any
-```
-
-To test some random domain names, run MiniDig with the `random` sub command (works without setting up Bind, too).
-
-``` cmd
-dotnet run random -s localhost
+dotnet run -s localhost mcnet.com any
 ```
 
 ## Examples
 
-* The [Samples](https://github.com/MichaCo/DnsClient.NET.Samples) repository will have some solutions to showcase the usage and also to test some functionality.
-
-* [MiniDig](https://github.com/MichaCo/DnsClient.NET/tree/dev/samples/MiniDig) (See the readme over there)
-
+* More docuemntation and a simple query window on http://dnsclient.michaco.net
+* The [Samples](https://github.com/MichaCo/DnsClient.NET.Samples) repository (there might be more in the future).
+* [MiniDig](https://github.com/MichaCo/DnsClient.NET/tree/dev/samples/MiniDig)

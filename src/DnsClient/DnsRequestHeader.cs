@@ -5,8 +5,8 @@ namespace DnsClient
 {
     internal class DnsRequestHeader
     {
+        private static readonly Random s_random = new Random();
         public const int HeaderLength = 12;
-
         private ushort _flags = 0;
 
         public ushort RawFlags => _flags;
@@ -31,7 +31,7 @@ namespace DnsClient
             }
         }
 
-        public int Id { get; set; }
+        public int Id { get; private set; }
 
         public DnsOpCode OpCode
         {
@@ -78,14 +78,14 @@ namespace DnsClient
             }
         }
 
-        public DnsRequestHeader(int id, DnsOpCode queryKind)
-            : this(id, true, queryKind)
+        public DnsRequestHeader(DnsOpCode queryKind)
+            : this(true, queryKind)
         {
         }
 
-        public DnsRequestHeader(int id, bool useRecursion, DnsOpCode queryKind)
+        public DnsRequestHeader(bool useRecursion, DnsOpCode queryKind)
         {
-            Id = id;
+            Id = GetNextUniqueId();
             OpCode = queryKind;
             UseRecursion = useRecursion;
         }
@@ -93,6 +93,16 @@ namespace DnsClient
         public override string ToString()
         {
             return $"{Id} - Qs: {1} Recursion: {UseRecursion} OpCode: {OpCode}";
+        }
+
+        public void RefreshId()
+        {
+            Id = GetNextUniqueId();
+        }
+
+        private ushort GetNextUniqueId()
+        {
+            return (ushort)s_random.Next(1, ushort.MaxValue);
         }
     }
 }

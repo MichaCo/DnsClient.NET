@@ -85,13 +85,13 @@ namespace DnsClient.Protocol
         {
             get
             {
-                var curTicks = Environment.TickCount & int.MaxValue;
+                var curTicks = (int)((Environment.TickCount & int.MaxValue) / 1000d);
                 if (curTicks < _ticks)
                 {
                     return 0;
                 }
 
-                var ttl = InitialTimeToLive - ((curTicks - _ticks) / 1000);
+                var ttl = InitialTimeToLive - (curTicks - _ticks);
                 return ttl < 0 ? 0 : ttl;
             }
         }
@@ -136,7 +136,7 @@ namespace DnsClient.Protocol
             RecordClass = recordClass;
             RawDataLength = rawDataLength;
             InitialTimeToLive = timeToLive;
-            _ticks = Environment.TickCount;
+            _ticks = (int)(Environment.TickCount / 1000d);
         }
     }
 }

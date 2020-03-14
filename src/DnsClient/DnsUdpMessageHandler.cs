@@ -16,15 +16,11 @@ namespace DnsClient
         private static ConcurrentQueue<UdpClient> _clientsIPv6 = new ConcurrentQueue<UdpClient>();
         private readonly bool _enableClientQueue;
 
+        public override DnsMessageHandleType Type { get; } = DnsMessageHandleType.UDP;
+
         public DnsUdpMessageHandler(bool enableClientQueue)
         {
             _enableClientQueue = enableClientQueue;
-        }
-
-        public override bool IsTransientException<T>(T exception)
-        {
-            if (exception is SocketException) return true;
-            return false;
         }
 
         public override DnsResponseMessage Query(

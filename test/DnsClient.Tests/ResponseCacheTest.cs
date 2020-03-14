@@ -8,8 +8,14 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class ResponseCacheTest
     {
+        static ResponseCacheTest()
+        {
+            Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.All;
+        }
+
         [Fact]
         public void Cache_InvalidLessThanZero()
         {
@@ -41,23 +47,40 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public async Task Cache_DoesCacheWithMinimumDefined()
+        public void Cache_DoesCacheWithMinimumDefined()
         {
             var minTtl = 2000;
             var cache = new ResponseCache(true, TimeSpan.FromMilliseconds(minTtl));
-            var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 1, 100));
+            var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any), null));
 
-            await Task.Delay(1200);
             var item = cache.Get("key", out double? effectiveTtl);
 
-            // should not be null although TTL is zero, mimimum timeout is set to 2000ms
-            // TTL of the record should be zero because the initial TTL is 100
+            Assert.NotNull(item);
             Assert.Equal(0, item.Answers.First().TimeToLive);
             Assert.Equal(minTtl, effectiveTtl);
+        }
+
+        [Fact]
+        public void Cache_RespectsMaximumTtl()
+        {
+            var maxTtl = 2000;
+            var cache = new ResponseCache(true, maximumTimeout: TimeSpan.FromMilliseconds(maxTtl));
+            var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 60 * 60 * 24, 100));
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
+            response.AddAnswer(record);
+
+            cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any), null));
+
+            var item = cache.Get("key", out double? effectiveTtl);
+
+            Assert.NotNull(item);
+            Assert.Equal(1, cache.Count);
+            Assert.Equal(60 * 60 * 24, item.Answers.First().TimeToLive);
+            Assert.Equal(maxTtl, effectiveTtl);
         }
 
         [Fact]

@@ -5,6 +5,33 @@ using DnsClient.Protocol;
 
 namespace DnsClient
 {
+    internal class TruncatedQueryResponse : IDnsQueryResponse
+    {
+        public IReadOnlyList<DnsQuestion> Questions => throw new NotImplementedException();
+
+        public IReadOnlyList<DnsResourceRecord> Additionals => throw new NotImplementedException();
+
+        public IEnumerable<DnsResourceRecord> AllRecords => throw new NotImplementedException();
+
+        public IReadOnlyList<DnsResourceRecord> Answers => throw new NotImplementedException();
+
+        public IReadOnlyList<DnsResourceRecord> Authorities => throw new NotImplementedException();
+
+        public string AuditTrail => throw new NotImplementedException();
+
+        public string ErrorMessage => throw new NotImplementedException();
+
+        public bool HasError => throw new NotImplementedException();
+
+        public DnsResponseHeader Header => throw new NotImplementedException();
+
+        public int MessageSize => throw new NotImplementedException();
+
+        public NameServer NameServer => throw new NotImplementedException();
+
+        public DnsQuerySettings Settings => throw new NotImplementedException();
+    }
+
     /// <summary>
     /// The response returned by any query performed by <see cref="IDnsQuery"/> with all answer sections, header and message information.
     /// </summary>
@@ -44,7 +71,7 @@ namespace DnsClient
         /// <value>
         /// The audit trail.
         /// </value>
-        public string AuditTrail => Audit?.Build(this);
+        public string AuditTrail { get; private set; }
 
         /// <summary>
         /// Gets a list of answer records.
@@ -60,12 +87,12 @@ namespace DnsClient
         /// Returns a string value representing the error response code in case an error occured,
         /// otherwise '<see cref="DnsResponseCode.NoError"/>'.
         /// </summary>
-        public string ErrorMessage => DnsResponseCodeText.GetErrorText(Header.ResponseCode);
+        public string ErrorMessage => DnsResponseCodeText.GetErrorText((DnsResponseCode)Header.ResponseCode);
 
         /// <summary>
         /// A flag indicating if the header contains a response codde other than <see cref="DnsResponseCode.NoError"/>.
         /// </summary>
-        public bool HasError => Header?.ResponseCode != DnsResponseCode.NoError;
+        public bool HasError => Header?.ResponseCode != DnsHeaderResponseCode.NoError;
 
         /// <summary>
         /// Gets the header of the response.
@@ -90,9 +117,7 @@ namespace DnsClient
         /// </summary>
         public DnsQuerySettings Settings { get; }
 
-        internal LookupClientAudit Audit { get; }
-
-        internal DnsQueryResponse(DnsResponseMessage dnsResponseMessage, NameServer nameServer, LookupClientAudit audit, DnsQuerySettings settings)
+        internal DnsQueryResponse(DnsResponseMessage dnsResponseMessage, NameServer nameServer, DnsQuerySettings settings)
         {
             if (dnsResponseMessage == null) throw new ArgumentNullException(nameof(dnsResponseMessage));
             Header = dnsResponseMessage.Header;
@@ -102,7 +127,6 @@ namespace DnsClient
             Additionals = dnsResponseMessage.Additionals.ToArray();
             Authorities = dnsResponseMessage.Authorities.ToArray();
             NameServer = nameServer ?? throw new ArgumentNullException(nameof(nameServer));
-            Audit = audit;
             Settings = settings;
         }
 
@@ -134,6 +158,14 @@ namespace DnsClient
             }
 
             return _hashCode.Value;
+        }
+
+        internal static void SetAuditTrail(IDnsQueryResponse response, string value)
+        {
+            if (response is DnsQueryResponse queryResponse)
+            {
+                queryResponse.AuditTrail = value;
+            }
         }
     }
 }

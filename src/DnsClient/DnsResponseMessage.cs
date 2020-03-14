@@ -65,13 +65,11 @@ namespace DnsClient
             Questions.Add(question);
         }
 
-        internal LookupClientAudit Audit { get; set; }
-
         /// <summary>
         /// Gets the readonly representation of this message which can be returned.
         /// </summary>
         public DnsQueryResponse AsQueryResponse(NameServer nameServer, DnsQuerySettings settings)
-            => new DnsQueryResponse(this, nameServer, Audit, settings);
+            => new DnsQueryResponse(this, nameServer, settings);
 
         public static DnsResponseMessage Combine(List<DnsResponseMessage> messages)
         {

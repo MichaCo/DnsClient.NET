@@ -1,8 +1,3 @@
-{{#item}}
-<head>
-  <title>{{#title}}{{title}}{{/title}}{{^title}}{{>partials/title}}{{/title}} {{#_appTitle}}| {{_appTitle}} {{/_appTitle}}</title>
-</head>
-
     <div id="wrapper">
       <header>
         {{^_disableBreadcrumb}}
@@ -21,24 +16,24 @@
       {{/_disableToc}}
       {{#_disableToc}}
         <div class="article row grid">
-      {{/_disableToc}}
+        {{/_disableToc}}
           {{#_disableAffix}}
           <div class="col-md-12">
           {{/_disableAffix}}
           {{^_disableAffix}}
           <div class="col-md-10">
           {{/_disableAffix}}
-            <article class="content wrap" id="_content">
-            {{#isNamespace}}
-              {{>partials/namespace}}
-            {{/isNamespace}}
-            {{#isClass}}
-              {{>partials/class}}
-            {{/isClass}}
-            {{#isEnum}}
-              {{>partials/enum}}
-            {{/isEnum}}
-            {{>partials/customMREFContent}}
+            <article class="content wrap" id="_content" data-uid="{{uid}}">
+                {{#isNamespace}}
+				  {{>partials/namespace}}
+				{{/isNamespace}}
+				{{#isClass}}
+				  {{>partials/class}}
+				{{/isClass}}
+				{{#isEnum}}
+				  {{>partials/enum}}
+				{{/isEnum}}
+				{{>partials/customMREFContent}}
             </article>
           </div>
           {{^_disableAffix}}
@@ -47,4 +42,3 @@
         </div>
       </div>
     </div>
-{{/item}}

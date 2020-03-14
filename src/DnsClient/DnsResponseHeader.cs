@@ -115,7 +115,7 @@ namespace DnsClient
         /// <value>
         /// The response code.
         /// </value>
-        public DnsResponseCode ResponseCode => (DnsResponseCode)(_flags & DnsHeader.RCodeMask);
+        public DnsHeaderResponseCode ResponseCode => (DnsHeaderResponseCode)(_flags & DnsHeader.RCodeMask);
 
         /// <summary>
         /// Gets a value indicating whether the result was truncated.
@@ -163,7 +163,7 @@ namespace DnsClient
         /// </returns>
         public override string ToString()
         {
-            var head = $";; ->>HEADER<<- opcode: {OPCode}, status: {DnsResponseCodeText.GetErrorText(ResponseCode)}, id: {Id}";
+            var head = $";; ->>HEADER<<- opcode: {OPCode}, status: {DnsResponseCodeText.GetErrorText((DnsResponseCode)ResponseCode)}, id: {Id}";
             var flags = new string[] {
                         HasQuery ? "qr" : "",
                         HasAuthorityAnswer ? "aa" : "",
@@ -176,7 +176,7 @@ namespace DnsClient
 
             var flagsString = string.Join(" ", flags.Where(p => p != ""));
             return $"{head}\r\n;; flags: {flagsString}; QUERY: {QuestionCount}, " +
-                $"ANSWER: {AnswerCount}, AUTORITY: {NameServerCount}, ADDITIONAL: {AdditionalCount}";
+                $"ANSWER: {AnswerCount}, AUTHORITY: {NameServerCount}, ADDITIONAL: {AdditionalCount}";
         }
     }
 }

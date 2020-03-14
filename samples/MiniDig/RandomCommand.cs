@@ -14,7 +14,6 @@ namespace DigApp
     public class RandomCommand : DnsCommand
     {
         private ConcurrentQueue<string> _domainNames;
-        private static readonly object _nameLock = new object();
         private static Random _randmom = new Random();
         private int _clients;
         private int _runtime;
@@ -25,6 +24,8 @@ namespace DigApp
         private LookupClient _lookup;
         private int _errors;
         private ConcurrentDictionary<string, int> _errorsPerCode = new ConcurrentDictionary<string, int>();
+        private ConcurrentDictionary<NameServer, int> _successByServer = new ConcurrentDictionary<NameServer, int>();
+        private ConcurrentDictionary<NameServer, int> _failByServer = new ConcurrentDictionary<NameServer, int>();
         private int _success;
         private Spiner _spinner;
         private bool _runSync;
@@ -55,7 +56,7 @@ namespace DigApp
         protected override void Configure()
         {
             ClientsArg = App.Option("-c | --clients", "Number of clients to run", CommandOptionType.SingleValue);
-            RuntimeArg = App.Option("-r | --runtime", "Time in seconds to run", CommandOptionType.SingleValue);
+            RuntimeArg = App.Option("-r | --run", "Time in seconds to run", CommandOptionType.SingleValue);
             SyncArg = App.Option("--sync", "Run synchronous api", CommandOptionType.NoValue);
             base.Configure();
         }
@@ -63,7 +64,7 @@ namespace DigApp
         protected override async Task<int> Execute()
         {
             var lines = File.ReadAllLines("names.txt");
-            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(',') + 1)));
+            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(',') + 1)).OrderBy(x => _randmom.Next(0, lines.Length * 2)));
 
             _clients = ClientsArg.HasValue() ? int.Parse(ClientsArg.Value()) : 10;
             _runtime = RuntimeArg.HasValue() ? int.Parse(RuntimeArg.Value()) <= 1 ? 5 : int.Parse(RuntimeArg.Value()) : 5;
@@ -71,6 +72,8 @@ namespace DigApp
 
             _settings = GetLookupSettings();
             _settings.EnableAuditTrail = true;
+            _settings.ThrowDnsErrors = false;
+            _settings.ContinueOnDnsError = false;
             _lookup = GetDnsLookup(_settings);
             _running = true;
 
@@ -97,8 +100,14 @@ namespace DigApp
             }
 
             tasks.Add(CollectPrint());
-
-            await Task.WhenAny(tasks.ToArray());
+            try
+            {
+                await Task.WhenAny(tasks.ToArray());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
 
             double elapsedSeconds = sw.ElapsedMilliseconds / 1000d;
 
@@ -132,7 +141,19 @@ namespace DigApp
                 waitCount++;
                 await Task.Delay(1000);
 
-                _spinner.Status = $"{_reportExcecutions:N2} req/sec";
+                var serverUpdate = from good in _successByServer
+                                   join fail in _failByServer on good.Key equals fail.Key into all
+                                   from row in all.DefaultIfEmpty()
+                                   select new
+                                   {
+                                       good.Key,
+                                       Fails = row.Value,
+                                       Success = good.Value
+                                   };
+
+                var updateString = string.Join(" | ", serverUpdate.Select((p, i) => $"Server{i}: +{p.Success} -{p.Fails}"));
+
+                _spinner.Status = $"{_reportExcecutions:N2} req/sec {_allExcecutions:N0} total - [{updateString}]";
                 Interlocked.Exchange(ref _reportExcecutions, 0);
             }
             _running = false;
@@ -144,18 +165,19 @@ namespace DigApp
             while (_running)
             {
                 var query = NextDomainName();
+
                 try
                 {
+                    IDnsQueryResponse response = null;
                     _spinner.Message = query;
-                    IDnsQueryResponse response;
+
                     if (!_runSync)
                     {
-                        response = await _lookup.QueryAsync(query, QueryType.ANY);
+                        response = await _lookup.QueryAsync(query, QueryType.A);
                     }
                     else
                     {
-                        response = await Task.Run(() => _lookup.Query(query, QueryType.ANY));
-                        await Task.Delay(0);
+                        response = await Task.Run(() => _lookup.Query(query, QueryType.A));
                     }
 
                     Interlocked.Increment(ref _allExcecutions);
@@ -163,10 +185,12 @@ namespace DigApp
                     if (response.HasError)
                     {
                         _errorsPerCode.AddOrUpdate(response.Header.ResponseCode.ToString(), 1, (c, v) => v + 1);
+                        _failByServer.AddOrUpdate(response.NameServer, 1, (n, v) => v + 1);
                         Interlocked.Increment(ref _errors);
                     }
                     else
                     {
+                        _successByServer.AddOrUpdate(response.NameServer, 1, (n, v) => v + 1);
                         Interlocked.Increment(ref _success);
                     }
                 }

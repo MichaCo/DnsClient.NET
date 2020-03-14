@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
+using DnsClient.Internal;
 using Xunit;
 
 namespace DnsClient.Tests
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class DatagramReaderTest
     {
         private static byte[] ReferenceBitData = new byte[]
@@ -16,6 +19,11 @@ namespace DnsClient.Tests
             0, // 34
             0, // 35
         };
+
+        static DatagramReaderTest()
+        {
+            Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.All;
+        }
 
         [Fact]
         public void DatagramReader_LabelTest_DnsName()
@@ -56,25 +64,30 @@ namespace DnsClient.Tests
             var bytes = new byte[] { 3, 90, 90, 90, 6, 56, 56, 0 };
 
             var reader = new DnsDatagramReader(new ArraySegment<byte>(bytes));
-            var ex = Assert.ThrowsAny<DnsResponseParseException>(() => reader.ReadDnsName());
+
+            Action act = () => reader.ReadDnsName();
+            var ex = Assert.ThrowsAny<DnsResponseParseException>(act);
             Assert.Equal(5, ex.Index);
-            Assert.Equal(6, ex.Length);
+            Assert.Equal(6, ex.ReadLength);
         }
 
         [Fact]
         public void DatagramReader_DnsName_FromBytesInvalidOffset()
         {
             var reader = new DnsDatagramReader(new ArraySegment<byte>(new byte[] { 2 }));
-            var ex = Assert.ThrowsAny<DnsResponseParseException>(() => reader.ReadDnsName());
+
+            Action act = () => reader.ReadDnsName();
+            var ex = Assert.ThrowsAny<DnsResponseParseException>(act);
             Assert.Equal(1, ex.Index);
             Assert.Single(ex.ResponseData);
-            Assert.Equal(2, ex.Length);
+            Assert.Equal(2, ex.ReadLength);
         }
 
         [Fact]
         public void DatagramReader_IndexOutOfRange()
         {
-            Assert.ThrowsAny<ArgumentOutOfRangeException>(() => new DnsDatagramReader(new ArraySegment<byte>(new byte[10]), 11));
+            Action act = () => new DnsDatagramReader(new ArraySegment<byte>(new byte[10]), 11);
+            Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
 
         [Fact]
@@ -83,16 +96,18 @@ namespace DnsClient.Tests
             var reader = new DnsDatagramReader(new ArraySegment<byte>(new byte[10]), 9);
             reader.ReadByte();
 
-            var ex = Assert.ThrowsAny<DnsResponseParseException>(() => reader.ReadByte());
+            Action act = () => reader.ReadByte();
+            var ex = Assert.ThrowsAny<DnsResponseParseException>(act);
 
             Assert.Equal(10, ex.Index);
-            Assert.Equal(1, ex.Length);
+            Assert.Equal(1, ex.ReadLength);
         }
 
         [Fact]
         public void DatagramReader_IndexOutOfRangeNegativ()
         {
-            Assert.ThrowsAny<ArgumentOutOfRangeException>(() => new DnsDatagramReader(new ArraySegment<byte>(new byte[10]), -1));
+            Action act = () => new DnsDatagramReader(new ArraySegment<byte>(new byte[10]), -1);
+            Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
 
         [Fact]
@@ -123,10 +138,12 @@ namespace DnsClient.Tests
             var reader = new DnsDatagramReader(new ArraySegment<byte>(new byte[2] { 0, 1 }));
 
             var result = reader.ReadUInt16();
-            var ex = Assert.ThrowsAny<DnsResponseParseException>(() => reader.ReadUInt16());
+
+            Action act = () => reader.ReadUInt16();
+            var ex = Assert.ThrowsAny<DnsResponseParseException>(act);
 
             Assert.Equal(2, ex.Index);
-            Assert.Equal(2, ex.Length);
+            Assert.Equal(2, ex.ReadLength);
         }
 
         [Fact]
@@ -135,10 +152,12 @@ namespace DnsClient.Tests
             var reader = new DnsDatagramReader(new ArraySegment<byte>(new byte[2] { 0, 1 }));
 
             var result = reader.ReadUInt16NetworkOrder();
-            var ex = Assert.ThrowsAny<DnsResponseParseException>(() => reader.ReadUInt16NetworkOrder());
+
+            Action act = () => reader.ReadUInt16NetworkOrder();
+            var ex = Assert.ThrowsAny<DnsResponseParseException>(act);
 
             Assert.Equal(2, ex.Index);
-            Assert.Equal(2, ex.Length);
+            Assert.Equal(2, ex.ReadLength);
         }
 
         [Fact]
@@ -163,9 +182,42 @@ namespace DnsClient.Tests
             reader.Advance(4);
             Assert.False(reader.DataAvailable);
 
-            var ex = Assert.Throws<DnsResponseParseException>(() => reader.Advance(1));
+            Action act = () => reader.Advance(1);
+            var ex = Assert.Throws<DnsResponseParseException>(act);
             Assert.Equal(4, ex.Index);
-            Assert.Equal(1, ex.Length);
+            Assert.Equal(1, ex.ReadLength);
+        }
+
+        [Fact]
+        public void Pool_ParallelTest()
+        {
+            for (var i = 0; i < 100; i++)
+            {
+                Parallel.Invoke(
+                    new ParallelOptions()
+                    {
+                        MaxDegreeOfParallelism = 16
+                    },
+                    Enumerable.Repeat<Action>(() => BuildSomething(), 200).ToArray());
+            }
+
+            void BuildSomething()
+            {
+                var a = StringBuilderObjectPool.Default.Get();
+                var b = StringBuilderObjectPool.Default.Get();
+
+                for (var i = 0; i < 100; i++)
+                {
+                    a.Append("something");
+                    b.Append("something else");
+                }
+
+                var x = a.ToString();
+                var y = b.ToString();
+
+                StringBuilderObjectPool.Default.Return(a);
+                StringBuilderObjectPool.Default.Return(b);
+            }
         }
     }
 }

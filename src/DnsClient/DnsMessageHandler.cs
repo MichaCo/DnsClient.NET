@@ -1,19 +1,50 @@
 ﻿using System;
 using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol.Options;
 
 namespace DnsClient
 {
+    internal enum DnsMessageHandleType
+    {
+        None = 0,
+        UDP,
+        TCP
+    }
+
     internal abstract class DnsMessageHandler
     {
+        public abstract DnsMessageHandleType Type { get; }
+
         public abstract DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request, TimeSpan timeout);
 
         public abstract Task<DnsResponseMessage> QueryAsync(IPEndPoint endpoint, DnsRequestMessage request, CancellationToken cancellationToken,
             Action<Action> cancelationCallback);
 
-        public abstract bool IsTransientException<T>(T exception) where T : Exception;
+        // Transient errors will be retried on the same NameServer before the resolver moves on
+        // to the next configured NameServer (if any).
+        public bool IsTransientException<T>(T exception) where T : Exception
+        {
+            if (exception is SocketException socketException)
+            {
+                // I think those are reasonable socket errors which can be retried
+                // with the same NameServer. Hard to tell though and might change...
+                // Any other socket exception will cause the LookupClient to move on to the next server.
+                switch (socketException.SocketErrorCode)
+                {
+                    case SocketError.TimedOut:
+                    case SocketError.ConnectionAborted:
+                    case SocketError.ConnectionReset:
+                    case SocketError.OperationAborted:
+                    case SocketError.TryAgain:
+                        return true;
+                }
+            }
+
+            return false;
+        }
 
         public virtual void GetRequestData(DnsRequestMessage request, DnsDatagramWriter writer)
         {
@@ -43,32 +74,30 @@ namespace DnsClient
             writer.WriteInt16NetworkOrder(1);   // we support single question only... (as most DNS servers anyways).
             writer.WriteInt16NetworkOrder(0);
             writer.WriteInt16NetworkOrder(0);
-            writer.WriteInt16NetworkOrder(1); // one additional for the Opt record.
+
+            if (request.QuerySettings.UseExtendedDns)
+            {
+                writer.WriteInt16NetworkOrder(1); // one additional for the Opt record.
+            }
+            else
+            {
+                writer.WriteInt16NetworkOrder(0);
+            }
 
             writer.WriteHostName(question.QueryName);
             writer.WriteUInt16NetworkOrder((ushort)question.QuestionType);
             writer.WriteUInt16NetworkOrder((ushort)question.QuestionClass);
 
-            /*
-               +------------+--------------+------------------------------+
-               | Field Name | Field Type   | Description                  |
-               +------------+--------------+------------------------------+
-               | NAME       | domain name  | MUST be 0 (root domain)      |
-               | TYPE       | u_int16_t    | OPT (41)                     |
-               | CLASS      | u_int16_t    | requestor's UDP payload size |
-               | TTL        | u_int32_t    | extended RCODE and flags     |
-               | RDLEN      | u_int16_t    | length of all RDATA          |
-               | RDATA      | octet stream | {attribute,value} pairs      |
-               +------------+--------------+------------------------------+
-            * */
+            if (request.QuerySettings.UseExtendedDns)
+            {
+                var opt = new OptRecord(size: request.QuerySettings.ExtendedDnsBufferSize, doFlag: request.QuerySettings.RequestDnsSecRecords);
 
-            var opt = new OptRecord();
-
-            writer.WriteHostName("");
-            writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
-            writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
-            writer.WriteUInt32NetworkOrder((ushort)opt.InitialTimeToLive);
-            writer.WriteUInt16NetworkOrder(0);
+                writer.WriteHostName("");
+                writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
+                writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
+                writer.WriteUInt32NetworkOrder((ushort)opt.InitialTimeToLive);
+                writer.WriteUInt16NetworkOrder(0);
+            }
         }
 
         public virtual DnsResponseMessage GetResponseMessage(ArraySegment<byte> responseData)

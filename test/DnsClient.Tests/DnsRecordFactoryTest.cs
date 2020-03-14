@@ -8,8 +8,14 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class DnsRecordFactoryTest
     {
+        static DnsRecordFactoryTest()
+        {
+            Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.All;
+        }
+
         internal DnsRecordFactory GetFactory(byte[] data)
         {
             return new DnsRecordFactory(new DnsDatagramReader(new ArraySegment<byte>(data)));
@@ -22,7 +28,9 @@ namespace DnsClient.Tests
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.PTR, QueryClass.IN, 0, data.Length);
 
-            Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
+            Action act = () => factory.GetRecord(info);
+            var ex = Assert.ThrowsAny<DnsResponseParseException>(act);
+            Assert.Equal(0, ex.Index);
         }
 
         [Fact]
@@ -76,7 +84,7 @@ namespace DnsClient.Tests
             var ex = Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
             Assert.Contains("IPv4", ex.Message);
             Assert.Equal(0, ex.Index);
-            Assert.Equal(4, ex.Length);
+            Assert.Equal(4, ex.ReadLength);
         }
 
         [Fact]
@@ -101,7 +109,7 @@ namespace DnsClient.Tests
             var ex = Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
             Assert.Contains("IPv6", ex.Message);
             Assert.Equal(0, ex.Index);
-            Assert.Equal(16, ex.Length);
+            Assert.Equal(16, ex.ReadLength);
         }
 
         [Fact]

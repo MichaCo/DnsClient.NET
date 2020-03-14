@@ -4,6 +4,12 @@ trigger:
 - dev
 - master
 
+pr:
+  autoCancel: false
+  branches:
+    include:
+    - '*'
+
 # pool:
 #   vmImage: 'windows-latest'
 
