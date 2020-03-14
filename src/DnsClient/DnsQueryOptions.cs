@@ -132,7 +132,7 @@ namespace DnsClient
         /// The query is answered if there is at least one <see cref="DnsResourceRecord"/> in the answers section 
         /// matching the <see cref="DnsQuestion"/>'s <see cref="QueryType"/>.
         /// <para>
-        /// If there are zero answeres in the response, the query is not answered, independent of the <see cref="QueryType"/>.
+        /// If there are zero answers in the response, the query is not answered, independent of the <see cref="QueryType"/>.
         /// If there are answers in the response, the <see cref="QueryType"/> is used to find a matching record,
         /// query types <see cref="QueryType.ANY"/> and <see cref="QueryType.AXFR"/> will be ignored by this check.
         /// </para>
@@ -554,7 +554,7 @@ namespace DnsClient
         /// The query is answered if there is at least one <see cref="DnsResourceRecord"/> in the answers section 
         /// matching the <see cref="DnsQuestion"/>'s <see cref="QueryType"/>.
         /// <para>
-        /// If there are zero answeres in the response, the query is not answered, independent of the <see cref="QueryType"/>.
+        /// If there are zero answers in the response, the query is not answered, independent of the <see cref="QueryType"/>.
         /// If there are answers in the response, the <see cref="QueryType"/> is used to find a matching record,
         /// query types <see cref="QueryType.ANY"/> and <see cref="QueryType.AXFR"/> will be ignored by this check.
         /// </para>
