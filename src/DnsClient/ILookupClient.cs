@@ -20,6 +20,11 @@ namespace DnsClient
         /// </summary>
         IReadOnlyCollection<NameServer> NameServers { get; }
 
+        /// <summary>
+        /// Gets the configured settings.
+        /// </summary>
+        LookupClientSettings Settings { get; }
+
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
         // all settings will be moved into DnsQueryOptions/LookupClientOptions
