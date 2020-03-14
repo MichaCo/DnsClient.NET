@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
+using DnsClient.Internal;
 using Xunit;
 
 namespace DnsClient.Tests
@@ -17,6 +19,11 @@ namespace DnsClient.Tests
             0, // 34
             0, // 35
         };
+
+        static DatagramReaderTest()
+        {
+            Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.All;
+        }
 
         [Fact]
         public void DatagramReader_LabelTest_DnsName()
@@ -179,6 +186,38 @@ namespace DnsClient.Tests
             var ex = Assert.Throws<DnsResponseParseException>(act);
             Assert.Equal(4, ex.Index);
             Assert.Equal(1, ex.ReadLength);
+        }
+
+        [Fact]
+        public void Pool_ParallelTest()
+        {
+            for (var i = 0; i < 100; i++)
+            {
+                Parallel.Invoke(
+                    new ParallelOptions()
+                    {
+                        MaxDegreeOfParallelism = 16
+                    },
+                    Enumerable.Repeat<Action>(() => BuildSomething(), 200).ToArray());
+            }
+
+            void BuildSomething()
+            {
+                var a = StringBuilderObjectPool.Default.Get();
+                var b = StringBuilderObjectPool.Default.Get();
+
+                for (var i = 0; i < 100; i++)
+                {
+                    a.Append("something");
+                    b.Append("something else");
+                }
+
+                var x = a.ToString();
+                var y = b.ToString();
+
+                StringBuilderObjectPool.Default.Return(a);
+                StringBuilderObjectPool.Default.Return(b);
+            }
         }
     }
 }

@@ -5,9 +5,8 @@ namespace DnsClient
 {
     internal class DnsRequestHeader
     {
+        private static readonly Random s_random = new Random();
         public const int HeaderLength = 12;
-
-        private readonly Random _random = new Random();
         private ushort _flags = 0;
 
         public ushort RawFlags => _flags;
@@ -103,7 +102,7 @@ namespace DnsClient
 
         private ushort GetNextUniqueId()
         {
-            return (ushort)_random.Next(1, ushort.MaxValue);
+            return (ushort)s_random.Next(1, ushort.MaxValue);
         }
     }
 }

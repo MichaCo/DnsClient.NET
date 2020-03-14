@@ -178,7 +178,6 @@ namespace DigApp
                     else
                     {
                         response = await Task.Run(() => _lookup.Query(query, QueryType.A));
-                        await Task.Delay(0);
                     }
 
                     Interlocked.Increment(ref _allExcecutions);

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFrameworks>netcoreapp1.1</TargetFrameworks>
     <AssemblyName>ApiDesign</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>ApiDesign</PackageId>
@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DnsClient\DnsClient.csproj" />
-    <ProjectReference Include="..\DnsClient.PerfTestHost\DnsClient.PerfTestHost.csproj" />
   </ItemGroup>
 
   <ItemGroup>

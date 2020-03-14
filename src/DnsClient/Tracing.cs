@@ -8,7 +8,6 @@ namespace DnsClient
 
     public static class Tracing
     {
-#if !NETSTANDARD1_3
         public static TraceSource Source { get; } = new TraceSource("DnsClient", SourceLevels.Error);
 
         // Logger factory which creates a logger writing to the TraceSource above.
@@ -97,26 +96,15 @@ namespace DnsClient
                 }
             }
         }
-#endif
     }
 
     public static class Logging
     {
-#if !NETSTANDARD1_3
         /// <summary>
         /// Gets or sets the <see cref="ILoggerFactory"/> DnsClient should use.
         /// Per default it will log to <see cref="Tracing.Source"/>.
         /// </summary>
         public static ILoggerFactory LoggerFactory { get; set; } = new Tracing.TraceLoggerFactory();
-#else
-
-        /// <summary>
-        /// Gets or sets the <see cref="ILoggerFactory"/> DnsClient should use.
-        /// Per default it will not do anything in netstandard 1.3 targeted projects.
-        /// </summary>
-        public static ILoggerFactory LoggerFactory { get; set; } = new NullLoggerFactory();
-
-#endif
     }
 }
 

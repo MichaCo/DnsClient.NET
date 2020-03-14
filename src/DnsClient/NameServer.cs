@@ -161,7 +161,7 @@ namespace DnsClient
         /// </returns>
         public override string ToString()
         {
-            return $"{Address}:{Port} (Udp: {SupportedUdpPayloadSize ?? DnsQueryOptions.MinimumBufferSize})";
+            return $"{Address}:{Port}";
         }
 
         /// <inheritdocs />
@@ -201,7 +201,7 @@ namespace DnsClient
 
             List<Exception> exceptions = new List<Exception>();
 
-            var logger = Logging.LoggerFactory?.CreateLogger(nameof(NameServer));
+            var logger = Logging.LoggerFactory?.CreateLogger(typeof(NameServer).FullName);
 
             logger?.LogDebug("Starting to resolve NameServers, skipIPv6SiteLocal:{0}.", skipIPv6SiteLocal);
             try
@@ -240,6 +240,11 @@ namespace DnsClient
                 {
                     throw exceptions.First();
                 }
+            }
+
+            if (endPoints == null)
+            {
+                endPoints = new IPAddress[0];
             }
 
             var filtered = endPoints

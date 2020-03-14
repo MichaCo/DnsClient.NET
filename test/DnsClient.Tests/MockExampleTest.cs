@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NETCOREAPP1_1
+using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -43,3 +44,4 @@ namespace DnsClient.Tests
         }
     }
 }
+#endif

@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
+#if !NETCOREAPP1_1
+
 namespace DnsClient.Tests
 {
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
@@ -29,3 +31,13 @@ namespace DnsClient.Tests
         }
     }
 }
+
+#else
+namespace System.Diagnostics.CodeAnalysis
+{
+    public class ExcludeFromCodeCoverageAttribute : Attribute
+    {
+    }
+}
+
+#endif

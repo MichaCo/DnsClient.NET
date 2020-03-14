@@ -268,11 +268,12 @@ namespace DnsClient.Tests
             Assert.Null(options.MaximumCacheTimeout);
             Assert.True(options.Recursion);
             Assert.False(options.ThrowDnsErrors);
-            Assert.Equal(5, options.Retries);
+            Assert.Equal(2, options.Retries);
             Assert.Equal(options.Timeout, TimeSpan.FromSeconds(5));
             Assert.True(options.UseTcpFallback);
             Assert.False(options.UseTcpOnly);
             Assert.True(options.ContinueOnDnsError);
+            Assert.True(options.ContinueOnEmptyResponse);
             Assert.True(options.UseRandomNameServer);
             Assert.Equal(DnsQueryOptions.MaximumBufferSize, options.ExtendedDnsBufferSize);
             Assert.False(options.RequestDnsSecRecords);
@@ -290,11 +291,12 @@ namespace DnsClient.Tests
             Assert.Null(options.MaximumCacheTimeout);
             Assert.True(options.Recursion);
             Assert.False(options.ThrowDnsErrors);
-            Assert.Equal(5, options.Retries);
+            Assert.Equal(2, options.Retries);
             Assert.Equal(options.Timeout, TimeSpan.FromSeconds(5));
             Assert.True(options.UseTcpFallback);
             Assert.False(options.UseTcpOnly);
             Assert.True(options.ContinueOnDnsError);
+            Assert.True(options.ContinueOnEmptyResponse);
             Assert.True(options.UseRandomNameServer);
             Assert.Equal(DnsQueryOptions.MaximumBufferSize, options.ExtendedDnsBufferSize);
             Assert.False(options.RequestDnsSecRecords);
@@ -308,6 +310,7 @@ namespace DnsClient.Tests
             var options = new LookupClientOptions(resolveNameServers: true)
             {
                 ContinueOnDnsError = !defaultOptions.ContinueOnDnsError,
+                ContinueOnEmptyResponse = !defaultOptions.ContinueOnEmptyResponse,
                 EnableAuditTrail = !defaultOptions.EnableAuditTrail,
                 MinimumCacheTimeout = TimeSpan.FromMinutes(1),
                 MaximumCacheTimeout = TimeSpan.FromMinutes(42),
@@ -327,6 +330,7 @@ namespace DnsClient.Tests
 
             Assert.Equal(defaultOptions.NameServers, client.NameServers);
             Assert.Equal(!defaultOptions.ContinueOnDnsError, client.Settings.ContinueOnDnsError);
+            Assert.Equal(!defaultOptions.ContinueOnEmptyResponse, client.Settings.ContinueOnEmptyResponse);
             Assert.Equal(!defaultOptions.EnableAuditTrail, client.Settings.EnableAuditTrail);
             Assert.Equal(TimeSpan.FromMinutes(1), client.Settings.MinimumCacheTimeout);
             Assert.Equal(TimeSpan.FromMinutes(42), client.Settings.MaximumCacheTimeout);
