@@ -657,6 +657,8 @@ namespace DnsClient.Tests
             Assert.Contains("dns.google", queryResult.Answers.PtrRecords().First().PtrDomainName);
         }
 
+#if ENABLE_REMOTE_DNS
+
         [Fact]
         public void Ip_Arpa_v6_Valid()
         {
@@ -669,6 +671,8 @@ namespace DnsClient.Tests
             Assert.Equal("8.8.8.8.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.6.8.4.0.6.8.4.1.0.0.2.ip6.arpa.", result);
             Assert.Contains("dns.google", queryResult.Answers.PtrRecords().First().PtrDomainName);
         }
+
+#endif
 
         [Fact]
         public async Task GetHostEntry_ExampleSub()
