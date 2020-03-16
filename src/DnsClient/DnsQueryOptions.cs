@@ -289,9 +289,9 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Gets or sets a list of name servers which should be used to query.
+        /// Gets a list of name servers which should be used to query.
         /// </summary>
-        public IList<NameServer> NameServers { get; set; } = new List<NameServer>();
+        public IReadOnlyList<NameServer> NameServers { get; } = new NameServer[0];
 
         /// <summary>
         /// Converts the query options into readonly settings.

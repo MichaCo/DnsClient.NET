@@ -20,7 +20,6 @@ namespace ApiDesign
 
             services.AddSingleton(new LookupClientOptions(NameServer.GooglePublicDns2)
             {
-                AutoResolveNameServers = true // explicitly force both, manual configured AND auto resolved!?
             });
 
             services.AddSingleton<ILookupClient>(f =>

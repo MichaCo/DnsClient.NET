@@ -193,7 +193,6 @@ namespace DnsClient.Tests
                 yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, ExtendedDnsBufferSize = 2222 } };
                 yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, MaximumCacheTimeout = TimeSpan.FromSeconds(5) } };
                 yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, MinimumCacheTimeout = TimeSpan.FromSeconds(5) } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, NameServers = new List<NameServer> { NameServer.Cloudflare } } };
                 yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, Recursion = false } };
                 yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, RequestDnsSecRecords = true } };
                 yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, Retries = 3 } };

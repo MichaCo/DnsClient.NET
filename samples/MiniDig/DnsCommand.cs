@@ -87,9 +87,8 @@ namespace DigApp
 
         public LookupClientOptions GetLookupSettings()
         {
-            return new LookupClientOptions()
+            return new LookupClientOptions(GetEndpointsValue())
             {
-                NameServers = GetEndpointsValue(),
                 Recursion = GetUseRecursionValue(),
                 Retries = GetTriesValue(),
                 Timeout = TimeSpan.FromMilliseconds(GetTimeoutValue()),
