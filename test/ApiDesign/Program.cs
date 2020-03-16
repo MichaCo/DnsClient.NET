@@ -5,6 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using DnsClient;
 using DnsClient.Protocol;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace ApiDesign
 {
@@ -12,49 +15,92 @@ namespace ApiDesign
     {
         public static void Main(string[] args)
         {
-            // version a
-            var client = new LookupClient(IPAddress.Loopback);
+            var services = new ServiceCollection();
+            services
+                .AddLogging(c =>
+                {
+                    c.AddConsole();
+                    c.SetMinimumLevel(LogLevel.Debug);
+                })
+                .AddOptions();
 
-            // version b
-
-            var x = client.QueryServer(new NameServer[] { IPAddress.Loopback }, "query", QueryType.A);
-            client = new LookupClient(new LookupClientOptions(
-               NameServer.Cloudflare, NameServer.Cloudflare2)
+            services.Configure<LookupClientOptions>(c =>
             {
-                UseCache = true,
-                ContinueOnDnsError = true,
-                EnableAuditTrail = true,
-                UseRandomNameServer = false,
-                ExtendedDnsBufferSize = 4000,
-                RequestDnsSecRecords = true,
-                Recursion = true,
-                MaximumCacheTimeout = TimeSpan.FromSeconds(5)
+                // Should be able to set this to false maybe?
+                // Defaults to true, gets evaluated @lookupclient ctor
+                Console.WriteLine(c.AutoResolvedNameServers);
+
+                // This actually resolves my local DNS and then I'm adding a google server...
+                // That's bad
+                c.NameServers.Add(NameServer.GooglePublicDns2);
             });
 
-            while (true)
+            services.AddSingleton<LookupClientOptions>();
+
+            services.AddSingleton<ILookupClient>(f =>
             {
-                var result = client.QueryServer(new[] { IPAddress.Loopback }, "mcnet.com", QueryType.ANY);
-                Console.WriteLine(result.AuditTrail);
-                ////Task.Delay(1003).GetAwaiter().GetResult();
-                ////var result2 = client.Query("dnsclient.michaco.net", QueryType.A, queryOptions: new DnsQueryAndServerOptions()
-                ////{
-                ////    ContinueOnDnsError = true,
-                ////    EnableAuditTrail = true
-                ////});
+                var o = f.GetRequiredService<LookupClientOptions>();
+                return new LookupClient(o);
+            });
 
-                ////Console.WriteLine(result2.AuditTrail);
-                if (result.HasError)
-                {
-                    Console.WriteLine("Error response: " + result.ErrorMessage);
-                }
-                WriteLongLine();
-                Task.Delay(1300).GetAwaiter().GetResult();
-            }
-        }
+            //services.AddSingleton<ILookupClient, LookupClient>();
 
-        public static void WriteLongLine()
-        {
-            Console.WriteLine("----------------------------------------------------");
+            /* - -- - - - - - */
+            var provider = services.BuildServiceProvider();
+
+            var loggerFactory = provider.GetRequiredService<ILoggerFactory>();
+            DnsClient.Logging.LoggerFactory = new LoggerFactoryWrapper(loggerFactory);
+
+            var logger = provider.GetRequiredService<ILogger<Program>>();
+            var lookup = provider.GetRequiredService<ILookupClient>();
+
+
+            logger.LogInformation($"Starting stuff...");
+
+            var x = lookup.Query("google.com", QueryType.A);
+
+
+            Console.ReadKey();
         }
     }
+
+    ////var provider = services.BuildServiceProvider();
+    ////var factory = provider.GetRequiredService<Microsoft.Extensions.Logging.ILoggerFactory>();
+    ////DnsClient.Logging.LoggerFactory = new LoggerFactoryWrapper(factory);
+
+    internal class LoggerFactoryWrapper : DnsClient.Internal.ILoggerFactory
+    {
+        private readonly Microsoft.Extensions.Logging.ILoggerFactory _microsoftLoggerFactory;
+
+        public LoggerFactoryWrapper(Microsoft.Extensions.Logging.ILoggerFactory microsoftLoggerFactory)
+        {
+            _microsoftLoggerFactory = microsoftLoggerFactory ?? throw new ArgumentNullException(nameof(microsoftLoggerFactory));
+        }
+
+        public DnsClient.Internal.ILogger CreateLogger(string categoryName)
+        {
+            return new DnsLogger(_microsoftLoggerFactory.CreateLogger(categoryName));
+        }
+
+        private class DnsLogger : DnsClient.Internal.ILogger
+        {
+            private readonly Microsoft.Extensions.Logging.ILogger _logger;
+
+            public DnsLogger(Microsoft.Extensions.Logging.ILogger logger)
+            {
+                _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            }
+
+            public bool IsEnabled(DnsClient.Internal.LogLevel logLevel)
+            {
+                return _logger.IsEnabled((Microsoft.Extensions.Logging.LogLevel)logLevel);
+            }
+
+            public void Log(DnsClient.Internal.LogLevel logLevel, int eventId, Exception exception, string message, params object[] args)
+            {
+                _logger.Log((Microsoft.Extensions.Logging.LogLevel)logLevel, eventId, exception, message, args);
+            }
+        }
+    }
+
 }

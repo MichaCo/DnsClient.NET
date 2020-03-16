@@ -326,6 +326,11 @@ namespace DnsClient
         private TimeSpan? _minimumCacheTimeout;
         private TimeSpan? _maximumCacheTimeout;
 
+        public LookupClientOptions()
+            : this(resolveNameServers: true)
+        {
+        }
+
         /// <summary>
         /// Creates a new instance of <see cref="LookupClientOptions"/> without name servers.
         /// </summary>

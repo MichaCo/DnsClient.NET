@@ -1382,7 +1382,10 @@ namespace DnsClient
 
                 if (record == null)
                 {
-                    _logger.LogWarning(c_eventResponseMissingOpt, "Response {0} => {1} is missing the requested OPT record.", response.Header.Id, response.Questions.FirstOrDefault());
+                    if (_logger.IsEnabled(LogLevel.Information))
+                    {
+                        _logger.LogInformation(c_eventResponseMissingOpt, "Response {0} => {1} is missing the requested OPT record.", response.Header.Id, response.Questions.FirstOrDefault());
+                    }
                 }
                 else if (record is OptRecord optRecord)
                 {
