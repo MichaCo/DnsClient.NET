@@ -1,6 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks><!--net461-->;net471;netcoreapp3.0;<!--netcoreapp1.1--></TargetFrameworks>
+    <TargetFrameworks>
+      <!--net461-->;net471;netcoreapp3.0;<!--netcoreapp1.1-->
+    </TargetFrameworks>
     <AssemblyName>DnsClient.Tests</AssemblyName>
     <AssemblyOriginatorKeyFile>../../tools/key.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
@@ -25,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' != 'netcoreapp1.1' ">
-    <ProjectReference Include="..\ApiDesign.OldReference\ApiDesign.OldReference.csproj" />
+    <ProjectReference Include="..\..\test-other\ApiDesign.OldReference\ApiDesign.OldReference.csproj" />
     <PackageReference Include="Moq" Version="4.13.1" />
   </ItemGroup>
 

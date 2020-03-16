@@ -129,7 +129,7 @@ namespace DnsClient
         /// Default is <c>True</c>.
         /// </summary>
         /// <remarks>
-        /// The query is answered if there is at least one <see cref="DnsResourceRecord"/> in the answers section 
+        /// The query is answered if there is at least one <see cref="DnsResourceRecord"/> in the answers section
         /// matching the <see cref="DnsQuestion"/>'s <see cref="QueryType"/>.
         /// <para>
         /// If there are zero answers in the response, the query is not answered, independent of the <see cref="QueryType"/>.
@@ -241,31 +241,29 @@ namespace DnsClient
     /// </summary>
     public class DnsQueryAndServerOptions : DnsQueryOptions
     {
-        // TODO: evalualte if defaulting resolveNameServers to false here and in the query plan, fall back to configured nameservers of the client
         /// <summary>
         /// Creates a new instance of <see cref="DnsQueryAndServerOptions"/> without name servers.
-        /// </summary>
-        /// <remarks>
         /// If no nameservers are configured, a query will fallback to the nameservers already configured on the <see cref="LookupClient"/> instance.
-        /// </remarks>
-        /// <param name="resolveNameServers">If set to <c>true</c>, <see cref="NameServer.ResolveNameServers(bool, bool)"/>
-        /// will be used to get a list of nameservers.</param>
-        public DnsQueryAndServerOptions(bool resolveNameServers = false)
-            : this(resolveNameServers ? NameServer.ResolveNameServers()?.ToArray() : null)
+        /// </summary>
+        public DnsQueryAndServerOptions()
         {
-            AutoResolvedNameServers = resolveNameServers;
         }
 
         /// <summary>
         /// Creates a new instance of <see cref="DnsQueryAndServerOptions"/>.
         /// </summary>
         /// <param name="nameServers">A collection of name servers.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="nameServers"/> is null.</exception>
         public DnsQueryAndServerOptions(params NameServer[] nameServers)
             : base()
         {
             if (nameServers != null && nameServers.Length > 0)
             {
                 NameServers = nameServers.ToList();
+            }
+            else
+            {
+                throw new ArgumentNullException(nameof(nameServers));
             }
         }
 
@@ -274,6 +272,7 @@ namespace DnsClient
         /// Creates a new instance of <see cref="DnsQueryAndServerOptions"/>.
         /// </summary>
         /// <param name="nameServers">A collection of name servers.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="nameServers"/> is null.</exception>
         public DnsQueryAndServerOptions(params IPEndPoint[] nameServers)
            : this(nameServers?.Select(p => (NameServer)p).ToArray())
         {
@@ -283,15 +282,11 @@ namespace DnsClient
         /// Creates a new instance of <see cref="DnsQueryAndServerOptions"/>.
         /// </summary>
         /// <param name="nameServers">A collection of name servers.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="nameServers"/> is null.</exception>
         public DnsQueryAndServerOptions(params IPAddress[] nameServers)
             : this(nameServers?.Select(p => (NameServer)p).ToArray())
         {
         }
-
-        /// <summary>
-        /// Gets a flag indicating whether the name server collection was manually defined or automatically resolved
-        /// </summary>
-        public bool AutoResolvedNameServers { get; }
 
         /// <summary>
         /// Gets or sets a list of name servers which should be used to query.
@@ -326,16 +321,11 @@ namespace DnsClient
         private TimeSpan? _minimumCacheTimeout;
         private TimeSpan? _maximumCacheTimeout;
 
-        public LookupClientOptions()
-            : this(resolveNameServers: true)
-        {
-        }
-
         /// <summary>
-        /// Creates a new instance of <see cref="LookupClientOptions"/> without name servers.
+        /// Creates a new instance of <see cref="LookupClientOptions"/> with default settings.
         /// </summary>
-        public LookupClientOptions(bool resolveNameServers = true)
-            : base(resolveNameServers)
+        public LookupClientOptions()
+            : base()
         {
         }
 
@@ -343,28 +333,45 @@ namespace DnsClient
         /// Creates a new instance of <see cref="LookupClientOptions"/>.
         /// </summary>
         /// <param name="nameServers">A collection of name servers.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="nameServers"/> is null.</exception>
         public LookupClientOptions(params NameServer[] nameServers)
             : base(nameServers)
         {
+            AutoResolveNameServers = false;
         }
 
         /// <summary>
         /// Creates a new instance of <see cref="LookupClientOptions"/>.
         /// </summary>
         /// <param name="nameServers">A collection of name servers.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="nameServers"/> is null.</exception>
         public LookupClientOptions(params IPEndPoint[] nameServers)
             : base(nameServers)
         {
+            AutoResolveNameServers = false;
         }
 
         /// <summary>
         /// Creates a new instance of <see cref="LookupClientOptions"/>.
         /// </summary>
         /// <param name="nameServers">A collection of name servers.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="nameServers"/> is null.</exception>
         public LookupClientOptions(params IPAddress[] nameServers)
             : base(nameServers)
         {
+            AutoResolveNameServers = false;
         }
+
+        /// <summary>
+        /// Gets or sets a flag indicating whether the name server collection should be automatically resolved.
+        /// Default is <c>True</c>.
+        /// </summary>
+        /// <remarks>
+        /// If name servers are configured manually via the constructor, this flag is set to false.
+        /// If you want both, your manually configured servers and auto resolved name servers,
+        /// you can use both (ctor or) <see cref="DnsQueryAndServerOptions.NameServers"/> and <see cref="AutoResolveNameServers"/> set to <c>True</c>.
+        /// </remarks>
+        public bool AutoResolveNameServers { get; set; } = true;
 
         /// <summary>
         /// Gets or sets a <see cref="TimeSpan"/> which can override the TTL of a resource record in case the
@@ -431,20 +438,6 @@ namespace DnsClient
                     _maximumCacheTimeout = value;
                 }
             }
-        }
-
-        /// <summary>
-        /// Converts the options into readonly settings.
-        /// </summary>
-        /// <param name="fromOptions">The options.</param>
-        public static implicit operator LookupClientSettings(LookupClientOptions fromOptions)
-        {
-            if (fromOptions == null)
-            {
-                return null;
-            }
-
-            return new LookupClientSettings(fromOptions);
         }
     }
 
@@ -556,7 +549,7 @@ namespace DnsClient
         /// Default is <c>True</c>.
         /// </summary>
         /// <remarks>
-        /// The query is answered if there is at least one <see cref="DnsResourceRecord"/> in the answers section 
+        /// The query is answered if there is at least one <see cref="DnsResourceRecord"/> in the answers section
         /// matching the <see cref="DnsQuestion"/>'s <see cref="QueryType"/>.
         /// <para>
         /// If there are zero answers in the response, the query is not answered, independent of the <see cref="QueryType"/>.
@@ -643,7 +636,7 @@ namespace DnsClient
             UseTcpFallback = options.UseTcpFallback;
             UseTcpOnly = options.UseTcpOnly;
             ExtendedDnsBufferSize = options.ExtendedDnsBufferSize;
-            RequestDnsSecRecords = options.RequestDnsSecRecords;            
+            RequestDnsSecRecords = options.RequestDnsSecRecords;
         }
 
         /// <inheritdocs />
@@ -704,10 +697,6 @@ namespace DnsClient
         /// </summary>
         public IReadOnlyList<NameServer> NameServers => _endpoints;
 
-        /// <summary>
-        /// Gets a flag indicating whether the name server collection was manually defined or automatically resolved
-        /// </summary>
-        public bool AutoResolvedNameServers { get; }
 
         /// <summary>
         /// Creates a new instance of <see cref="DnsQueryAndServerSettings"/>.
@@ -716,8 +705,6 @@ namespace DnsClient
             : base(options)
         {
             _endpoints = options.NameServers?.ToArray() ?? new NameServer[0];
-
-            AutoResolvedNameServers = options.AutoResolvedNameServers;
         }
 
         /// <summary>
@@ -759,7 +746,6 @@ namespace DnsClient
             }
 
             return NameServers.SequenceEqual(other.NameServers)
-                   && AutoResolvedNameServers == other.AutoResolvedNameServers
                    && base.Equals(other);
         }
 
@@ -794,6 +780,13 @@ namespace DnsClient
         /// </summary>
         public LookupClientSettings(LookupClientOptions options)
             : base(options)
+        {
+            MinimumCacheTimeout = options.MinimumCacheTimeout;
+            MaximumCacheTimeout = options.MaximumCacheTimeout;
+        }
+
+        internal LookupClientSettings(LookupClientOptions options, IReadOnlyCollection<NameServer> overrideServers)
+            : base(options, overrideServers)
         {
             MinimumCacheTimeout = options.MinimumCacheTimeout;
             MaximumCacheTimeout = options.MaximumCacheTimeout;
@@ -875,7 +868,7 @@ namespace DnsClient
             bool? useTcpOnly = null)
         {
             // auto resolved flag might get lost here. But this stuff gets deleted anyways.
-            return new LookupClientOptions(nameServers?.ToArray())
+            return new LookupClientSettings(new LookupClientOptions(nameServers?.ToArray())
             {
                 MinimumCacheTimeout = minimumCacheTimeout,
                 ContinueOnDnsError = continueOnDnsError ?? ContinueOnDnsError,
@@ -892,7 +885,7 @@ namespace DnsClient
                 ExtendedDnsBufferSize = ExtendedDnsBufferSize,
                 RequestDnsSecRecords = RequestDnsSecRecords,
                 ContinueOnEmptyResponse = ContinueOnEmptyResponse
-            };
+            });
         }
 
         // TODO: remove if LookupClient settings can be made readonly

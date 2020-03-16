@@ -111,7 +111,7 @@ namespace DnsClient.Tests
         [Fact]
         public void LookupClientSettings_Equals_Ref()
         {
-            var opt = (LookupClientSettings)new LookupClientOptions(resolveNameServers: false);
+            var opt = new LookupClientSettings(new LookupClientOptions() { AutoResolveNameServers = false });
 
             // typed overload
             Assert.True(opt.Equals(opt));
@@ -123,7 +123,7 @@ namespace DnsClient.Tests
         [Fact]
         public void LookupClientSettings_Equals_Null()
         {
-            var opt = (LookupClientSettings)new LookupClientOptions(resolveNameServers: false);
+            var opt = new LookupClientSettings(new LookupClientOptions() { AutoResolveNameServers = false });
 
             // typed overload
             Assert.False(opt.Equals((LookupClientSettings)null));
@@ -135,8 +135,8 @@ namespace DnsClient.Tests
         [Fact]
         public void LookupClientSettings_Equals_Other()
         {
-            var opt = (LookupClientSettings)new LookupClientOptions(resolveNameServers: false);
-            var opt2 = (LookupClientSettings)new LookupClientOptions(resolveNameServers: false);
+            var opt = new LookupClientSettings(new LookupClientOptions() { AutoResolveNameServers = false });
+            var opt2 = new LookupClientSettings(new LookupClientOptions() { AutoResolveNameServers = false });
 
             // typed overload
             Assert.True(opt.Equals(opt2));
@@ -167,56 +167,42 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public void DnsQueryAndServerSettings_AutoResolve()
-        {
-            var settings = new DnsQueryAndServerSettings(new DnsQueryAndServerOptions(resolveNameServers: true));
-
-            Assert.NotEmpty(settings.NameServers);
-        }
-
-        [Fact]
         public void DnsQueryAndServerSettings_NullServers1()
         {
-            var settings = new DnsQueryAndServerSettings(new DnsQueryAndServerOptions((IPAddress[])null));
-
-            Assert.Empty(settings.NameServers);
+            Assert.ThrowsAny<ArgumentNullException>(() => new DnsQueryAndServerSettings(new DnsQueryAndServerOptions((IPAddress[])null)));
         }
 
         [Fact]
         public void DnsQueryAndServerSettings_NullServers2()
         {
-            var settings = new DnsQueryAndServerSettings(new DnsQueryAndServerOptions((IPEndPoint[])null));
-
-            Assert.Empty(settings.NameServers);
+            Assert.ThrowsAny<ArgumentNullException>(() => new DnsQueryAndServerSettings(new DnsQueryAndServerOptions((IPEndPoint[])null)));
         }
 
         [Fact]
         public void DnsQueryAndServerSettings_NullServers3()
         {
-            var settings = new DnsQueryAndServerSettings(new DnsQueryAndServerOptions((NameServer[])null));
-
-            Assert.Empty(settings.NameServers);
+            Assert.ThrowsAny<ArgumentNullException>(() => new DnsQueryAndServerSettings(new DnsQueryAndServerOptions((NameServer[])null)));
         }
 
         public static IEnumerable<object[]> AllNonDefaultConfigurations
         {
             get
             {
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { ContinueOnDnsError = false } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { EnableAuditTrail = true } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { ExtendedDnsBufferSize = 2222 } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { MaximumCacheTimeout = TimeSpan.FromSeconds(5) } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { MinimumCacheTimeout = TimeSpan.FromSeconds(5) } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { NameServers = new List<NameServer> { NameServer.Cloudflare } } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { Recursion = false } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { RequestDnsSecRecords = true } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { Retries = 3 } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { ThrowDnsErrors = true } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { Timeout = TimeSpan.FromSeconds(1) } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { UseCache = false } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { UseRandomNameServer = false } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { UseTcpFallback = false } };
-                yield return new object[] { new LookupClientOptions(resolveNameServers: false) { UseTcpOnly = true } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, ContinueOnDnsError = false } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, EnableAuditTrail = true } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, ExtendedDnsBufferSize = 2222 } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, MaximumCacheTimeout = TimeSpan.FromSeconds(5) } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, MinimumCacheTimeout = TimeSpan.FromSeconds(5) } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, NameServers = new List<NameServer> { NameServer.Cloudflare } } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, Recursion = false } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, RequestDnsSecRecords = true } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, Retries = 3 } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, ThrowDnsErrors = true } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, Timeout = TimeSpan.FromSeconds(1) } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, UseCache = false } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, UseRandomNameServer = false } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, UseTcpFallback = false } };
+                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, UseTcpOnly = true } };
                 yield return new object[] { new LookupClientOptions(NameServer.CloudflareIPv6) };
                 yield return new object[] { new LookupClientOptions(IPAddress.Loopback) };
                 yield return new object[] { new LookupClientOptions(new IPEndPoint(IPAddress.Loopback, 1111)) };
@@ -228,8 +214,8 @@ namespace DnsClient.Tests
         [MemberData(nameof(AllNonDefaultConfigurations))]
         public void LookupClientSettings_NotEqual(LookupClientOptions otherOptions)
         {
-            var opt = (LookupClientSettings)new LookupClientOptions(resolveNameServers: false);
-            var opt2 = (LookupClientSettings)otherOptions;
+            var opt = new LookupClientSettings(new LookupClientOptions() { AutoResolveNameServers = false });
+            var opt2 = new LookupClientSettings(otherOptions);
 
             Assert.NotStrictEqual(opt, opt2);
 
@@ -244,8 +230,8 @@ namespace DnsClient.Tests
         [MemberData(nameof(AllNonDefaultConfigurations))]
         public void LookupClientSettings_Equal(LookupClientOptions options)
         {
-            var opt = (LookupClientSettings)options;
-            var opt2 = (LookupClientSettings)options;
+            var opt = new LookupClientSettings(options);
+            var opt2 = new LookupClientSettings(options);
 
             Assert.StrictEqual(opt, opt2);
 
@@ -261,7 +247,8 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Assert.True(options.NameServers.Count > 0);
+            Assert.Empty(options.NameServers);
+            Assert.True(options.AutoResolveNameServers);
             Assert.True(options.UseCache);
             Assert.False(options.EnableAuditTrail);
             Assert.Null(options.MinimumCacheTimeout);
@@ -282,9 +269,10 @@ namespace DnsClient.Tests
         [Fact]
         public void LookupClientOptions_DefaultsNoResolve()
         {
-            var options = new LookupClientOptions(resolveNameServers: false);
+            var options = new LookupClientOptions() { AutoResolveNameServers = false };
 
             Assert.Equal(0, options.NameServers.Count);
+            Assert.False(options.AutoResolveNameServers);
             Assert.True(options.UseCache);
             Assert.False(options.EnableAuditTrail);
             Assert.Null(options.MinimumCacheTimeout);
@@ -305,10 +293,11 @@ namespace DnsClient.Tests
         [Fact]
         public void LookupClient_SettingsValid()
         {
-            var defaultOptions = new LookupClientOptions(resolveNameServers: true);
+            var defaultOptions = new LookupClientOptions();
 
-            var options = new LookupClientOptions(resolveNameServers: true)
+            var options = new LookupClientOptions
             {
+                AutoResolveNameServers = !defaultOptions.AutoResolveNameServers,
                 ContinueOnDnsError = !defaultOptions.ContinueOnDnsError,
                 ContinueOnEmptyResponse = !defaultOptions.ContinueOnEmptyResponse,
                 EnableAuditTrail = !defaultOptions.EnableAuditTrail,
@@ -328,7 +317,8 @@ namespace DnsClient.Tests
 
             var client = new LookupClient(options);
 
-            Assert.Equal(defaultOptions.NameServers, client.NameServers);
+            // Not resolving or setting any servers => should be empty.
+            Assert.Empty(client.NameServers);
             Assert.Equal(!defaultOptions.ContinueOnDnsError, client.Settings.ContinueOnDnsError);
             Assert.Equal(!defaultOptions.ContinueOnEmptyResponse, client.Settings.ContinueOnEmptyResponse);
             Assert.Equal(!defaultOptions.EnableAuditTrail, client.Settings.EnableAuditTrail);
@@ -345,7 +335,7 @@ namespace DnsClient.Tests
             Assert.Equal(1234, client.Settings.ExtendedDnsBufferSize);
             Assert.Equal(!defaultOptions.RequestDnsSecRecords, client.Settings.RequestDnsSecRecords);
 
-            Assert.Equal(options, client.Settings);
+            Assert.Equal(new LookupClientSettings(options), client.Settings);
         }
 
         [Fact]
@@ -568,17 +558,41 @@ namespace DnsClient.Tests
 
                 // by server
                 yield return new object[] { new TestMatrixItem("QueryServer(s,n,t,c)", (client, servers) => client.QueryServer(servers, question.QueryName, question.QuestionType, question.QuestionClass)) };
+                yield return new object[] { new TestMatrixItem("QueryServer(s2,n,t,c)", (client, servers) => client.QueryServer(ToIPAddresses(servers), question.QueryName, question.QuestionType, question.QuestionClass)) };
+                yield return new object[] { new TestMatrixItem("QueryServer(s3,n,t,c)", (client, servers) => client.QueryServer(ToIPEndpoints(servers), question.QueryName, question.QuestionType, question.QuestionClass)) };
+                yield return new object[] { new TestMatrixItem("QueryServer(s,q)", (client, servers) => client.QueryServer(servers, question)) };
                 yield return new object[] { new TestMatrixItem("QueryServerAsync(s,n,t,c)", (client, servers) => client.QueryServerAsync(servers, question.QueryName, question.QuestionType, question.QuestionClass).GetAwaiter().GetResult()) };
+                yield return new object[] { new TestMatrixItem("QueryServerAsync(s2,n,t,c)", (client, servers) => client.QueryServerAsync(ToIPAddresses(servers), question.QueryName, question.QuestionType, question.QuestionClass).GetAwaiter().GetResult()) };
+                yield return new object[] { new TestMatrixItem("QueryServerAsync(s3,n,t,c)", (client, servers) => client.QueryServerAsync(ToIPEndpoints(servers), question.QueryName, question.QuestionType, question.QuestionClass).GetAwaiter().GetResult()) };
+                yield return new object[] { new TestMatrixItem("QueryServerAsync(s,q)", (client, servers) => client.QueryServerAsync(servers, question).GetAwaiter().GetResult()) };
                 yield return new object[] { new TestMatrixItem("QueryServerReverse(s,ip)", (client, servers) => client.QueryServerReverse(servers, IPAddress.Any)) };
+                yield return new object[] { new TestMatrixItem("QueryServerReverse(s2,ip)", (client, servers) => client.QueryServerReverse(ToIPAddresses(servers), IPAddress.Any)) };
+                yield return new object[] { new TestMatrixItem("QueryServerReverse(s3,ip)", (client, servers) => client.QueryServerReverse(ToIPEndpoints(servers), IPAddress.Any)) };
                 yield return new object[] { new TestMatrixItem("QueryServerReverseAsync(s,ip)", (client, servers) => client.QueryServerReverseAsync(servers, IPAddress.Any).GetAwaiter().GetResult()) };
+                yield return new object[] { new TestMatrixItem("QueryServerReverseAsync(s2,ip)", (client, servers) => client.QueryServerReverseAsync(ToIPAddresses(servers), IPAddress.Any).GetAwaiter().GetResult()) };
+                yield return new object[] { new TestMatrixItem("QueryServerReverseAsync(s3,ip)", (client, servers) => client.QueryServerReverseAsync(ToIPEndpoints(servers), IPAddress.Any).GetAwaiter().GetResult()) };
+
+                // with servers and options
+                yield return new object[] { new TestMatrixItem("Query(q,s,o)", (client, options, servers) => client.QueryServer(servers, question, options)) };
+                yield return new object[] { new TestMatrixItem("QueryAsync(q,s,o)", (client, options, servers) => client.QueryServerAsync(servers, question, options).GetAwaiter().GetResult()) };
+                yield return new object[] { new TestMatrixItem("QueryReverse(ip,s,o)", (client, options, servers) => client.QueryServerReverse(servers, IPAddress.Any, options)) };
+                yield return new object[] { new TestMatrixItem("QueryReverseAsync(ip,s,o)", (client, options, servers) => client.QueryServerReverseAsync(servers, IPAddress.Any, options).GetAwaiter().GetResult()) };
 
                 // with query options
                 yield return new object[] { new TestMatrixItem("Query(q,o)", (client, options) => client.Query(question, options)) };
-                yield return new object[] { new TestMatrixItem("Query(n,t,o,c)", (client, options) => client.Query(question.QueryName, question.QuestionType, options, question.QuestionClass)) };
                 yield return new object[] { new TestMatrixItem("QueryAsync(q,o)", (client, options) => client.QueryAsync(question, options).GetAwaiter().GetResult()) };
-                yield return new object[] { new TestMatrixItem("QueryAsync(n,t,o,c)", (client, options) => client.QueryAsync(question.QueryName, question.QuestionType, options, question.QuestionClass).GetAwaiter().GetResult()) };
                 yield return new object[] { new TestMatrixItem("QueryReverse(ip,o)", (client, options) => client.QueryReverse(IPAddress.Any, options)) };
                 yield return new object[] { new TestMatrixItem("QueryReverseAsync(ip,o)", (client, options) => client.QueryReverseAsync(IPAddress.Any, options).GetAwaiter().GetResult()) };
+
+                IReadOnlyCollection<IPAddress> ToIPAddresses(IReadOnlyCollection<NameServer> nameServers)
+                {
+                    return nameServers?.Select(p => p.IPEndPoint.Address).ToArray();
+                }
+
+                IReadOnlyCollection<IPEndPoint> ToIPEndpoints(IReadOnlyCollection<NameServer> nameServers)
+                {
+                    return nameServers?.Select(p => p.IPEndPoint).ToArray();
+                }
             }
         }
 
@@ -598,7 +612,7 @@ namespace DnsClient.Tests
         [MemberData(nameof(AllWithoutServerQueries))]
         public void ConfigMatrix_NoServersConfiguredThrows(TestMatrixItem test)
         {
-            var unresolvedOptions = new LookupClientOptions(resolveNameServers: false);
+            var unresolvedOptions = new LookupClientOptions() { AutoResolveNameServers = false };
             Assert.Throws<ArgumentOutOfRangeException>("servers", () => test.Invoke(lookupClientOptions: unresolvedOptions));
         }
 
@@ -606,7 +620,7 @@ namespace DnsClient.Tests
         [MemberData(nameof(AllWithServers))]
         public void ConfigMatrix_ServersQueriesExpectServers(TestMatrixItem test)
         {
-            var unresolvedOptions = new LookupClientOptions(resolveNameServers: false);
+            var unresolvedOptions = new LookupClientOptions() { AutoResolveNameServers = false };
             Assert.Throws<ArgumentOutOfRangeException>("servers", () => test.Invoke(lookupClientOptions: unresolvedOptions, useServers: new NameServer[0]));
         }
 
@@ -614,16 +628,27 @@ namespace DnsClient.Tests
         [MemberData(nameof(AllWithServers))]
         public void ConfigMatrix_ServersCannotBeNull(TestMatrixItem test)
         {
-            var options = new LookupClientOptions(resolveNameServers: true);
-            Assert.Throws<ArgumentNullException>("servers", () => test.InvokeNoDefaults(lookupClientOptions: options, useOptions: null, useServers: null));
+            var options = new LookupClientOptions { AutoResolveNameServers = true };
+            Assert.Throws<ArgumentNullException>("servers", () => test.InvokeNoDefaults(lookupClientOptions: options, useOptions: options, useServers: null));
         }
 
         [Theory]
         [MemberData(nameof(All))]
         public void ConfigMatrix_ValidSettingsResponse(TestMatrixItem test)
         {
-            var unresolvedOptions = new LookupClientOptions(NameServer.GooglePublicDns);
-            var queryOptions = new DnsQueryAndServerOptions(NameServer.GooglePublicDns2);
+            // Changing some random settings to a different value then defaults to verify proper setting usage.
+            var unresolvedOptions = new LookupClientOptions(NameServer.GooglePublicDns)
+            {
+                EnableAuditTrail = true,
+                Recursion = false,
+                ThrowDnsErrors = true
+            };
+
+            var queryOptions = new DnsQueryAndServerOptions(NameServer.GooglePublicDns2)
+            {
+                ContinueOnEmptyResponse = false,
+                ContinueOnDnsError = false
+            };
             var servers = new NameServer[] { NameServer.GooglePublicDns2IPv6 };
 
             var result = test.Invoke(lookupClientOptions: unresolvedOptions, useOptions: queryOptions, useServers: servers);
@@ -632,24 +657,30 @@ namespace DnsClient.Tests
             Assert.NotNull(result.TestClient.UdpHandler.LastRequest);
             Assert.StrictEqual(new LookupClientSettings(unresolvedOptions), result.TestClient.Client.Settings);
 
-            if (test.UsesQueryOptions)
+            if (test.UsesQueryOptions && test.UsesServers)
             {
-                Assert.Equal(NameServer.GooglePublicDns2, result.TestClient.UdpHandler.LastServer);
-                Assert.Equal(NameServer.GooglePublicDns2, result.Response.NameServer);
-                Assert.Equal(new DnsQueryAndServerSettings(queryOptions), result.Response.Settings);
+                Assert.Equal(servers[0], result.TestClient.UdpHandler.LastServer);
+                Assert.Equal(servers[0], result.Response.NameServer);
+                Assert.Equal(new DnsQuerySettings(queryOptions), result.Response.Settings);
+            }
+            else if (test.UsesQueryOptions)
+            {
+                Assert.Equal(queryOptions.NameServers[0], result.TestClient.UdpHandler.LastServer);
+                Assert.Equal(queryOptions.NameServers[0], result.Response.NameServer);
+                Assert.Equal(new DnsQuerySettings(queryOptions), result.Response.Settings);
             }
             else if (test.UsesServers)
             {
-                Assert.Equal(NameServer.GooglePublicDns2IPv6, result.TestClient.UdpHandler.LastServer);
-                Assert.Equal(NameServer.GooglePublicDns2IPv6, result.Response.NameServer);
+                Assert.Equal(servers[0], result.TestClient.UdpHandler.LastServer);
+                Assert.Equal(servers[0], result.Response.NameServer);
                 // by server overrules settings, but doesn't change the servers collection in settings..
-                Assert.Equal(new DnsQueryAndServerSettings(unresolvedOptions), result.Response.Settings);
+                Assert.Equal(new DnsQuerySettings(unresolvedOptions), result.Response.Settings);
             }
             else
             {
-                Assert.Equal(NameServer.GooglePublicDns, result.TestClient.UdpHandler.LastServer);
-                Assert.Equal(NameServer.GooglePublicDns, result.Response.NameServer);
-                Assert.Equal(new DnsQueryAndServerSettings(unresolvedOptions), result.Response.Settings);
+                Assert.Equal(unresolvedOptions.NameServers[0], result.TestClient.UdpHandler.LastServer);
+                Assert.Equal(unresolvedOptions.NameServers[0], result.Response.NameServer);
+                Assert.Equal(new DnsQuerySettings(unresolvedOptions), result.Response.Settings);
             }
         }
 
@@ -657,7 +688,8 @@ namespace DnsClient.Tests
         [MemberData(nameof(AllWithQueryOptions))]
         public void ConfigMatrix_VerifyOverride(TestMatrixItem test)
         {
-            var defaultOptions = new LookupClientOptions(resolveNameServers: false);
+            var servers = new NameServer[] { NameServer.GooglePublicDns2IPv6 };
+            var defaultOptions = new LookupClientOptions() { AutoResolveNameServers = false };
             var queryOptions = new DnsQueryAndServerOptions(NameServer.GooglePublicDns2IPv6)
             {
                 ContinueOnDnsError = !defaultOptions.ContinueOnDnsError,
@@ -672,7 +704,7 @@ namespace DnsClient.Tests
                 UseTcpOnly = !defaultOptions.UseTcpOnly
             };
 
-            var result = test.Invoke(lookupClientOptions: defaultOptions, useOptions: queryOptions);
+            var result = test.Invoke(lookupClientOptions: defaultOptions, useOptions: queryOptions, useServers: servers);
 
             Assert.Null(result.TestClient.UdpHandler.LastRequest);
             Assert.Equal(NameServer.GooglePublicDns2IPv6, result.TestClient.TcpHandler.LastServer);
@@ -685,8 +717,9 @@ namespace DnsClient.Tests
         [MemberData(nameof(AllWithQueryOptions))]
         public void ConfigMatrix_VerifyOverrideWithServerFallback(TestMatrixItem test)
         {
+            var servers = new NameServer[] { NameServer.GooglePublicDns2IPv6 };
             var defaultOptions = new LookupClientOptions(NameServer.GooglePublicDns2IPv6);
-            var queryOptions = new DnsQueryAndServerOptions(resolveNameServers: false)
+            var queryOptions = new DnsQueryAndServerOptions()
             {
                 ContinueOnDnsError = !defaultOptions.ContinueOnDnsError,
                 EnableAuditTrail = !defaultOptions.EnableAuditTrail,
@@ -702,7 +735,7 @@ namespace DnsClient.Tests
                 ExtendedDnsBufferSize = 3333
             };
 
-            var result = test.Invoke(lookupClientOptions: defaultOptions, useOptions: queryOptions);
+            var result = test.Invoke(lookupClientOptions: defaultOptions, useOptions: queryOptions, useServers: servers);
 
             // verify that override settings also control cache
             var cacheKey = ResponseCache.GetCacheKey(result.TestClient.TcpHandler.LastRequest.Question);
@@ -719,16 +752,17 @@ namespace DnsClient.Tests
         [MemberData(nameof(AllWithQueryOptions))]
         public void ConfigMatrix_VerifyCacheUsed(TestMatrixItem test)
         {
+            var servers = new NameServer[] { NameServer.GooglePublicDns2IPv6 };
             var defaultOptions = new LookupClientOptions(NameServer.GooglePublicDns2IPv6)
             {
                 UseCache = false
             };
-            var queryOptions = new DnsQueryAndServerOptions(resolveNameServers: false)
+            var queryOptions = new DnsQueryAndServerOptions()
             {
                 UseCache = true
             };
 
-            var result = test.Invoke(lookupClientOptions: defaultOptions, useOptions: queryOptions);
+            var result = test.Invoke(lookupClientOptions: defaultOptions, useOptions: queryOptions, useServers: servers);
 
             // verify that override settings also control cache
             var cacheKey = ResponseCache.GetCacheKey(result.TestClient.UdpHandler.LastRequest.Question);
@@ -739,17 +773,18 @@ namespace DnsClient.Tests
         [MemberData(nameof(All))]
         public void ConfigMatrix_VerifyCacheNotUsed(TestMatrixItem test)
         {
+            var servers = new NameServer[] { NameServer.GooglePublicDns2IPv6 };
             var defaultOptions = new LookupClientOptions(NameServer.GooglePublicDns2IPv6)
             {
                 UseCache = false,
                 MinimumCacheTimeout = TimeSpan.FromMilliseconds(1000)
             };
-            var queryOptions = new DnsQueryAndServerOptions(resolveNameServers: false)
+            var queryOptions = new DnsQueryAndServerOptions()
             {
                 UseCache = false
             };
 
-            var result = test.Invoke(lookupClientOptions: defaultOptions, useOptions: queryOptions);
+            var result = test.Invoke(lookupClientOptions: defaultOptions, useOptions: queryOptions, useServers: servers);
 
             // verify that override settings also control cache
             var cacheKey = ResponseCache.GetCacheKey(result.TestClient.UdpHandler.LastRequest.Question);
@@ -767,6 +802,8 @@ namespace DnsClient.Tests
             public string Name { get; }
 
             public Func<ILookupClient, DnsQueryAndServerOptions, IDnsQueryResponse> ResolverQueryOptions { get; }
+
+            public Func<ILookupClient, DnsQueryAndServerOptions, IReadOnlyCollection<NameServer>, IDnsQueryResponse> ResolverServersAndOptions { get; }
 
             public bool UsesQueryOptions { get; }
 
@@ -788,6 +825,14 @@ namespace DnsClient.Tests
             {
                 ResolverServers = resolver;
                 UsesQueryOptions = false;
+                UsesServers = true;
+            }
+
+            public TestMatrixItem(string name, Func<ILookupClient, DnsQueryAndServerOptions, IReadOnlyCollection<NameServer>, IDnsQueryResponse> resolver)
+               : this(name)
+            {
+                ResolverServersAndOptions = resolver;
+                UsesQueryOptions = true;
                 UsesServers = true;
             }
 
@@ -814,6 +859,10 @@ namespace DnsClient.Tests
                 {
                     response = ResolverQueryOptions(testClient.Client, queryOptions);
                 }
+                else if (ResolverServersAndOptions != null)
+                {
+                    response = ResolverServersAndOptions(testClient.Client, queryOptions, useServers);
+                }
                 else
                 {
                     response = ResolverSimple(testClient.Client);
@@ -834,6 +883,10 @@ namespace DnsClient.Tests
                 else if (ResolverQueryOptions != null)
                 {
                     response = ResolverQueryOptions(testClient.Client, useOptions);
+                }
+                else if (ResolverServersAndOptions != null)
+                {
+                    response = ResolverServersAndOptions(testClient.Client, useOptions, useServers);
                 }
                 else
                 {
@@ -889,7 +942,6 @@ namespace DnsClient.Tests
             public override DnsMessageHandleType Type { get; }
 
             public IReadOnlyList<DnsQueryAndServerSettings> UsedSettings { get; }
-            
 
             public IPEndPoint LastServer { get; private set; }
 
