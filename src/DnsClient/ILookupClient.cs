@@ -16,9 +16,14 @@ namespace DnsClient
     public interface ILookupClient : IDnsQuery
     {
         /// <summary>
-        /// Gets the list of configured default name servers.
+        /// Gets the list of configured or resolved name servers of the <see cref="ILookupClient"/> instance.
         /// </summary>
         IReadOnlyCollection<NameServer> NameServers { get; }
+
+        /// <summary>
+        /// Gets the configured settings of the <see cref="ILookupClient"/> instance.
+        /// </summary>
+        LookupClientSettings Settings { get; }
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 

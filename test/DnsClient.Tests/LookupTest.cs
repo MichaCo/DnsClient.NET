@@ -33,12 +33,21 @@ namespace DnsClient.Tests
         public void Lookup_Query_SettingsCannotBeNull()
         {
             IDnsQuery client = new LookupClient(NameServer.GooglePublicDns);
+            var question = new DnsQuestion("query", QueryType.A);
+            var servers = new NameServer[] { NameServer.GooglePublicDns };
 
-            Assert.Throws<ArgumentNullException>("queryOptions", () => client.Query("query", QueryType.A, null));
-            Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryAsync("query", QueryType.A, null));
+            Assert.Throws<ArgumentNullException>("queryOptions", () => client.Query(question, null));
+            Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryAsync(question, null));
+
+
+            Assert.Throws<ArgumentNullException>("queryOptions", () => client.QueryServer(servers, question, null));
+            Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryServerAsync(servers, question, null));
 
             Assert.Throws<ArgumentNullException>("queryOptions", () => client.QueryReverse(IPAddress.Loopback, null));
             Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryReverseAsync(IPAddress.Loopback, null));
+
+            Assert.Throws<ArgumentNullException>("queryOptions", () => client.QueryServerReverse(servers, IPAddress.Loopback, null));
+            Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryServerReverseAsync(servers, IPAddress.Loopback, null));
         }
 
 #if !NET461
@@ -85,7 +94,7 @@ namespace DnsClient.Tests
         {
             var dns = new LookupClient(NameServer.GooglePublicDns);
 
-            var result = dns.Query("google.com", QueryType.A, queryOptions: new DnsQueryAndServerOptions()
+            var result = dns.Query(new DnsQuestion("google.com", QueryType.A), new DnsQueryAndServerOptions()
             {
                 RequestDnsSecRecords = false,
                 ExtendedDnsBufferSize = 512
@@ -99,7 +108,7 @@ namespace DnsClient.Tests
         {
             var dns = new LookupClient(NameServer.GooglePublicDns);
 
-            var result = dns.Query("google.com", QueryType.A, queryOptions: new DnsQueryAndServerOptions()
+            var result = dns.Query(new DnsQuestion("google.com", QueryType.A), new DnsQueryAndServerOptions()
             {
                 RequestDnsSecRecords = true
             });
@@ -914,13 +923,57 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        // Tests that if a server gets passed in and the auto resolve flag is set to true
+        // Lookup Client's ctor will auto resolve servers and append them to the specified server(s)
+        public void Lookup_Options_UseClientsAndResolvedServers()
+        {
+            // Specify one and auto resolve
+            var client = new LookupClient(new LookupClientOptions(NameServer.Cloudflare) { AutoResolveNameServers = true });
+
+            Assert.True(client.NameServers.Count > 1);
+            Assert.Contains(NameServer.Cloudflare, client.NameServers);
+        }
+
+        [Fact]
+        // Tests that if a server gets passed in, the AutoResolve option gets set to false
+        // And Lookup Client's ctor will not auto resolve any servers.
+        public void Lookup_Options_AutoResolveDisabled_WhenServerIsSpecified1()
+        {
+            // Specify one and auto resolve
+            var client = new LookupClient(new LookupClientOptions(NameServer.Cloudflare));
+
+            Assert.Single(client.NameServers);
+            Assert.Contains(NameServer.Cloudflare, client.NameServers);
+        }
+
+        [Fact]
+        public void Lookup_Options_AutoResolveDisabled_WhenServerIsSpecified2()
+        {
+            // Specify one and auto resolve
+            var client = new LookupClient(new LookupClientOptions(NameServer.Cloudflare.Address));
+
+            Assert.Single(client.NameServers);
+            Assert.Contains(NameServer.Cloudflare, client.NameServers);
+        }
+
+        [Fact]
+        public void Lookup_Options_AutoResolveDisabled_WhenServerIsSpecified3()
+        {
+            // Specify one and auto resolve
+            var client = new LookupClient(new LookupClientOptions(new IPEndPoint(NameServer.Cloudflare.Address, 33)));
+
+            Assert.Single(client.NameServers);
+            Assert.Contains(new IPEndPoint(NameServer.Cloudflare.Address, 33), client.NameServers);
+        }
+
+        [Fact]
         public void Lookup_SettingsFallback_UseClientsServers()
         {
             var client = new LookupClient(NameServer.CloudflareIPv6);
 
             // Test that the settings in the end has the name servers configured on the client above and
             // still the settings provided apart from the servers (everything else will not fallback to the client's settings...)
-            var settings = client.GetSettings(queryOptions: new DnsQueryAndServerOptions(resolveNameServers: false)
+            var settings = client.GetSettings(queryOptions: new DnsQueryAndServerOptions()
             {
                 ContinueOnDnsError = false,
                 Recursion = false,
@@ -933,33 +986,6 @@ namespace DnsClient.Tests
             Assert.NotEqual(client.Settings.ContinueOnDnsError, settings.ContinueOnDnsError);
             Assert.NotEqual(client.Settings.Recursion, settings.Recursion);
             Assert.NotEqual(client.Settings.RequestDnsSecRecords, settings.RequestDnsSecRecords);
-        }
-
-        [Fact]
-        public void Lookup_SettingsFallback_KeepResolvedServers()
-        {
-            var client = new LookupClient(NameServer.CloudflareIPv6);
-
-            // Should keep all the provided settings including the resolved servers.
-            var settings = client.GetSettings(queryOptions: new DnsQueryAndServerOptions(resolveNameServers: true));
-
-            Assert.NotEqual(client.Settings, settings);
-            Assert.NotEqual(client.NameServers, settings.NameServers);
-        }
-
-        [Fact]
-        public void Lookup_SettingsFallback_KeepResolvedServers_EvenIfEmpty()
-        {
-            var client = new LookupClient(NameServer.CloudflareIPv6);
-
-            // Trick the logic to think it was using auto resolve and should prefer these servers but then there are none
-            var options = new DnsQueryAndServerOptions(resolveNameServers: true);
-            options.NameServers.Clear();
-            var settings = client.GetSettings(queryOptions: options);
-
-            Assert.NotEqual(client.Settings, settings);
-            Assert.NotEqual(client.NameServers, settings.NameServers);
-            Assert.Empty(settings.NameServers);
         }
 
         [Fact]

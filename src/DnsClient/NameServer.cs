@@ -66,6 +66,7 @@ namespace DnsClient
         /// Initializes a new instance of the <see cref="NameServer"/> class.
         /// </summary>
         /// <param name="endPoint">The name server endpoint.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
         public NameServer(IPAddress endPoint)
             : this(new IPEndPoint(endPoint, DefaultPort))
         {
@@ -76,6 +77,7 @@ namespace DnsClient
         /// </summary>
         /// <param name="endPoint">The name server endpoint.</param>
         /// <param name="port">The name server port.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
         public NameServer(IPAddress endPoint, int port)
             : this(new IPEndPoint(endPoint, port))
         {
@@ -85,7 +87,7 @@ namespace DnsClient
         /// Initializes a new instance of the <see cref="NameServer"/> class.
         /// </summary>
         /// <param name="endPoint">The name server endpoint.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="endPoint"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
         public NameServer(IPEndPoint endPoint)
         {
             IPEndPoint = endPoint ?? throw new ArgumentNullException(nameof(endPoint));
@@ -147,11 +149,11 @@ namespace DnsClient
 
         internal IPEndPoint IPEndPoint { get; }
 
-        internal static IReadOnlyCollection<NameServer> Convert(IReadOnlyCollection<IPAddress> addresses)
-            => addresses.Select(p => (NameServer)p).ToArray();
+        internal static NameServer[] Convert(IReadOnlyCollection<IPAddress> addresses)
+            => addresses?.Select(p => (NameServer)p).ToArray();
 
-        internal static IReadOnlyCollection<NameServer> Convert(IReadOnlyCollection<IPEndPoint> addresses)
-            => addresses.Select(p => (NameServer)p).ToArray();
+        internal static NameServer[] Convert(IReadOnlyCollection<IPEndPoint> addresses)
+            => addresses?.Select(p => (NameServer)p).ToArray();
 
         /// <summary>
         /// Returns a <see cref="System.String" /> that represents this instance.
