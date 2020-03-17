@@ -56,18 +56,17 @@ namespace DnsClient
         private const int c_eventResponseOpt = 31;
         private const int c_eventResponseMissingOpt = 80;
 
+        private readonly LookupClientOptions _originalOptions;
         private readonly DnsMessageHandler _messageHandler;
         private readonly DnsMessageHandler _tcpFallbackHandler;
         private readonly ILogger _logger;
-        private readonly NameServer[] _manualConfiguredNameServers;
-        private readonly SkipWorker _serverErrorSkipWorker;
+        ////private readonly SkipWorker _serverErrorSkipWorker;
 
         private IReadOnlyCollection<NameServer> _resolvedNameServers;
-        
+
         /// <inheritdoc/>
         public IReadOnlyCollection<NameServer> NameServers => Settings.NameServers;
 
-        // TODO: make readonly when obsolete stuff is removed
         /// <inheritdoc/>
         public LookupClientSettings Settings { get; private set; }
 
@@ -82,7 +81,8 @@ namespace DnsClient
             {
                 if (Settings.MinimumCacheTimeout != value)
                 {
-                    Settings = Settings.WithMinimumCacheTimeout(value);
+                    _originalOptions.MinimumCacheTimeout = value;
+                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
                 }
             }
         }
@@ -95,7 +95,8 @@ namespace DnsClient
             {
                 if (Settings.UseTcpFallback != value)
                 {
-                    Settings = Settings.WithUseTcpFallback(value);
+                    _originalOptions.UseTcpFallback = value;
+                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
                 }
             }
         }
@@ -108,7 +109,8 @@ namespace DnsClient
             {
                 if (Settings.UseTcpOnly != value)
                 {
-                    Settings = Settings.WithUseTcpOnly(value);
+                    _originalOptions.UseTcpOnly = value;
+                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
                 }
             }
         }
@@ -121,7 +123,8 @@ namespace DnsClient
             {
                 if (Settings.EnableAuditTrail != value)
                 {
-                    Settings = Settings.WithEnableAuditTrail(value);
+                    _originalOptions.EnableAuditTrail = value;
+                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
                 }
             }
         }
@@ -134,7 +137,8 @@ namespace DnsClient
             {
                 if (Settings.Recursion != value)
                 {
-                    Settings = Settings.WithRecursion(value);
+                    _originalOptions.Recursion = value;
+                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
                 }
             }
         }
@@ -147,7 +151,8 @@ namespace DnsClient
             {
                 if (Settings.Retries != value)
                 {
-                    Settings = Settings.WithRetries(value);
+                    _originalOptions.Retries = value;
+                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
                 }
             }
         }
@@ -160,7 +165,8 @@ namespace DnsClient
             {
                 if (Settings.ThrowDnsErrors != value)
                 {
-                    Settings = Settings.WithThrowDnsErrors(value);
+                    _originalOptions.ThrowDnsErrors = value;
+                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
                 }
             }
         }
@@ -173,7 +179,8 @@ namespace DnsClient
             {
                 if (Settings.Timeout != value)
                 {
-                    Settings = Settings.WithTimeout(value);
+                    _originalOptions.Timeout = value;
+                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
                 }
             }
         }
@@ -187,13 +194,25 @@ namespace DnsClient
             {
                 if (Settings.UseCache != value)
                 {
-                    Settings = Settings.WithUseCache(value);
+                    _originalOptions.UseCache = value;
+                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
                 }
             }
         }
 
         [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
-        public bool UseRandomNameServer { get; set; } = true;
+        public bool UseRandomNameServer
+        {
+            get => Settings.UseRandomNameServer;
+            set
+            {
+                if (Settings.UseRandomNameServer != value)
+                {
+                    _originalOptions.UseRandomNameServer = value;
+                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
+                }
+            }
+        }
 
         [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
         public bool ContinueOnDnsError
@@ -203,7 +222,8 @@ namespace DnsClient
             {
                 if (Settings.ContinueOnDnsError != value)
                 {
-                    Settings = Settings.WithContinueOnDnsError(value);
+                    _originalOptions.ContinueOnDnsError = value;
+                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
                 }
             }
         }
@@ -335,6 +355,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(options));
             }
 
+            _originalOptions = options;
             _logger = Logging.LoggerFactory.CreateLogger(GetType().FullName);
             _messageHandler = udpHandler ?? new DnsUdpMessageHandler(true);
             _tcpFallbackHandler = tcpHandler ?? new DnsTcpMessageHandler();
@@ -348,31 +369,29 @@ namespace DnsClient
                 throw new ArgumentException("TCP message handler's type must be TCP.", nameof(tcpHandler));
             }
 
-            // Supporting manually configued + auto resolved now by adding the auto resolved servers to this list.
-            // TODO: handle manual vs auto configured name servers better
-            // TODO: change the way I have to update the configured name servers right now in the handler
-            var servers = _manualConfiguredNameServers = options.NameServers?.ToArray() ?? new NameServer[0];
+            ////_serverErrorSkipWorker = new SkipWorker(
+            ////    () =>
+            ////    {
+            ////        if (options.AutoResolveNameServers)
+            ////        {
+            ////            _logger.LogInformation("Trying to check resolved name servers for network changes...");
+            ////            CheckResolveNameservers();
+            ////        }
+            ////    },
+            ////    skip: 10000);
 
-            _serverErrorSkipWorker = new SkipWorker(
-                () =>
-                {
-                    if (options.AutoResolveNameServers)
-                    {
-                        _logger.LogInformation("Trying to check resolved name servers for network changes...");
-                        CheckResolveNameservers();
-                    }
-                },
-                skip: 10000);
+            // Setting up name servers.
+            // Using manually configured ones and/or auto resolved ones.
+            var servers = _originalOptions.NameServers?.ToArray() ?? new NameServer[0];
 
             if (options.AutoResolveNameServers)
             {
                 _resolvedNameServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false);
-                servers = _manualConfiguredNameServers.Concat(_resolvedNameServers).ToArray();
+                servers = servers.Concat(_resolvedNameServers).ToArray();
                 NetworkChange.NetworkAddressChanged += CheckResolveNameserversCallback;
             }
 
             Settings = new LookupClientSettings(options, servers);
-
             Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout);
         }
 
@@ -392,7 +411,7 @@ namespace DnsClient
             {
                 var newServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false);
 
-                if(newServers == null || newServers.Count == 0)
+                if (newServers == null || newServers.Count == 0)
                 {
                     _logger.LogWarning("Could not resolve any name servers, keeping current configuration.");
                     return;
@@ -400,14 +419,21 @@ namespace DnsClient
 
                 if (_resolvedNameServers.SequenceEqual(newServers))
                 {
-                    _logger.LogInformation("No name server changes detected, still using {0}", string.Join(",", newServers));
+                    if (_logger.IsEnabled(LogLevel.Information))
+                    {
+                        _logger.LogInformation("No name server changes detected, still using {0}", string.Join(",", newServers));
+                    }
                     return;
                 }
 
-                _logger.LogInformation("Found changes in local network, configured name servers now are: {0}", string.Join(",", newServers));
+                if (_logger.IsEnabled(LogLevel.Information))
+                {
+                    _logger.LogInformation("Found changes in local network, configured name servers now are: {0}", string.Join(",", newServers));
+                }
+
                 _resolvedNameServers = newServers;
-                var servers = _manualConfiguredNameServers.Concat(_resolvedNameServers).ToArray();
-                Settings = Settings.Copy(servers, Settings.MinimumCacheTimeout);
+                var servers = _originalOptions.NameServers.Concat(_resolvedNameServers).ToArray();
+                Settings = new LookupClientSettings(_originalOptions, servers);
             }
             catch (Exception ex)
             {
@@ -1342,7 +1368,7 @@ namespace DnsClient
 
         private HandleError HandleUnhandledException(Exception ex, DnsRequestMessage request, NameServer nameServer, DnsMessageHandleType handleType, bool isLastServer)
         {
-            _serverErrorSkipWorker.MaybeDoWork();
+            ////_serverErrorSkipWorker.MaybeDoWork();
 
             if (_logger.IsEnabled(LogLevel.Warning))
             {
