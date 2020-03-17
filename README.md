@@ -1,7 +1,7 @@
 # DnsClient.NET
 
 [![Build Status](https://dev.azure.com/michaco/DnsClient/_apis/build/status/MichaCo.DnsClient.NET?branchName=dev&label=Build)](https://dev.azure.com/michaco/DnsClient/_build/latest?definitionId=1&branchName=dev)
-![Code Coverage](https://img.shields.io/azure-devops/coverage/michaco/DnsClient/1?label=Coverage&style=flat&color=informational)
+[![Code Coverage](https://img.shields.io/azure-devops/coverage/michaco/DnsClient/1?label=Coverage&style=flat&color=informational)](https://dev.azure.com/michaco/DnsClient/_build/latest?definitionId=1&branchName=dev)
 [![NuGet](https://img.shields.io/nuget/v/DnsClient?color=brightgreen&label=NuGet%20Stable)](https://www.nuget.org/packages/DnsClient)
 [![NuGet](https://img.shields.io/nuget/vpre/DnsClient?color=yellow&label=NuGet%20Latest)](https://www.nuget.org/packages/DnsClient) 
 
