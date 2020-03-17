@@ -48,25 +48,26 @@ jobs:
 
   steps:
   - task: DotNetCoreCLI@2
+    displayName: 'dotnet build'
     inputs:
       command: 'build'
       projects: |
         src/**/*.csproj
         test/DnsClient.Tests/*.csproj
       arguments: '-c Release'
-    name: 'Build'
-    displayName: 'dotnet build'
+    name: 'Build'    
   - task: DotNetCoreCLI@2
+    displayName: "dotnet test"
     inputs:
       command: 'test'
       projects: 'test/DnsClient.Tests/*.csproj'
-      publishTestResults: true
-      arguments: '-c Release --no-build --no-restore'
-
+      publishTestResults: true      
+      arguments: '-c Release --no-build --no-restore --collect "Code coverage"'
   - script: 'dotnet pack src\DnsClient\DnsClient.csproj -c Release --no-build --no-restore --version-suffix $(versionSuffix) -v normal -o $(Build.ArtifactStagingDirectory)'
     name: 'PackBeta'
-    displayName: 'dotnet pack for beta'
+    displayName: 'dotnet pack'
   - task: PublishBuildArtifacts@1
+    displayName: 'publish'
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)' 
       artifactName: 'beta'

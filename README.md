@@ -1,8 +1,9 @@
 # DnsClient.NET
 
-[![Build Status](https://dev.azure.com/michaco/DnsClient/_apis/build/status/MichaCo.DnsClient.NET?branchName=dev)](https://dev.azure.com/michaco/DnsClient/_build/latest?definitionId=1&branchName=dev)
-[![NuGet](https://img.shields.io/nuget/v/DnsClient.svg?style=flat&label=Stable)](https://www.nuget.org/packages/DnsClient) 
-[![MyGet](https://img.shields.io/myget/dnsclient/vpre/DnsClient.svg?style=flat&label=Pre-release)](https://www.myget.org/feed/dnsclient/package/nuget/DnsClient) 
+[![Build Status](https://dev.azure.com/michaco/DnsClient/_apis/build/status/MichaCo.DnsClient.NET?branchName=dev&label=Build)](https://dev.azure.com/michaco/DnsClient/_build/latest?definitionId=1&branchName=dev)
+[![Code Coverage](https://img.shields.io/azure-devops/coverage/michaco/DnsClient/1?label=Coverage&style=flat&color=informational)](https://dev.azure.com/michaco/DnsClient/_build/latest?definitionId=1&branchName=dev)
+[![NuGet](https://img.shields.io/nuget/v/DnsClient?color=brightgreen&label=NuGet%20Stable)](https://www.nuget.org/packages/DnsClient)
+[![NuGet](https://img.shields.io/nuget/vpre/DnsClient?color=yellow&label=NuGet%20Latest)](https://www.nuget.org/packages/DnsClient) 
 
 DnsClient.NET is a simple yet very powerful and high performant open source library for the .NET Framework to do DNS lookups.
 

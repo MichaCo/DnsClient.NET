@@ -15,21 +15,25 @@ namespace ApiDesign.OldReference
             _client = new LookupClient(IPAddress.Loopback, IPAddress.Loopback, IPAddress.Loopback);
             _client = new LookupClient(IPAddress.Loopback, 5465);
             _client = new LookupClient(new IPEndPoint(IPAddress.Loopback, 4444), new IPEndPoint(IPAddress.Loopback, 4443), new IPEndPoint(IPAddress.Loopback, 4442));
-            _client = new LookupClient()
-            {
-                ContinueOnDnsError = true,
-                EnableAuditTrail = true,
-                MinimumCacheTimeout = TimeSpan.FromSeconds(5),
-                Recursion = true,
-                Retries = 3,
-                ThrowDnsErrors = false,
-                Timeout = TimeSpan.FromSeconds(10),
-                UseCache = true,
-                UseRandomNameServer = true,
-                UseTcpFallback = true,
-                UseTcpOnly = false
-            };
+            _client = new LookupClient();
         }
+
+        public void SetNonDefaults()
+        {
+            _client.ContinueOnDnsError = false;
+            _client.EnableAuditTrail = true;
+            _client.MinimumCacheTimeout = TimeSpan.FromSeconds(11);
+            _client.Recursion = false;
+            _client.Retries = 10;
+            _client.ThrowDnsErrors = true;
+            _client.Timeout = TimeSpan.FromMinutes(1);
+            _client.UseCache = false;
+            _client.UseRandomNameServer = false;
+            _client.UseTcpFallback = false;
+            _client.UseTcpOnly = true;
+        }
+
+        public ILookupClient Client => _client;
 
         public void TestQuery()
         {

@@ -166,7 +166,7 @@ namespace DnsClient
 
         /// <summary>
         /// DNS zone transfer request.
-        /// This can be used only if <see cref="ILookupClient.UseTcpOnly"/> is set to true as <c>AXFR</c> is only supported via TCP.
+        /// This can be used only if <see cref="DnsQuerySettings.UseTcpOnly"/> is set to true as <c>AXFR</c> is only supported via TCP.
         /// <para>
         /// The DNS Server might only return results for the request if the client connection/IP is allowed to do so.
         /// </para>
