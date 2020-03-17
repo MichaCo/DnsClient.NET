@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -58,7 +59,11 @@ namespace DnsClient
         private readonly DnsMessageHandler _messageHandler;
         private readonly DnsMessageHandler _tcpFallbackHandler;
         private readonly ILogger _logger;
+        private readonly NameServer[] _manualConfiguredNameServers;
+        private readonly SkipWorker _serverErrorSkipWorker;
 
+        private IReadOnlyCollection<NameServer> _resolvedNameServers;
+        
         /// <inheritdoc/>
         public IReadOnlyCollection<NameServer> NameServers => Settings.NameServers;
 
@@ -330,6 +335,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(options));
             }
 
+            _logger = Logging.LoggerFactory.CreateLogger(GetType().FullName);
             _messageHandler = udpHandler ?? new DnsUdpMessageHandler(true);
             _tcpFallbackHandler = tcpHandler ?? new DnsTcpMessageHandler();
 
@@ -343,17 +349,70 @@ namespace DnsClient
             }
 
             // Supporting manually configued + auto resolved now by adding the auto resolved servers to this list.
-            var servers = options.NameServers?.ToArray() ?? new NameServer[0];
+            // TODO: handle manual vs auto configured name servers better
+            // TODO: change the way I have to update the configured name servers right now in the handler
+            var servers = _manualConfiguredNameServers = options.NameServers?.ToArray() ?? new NameServer[0];
+
+            _serverErrorSkipWorker = new SkipWorker(
+                () =>
+                {
+                    if (options.AutoResolveNameServers)
+                    {
+                        _logger.LogInformation("Trying to check resolved name servers for network changes...");
+                        CheckResolveNameservers();
+                    }
+                },
+                skip: 10000);
 
             if (options.AutoResolveNameServers)
             {
-                servers = servers.Concat(NameServer.ResolveNameServers()).ToArray();
+                _resolvedNameServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false);
+                servers = _manualConfiguredNameServers.Concat(_resolvedNameServers).ToArray();
+                NetworkChange.NetworkAddressChanged += CheckResolveNameserversCallback;
             }
 
             Settings = new LookupClientSettings(options, servers);
 
-            _logger = Logging.LoggerFactory.CreateLogger(GetType().FullName);
             Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout);
+        }
+
+        private void CheckResolveNameserversCallback(object sender, EventArgs args)
+        {
+            if (_logger.IsEnabled(LogLevel.Information))
+            {
+                _logger.LogInformation("Network change detected, trying to resolve name servers...");
+            }
+
+            CheckResolveNameservers();
+        }
+
+        private void CheckResolveNameservers()
+        {
+            try
+            {
+                var newServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false);
+
+                if(newServers == null || newServers.Count == 0)
+                {
+                    _logger.LogWarning("Could not resolve any name servers, keeping current configuration.");
+                    return;
+                }
+
+                if (_resolvedNameServers.SequenceEqual(newServers))
+                {
+                    _logger.LogInformation("No name server changes detected, still using {0}", string.Join(",", newServers));
+                    return;
+                }
+
+                _logger.LogInformation("Found changes in local network, configured name servers now are: {0}", string.Join(",", newServers));
+                _resolvedNameServers = newServers;
+                var servers = _manualConfiguredNameServers.Concat(_resolvedNameServers).ToArray();
+                Settings = Settings.Copy(servers, Settings.MinimumCacheTimeout);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error trying to resolve name servers.");
+            }
         }
 
         /// <inheritdoc/>
@@ -1283,6 +1342,8 @@ namespace DnsClient
 
         private HandleError HandleUnhandledException(Exception ex, DnsRequestMessage request, NameServer nameServer, DnsMessageHandleType handleType, bool isLastServer)
         {
+            _serverErrorSkipWorker.MaybeDoWork();
+
             if (_logger.IsEnabled(LogLevel.Warning))
             {
                 _logger.LogWarning(
@@ -1470,6 +1531,35 @@ namespace DnsClient
 
             var arpa = ipAddress.GetArpaName();
             return new DnsQuestion(arpa, QueryType.PTR, QueryClass.IN);
+        }
+
+        private class SkipWorker
+        {
+            private readonly Action _worker;
+            private readonly int _skipFor = 5000;
+            private int _lastRun = 0;
+
+            public SkipWorker(Action worker, int skip = 5000)
+            {
+                _worker = worker ?? throw new ArgumentNullException(nameof(worker));
+
+                if (skip <= 1)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(skip));
+                }
+                _skipFor = skip;
+            }
+
+            public void MaybeDoWork()
+            {
+                if (_lastRun + _skipFor >= (Environment.TickCount & int.MaxValue))
+                {
+                    return;
+                }
+
+                _lastRun = (Environment.TickCount & int.MaxValue);
+                _worker();
+            }
         }
     }
 

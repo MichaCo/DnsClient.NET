@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Net;
+using System.Threading.Tasks;
 using DnsClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -7,7 +9,7 @@ namespace ApiDesign
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var services = new ServiceCollection();
             services
@@ -18,8 +20,10 @@ namespace ApiDesign
                 })
                 .AddOptions();
 
-            services.AddSingleton(new LookupClientOptions(NameServer.GooglePublicDns2)
+            services.AddSingleton(new LookupClientOptions()
             {
+                AutoResolveNameServers = true,
+                UseCache = false
             });
 
             services.AddSingleton<ILookupClient>(f =>
@@ -41,10 +45,19 @@ namespace ApiDesign
 
             logger.LogInformation($"Starting stuff...");
 
-            var x = lookup.Query("google.com", QueryType.A);
+            while (true)
+            {
+                try
+                {
+                    var x = lookup.Query("google.com", QueryType.A);
+                }
+                catch { }
 
-            var r = lookup.QueryServer(new NameServer[] { NameServer.Cloudflare, NameServer.Cloudflare2 }, new DnsQuestion("google.com", QueryType.A));
-            
+               // var r = lookup.QueryServer(new NameServer[] { NameServer.Cloudflare, NameServer.Cloudflare2 }, new DnsQuestion("google.com", QueryType.A));
+
+                await Task.Delay(5000);
+            }
+
             Console.ReadKey();
         }
     }
