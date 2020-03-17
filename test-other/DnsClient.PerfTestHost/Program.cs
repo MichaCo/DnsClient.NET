@@ -38,6 +38,7 @@ namespace DnsClient.PerfTestHost
             //RunSync(client, 5, tasksCount);
             //RunAsync(client, 5, tasksCount).Wait();
             Console.WriteLine("running...");
+            Console.ReadKey();
             double runTime = 2;
             for (var i = 1; i <= 3; i++)
             {

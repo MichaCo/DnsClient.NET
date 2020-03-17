@@ -12,6 +12,7 @@ namespace DigApp
     public class PerfCommand : DnsCommand
     {
         private int _clients;
+        private int _tasks;
         private string _query;
         private int _runtime;
         private long _reportExcecutions = 0;
@@ -25,6 +26,8 @@ namespace DigApp
         private bool _runSync;
 
         public CommandOption ClientsArg { get; private set; }
+
+        public CommandOption TasksArg { get; private set; }
 
         public CommandArgument QueryArg { get; private set; }
 
@@ -40,6 +43,7 @@ namespace DigApp
         {
             QueryArg = App.Argument("query", "the domain query to run.", false);
             ClientsArg = App.Option("-c | --clients", "Number of clients to run", CommandOptionType.SingleValue);
+            TasksArg = App.Option("--tasks", "Number of tasks each client runs simultanously (8).", CommandOptionType.SingleValue);
             RuntimeArg = App.Option("-r | --run", "Time in seconds to run", CommandOptionType.SingleValue);
             SyncArg = App.Option("--sync", "Run synchronous api", CommandOptionType.NoValue);
             base.Configure();
@@ -48,6 +52,17 @@ namespace DigApp
         protected override async Task<int> Execute()
         {
             _clients = ClientsArg.HasValue() ? int.Parse(ClientsArg.Value()) : 10;
+            if (_clients <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(ClientsArg));
+            }
+
+            _tasks = TasksArg.HasValue() ? int.Parse(TasksArg.Value()) : 8;
+            if (_clients <= 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(TasksArg));
+            }
+
             _runtime = RuntimeArg.HasValue() ? int.Parse(RuntimeArg.Value()) <= 1 ? 5 : int.Parse(RuntimeArg.Value()) : 5;
             _query = string.IsNullOrWhiteSpace(QueryArg.Value) ? string.Empty : QueryArg.Value;
             _runSync = SyncArg.HasValue();
@@ -57,7 +72,7 @@ namespace DigApp
             _lookup = GetDnsLookup(_settings);
             _running = true;
 
-            Console.WriteLine($"; <<>> Starting perf run with {_clients} clients running for {_runtime} seconds <<>>");
+            Console.WriteLine($"; <<>> Starting perf run with {_clients} (x{_tasks}) clients running for {_runtime} seconds <<>>");
             Console.WriteLine($"; ({_settings.NameServers.Count} Servers, caching:{_settings.UseCache}, minttl:{_settings.MinimumCacheTimeout?.TotalMilliseconds}, maxttl:{_settings.MaximumCacheTimeout?.TotalMilliseconds})");
             _spinner = new Spiner();
             _spinner.Start();
@@ -76,7 +91,7 @@ namespace DigApp
 
             for (var clientIndex = 0; clientIndex < _clients; clientIndex++)
             {
-                tasks.Add(ExcecuteRun());
+                tasks.Add(ExcecuteRun(numTasks: _tasks));
             }
 
             tasks.Add(CollectPrint());
@@ -91,7 +106,7 @@ namespace DigApp
             Console.WriteLine(string.Join("-", Enumerable.Repeat("-", 50)));
             Console.WriteLine($";; results:\t\t");
             Console.WriteLine(string.Join("-", Enumerable.Repeat("-", 50)));
-            Console.WriteLine($";; run for {elapsedSeconds}sec {_clients} clients.");
+            Console.WriteLine($";; run for {elapsedSeconds}sec {_clients} (x{_tasks}) clients.");
 
             var successPercent = _errors == 0 ? 100 : _success == 0 ? 0 : (100 - ((double)_errors / (_success) * 100));
             Console.WriteLine($";; {_errors:N0} errors {_success:N0} ok {successPercent:N2}% success.");
@@ -115,7 +130,7 @@ namespace DigApp
             _running = false;
         }
 
-        private async Task ExcecuteRun()
+        private async Task ExcecuteRun(int numTasks = 8)
         {
             //var swatch = Stopwatch.StartNew();
             var options = GetLookupSettings();
@@ -123,6 +138,17 @@ namespace DigApp
             var lookup = GetDnsLookup(options);
 
             while (_running)
+            {
+                var tasks = new List<Task>();
+                for (var i = 0; i < numTasks; i++)
+                {
+                    tasks.Add(Job());
+                }
+
+                await Task.WhenAll(tasks);
+            }
+
+            async Task Job()
             {
                 try
                 {

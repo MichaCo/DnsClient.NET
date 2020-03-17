@@ -60,7 +60,7 @@ namespace DnsClient
         private readonly DnsMessageHandler _messageHandler;
         private readonly DnsMessageHandler _tcpFallbackHandler;
         private readonly ILogger _logger;
-        ////private readonly SkipWorker _serverErrorSkipWorker;
+        private readonly SkipWorker _skipper = null;
 
         private IReadOnlyCollection<NameServer> _resolvedNameServers;
 
@@ -369,17 +369,6 @@ namespace DnsClient
                 throw new ArgumentException("TCP message handler's type must be TCP.", nameof(tcpHandler));
             }
 
-            ////_serverErrorSkipWorker = new SkipWorker(
-            ////    () =>
-            ////    {
-            ////        if (options.AutoResolveNameServers)
-            ////        {
-            ////            _logger.LogInformation("Trying to check resolved name servers for network changes...");
-            ////            CheckResolveNameservers();
-            ////        }
-            ////    },
-            ////    skip: 10000);
-
             // Setting up name servers.
             // Using manually configured ones and/or auto resolved ones.
             var servers = _originalOptions.NameServers?.ToArray() ?? new NameServer[0];
@@ -388,24 +377,48 @@ namespace DnsClient
             {
                 _resolvedNameServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false);
                 servers = servers.Concat(_resolvedNameServers).ToArray();
-                NetworkChange.NetworkAddressChanged += CheckResolveNameserversCallback;
+
+                try
+                {
+                    NetworkChange.NetworkAddressChanged += CheckResolvedNameserversCallback;
+                }
+                catch
+                {
+                    // Just in case
+                }
+                
+                // This will periodically get triggered on Query calls and
+                // will perform the same check as on NetworkAddressChanged.
+                // The event doesn't seem to get fired on Linux for example... 
+                // TODO: Maybe there is a better way, but this will work for now.
+                _skipper = new SkipWorker(
+                () =>
+                {
+                    if (_logger.IsEnabled(LogLevel.Debug))
+                    {
+                        _logger.LogDebug("Checking resolved name servers for network changes...");
+                    }
+
+                    CheckResolvedNameservers();
+                },
+                skip: 60 * 1000);
             }
 
             Settings = new LookupClientSettings(options, servers);
             Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout);
         }
 
-        private void CheckResolveNameserversCallback(object sender, EventArgs args)
+        private void CheckResolvedNameserversCallback(object sender, EventArgs args)
         {
             if (_logger.IsEnabled(LogLevel.Information))
             {
                 _logger.LogInformation("Network change detected, trying to resolve name servers...");
             }
 
-            CheckResolveNameservers();
+            CheckResolvedNameservers();
         }
 
-        private void CheckResolveNameservers()
+        private void CheckResolvedNameservers()
         {
             try
             {
@@ -419,9 +432,9 @@ namespace DnsClient
 
                 if (_resolvedNameServers.SequenceEqual(newServers))
                 {
-                    if (_logger.IsEnabled(LogLevel.Information))
+                    if (_logger.IsEnabled(LogLevel.Debug))
                     {
-                        _logger.LogInformation("No name server changes detected, still using {0}", string.Join(",", newServers));
+                        _logger.LogDebug("No name server changes detected, still using {0}", string.Join(",", newServers));
                     }
                     return;
                 }
@@ -598,6 +611,12 @@ namespace DnsClient
         // For unit tests.
         internal DnsQueryAndServerSettings GetSettings(DnsQueryAndServerOptions queryOptions = null)
         {
+            // Re-evaluating resolved nameservers here, seems the best place.
+            if (_originalOptions.AutoResolveNameServers)
+            {
+                _skipper?.MaybeDoWork();
+            }
+
             if (queryOptions == null)
             {
                 return Settings;
@@ -1368,8 +1387,6 @@ namespace DnsClient
 
         private HandleError HandleUnhandledException(Exception ex, DnsRequestMessage request, NameServer nameServer, DnsMessageHandleType handleType, bool isLastServer)
         {
-            ////_serverErrorSkipWorker.MaybeDoWork();
-
             if (_logger.IsEnabled(LogLevel.Warning))
             {
                 _logger.LogWarning(
@@ -1573,7 +1590,11 @@ namespace DnsClient
                 {
                     throw new ArgumentOutOfRangeException(nameof(skip));
                 }
+
                 _skipFor = skip;
+
+                // Skip first run
+                _lastRun = (Environment.TickCount & int.MaxValue);
             }
 
             public void MaybeDoWork()
@@ -1583,8 +1604,11 @@ namespace DnsClient
                     return;
                 }
 
-                _lastRun = (Environment.TickCount & int.MaxValue);
-                _worker();
+                var oldValue = _lastRun;
+                if (Interlocked.CompareExchange(ref _lastRun, (Environment.TickCount & int.MaxValue), oldValue) == oldValue)
+                {
+                    _worker();
+                }
             }
         }
     }
