@@ -377,15 +377,6 @@ namespace DnsClient
             {
                 _resolvedNameServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false);
                 servers = servers.Concat(_resolvedNameServers).ToArray();
-
-                try
-                {
-                    NetworkChange.NetworkAddressChanged += CheckResolvedNameserversCallback;
-                }
-                catch
-                {
-                    // Just in case
-                }
                 
                 // This will periodically get triggered on Query calls and
                 // will perform the same check as on NetworkAddressChanged.
@@ -406,16 +397,6 @@ namespace DnsClient
 
             Settings = new LookupClientSettings(options, servers);
             Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout);
-        }
-
-        private void CheckResolvedNameserversCallback(object sender, EventArgs args)
-        {
-            if (_logger.IsEnabled(LogLevel.Information))
-            {
-                _logger.LogInformation("Network change detected, trying to resolve name servers...");
-            }
-
-            CheckResolvedNameservers();
         }
 
         private void CheckResolvedNameservers()
