@@ -32,7 +32,7 @@ namespace DnsClient.Protocol
         /// <summary>
         /// Same as <c>ToString</c> but offsets the <see cref="ResourceRecordInfo.DomainName"/>
         /// by <paramref name="offset"/>.
-        /// Set the offset to -32 for example to make it print nicely in consols.
+        /// Set the offset to -32 for example to make it print nicely in consoles.
         /// </summary>
         /// <param name="offset">The offset.</param>
         /// <returns>A string representing this instance.</returns>

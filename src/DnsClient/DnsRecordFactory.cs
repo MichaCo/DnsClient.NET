@@ -43,7 +43,7 @@ namespace DnsClient
                 _reader.ReadQuestionQueryString(),                      // name
                 (ResourceRecordType)_reader.ReadUInt16NetworkOrder(),   // type
                 (QueryClass)_reader.ReadUInt16NetworkOrder(),           // class
-                (int)_reader.ReadUInt32NetworkOrder(),                  // ttl - 32bit!!
+                (int)_reader.ReadUInt32NetworkOrder(),                  // TTL - 32bit!!
                 _reader.ReadUInt16NetworkOrder());                      // RDLength
         }
 

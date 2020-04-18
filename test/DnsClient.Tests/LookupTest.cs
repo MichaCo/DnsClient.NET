@@ -363,7 +363,7 @@ namespace DnsClient.Tests
                         UseTcpFallback = false
                     });
 
-                // should hit the cancelation timeout, not the 1sec timeout
+                // should hit the cancellation timeout, not the 1sec timeout
                 var tokenSource = new CancellationTokenSource(s_timeout);
 
                 var token = tokenSource.Token;
@@ -382,7 +382,7 @@ namespace DnsClient.Tests
                         UseTcpOnly = true
                     });
 
-                // should hit the cancelation timeout, not the 1sec timeout
+                // should hit the cancellation timeout, not the 1sec timeout
                 var tokenSource = new CancellationTokenSource(s_timeout);
 
                 var token = tokenSource.Token;
@@ -401,7 +401,7 @@ namespace DnsClient.Tests
                         UseTcpFallback = false
                     });
 
-                // should hit the cancelation timeout, not the 1sec timeout
+                // should hit the cancellation timeout, not the 1sec timeout
                 var tokenSource = new CancellationTokenSource(s_timeout);
 
                 var token = tokenSource.Token;
@@ -420,7 +420,7 @@ namespace DnsClient.Tests
                         UseTcpOnly = true
                     });
 
-                // should hit the cancelation timeout, not the 1sec timeout
+                // should hit the cancellation timeout, not the 1sec timeout
                 var tokenSource = new CancellationTokenSource(s_timeout);
 
                 var token = tokenSource.Token;
@@ -903,7 +903,7 @@ namespace DnsClient.Tests
                 var result = await client.GetHostEntryAsync(ipAddress);
 
                 Assert.NotNull(result);
-                Assert.True(result.AddressList.Length >= 1, "Revers should have found at least one ip");
+                Assert.True(result.AddressList.Length >= 1, "Revers should have found at least one IP");
                 Assert.True(result.AddressList.Contains(ipAddress), "Result should contain the NSDName address");
                 Assert.True(result.Aliases.Length == 0, "There shouldn't be an alias");
 

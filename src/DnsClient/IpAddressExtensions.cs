@@ -27,7 +27,7 @@ namespace System.Net
             // check IP6
             if (ip.AddressFamily == AddressFamily.InterNetworkV6)
             {
-                // reveresed bytes need to be split into 4 bit parts and separated by '.'
+                // reversed bytes need to be split into 4 bit parts and separated by '.'
                 var newBytes = bytes
                     .SelectMany(b => new[] { (b >> 0) & 0xf, (b >> 4) & 0xf })
                     .Aggregate(new StringBuilder(), (s, b) => s.Append(b.ToString("x")).Append(".")) + "ip6.arpa.";

@@ -22,7 +22,7 @@ namespace DnsClient.Protocol
      */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending a mailbox rename domain name.
+    /// A <see cref="DnsResourceRecord"/> representing a mailbox rename domain name.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.8">RFC 1035</seealso>
     public class MrRecord : DnsResourceRecord

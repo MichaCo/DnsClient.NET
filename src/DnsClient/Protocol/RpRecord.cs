@@ -63,7 +63,7 @@ namespace DnsClient.Protocol
     */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending a responsible person.
+    /// A <see cref="DnsResourceRecord"/> representing a responsible person.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc1183#section-2.2">RFC 1183</seealso>
     public class RpRecord : DnsResourceRecord

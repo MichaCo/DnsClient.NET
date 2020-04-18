@@ -378,7 +378,7 @@ namespace DnsClient.Tests
         {
             var options = (DnsQuerySettings)new DnsQueryOptions()
             {
-                // Anything less then mimimum falls back to minimum.
+                // Anything less then minimum falls back to minimum.
                 ExtendedDnsBufferSize = DnsQueryOptions.MinimumBufferSize - 1,
                 RequestDnsSecRecords = false
             };

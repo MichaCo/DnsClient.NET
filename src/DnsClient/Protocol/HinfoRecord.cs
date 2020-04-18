@@ -30,7 +30,7 @@ namespace DnsClient.Protocol
         /// Gets a <c>string</c> which specifies the CPU type.
         /// </summary>
         /// <value>
-        /// The cpu.
+        /// The CPU.
         /// </value>
         public string Cpu { get; }
 
@@ -38,7 +38,7 @@ namespace DnsClient.Protocol
         /// Gets a <c>string</c> which specifies the operating system type.
         /// </summary>
         /// <value>
-        /// The os.
+        /// The OS.
         /// </value>
         public string OS { get; }
 
@@ -46,8 +46,8 @@ namespace DnsClient.Protocol
         /// Initializes a new instance of the <see cref="HInfoRecord"/> class.
         /// </summary>
         /// <param name="info">The information.</param>
-        /// <param name="cpu">The cpu.</param>
-        /// <param name="os">The os.</param>
+        /// <param name="cpu">The CPU.</param>
+        /// <param name="os">The OS.</param>
         /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> is null.</exception>
         public HInfoRecord(ResourceRecordInfo info, string cpu, string os)
             : base(info)

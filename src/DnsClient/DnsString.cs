@@ -11,17 +11,17 @@ namespace DnsClient
     public class DnsString
     {
         /// <summary>
-        /// The ACE prefix indicates that the domain name label contains not normally supported characters and that the label has been endoded.
+        /// The ACE prefix indicates that the domain name label contains not normally supported characters and that the label has been encoded.
         /// </summary>
         public const string ACEPrefix = "xn--";
 
         /// <summary>
-        /// The maximum lenght in bytes for one label.
+        /// The maximum length in bytes for one label.
         /// </summary>
         public const int LabelMaxLength = 63;
 
         /// <summary>
-        /// The maximum supported total length in bytes for a domain nanme. The calculation of the actual
+        /// The maximum supported total length in bytes for a domain name. The calculation of the actual
         /// bytes this <see cref="DnsString"/> consumes includes all bytes used for to encode it as octet string.
         /// </summary>
         public const int QueryMaxLength = 255;
@@ -36,7 +36,7 @@ namespace DnsClient
         private const string DotStr = ".";
 
         /// <summary>
-        /// Gets the orginal value.
+        /// Gets the original value.
         /// </summary>
         public string Original { get; }
 
@@ -177,7 +177,7 @@ namespace DnsClient
                 }
             }
 
-            // octets length length bit per label + 2(start +end)
+            // octets length bit per label + 2(start +end)
             if (charCount + labelsCount + 1 > QueryMaxLength)
             {
                 throw new ArgumentException($"Octet length of '{query}' exceeds maximum of {QueryMaxLength} bytes.", nameof(query));
@@ -192,7 +192,7 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Transforms names with the <see cref="ACEPrefix"/> to the unicode variant and adds a trailing '.' at the end if not present.
+        /// Transforms names with the <see cref="ACEPrefix"/> to the Unicode variant and adds a trailing '.' at the end if not present.
         /// The original value will be kept in this instance in case it is needed.
         /// </summary>
         /// <remarks>

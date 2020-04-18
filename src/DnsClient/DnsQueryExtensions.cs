@@ -674,7 +674,7 @@ namespace DnsClient
         public int Port { get; set; }
 
         /// <summary>
-        /// Gets or sets priortiy of the original <see cref="ResourceRecordType.SRV"/> record.
+        /// Gets or sets priority of the original <see cref="ResourceRecordType.SRV"/> record.
         /// Might be zero if not provided.
         /// </summary>
         /// <value>

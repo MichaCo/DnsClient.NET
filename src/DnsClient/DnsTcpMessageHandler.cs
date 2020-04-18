@@ -87,7 +87,7 @@ namespace DnsClient
 
             var stream = client.GetStream();
 
-            // use a pooled buffer to writer the data + the length of the data later into the frist two bytes
+            // use a pooled buffer to writer the data + the length of the data later into the first two bytes
             using (var memory = new PooledBytes(DnsDatagramWriter.BufferSize + 2))
             using (var writer = new DnsDatagramWriter(new ArraySegment<byte>(memory.Buffer, 2, memory.Buffer.Length - 2)))
             {

@@ -27,7 +27,7 @@ namespace DnsClient.Protocol
     */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending a mail exchange.
+    /// A <see cref="DnsResourceRecord"/> representing a mail exchange.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.9">RFC 1035</seealso>
     /// <seealso href="https://tools.ietf.org/html/rfc974">RFC 974</seealso>

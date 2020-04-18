@@ -11,7 +11,7 @@ namespace DnsClient
     public class DnsQuestion
     {
         /// <summary>
-        /// Gets the domain name the lookup was runnig for.
+        /// Gets the domain name the lookup was running for.
         /// </summary>
         /// <value>
         /// The name of the query.

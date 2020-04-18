@@ -4,7 +4,7 @@ using System.Net;
 namespace DnsClient.Protocol
 {
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending an IPv6 <see cref="IPAddress"/>.
+    /// A <see cref="DnsResourceRecord"/> representing an IPv6 <see cref="IPAddress"/>.
     /// <para>
     /// A 128 bit IPv6 address is encoded in the data portion of an AAAA
     /// resource record in network byte order(high-order byte first).

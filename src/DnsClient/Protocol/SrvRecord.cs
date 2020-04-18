@@ -105,7 +105,7 @@ namespace DnsClient.Protocol
     */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending a location of the server(s) for a specific protocol and domain.
+    /// A <see cref="DnsResourceRecord"/> representing a location of the server(s) for a specific protocol and domain.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
     [CLSCompliant(false)]
@@ -148,15 +148,15 @@ namespace DnsClient.Protocol
         /// </summary>
         /// <param name="info">The information.</param>
         /// <param name="priority">The priority.</param>
-        /// <param name="weigth">The weigth.</param>
+        /// <param name="weight">The weight.</param>
         /// <param name="port">The port.</param>
         /// <param name="target">The target.</param>
         /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="target"/> is null.</exception>
-        public SrvRecord(ResourceRecordInfo info, ushort priority, ushort weigth, ushort port, DnsString target)
+        public SrvRecord(ResourceRecordInfo info, ushort priority, ushort weight, ushort port, DnsString target)
             : base(info)
         {
             Priority = priority;
-            Weight = weigth;
+            Weight = weight;
             Port = port;
             Target = target ?? throw new ArgumentNullException(nameof(target));
         }

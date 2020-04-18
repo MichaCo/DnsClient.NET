@@ -19,7 +19,7 @@ namespace DnsClient.Protocol
      */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending a domain name which specifies a host which has the specified mailbox.
+    /// A <see cref="DnsResourceRecord"/> representing a domain name which specifies a host which has the specified mailbox.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.3">RFC 1035</seealso>
     public class MbRecord : DnsResourceRecord

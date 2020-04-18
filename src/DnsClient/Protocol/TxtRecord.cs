@@ -29,7 +29,7 @@ namespace DnsClient.Protocol
     */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending a text resource.
+    /// A <see cref="DnsResourceRecord"/> representing a text resource.
     /// <para>
     /// TXT RRs are used to hold descriptive text. The semantics of the text
     /// depends on the domain where it is found.

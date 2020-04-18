@@ -293,7 +293,7 @@ namespace DnsClient
 
                     var subReader = new DnsDatagramReader(_data.SubArrayFromOriginal(subIndex));
                     var newLabels = subReader.ReadLabels();
-                    result.AddRange(newLabels); // add range actually much faster than Concat and equal to or faster than foreach.. (array copy would work maybe)
+                    result.AddRange(newLabels); // add range actually much faster than concat and equal to or faster than for-each.. (array copy would work maybe)
                     return result;
                 }
 
@@ -305,7 +305,7 @@ namespace DnsClient
 
                 var label = _data.SubArray(_index, length);
 
-                // maybe store orignial bytes in this instance too?
+                // maybe store original bytes in this instance too?
                 result.Add(label);
 
                 Advance(length);
