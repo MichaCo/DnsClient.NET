@@ -320,6 +320,80 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void DnsRecordFactory_TLSARecord()
+        {
+            var certificateUsage = 0;
+            var selector = 1;
+            var matchingType = 1;
+            var certificateAssociationData = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+            var data = new List<byte>()
+            {
+                (byte)certificateUsage,
+                (byte)selector,
+                (byte)matchingType,
+            };
+
+            data.AddRange(Encoding.ASCII.GetBytes(certificateAssociationData));
+
+            var factory = GetFactory(data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.TLSA, QueryClass.IN, 0, data.Count);
+
+            var result = factory.GetRecord(info) as TLSARecord;
+
+            Assert.Equal(certificateUsage, result.CertificateUsage);
+            Assert.Equal(selector, result.Selector);
+            Assert.Equal(matchingType, result.MatchingType);
+            // Checking this in both directions
+            Assert.Equal(Convert.ToBase64String(Encoding.UTF8.GetBytes(certificateAssociationData)), result.CertificateAssociationData);
+            Assert.Equal(certificateAssociationData, Encoding.UTF8.GetString(Convert.FromBase64String(result.CertificateAssociationData)));
+        }
+
+        [Fact]
+        public void DnsRecordFactory_RRSIGRecord()
+        {
+            var type = 52;
+            var algorithmNumber = 13;
+            var labels = 5;
+            var originalTtl = (uint)300;
+            var signatureExpiration = 1589414400;
+            var signatureInception = 1587600000;
+            var keytag = 3942;
+            var signersName = DnsString.Parse("result.example.com");
+            var writer = new DnsDatagramWriter();
+            writer.WriteHostName(signersName.Value);
+            var signatureField = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+
+            var data = new List<byte>();
+
+            data.AddRange(BitConverter.IsLittleEndian ? BitConverter.GetBytes((ushort)type).Reverse() : BitConverter.GetBytes((ushort)type));
+            data.Add((byte)algorithmNumber);
+            data.Add((byte)labels);
+            data.AddRange(BitConverter.IsLittleEndian ? BitConverter.GetBytes((uint)originalTtl).Reverse() : BitConverter.GetBytes((uint)originalTtl));
+            data.AddRange(BitConverter.IsLittleEndian ? BitConverter.GetBytes((uint)signatureExpiration).Reverse() : BitConverter.GetBytes((uint)signatureExpiration));
+            data.AddRange(BitConverter.IsLittleEndian ? BitConverter.GetBytes((uint)signatureInception).Reverse() : BitConverter.GetBytes((uint)signatureInception));
+            data.AddRange(BitConverter.IsLittleEndian ? BitConverter.GetBytes((ushort)keytag).Reverse() : BitConverter.GetBytes((ushort)keytag));
+            data.AddRange(writer.Data.ToArray());
+            data.AddRange(Encoding.ASCII.GetBytes(signatureField));
+
+            var factory = GetFactory(data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.RRSIG, QueryClass.IN, 0, data.Count);
+
+            var result = factory.GetRecord(info) as RRSIGRecord;
+            Assert.Equal(type, result.Type);
+            Assert.Equal(algorithmNumber, result.AlgorithmNumber);
+            Assert.Equal(labels, result.Labels);
+            Assert.Equal(originalTtl, result.OriginalTtl);
+            Assert.Equal(new DateTime(1970, 1, 1, 0, 0, 0).AddSeconds(signatureExpiration).ToRrsigDateString(), result.SignatureExpiration);
+            Assert.Equal(new DateTime(1970, 1, 1, 0, 0, 0).AddSeconds(signatureInception).ToRrsigDateString(), result.SignatureInception);
+            Assert.Equal(signersName.Value, result.SignersNameField);
+            // Checking this in both directions
+            Assert.Equal(Convert.ToBase64String(Encoding.UTF8.GetBytes(signatureField)), result.SignatureField);
+            Assert.Equal(signatureField, Encoding.UTF8.GetString(Convert.FromBase64String(result.SignatureField)));
+        }
+
+        [Fact]
         public void DnsRecordFactory_SSHFPRecord()
         {
             var algo = SshfpAlgorithm.RSA;

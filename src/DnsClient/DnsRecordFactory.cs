@@ -147,6 +147,14 @@ namespace DnsClient
                     result = ResolveSshfpRecord(info);
                     break;
 
+                case ResourceRecordType.TLSA:
+                    result = ResolveTlsaRecord(info);
+                    break;
+
+                case ResourceRecordType.RRSIG:
+                    result = ResolveRrsigRecord(info);
+                    break;
+
                 default:
                     result = new UnknownRecord(info, _reader.ReadBytes(info.RawDataLength).ToArray());
                     break;
@@ -156,6 +164,31 @@ namespace DnsClient
             _reader.SanitizeResult(oldIndex + info.RawDataLength, info.RawDataLength);
 
             return result;
+        }
+
+        private DnsResourceRecord ResolveRrsigRecord(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            var type = _reader.ReadUInt16NetworkOrder(); // This is not stated in the RFC, but it should be in network order
+            var algorithmNumber = _reader.ReadByte();
+            var labels = _reader.ReadByte();
+            var originalTtl = _reader.ReadUInt32NetworkOrder(); // This is not stated in the RFC, but it should be in network order
+            var signatureExpiration = _reader.ReadUInt32NetworkOrder();
+            var signatureInception = _reader.ReadUInt32NetworkOrder();
+            var keyTag = _reader.ReadUInt16NetworkOrder();
+            var signersName = _reader.ReadDnsName();
+            var signature = Convert.ToBase64String(_reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray());
+            return new RRSIGRecord(info, type, algorithmNumber, labels, originalTtl, signatureExpiration, signatureInception, keyTag, signersName, signature);
+        }
+
+        private DnsResourceRecord ResolveTlsaRecord(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            var certificateUsage = _reader.ReadByte();
+            var selector = _reader.ReadByte();
+            var matchingType = _reader.ReadByte();
+            var certificateAssociationData = Convert.ToBase64String(_reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray());
+            return new TLSARecord(info, certificateUsage, selector, matchingType, certificateAssociationData);
         }
 
         private DnsResourceRecord ResolveUriRecord(ResourceRecordInfo info)

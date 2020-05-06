@@ -131,6 +131,14 @@ namespace DnsClient
             return result;
         }
 
+        public ArraySegment<byte> ReadBytesToEnd(int startIndex, int lengthOfRawData)
+        {
+            var bytesRead = _index - startIndex;
+            var length = lengthOfRawData - bytesRead;
+
+            return ReadBytes(length);
+        }
+
         public IPAddress ReadIPAddress()
         {
             if (_count < _index + IPv4Length)
@@ -344,6 +352,20 @@ namespace DnsClient
             }
 
             return (uint)(ReadUInt16NetworkOrder() << 16 | ReadUInt16NetworkOrder());
+        }
+
+        public string ReadSignersNameFieldOfRrsig()
+        {
+            var bytesToInclude = new List<byte>();
+
+            byte value;
+
+            while ((value = ReadByte()) != 0)
+            {
+                bytesToInclude.Add(value);
+            };
+
+            return Encoding.ASCII.GetString(bytesToInclude.ToArray());
         }
     }
 
