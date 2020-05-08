@@ -353,20 +353,6 @@ namespace DnsClient
 
             return (uint)(ReadUInt16NetworkOrder() << 16 | ReadUInt16NetworkOrder());
         }
-
-        public string ReadSignersNameFieldOfRrsig()
-        {
-            var bytesToInclude = new List<byte>();
-
-            byte value;
-
-            while ((value = ReadByte()) != 0)
-            {
-                bytesToInclude.Add(value);
-            };
-
-            return Encoding.ASCII.GetString(bytesToInclude.ToArray());
-        }
     }
 
     internal static class ArraySegmentExtensions
