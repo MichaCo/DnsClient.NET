@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
 using DnsClient.Protocol.Options;
+using Moq;
 using Xunit;
 
 namespace DnsClient.Tests
@@ -18,6 +19,88 @@ namespace DnsClient.Tests
         static LookupTest()
         {
             Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.All;
+        }
+
+        [Fact]
+        public async Task ResolveService_WithCnameRef()
+        {
+            var ns = new NameServer(IPAddress.Loopback, 8600);
+            var serviceName = "myservice";
+            var baseName = "service.consul";
+            var fullQuery = $"{serviceName}.{baseName}";
+            ushort prio = 99;
+            ushort weight = 69;
+            ushort port = 88;
+
+            var response = new DnsResponseMessage(new DnsResponseHeader(1234, (int)DnsResponseCode.NoError, 0, 0, 0, 0), 0);
+            response.AddAnswer(
+                new SrvRecord(
+                    new ResourceRecordInfo(fullQuery, ResourceRecordType.SRV, QueryClass.IN, 1000, 0),
+                    prio,
+                    weight,
+                    port,
+                    DnsString.Parse(serviceName)));
+
+            var targetHost = DnsString.Parse("myservice.localhost.net");
+            response.AddAdditional(
+                new CNameRecord(
+                    new ResourceRecordInfo(serviceName, ResourceRecordType.CNAME, QueryClass.IN, 1000, 0),
+                    targetHost));
+
+            var client = new LookupClient(ns);
+
+            var mock = new Mock<IDnsQuery>();
+            mock.Setup(p => p.QueryAsync(It.IsAny<string>(), It.IsAny<QueryType>(), It.IsAny<QueryClass>(), It.IsAny<CancellationToken>()))
+                .Returns(() => Task.FromResult<IDnsQueryResponse>(response.AsQueryResponse(ns, client.Settings)));
+
+            var mockClient = mock.Object;
+
+            var result = await mockClient.ResolveServiceAsync(baseName, serviceName);
+
+            Assert.Single(result);
+            var first = result.First();
+            Assert.Equal(targetHost.ToString(), first.HostName);
+            Assert.Equal((int)port, first.Port);
+            Assert.Equal((int)prio, first.Priority);
+            Assert.Equal((int)weight, first.Weight);
+        }
+
+        [Fact]
+        public async Task ResolveService_WithFQNSrv()
+        {
+            var ns = new NameServer(IPAddress.Loopback, 8600);
+            var serviceName = "myservice";
+            var baseName = "service.consul";
+            var fullQuery = $"{serviceName}.{baseName}";
+            ushort prio = 99;
+            ushort weight = 69;
+            ushort port = 88;
+
+            var targetHost = DnsString.Parse("http://localhost:88/");
+            var response = new DnsResponseMessage(new DnsResponseHeader(1234, (int)DnsResponseCode.NoError, 0, 0, 0, 0), 0);
+            response.AddAnswer(
+                new SrvRecord(
+                    new ResourceRecordInfo(fullQuery, ResourceRecordType.SRV, QueryClass.IN, 1000, 0),
+                    prio,
+                    weight,
+                    port,
+                    targetHost));
+
+            var client = new LookupClient(ns);
+
+            var mock = new Mock<IDnsQuery>();
+            mock.Setup(p => p.QueryAsync(It.IsAny<string>(), It.IsAny<QueryType>(), It.IsAny<QueryClass>(), It.IsAny<CancellationToken>()))
+                .Returns(() => Task.FromResult<IDnsQueryResponse>(response.AsQueryResponse(ns, client.Settings)));
+
+            var mockClient = mock.Object;
+
+            var result = await mockClient.ResolveServiceAsync(baseName, serviceName);
+            Assert.Single(result);
+            var first = result.First();
+            Assert.Equal(targetHost.ToString(), first.HostName);
+            Assert.Equal((int)port, first.Port);
+            Assert.Equal((int)prio, first.Priority);
+            Assert.Equal((int)weight, first.Weight);
         }
 
         [Fact]
@@ -38,7 +121,6 @@ namespace DnsClient.Tests
 
             Assert.Throws<ArgumentNullException>("queryOptions", () => client.Query(question, null));
             Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryAsync(question, null));
-
 
             Assert.Throws<ArgumentNullException>("queryOptions", () => client.QueryServer(servers, question, null));
             Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryServerAsync(servers, question, null));

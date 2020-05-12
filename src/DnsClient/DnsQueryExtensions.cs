@@ -628,7 +628,7 @@ namespace DnsClient
         private static ServiceHostEntry[] ResolveServiceProcessResult(IDnsQueryResponse result)
         {
             var hosts = new List<ServiceHostEntry>();
-            if (result.HasError)
+            if (result == null || result.HasError)
             {
                 return hosts.ToArray();
             }
@@ -643,7 +643,8 @@ namespace DnsClient
                 var hostName = result.Additionals
                     .OfType<CNameRecord>()
                     .Where(p => p.DomainName.Equals(entry.Target))
-                    .Select(p => p.CanonicalName).FirstOrDefault();
+                    .Select(p => p.CanonicalName).FirstOrDefault()
+                    ?? entry.Target;
 
                 hosts.Add(new ServiceHostEntry()
                 {
