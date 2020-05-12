@@ -21,7 +21,7 @@ namespace DnsClient
         IReadOnlyList<DnsResourceRecord> Additionals { get; }
 
         /// <summary>
-        /// Gets a list of all answers, addtional and authority records.
+        /// Gets a list of all answers, additional and authority records.
         /// </summary>
         IEnumerable<DnsResourceRecord> AllRecords { get; }
 
@@ -44,13 +44,13 @@ namespace DnsClient
         string AuditTrail { get; }
 
         /// <summary>
-        /// Returns a string value representing the error response code in case an error occured,
+        /// Returns a string value representing the error response code in case an error occurred,
         /// otherwise '<see cref="DnsResponseCode.NoError"/>'.
         /// </summary>
         string ErrorMessage { get; }
 
         /// <summary>
-        /// A flag indicating if the header contains a response codde other than <see cref="DnsResponseCode.NoError"/>.
+        /// A flag indicating if the header contains a response code other than <see cref="DnsResponseCode.NoError"/>.
         /// </summary>
         bool HasError { get; }
 

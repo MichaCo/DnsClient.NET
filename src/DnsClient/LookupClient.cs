@@ -24,7 +24,7 @@ namespace DnsClient
     /// <seealso cref="IDnsQuery"/>
     /// <seealso cref="ILookupClient"/>
     /// <example>
-    /// A basic example wihtout specifying any DNS server, which will use the DNS server configured by your local network.
+    /// A basic example without specifying any DNS server, which will use the DNS server configured by your local network.
     /// <code>
     /// <![CDATA[
     /// var client = new LookupClient();
@@ -314,7 +314,7 @@ namespace DnsClient
         /// ]]>
         /// </code>
         /// <para>
-        /// The <see cref="NameServer"/> class also contains pre defined <see cref="IPEndPoint"/>s for the public google DNS servers, which can be used as follows:
+        /// The <see cref="NameServer"/> class also contains predefined <see cref="IPEndPoint"/>s for the public Google DNS servers, which can be used as follows:
         /// <code>
         /// <![CDATA[
         /// var client = new LookupClient(NameServer.GooglePublicDns, NameServer.GooglePublicDnsIPv6);
@@ -1720,7 +1720,7 @@ namespace DnsClient
                 return;
             }
 
-            _auditWriter.AppendLine($"; EDNS: version: {version}, flags:{(doFlag ? " do" : string.Empty)}; udp: {udpSize}; code: {responseCode}");
+            _auditWriter.AppendLine($"; EDNS: version: {version}, flags:{(doFlag ? " do" : string.Empty)}; UDP: {udpSize}; code: {responseCode}");
         }
 
         public void AuditEnd(IDnsQueryResponse queryResponse, NameServer nameServer)
@@ -1742,7 +1742,7 @@ namespace DnsClient
 
             var elapsed = _swatch.ElapsedMilliseconds;
 
-            // TODO: find better way to print the actual ttl of cached values
+            // TODO: find better way to print the actual TTL of cached values
             if (queryResponse != null)
             {
                 if (queryResponse.Questions.Count > 0)

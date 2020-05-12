@@ -96,7 +96,7 @@ namespace DnsClient
             bool mustDispose = false;
             try
             {
-                // setup timeout cancelation, dispose socket (the only way to acutally cancel the request in async...
+                // setup timeout cancellation, dispose socket (the only way to actually cancel the request in async...
                 cancelationCallback(() =>
                 {
 #if !NET45

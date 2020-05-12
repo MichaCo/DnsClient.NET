@@ -5,7 +5,7 @@ using System.Text;
 namespace DnsClient.Protocol
 {
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending an SSH fingerprint
+    /// A <see cref="DnsResourceRecord"/> representing an SSH fingerprint
     /// <para>
     /// SSHFP RRs are used to hold SSH fingerprints. Upon connecting to a
     /// host an SSH client may choose to query for this to check the fingerprint(s)
@@ -72,7 +72,7 @@ namespace DnsClient.Protocol
         DSS = 2,
 
         /// <summary>
-        /// Eliptic Curve DSA
+        /// Elliptic Curve DSA
         /// </summary>
         ECDSA = 3,
 

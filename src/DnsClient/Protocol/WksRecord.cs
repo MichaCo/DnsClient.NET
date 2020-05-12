@@ -30,7 +30,7 @@ namespace DnsClient.Protocol
                     multiple of 8 bits long.
 
     The WKS record is used to describe the well known services supported by
-    a particular protocol on a particular internet address.  The PROTOCOL
+    a particular protocol on a particular Internet address.  The PROTOCOL
     field specifies an IP protocol number, and the bit map has one bit per
     port of the specified protocol.  The first bit corresponds to port 0,
     the second to port 1, etc.  If the bit map does not include a bit for a
@@ -61,7 +61,7 @@ namespace DnsClient.Protocol
     */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending a Well Known Service description.
+    /// A <see cref="DnsResourceRecord"/> representing a Well Known Service description.
     /// </summary>
     /// <remarks>
     /// Instead of describing the supported protocols in RFCs, the list is now published on http://www.iana.org/.

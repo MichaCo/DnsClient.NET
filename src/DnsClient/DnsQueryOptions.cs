@@ -167,7 +167,7 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Gets or sets a flag indicating whether Tcp should be used in case a Udp response is truncated.
+        /// Gets or sets a flag indicating whether TCP should be used in case a UDP response is truncated.
         /// Default is <c>True</c>.
         /// <para>
         /// If <c>False</c>, truncated results will potentially yield no or incomplete answers.
@@ -176,10 +176,10 @@ namespace DnsClient
         public bool UseTcpFallback { get; set; } = true;
 
         /// <summary>
-        /// Gets or sets a flag indicating whether Udp should not be used at all.
+        /// Gets or sets a flag indicating whether UDP should not be used at all.
         /// Default is <c>False</c>.
         /// <para>
-        /// Enable this only if Udp cannot be used because of your firewall rules for example.
+        /// Enable this only if UDP cannot be used because of your firewall rules for example.
         /// Also, zone transfers (see <see cref="QueryType.AXFR"/>) must use TCP only.
         /// </para>
         /// </summary>
@@ -378,11 +378,11 @@ namespace DnsClient
         /// TTL of the record is lower than this minimum value.
         /// Default is <c>Null</c>.
         /// <para>
-        /// This is useful in case the server retruns records with zero TTL.
+        /// This is useful in case the server returns records with zero TTL.
         /// </para>
         /// </summary>
         /// <remarks>
-        /// This setting gets igonred in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>,
+        /// This setting gets ignored in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>,
         /// or the value is set to <c>Null</c> or <see cref="TimeSpan.Zero"/>.
         /// The maximum value is 24 days or <see cref="Timeout.Infinite"/> (choose a wise setting).
         /// </remarks>
@@ -414,7 +414,7 @@ namespace DnsClient
         /// Default is <c>Null</c>.
         /// </summary>
         /// <remarks>
-        /// This setting gets igonred in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>,
+        /// This setting gets ignored in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>,
         /// or the value is set to <c>Null</c>, <see cref="Timeout.Infinite"/> or <see cref="TimeSpan.Zero"/>.
         /// The maximum value is 24 days (which shouldn't be used).
         /// </remarks>
@@ -575,7 +575,7 @@ namespace DnsClient
         public TimeSpan Timeout { get; }
 
         /// <summary>
-        /// Gets a flag indicating whether Tcp should be used in case a Udp response is truncated.
+        /// Gets a flag indicating whether TCP should be used in case a UDP response is truncated.
         /// Default is <c>True</c>.
         /// <para>
         /// If <c>False</c>, truncated results will potentially yield no or incomplete answers.
@@ -584,10 +584,10 @@ namespace DnsClient
         public bool UseTcpFallback { get; }
 
         /// <summary>
-        /// Gets a flag indicating whether Udp should not be used at all.
+        /// Gets a flag indicating whether UDP should not be used at all.
         /// Default is <c>False</c>.
         /// <para>
-        /// Enable this only if Udp cannot be used because of your firewall rules for example.
+        /// Enable this only if UDP cannot be used because of your firewall rules for example.
         /// Also, zone transfers (see <see cref="QueryType.AXFR"/>) must use TCP only.
         /// </para>
         /// </summary>
@@ -797,11 +797,11 @@ namespace DnsClient
         /// TTL of the record is lower than this minimum value.
         /// Default is <c>Null</c>.
         /// <para>
-        /// This is useful in cases where the server retruns records with zero TTL.
+        /// This is useful in cases where the server returns records with zero TTL.
         /// </para>
         /// </summary>
         /// <remarks>
-        /// This setting gets igonred in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>.
+        /// This setting gets ignored in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>.
         /// The maximum value is 24 days or <see cref="Timeout.Infinite"/>.
         /// </remarks>
         public TimeSpan? MinimumCacheTimeout { get; }
@@ -812,7 +812,7 @@ namespace DnsClient
         /// Default is <c>Null</c>.
         /// </summary>
         /// <remarks>
-        /// This setting gets igonred in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>.
+        /// This setting gets ignored in case <see cref="DnsQueryOptions.UseCache"/> is set to <c>False</c>.
         /// The maximum value is 24 days.
         /// Setting it to <see cref="Timeout.Infinite"/> would be equal to not providing a value.
         /// </remarks>

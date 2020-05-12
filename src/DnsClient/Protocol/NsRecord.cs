@@ -29,7 +29,7 @@ namespace DnsClient.Protocol
      */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending an authoritative name server.
+    /// A <see cref="DnsResourceRecord"/> representing an authoritative name server.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.11">RFC 1035</seealso>
     public class NsRecord : DnsResourceRecord

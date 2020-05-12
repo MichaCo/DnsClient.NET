@@ -123,7 +123,7 @@ namespace DnsClient
                         minTtl = MinimumTimout.Value.TotalMilliseconds;
                     }
 
-                    // max ttl check which can limit the upper boundary
+                    // max TTL check which can limit the upper boundary
                     if (MaximumTimeout.HasValue && MaximumTimeout != Timeout.InfiniteTimeSpan && minTtl > MaximumTimeout.Value.TotalMilliseconds)
                     {
                         minTtl = MaximumTimeout.Value.TotalMilliseconds;

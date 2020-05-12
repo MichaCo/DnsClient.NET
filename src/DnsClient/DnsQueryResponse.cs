@@ -55,7 +55,7 @@ namespace DnsClient
         public IReadOnlyList<DnsResourceRecord> Additionals { get; }
 
         /// <summary>
-        /// Gets a list of all answers, addtional and authority records.
+        /// Gets a list of all answers, additional and authority records.
         /// </summary>
         public IEnumerable<DnsResourceRecord> AllRecords
         {
@@ -84,13 +84,13 @@ namespace DnsClient
         public IReadOnlyList<DnsResourceRecord> Authorities { get; }
 
         /// <summary>
-        /// Returns a string value representing the error response code in case an error occured,
+        /// Returns a string value representing the error response code in case an error occurred,
         /// otherwise '<see cref="DnsResponseCode.NoError"/>'.
         /// </summary>
         public string ErrorMessage => DnsResponseCodeText.GetErrorText((DnsResponseCode)Header.ResponseCode);
 
         /// <summary>
-        /// A flag indicating if the header contains a response codde other than <see cref="DnsResponseCode.NoError"/>.
+        /// A flag indicating if the header contains a response code other than <see cref="DnsResponseCode.NoError"/>.
         /// </summary>
         public bool HasError => Header?.ResponseCode != DnsHeaderResponseCode.NoError;
 

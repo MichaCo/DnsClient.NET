@@ -23,7 +23,7 @@ namespace DnsClient.Protocol
      */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> repesenting the canonical name for an alias.
+    /// A <see cref="DnsResourceRecord"/> representing the canonical name for an alias.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.1">RFC 1035</seealso>
     public class CNameRecord : DnsResourceRecord

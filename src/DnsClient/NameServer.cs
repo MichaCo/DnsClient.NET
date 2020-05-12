@@ -21,22 +21,22 @@ namespace DnsClient
         public const int DefaultPort = 53;
 
         /// <summary>
-        /// The public google DNS IPv4 endpoint.
+        /// The public Google DNS IPv4 endpoint.
         /// </summary>
         public static readonly IPEndPoint GooglePublicDns = new IPEndPoint(IPAddress.Parse("8.8.4.4"), DefaultPort);
 
         /// <summary>
-        /// The second public google DNS IPv6 endpoint.
+        /// The second public Google DNS IPv6 endpoint.
         /// </summary>
         public static readonly IPEndPoint GooglePublicDns2 = new IPEndPoint(IPAddress.Parse("8.8.8.8"), DefaultPort);
 
         /// <summary>
-        /// The public google DNS IPv6 endpoint.
+        /// The public Google DNS IPv6 endpoint.
         /// </summary>
         public static readonly IPEndPoint GooglePublicDnsIPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8844"), DefaultPort);
 
         /// <summary>
-        /// The second public google DNS IPv6 endpoint.
+        /// The second public Google DNS IPv6 endpoint.
         /// </summary>
         public static readonly IPEndPoint GooglePublicDns2IPv6 = new IPEndPoint(IPAddress.Parse("2001:4860:4860::8888"), DefaultPort);
 
@@ -188,11 +188,11 @@ namespace DnsClient
         /// <summary>
         /// Gets a list of name servers by iterating over the available network interfaces.
         /// <para>
-        /// If <paramref name="fallbackToGooglePublicDns" /> is enabled, this method will return the google public dns endpoints if no
+        /// If <paramref name="fallbackToGooglePublicDns" /> is enabled, this method will return the Google public DNS endpoints if no
         /// local DNS server was found.
         /// </para>
         /// </summary>
-        /// <param name="skipIPv6SiteLocal">If set to <c>true</c> local IPv6 sites are skiped.</param>
+        /// <param name="skipIPv6SiteLocal">If set to <c>true</c> local IPv6 sites are skipped.</param>
         /// <param name="fallbackToGooglePublicDns">If set to <c>true</c> the public Google DNS servers are returned if no other servers could be found.</param>
         /// <returns>
         /// The list of name servers.

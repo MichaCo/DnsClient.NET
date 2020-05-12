@@ -287,7 +287,7 @@ namespace DnsClient.Tests
             var validateRecord = records.FirstOrDefault(
                 p => p.Target.Equals("ftp://srv.mcnet.com/public", StringComparison.OrdinalIgnoreCase)
                 && p.Priority == 10
-                && p.Weigth == 1);
+                && p.Weight == 1);
 
             Assert.NotNull(validateRecord);
         }

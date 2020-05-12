@@ -23,7 +23,7 @@ namespace DnsClient.Protocol
     */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending a pointer. These RRs are used
+    /// A <see cref="DnsResourceRecord"/> representing a pointer. These RRs are used
     /// in special domains to point to some other location in the domain space.
     /// </summary>
     /// <seealso cref="DnsClient.Protocol.DnsResourceRecord" />

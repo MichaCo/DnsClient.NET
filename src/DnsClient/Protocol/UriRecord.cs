@@ -31,7 +31,7 @@ namespace DnsClient.Protocol
     */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending a Uniform Resource Identifier (URI) resource.
+    /// A <see cref="DnsResourceRecord"/> representing a Uniform Resource Identifier (URI) resource.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc7553">RFC 7553</seealso>
     public class UriRecord : DnsResourceRecord
@@ -53,12 +53,12 @@ namespace DnsClient.Protocol
         public int Priority { get; set; }
 
         /// <summary>
-        /// Gets or sets the weigth.
+        /// Gets or sets the weight.
         /// </summary>
         /// <value>
-        /// The weigth.
+        /// The weight.
         /// </value>
-        public int Weigth { get; set; }
+        public int Weight { get; set; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="UriRecord"/> class.
@@ -74,12 +74,12 @@ namespace DnsClient.Protocol
         {
             Target = target ?? throw new ArgumentNullException(nameof(target));
             Priority = priority;
-            Weigth = weight;
+            Weight = weight;
         }
 
         private protected override string RecordToString()
         {
-            return $"{Priority} {Weigth} \"{Target}\"";
+            return $"{Priority} {Weight} \"{Target}\"";
         }
     }
 }

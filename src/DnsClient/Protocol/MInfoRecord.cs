@@ -34,7 +34,7 @@ namespace DnsClient.Protocol
      */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending mailbox or mail list information.
+    /// A <see cref="DnsResourceRecord"/> representing mailbox or mail list information.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.11">RFC 1035</seealso>
     public class MInfoRecord : DnsResourceRecord

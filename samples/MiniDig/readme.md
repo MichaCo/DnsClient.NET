@@ -14,7 +14,7 @@ MiniDig is multi targeted for now, which means, when you use `dotnet run` you ha
 If nothing else is specified, it uses the DNS server configured for your local network adapter.
 To specify a different server, use the `-s` switch, for example:
 
-`dotnet run -f netcoreapp2.0 -s 8.8.8.8 google.com` to use the public google name server.
+`dotnet run -f netcoreapp2.0 -s 8.8.8.8 google.com` to use the public Google name server.
 
 
 `dotnet run -f netcoreapp2.0 -s 127.0.0.1#8600` to also specify a custom port.

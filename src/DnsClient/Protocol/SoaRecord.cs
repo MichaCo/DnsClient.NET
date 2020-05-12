@@ -65,12 +65,12 @@ namespace DnsClient.Protocol
     bound on the TTL field for all RRs in a zone.  Note that this use of
     MINIMUM should occur when the RRs are copied into the response and not
     when the zone is loaded from a master file or via a zone transfer.  The
-    reason for this provison is to allow future dynamic update facilities to
+    reason for this provision is to allow future dynamic update facilities to
     change the SOA RR with known semantics.
     */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending a SOA (Start Of Authority) record.
+    /// A <see cref="DnsResourceRecord"/> representing a SOA (Start Of Authority) record.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.13">RFC 1035</seealso>
     [CLSCompliant(false)]
@@ -99,7 +99,7 @@ namespace DnsClient.Protocol
         /// Gets the domain name of the name server that was the original or primary source of data for this zone.
         /// </summary>
         /// <value>
-        /// The doman name.
+        /// The domain name.
         /// </value>
         public DnsString MName { get; }
 

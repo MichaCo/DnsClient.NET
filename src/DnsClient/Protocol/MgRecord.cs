@@ -21,13 +21,13 @@ namespace DnsClient.Protocol
      */
 
     /// <summary>
-    /// A <see cref="DnsResourceRecord"/> represending a domain name which specifies a mailbox which is a member of the mail group specified by the domain name.
+    /// A <see cref="DnsResourceRecord"/> representing a domain name which specifies a mailbox which is a member of the mail group specified by the domain name.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.6">RFC 1035</seealso>
     public class MgRecord : DnsResourceRecord
     {
         /// <summary>
-        /// Gets a domain name which specifies a mailbox which is a member of the mail group specified by the domain nam.
+        /// Gets a domain name which specifies a mailbox which is a member of the mail group specified by the domain name.
         /// </summary>
         /// <value>
         /// The domain name.

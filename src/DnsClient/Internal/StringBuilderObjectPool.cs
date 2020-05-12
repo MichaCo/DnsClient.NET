@@ -30,7 +30,7 @@ namespace DnsClient.Internal
         }
     }
 
-    /* copy of MS extesions object pool implementation minus disposable object pool
+    /* copy of MS extensions object pool implementation minus disposable object pool
      * because it does not support the targets this library supports and fixes some issues I have with my StringBuilderObjectPool
      * Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
      */
