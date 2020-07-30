@@ -14,6 +14,8 @@ namespace DnsClient
         // max is 24 days
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
 
+        private static readonly TimeSpan s_defaultFailureTimeout = TimeSpan.FromSeconds(5);
+
         private static readonly int s_cleanupInterval = (int)TimeSpan.FromMinutes(10).TotalMilliseconds;
         private readonly ConcurrentDictionary<string, ResponseEntry> _cache = new ConcurrentDictionary<string, ResponseEntry>();
         private readonly object _cleanupLock = new object();
@@ -21,7 +23,7 @@ namespace DnsClient
         private int _lastCleanup = 0;
         private TimeSpan? _minimumTimeout;
         private TimeSpan? _maximumTimeout;
-        private TimeSpan? _failureEntryTimeout;
+        private TimeSpan _failureEntryTimeout = s_defaultFailureTimeout;
 
         public int Count => _cache.Count;
 
@@ -57,13 +59,12 @@ namespace DnsClient
             }
         }
 
-        public TimeSpan? FailureEntryTimeout
+        public TimeSpan FailureEntryTimeout
         {
             get { return _failureEntryTimeout; }
             set
             {
-                if (value.HasValue &&
-                    (value < TimeSpan.Zero || value > s_maxTimeout) && value != s_infiniteTimeout)
+                if ((value < TimeSpan.Zero || value > s_maxTimeout) && value != s_infiniteTimeout)
                 {
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
@@ -77,7 +78,11 @@ namespace DnsClient
             Enabled = enabled;
             MinimumTimout = minimumTimout;
             MaximumTimeout = maximumTimeout;
-            FailureEntryTimeout = failureEntryTimeout;
+
+            if (failureEntryTimeout.HasValue)
+            {
+                FailureEntryTimeout = failureEntryTimeout.Value;
+            }
         }
 
         public static string GetCacheKey(DnsQuestion question)
@@ -124,10 +129,10 @@ namespace DnsClient
 
             if (Enabled && response != null && (cacheFailures || (!response.HasError && response.Answers.Count > 0)))
             {
-                if (response.Answers.Count == 0 && FailureEntryTimeout.HasValue)
+                if (response.Answers.Count == 0)
                 {
                     // Cache entry for a failure response.
-                    var newEntry = new ResponseEntry(response, FailureEntryTimeout.Value.TotalMilliseconds);
+                    var newEntry = new ResponseEntry(response, FailureEntryTimeout.TotalMilliseconds);
 
                     StartCleanup();
                     return _cache.TryAdd(key, newEntry);
