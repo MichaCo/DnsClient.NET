@@ -287,6 +287,8 @@ namespace DnsClient.Tests
             Assert.True(options.UseRandomNameServer);
             Assert.Equal(DnsQueryOptions.MaximumBufferSize, options.ExtendedDnsBufferSize);
             Assert.False(options.RequestDnsSecRecords);
+            Assert.False(options.UseCacheForFailures);
+            Assert.Equal(options.CacheFailureDuration, TimeSpan.FromSeconds(5));
         }
 
         [Fact]
@@ -311,6 +313,8 @@ namespace DnsClient.Tests
             Assert.True(options.UseRandomNameServer);
             Assert.Equal(DnsQueryOptions.MaximumBufferSize, options.ExtendedDnsBufferSize);
             Assert.False(options.RequestDnsSecRecords);
+            Assert.False(options.UseCacheForFailures);
+            Assert.Equal(options.CacheFailureDuration, TimeSpan.FromSeconds(5));
         }
 
         [Fact]
@@ -335,7 +339,9 @@ namespace DnsClient.Tests
                 UseTcpFallback = !defaultOptions.UseTcpFallback,
                 UseTcpOnly = !defaultOptions.UseTcpOnly,
                 ExtendedDnsBufferSize = 1234,
-                RequestDnsSecRecords = true
+                RequestDnsSecRecords = true,
+                UseCacheForFailures = true,
+                CacheFailureDuration = TimeSpan.FromSeconds(10)
             };
 
             var client = new LookupClient(options);
@@ -357,6 +363,8 @@ namespace DnsClient.Tests
             Assert.Equal(!defaultOptions.UseTcpOnly, client.Settings.UseTcpOnly);
             Assert.Equal(1234, client.Settings.ExtendedDnsBufferSize);
             Assert.Equal(!defaultOptions.RequestDnsSecRecords, client.Settings.RequestDnsSecRecords);
+            Assert.Equal(!defaultOptions.UseCacheForFailures, client.Settings.UseCacheForFailures);
+            Assert.Equal(TimeSpan.FromSeconds(10), client.Settings.CacheFailureDuration);
 
             Assert.Equal(new LookupClientSettings(options), client.Settings);
         }
@@ -560,6 +568,36 @@ namespace DnsClient.Tests
             var options = new LookupClientOptions();
 
             Action act = () => options.MaximumCacheTimeout = TimeSpan.FromDays(25);
+
+            Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
+        }
+
+        [Fact]
+        public void LookupClientOptions_InvalidCacheFailureDuration()
+        {
+            var options = new LookupClientOptions();
+
+            Action act = () => options.CacheFailureDuration = TimeSpan.FromMilliseconds(0);
+
+            Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
+        }
+
+        [Fact]
+        public void LookupClientOptions_InvalidCacheFailureDuration2()
+        {
+            var options = new LookupClientOptions();
+
+            Action act = () => options.CacheFailureDuration = TimeSpan.FromMilliseconds(-23);
+
+            Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
+        }
+
+        [Fact]
+        public void LookupClientOptions_InvalidCacheFailureDuration3()
+        {
+            var options = new LookupClientOptions();
+
+            Action act = () => options.CacheFailureDuration = TimeSpan.FromDays(25);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }

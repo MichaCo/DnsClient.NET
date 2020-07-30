@@ -27,6 +27,7 @@ namespace DnsClient
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
         private TimeSpan _timeout = s_defaultTimeout;
         private int _ednsBufferSize = MaximumBufferSize;
+        private TimeSpan _cacheFailureDuration = s_defaultTimeout;
 
         /// <summary>
         /// Gets or sets a flag indicating whether each <see cref="IDnsQueryResponse"/> will contain a full documentation of the response(s).
@@ -232,7 +233,19 @@ namespace DnsClient
         /// Gets or sets the duration to cache failed lookups. Does not apply if failed lookups are not being cached.
         /// Defaults to <c>5 seconds</c>.
         /// </summary>
-        public TimeSpan CacheFailureDuration { get; set; } = s_defaultTimeout;
+        public TimeSpan CacheFailureDuration
+        {
+            get { return _cacheFailureDuration; }
+            set
+            {
+                if ((value <= TimeSpan.Zero || value > s_maxTimeout) && value != s_infiniteTimeout)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _cacheFailureDuration = value;
+            }
+        }
 
         /// <summary>
         /// Converts the query options into readonly settings.
@@ -710,7 +723,7 @@ namespace DnsClient
                    ExtendedDnsBufferSize == other.ExtendedDnsBufferSize &&
                    RequestDnsSecRecords == other.RequestDnsSecRecords &&
                    UseCacheForFailures == other.UseCacheForFailures &&
-                   CacheFailureDuration.Equals(other.Timeout);
+                   CacheFailureDuration.Equals(other.CacheFailureDuration);
         }
     }
 
