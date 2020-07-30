@@ -48,6 +48,29 @@ namespace DnsClient
         IDnsQueryResponse Query(DnsQuestion question, DnsQueryAndServerOptions queryOptions);
 
         /// <summary>
+        /// Performs a lookup for the given <paramref name="question" /> against the in-memory cache.
+        /// </summary>
+        /// <param name="question">The domain name query.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the cached response headers and lists of resource records.
+        /// If no matching cache entry is found null is returned.
+        /// </returns>
+        IDnsQueryResponse QueryCache(DnsQuestion question);
+
+        /// <summary>
+        /// Performs a DNS lookup for the given <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />
+        /// against the in-memory cache.
+        /// </summary>
+        /// <param name="query">The domain name query.</param>
+        /// <param name="queryType">The <see cref="QueryType" />.</param>
+        /// <param name="queryClass">The <see cref="QueryClass"/>.</param>
+        /// <returns>
+        /// The <see cref="IDnsQueryResponse" /> which contains the cached response headers and lists of resource records.
+        /// If no matching cache entry is found null is returned.
+        /// </returns>        
+        IDnsQueryResponse QueryCache(string query, QueryType queryType, QueryClass queryClass = QueryClass.IN);
+
+        /// <summary>
         /// Performs a DNS lookup for the given <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />
         /// </summary>
         /// <param name="query">The domain name query.</param>
