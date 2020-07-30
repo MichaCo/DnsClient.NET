@@ -377,7 +377,7 @@ namespace DnsClient
             {
                 _resolvedNameServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false);
                 servers = servers.Concat(_resolvedNameServers).ToArray();
-                
+
                 // This will periodically get triggered on Query calls and
                 // will perform the same check as on NetworkAddressChanged.
                 // The event doesn't seem to get fired on Linux for example... 
@@ -396,7 +396,7 @@ namespace DnsClient
             }
 
             Settings = new LookupClientSettings(options, servers);
-            Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout);
+            Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout, Settings.CacheFailureDuration);
         }
 
         private void CheckResolvedNameservers()
@@ -482,6 +482,22 @@ namespace DnsClient
 
             var settings = GetSettings(queryOptions);
             return QueryInternal(question, settings, settings.ShuffleNameServers());
+        }
+
+        /// <inheritdoc/>
+        public IDnsQueryResponse QueryCache(string query, QueryType queryType, QueryClass queryClass = QueryClass.IN)
+            => QueryCache(new DnsQuestion(query, queryType, queryClass));
+
+        /// <inheritdoc/>
+        public IDnsQueryResponse QueryCache(DnsQuestion question)
+        {
+            if (question is null)
+            {
+                throw new ArgumentNullException(nameof(question));
+            }
+
+            var settings = GetSettings();
+            return QueryCache(question, settings);
         }
 
         /// <inheritdoc/>
@@ -878,6 +894,11 @@ namespace DnsClient
                         }
 
                         // If its the last server, return.
+                        if (settings.UseCache && settings.UseCacheForFailures)
+                        {
+                            Cache.Add(cacheKey, lastQueryResponse, true);
+                        }
+
                         return lastQueryResponse;
                     }
                     catch (Exception ex) when (
@@ -1129,6 +1150,11 @@ namespace DnsClient
                         }
 
                         // If its the last server, return.
+                        if (settings.UseCache && settings.UseCacheForFailures)
+                        {
+                            Cache.Add(cacheKey, lastQueryResponse, true);
+                        }
+
                         return lastQueryResponse;
                     }
                     catch (Exception ex) when (
@@ -1200,6 +1226,30 @@ namespace DnsClient
             {
                 AuditTrail = audit?.Build()
             };
+        }
+
+        private IDnsQueryResponse QueryCache(
+            DnsQuestion question,
+            DnsQuerySettings settings)
+        {
+            if (question == null)
+            {
+                throw new ArgumentNullException(nameof(question));
+            }
+
+            var head = new DnsRequestHeader(false, DnsOpCode.Query);
+            var request = new DnsRequestMessage(head, question);
+
+            var cacheKey = ResponseCache.GetCacheKey(request.Question);
+
+            if (TryGetCachedResult(cacheKey, request, settings, out var cachedResponse))
+            {
+                return cachedResponse;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private enum HandleError

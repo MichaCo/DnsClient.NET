@@ -21,6 +21,7 @@ namespace DnsClient
         private int _lastCleanup = 0;
         private TimeSpan? _minimumTimeout;
         private TimeSpan? _maximumTimeout;
+        private TimeSpan? _failureEntryTimeout;
 
         public int Count => _cache.Count;
 
@@ -56,11 +57,27 @@ namespace DnsClient
             }
         }
 
-        public ResponseCache(bool enabled = true, TimeSpan? minimumTimout = null, TimeSpan? maximumTimeout = null)
+        public TimeSpan? FailureEntryTimeout
+        {
+            get { return _failureEntryTimeout; }
+            set
+            {
+                if (value.HasValue &&
+                    (value < TimeSpan.Zero || value > s_maxTimeout) && value != s_infiniteTimeout)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(value));
+                }
+
+                _failureEntryTimeout = value;
+            }
+        }
+
+        public ResponseCache(bool enabled = true, TimeSpan? minimumTimout = null, TimeSpan? maximumTimeout = null, TimeSpan? failureEntryTimeout = null)
         {
             Enabled = enabled;
             MinimumTimout = minimumTimout;
             MaximumTimeout = maximumTimeout;
+            FailureEntryTimeout = failureEntryTimeout;
         }
 
         public static string GetCacheKey(DnsQuestion question)
@@ -101,43 +118,54 @@ namespace DnsClient
             return null;
         }
 
-        public bool Add(string key, IDnsQueryResponse response)
+        public bool Add(string key, IDnsQueryResponse response, bool cacheFailures = false)
         {
             if (key == null) throw new ArgumentNullException(key);
 
-            if (Enabled && response != null && !response.HasError && response.Answers.Count > 0)
+            if (Enabled && response != null && (cacheFailures || (!response.HasError && response.Answers.Count > 0)))
             {
-                var all = response.AllRecords.Where(p => !(p is Protocol.Options.OptRecord));
-                if (all.Any())
+                if (response.Answers.Count == 0 && FailureEntryTimeout.HasValue)
                 {
-                    // in millis
-                    double minTtl = all.Min(p => p.InitialTimeToLive) * 1000d;
-
-                    if (MinimumTimout == Timeout.InfiniteTimeSpan)
-                    {
-                        // TODO: Log warning once?
-                        minTtl = s_maxTimeout.TotalMilliseconds;
-                    }
-                    else if (MinimumTimout.HasValue && minTtl < MinimumTimout.Value.TotalMilliseconds)
-                    {
-                        minTtl = MinimumTimout.Value.TotalMilliseconds;
-                    }
-
-                    // max TTL check which can limit the upper boundary
-                    if (MaximumTimeout.HasValue && MaximumTimeout != Timeout.InfiniteTimeSpan && minTtl > MaximumTimeout.Value.TotalMilliseconds)
-                    {
-                        minTtl = MaximumTimeout.Value.TotalMilliseconds;
-                    }
-
-                    if (minTtl < 1d)
-                    {
-                        return false;
-                    }
-
-                    var newEntry = new ResponseEntry(response, minTtl);
+                    // Cache entry for a failure response.
+                    var newEntry = new ResponseEntry(response, FailureEntryTimeout.Value.TotalMilliseconds);
 
                     StartCleanup();
                     return _cache.TryAdd(key, newEntry);
+                }
+                else
+                {
+                    var all = response.AllRecords.Where(p => !(p is Protocol.Options.OptRecord));
+                    if (all.Any())
+                    {
+                        // in millis
+                        double minTtl = all.Min(p => p.InitialTimeToLive) * 1000d;
+
+                        if (MinimumTimout == Timeout.InfiniteTimeSpan)
+                        {
+                            // TODO: Log warning once?
+                            minTtl = s_maxTimeout.TotalMilliseconds;
+                        }
+                        else if (MinimumTimout.HasValue && minTtl < MinimumTimout.Value.TotalMilliseconds)
+                        {
+                            minTtl = MinimumTimout.Value.TotalMilliseconds;
+                        }
+
+                        // max TTL check which can limit the upper boundary
+                        if (MaximumTimeout.HasValue && MaximumTimeout != Timeout.InfiniteTimeSpan && minTtl > MaximumTimeout.Value.TotalMilliseconds)
+                        {
+                            minTtl = MaximumTimeout.Value.TotalMilliseconds;
+                        }
+
+                        if (minTtl < 1d)
+                        {
+                            return false;
+                        }
+
+                        var newEntry = new ResponseEntry(response, minTtl);
+
+                        StartCleanup();
+                        return _cache.TryAdd(key, newEntry);
+                    }
                 }
             }
 

@@ -222,6 +222,19 @@ namespace DnsClient
         public bool RequestDnsSecRecords { get; set; } = false;
 
         /// <summary>
+        /// Gets or sets a flag indicating whether the DNS failures are being cached. The purpose of caching 
+        /// failures is to reduce repeated lookup attempts within a short space of time.
+        /// Defaults to <c>False</c>.
+        /// </summary>
+        public bool UseCacheForFailures { get; set; } = false;
+
+        /// <summary>
+        /// Gets or sets the duration to cache failed lookups. Does not apply if failed lookups are not being cached.
+        /// Defaults to <c>5 seconds</c>.
+        /// </summary>
+        public TimeSpan CacheFailureDuration { get; set; } = s_defaultTimeout;
+
+        /// <summary>
         /// Converts the query options into readonly settings.
         /// </summary>
         /// <param name="fromOptions">The options.</param>
@@ -615,6 +628,19 @@ namespace DnsClient
         public bool RequestDnsSecRecords { get; }
 
         /// <summary>
+        /// Gets a flag indicating whether the DNS failures are being cached. The purpose of caching 
+        /// failures is to reduce repeated lookup attempts within a short space of time.
+        /// Defaults to <c>False</c>.
+        /// </summary>
+        public bool UseCacheForFailures { get; }
+
+        /// <summary>
+        /// If failures are being cached this value indicates how long they will be held in the cache for.
+        /// Defaults to <c>5 seconds</c>.
+        /// </summary>
+        public TimeSpan CacheFailureDuration { get; }
+
+        /// <summary>
         /// Creates a new instance of <see cref="DnsQueryAndServerSettings"/>.
         /// </summary>
         public DnsQuerySettings(DnsQueryOptions options)
@@ -637,6 +663,8 @@ namespace DnsClient
             UseTcpOnly = options.UseTcpOnly;
             ExtendedDnsBufferSize = options.ExtendedDnsBufferSize;
             RequestDnsSecRecords = options.RequestDnsSecRecords;
+            UseCacheForFailures = options.UseCacheForFailures;
+            CacheFailureDuration = options.CacheFailureDuration;
         }
 
         /// <inheritdocs />
@@ -680,7 +708,9 @@ namespace DnsClient
                    UseTcpFallback == other.UseTcpFallback &&
                    UseTcpOnly == other.UseTcpOnly &&
                    ExtendedDnsBufferSize == other.ExtendedDnsBufferSize &&
-                   RequestDnsSecRecords == other.RequestDnsSecRecords;
+                   RequestDnsSecRecords == other.RequestDnsSecRecords &&
+                   UseCacheForFailures == other.UseCacheForFailures &&
+                   CacheFailureDuration.Equals(other.Timeout);
         }
     }
 

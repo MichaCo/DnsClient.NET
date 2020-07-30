@@ -618,14 +618,14 @@ namespace DnsClient
             return ResolveServiceProcessResult(result);
         }
 
-        private static string ConcatResolveServiceName(string baseDomain, string serviceName, string tag)
+        public static string ConcatResolveServiceName(string baseDomain, string serviceName, string tag)
         {
             return string.IsNullOrWhiteSpace(tag) ?
                 $"{serviceName}.{baseDomain}." :
                 $"_{serviceName}._{tag}.{baseDomain}.";
         }
 
-        private static ServiceHostEntry[] ResolveServiceProcessResult(IDnsQueryResponse result)
+        public static ServiceHostEntry[] ResolveServiceProcessResult(IDnsQueryResponse result)
         {
             var hosts = new List<ServiceHostEntry>();
             if (result == null || result.HasError)
