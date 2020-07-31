@@ -396,7 +396,7 @@ namespace DnsClient
             }
 
             Settings = new LookupClientSettings(options, servers);
-            Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout, Settings.CacheFailureDuration);
+            Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout, Settings.FailedResultsCacheDuration);
         }
 
         private void CheckResolvedNameservers()
@@ -894,7 +894,7 @@ namespace DnsClient
                         }
 
                         // If its the last server, return.
-                        if (settings.UseCache && settings.UseCacheForFailures)
+                        if (settings.UseCache && settings.CacheFailedResults)
                         {
                             Cache.Add(cacheKey, lastQueryResponse, true);
                         }
@@ -1150,7 +1150,7 @@ namespace DnsClient
                         }
 
                         // If its the last server, return.
-                        if (settings.UseCache && settings.UseCacheForFailures)
+                        if (settings.UseCache && settings.CacheFailedResults)
                         {
                             Cache.Add(cacheKey, lastQueryResponse, true);
                         }

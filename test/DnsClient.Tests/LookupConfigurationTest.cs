@@ -287,8 +287,8 @@ namespace DnsClient.Tests
             Assert.True(options.UseRandomNameServer);
             Assert.Equal(DnsQueryOptions.MaximumBufferSize, options.ExtendedDnsBufferSize);
             Assert.False(options.RequestDnsSecRecords);
-            Assert.False(options.UseCacheForFailures);
-            Assert.Equal(options.CacheFailureDuration, TimeSpan.FromSeconds(5));
+            Assert.False(options.CacheFailedResults);
+            Assert.Equal(options.FailedResultsCacheDuration, TimeSpan.FromSeconds(5));
         }
 
         [Fact]
@@ -313,8 +313,8 @@ namespace DnsClient.Tests
             Assert.True(options.UseRandomNameServer);
             Assert.Equal(DnsQueryOptions.MaximumBufferSize, options.ExtendedDnsBufferSize);
             Assert.False(options.RequestDnsSecRecords);
-            Assert.False(options.UseCacheForFailures);
-            Assert.Equal(options.CacheFailureDuration, TimeSpan.FromSeconds(5));
+            Assert.False(options.CacheFailedResults);
+            Assert.Equal(options.FailedResultsCacheDuration, TimeSpan.FromSeconds(5));
         }
 
         [Fact]
@@ -340,8 +340,8 @@ namespace DnsClient.Tests
                 UseTcpOnly = !defaultOptions.UseTcpOnly,
                 ExtendedDnsBufferSize = 1234,
                 RequestDnsSecRecords = true,
-                UseCacheForFailures = true,
-                CacheFailureDuration = TimeSpan.FromSeconds(10)
+                CacheFailedResults = true,
+                FailedResultsCacheDuration = TimeSpan.FromSeconds(10)
             };
 
             var client = new LookupClient(options);
@@ -363,8 +363,8 @@ namespace DnsClient.Tests
             Assert.Equal(!defaultOptions.UseTcpOnly, client.Settings.UseTcpOnly);
             Assert.Equal(1234, client.Settings.ExtendedDnsBufferSize);
             Assert.Equal(!defaultOptions.RequestDnsSecRecords, client.Settings.RequestDnsSecRecords);
-            Assert.Equal(!defaultOptions.UseCacheForFailures, client.Settings.UseCacheForFailures);
-            Assert.Equal(TimeSpan.FromSeconds(10), client.Settings.CacheFailureDuration);
+            Assert.Equal(!defaultOptions.CacheFailedResults, client.Settings.CacheFailedResults);
+            Assert.Equal(TimeSpan.FromSeconds(10), client.Settings.FailedResultsCacheDuration);
 
             Assert.Equal(new LookupClientSettings(options), client.Settings);
         }
@@ -577,7 +577,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.CacheFailureDuration = TimeSpan.FromMilliseconds(0);
+            Action act = () => options.FailedResultsCacheDuration = TimeSpan.FromMilliseconds(0);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -587,7 +587,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.CacheFailureDuration = TimeSpan.FromMilliseconds(-23);
+            Action act = () => options.FailedResultsCacheDuration = TimeSpan.FromMilliseconds(-23);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -597,7 +597,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.CacheFailureDuration = TimeSpan.FromDays(25);
+            Action act = () => options.FailedResultsCacheDuration = TimeSpan.FromDays(25);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }

@@ -27,7 +27,7 @@ namespace DnsClient
         private static readonly TimeSpan s_maxTimeout = TimeSpan.FromMilliseconds(int.MaxValue);
         private TimeSpan _timeout = s_defaultTimeout;
         private int _ednsBufferSize = MaximumBufferSize;
-        private TimeSpan _cacheFailureDuration = s_defaultTimeout;
+        private TimeSpan _failedResultsCacheDuration = s_defaultTimeout;
 
         /// <summary>
         /// Gets or sets a flag indicating whether each <see cref="IDnsQueryResponse"/> will contain a full documentation of the response(s).
@@ -227,15 +227,15 @@ namespace DnsClient
         /// failures is to reduce repeated lookup attempts within a short space of time.
         /// Defaults to <c>False</c>.
         /// </summary>
-        public bool UseCacheForFailures { get; set; } = false;
+        public bool CacheFailedResults { get; set; } = false;
 
         /// <summary>
         /// Gets or sets the duration to cache failed lookups. Does not apply if failed lookups are not being cached.
         /// Defaults to <c>5 seconds</c>.
         /// </summary>
-        public TimeSpan CacheFailureDuration
+        public TimeSpan FailedResultsCacheDuration
         {
-            get { return _cacheFailureDuration; }
+            get { return _failedResultsCacheDuration; }
             set
             {
                 if ((value <= TimeSpan.Zero || value > s_maxTimeout) && value != s_infiniteTimeout)
@@ -243,7 +243,7 @@ namespace DnsClient
                     throw new ArgumentOutOfRangeException(nameof(value));
                 }
 
-                _cacheFailureDuration = value;
+                _failedResultsCacheDuration = value;
             }
         }
 
@@ -645,13 +645,13 @@ namespace DnsClient
         /// failures is to reduce repeated lookup attempts within a short space of time.
         /// Defaults to <c>False</c>.
         /// </summary>
-        public bool UseCacheForFailures { get; }
+        public bool CacheFailedResults { get; }
 
         /// <summary>
         /// If failures are being cached this value indicates how long they will be held in the cache for.
         /// Defaults to <c>5 seconds</c>.
         /// </summary>
-        public TimeSpan CacheFailureDuration { get; }
+        public TimeSpan FailedResultsCacheDuration { get; }
 
         /// <summary>
         /// Creates a new instance of <see cref="DnsQueryAndServerSettings"/>.
@@ -676,8 +676,8 @@ namespace DnsClient
             UseTcpOnly = options.UseTcpOnly;
             ExtendedDnsBufferSize = options.ExtendedDnsBufferSize;
             RequestDnsSecRecords = options.RequestDnsSecRecords;
-            UseCacheForFailures = options.UseCacheForFailures;
-            CacheFailureDuration = options.CacheFailureDuration;
+            CacheFailedResults = options.CacheFailedResults;
+            FailedResultsCacheDuration = options.FailedResultsCacheDuration;
         }
 
         /// <inheritdocs />
@@ -722,8 +722,8 @@ namespace DnsClient
                    UseTcpOnly == other.UseTcpOnly &&
                    ExtendedDnsBufferSize == other.ExtendedDnsBufferSize &&
                    RequestDnsSecRecords == other.RequestDnsSecRecords &&
-                   UseCacheForFailures == other.UseCacheForFailures &&
-                   CacheFailureDuration.Equals(other.CacheFailureDuration);
+                   CacheFailedResults == other.CacheFailedResults &&
+                   FailedResultsCacheDuration.Equals(other.FailedResultsCacheDuration);
         }
     }
 

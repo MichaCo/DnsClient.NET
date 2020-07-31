@@ -48,25 +48,31 @@ namespace DnsClient
         IDnsQueryResponse Query(DnsQuestion question, DnsQueryAndServerOptions queryOptions);
 
         /// <summary>
-        /// Performs a lookup for the given <paramref name="question" /> against the in-memory cache.
+        /// Returns cached results for the given <paramref name="question" /> from the in-memory cache, if available, or <c>Null</c> otherwise.
         /// </summary>
+        /// <remarks>
+        /// This method will not perform a full lookup if there is nothing found in cache or the cache is disabled!
+        /// </remarks>
         /// <param name="question">The domain name query.</param>
         /// <returns>
         /// The <see cref="IDnsQueryResponse" /> which contains the cached response headers and lists of resource records.
-        /// If no matching cache entry is found null is returned.
+        /// If no matching cache entry is found <c>Null</c> is returned.
         /// </returns>
         IDnsQueryResponse QueryCache(DnsQuestion question);
 
         /// <summary>
-        /// Performs a DNS lookup for the given <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />
-        /// against the in-memory cache.
+        /// Returns cached results for the given <paramref name="query" />, <paramref name="queryType" /> and <paramref name="queryClass" />
+        /// against the in-memory cache, if available, or <c>Null</c> otherwise.
         /// </summary>
+        /// <remarks>
+        /// This method will not perform a full lookup if there is nothing found in cache or the cache is disabled!
+        /// </remarks>
         /// <param name="query">The domain name query.</param>
         /// <param name="queryType">The <see cref="QueryType" />.</param>
         /// <param name="queryClass">The <see cref="QueryClass"/>.</param>
         /// <returns>
         /// The <see cref="IDnsQueryResponse" /> which contains the cached response headers and lists of resource records.
-        /// If no matching cache entry is found null is returned.
+        /// If no matching cache entry is found <c>Null</c> is returned.
         /// </returns>        
         IDnsQueryResponse QueryCache(string query, QueryType queryType, QueryClass queryClass = QueryClass.IN);
 

@@ -571,7 +571,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(serviceName));
             }
 
-            var queryString = ConcatResolveServiceName(baseDomain, serviceName, tag);
+            var queryString = ConcatServiceName(baseDomain, serviceName, tag);
 
             var result = query.Query(queryString, QueryType.SRV);
 
@@ -611,20 +611,32 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(serviceName));
             }
 
-            var queryString = ConcatResolveServiceName(baseDomain, serviceName, tag);
+            var queryString = ConcatServiceName(baseDomain, serviceName, tag);
 
             var result = await query.QueryAsync(queryString, QueryType.SRV).ConfigureAwait(false);
 
             return ResolveServiceProcessResult(result);
         }
 
-        public static string ConcatResolveServiceName(string baseDomain, string serviceName, string tag)
+        /// <summary>
+        /// Constructs a DNS <see cref="QueryType.SRV"/> query string from the constituent parts.
+        /// </summary>
+        /// <param name="baseDomain">The base domain, which will be appended to the end of the query string.</param>
+        /// <param name="serviceName">The name of the service to look for. Must not have any <c>_</c> prefix.</param>
+        /// <param name="tag">An optional tag. Must not have any <c>_</c> prefix.</param>
+        /// <returns>A service string that can be used in a DNS service query.</returns>
+        public static string ConcatServiceName(string baseDomain, string serviceName, string tag = null)
         {
             return string.IsNullOrWhiteSpace(tag) ?
                 $"{serviceName}.{baseDomain}." :
                 $"_{serviceName}._{tag}.{baseDomain}.";
         }
 
+        /// <summary>
+        /// Transforms a DNS query result into a collection of <see cref="ServiceHostEntry"/> objects.
+        /// </summary>
+        /// <param name="result">The DNS </param>
+        /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
         public static ServiceHostEntry[] ResolveServiceProcessResult(IDnsQueryResponse result)
         {
             var hosts = new List<ServiceHostEntry>();
