@@ -208,5 +208,49 @@ namespace DnsClient.Tests
 
             Assert.False(fail);
         }
+
+        [Fact]
+        public void Cache_DoesNotCacheFailureIfDisabled()
+        {
+            var cache = new ResponseCache(true);
+            var failureStatus = DnsResponseCode.NotExistentDomain;
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, (ushort)failureStatus, 0, 0, 0, 0), 0);
+
+            cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any), null));
+            var item = cache.Get("key", out _);
+
+            // Should be null because cache does not accept failure responses by default.
+            Assert.Null(item);
+        }
+
+        [Fact]
+        public void Cache_DoesCacheFailureIfEnabled()
+        {
+            var cache = new ResponseCache(true);
+            var failureStatus = DnsResponseCode.NotExistentDomain;
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, (ushort)failureStatus, 0, 0, 0, 0), 0);
+
+            cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any), null), true);
+            var item = cache.Get("key", out _);
+
+            Assert.NotNull(item);
+        }
+
+        [Fact]
+        public async Task Cache_DoesCacheFailureExpire()
+        {
+            var cache = new ResponseCache(true, null, null, TimeSpan.FromMilliseconds(1));
+            var failureStatus = DnsResponseCode.NotExistentDomain;
+            var response = new DnsResponseMessage(new DnsResponseHeader(1, (ushort)failureStatus, 0, 0, 0, 0), 0);
+
+            cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any), null), true);
+
+            await Task.Delay(10);
+
+            var item = cache.Get("key", out _);
+
+            // Should be null because failed response expires after 1 millisecond.
+            Assert.Null(item);
+        }
     }
 }
