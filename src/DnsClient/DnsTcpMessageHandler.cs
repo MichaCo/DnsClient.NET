@@ -167,10 +167,6 @@ namespace DnsClient
                     }
 
                     DnsResponseMessage response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, bytesReceived));
-                    if (request.Header.Id != response.Header.Id)
-                    {
-                        throw new DnsResponseException("Header id mismatch.");
-                    }
 
                     responses.Add(response);
                 }

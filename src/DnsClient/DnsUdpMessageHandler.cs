@@ -51,10 +51,6 @@ namespace DnsClient
                     var received = udpClient.Client.Receive(memory.Buffer, 0, readSize, SocketFlags.None);
 
                     var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
-                    if (request.Header.Id != response.Header.Id)
-                    {
-                        throw new DnsResponseException("Header id mismatch.");
-                    }
 
                     Enqueue(server.AddressFamily, udpClient);
 
@@ -126,10 +122,6 @@ namespace DnsClient
 
                     var response = GetResponseMessage(new ArraySegment<byte>(result.Buffer, 0, result.Buffer.Length));
 #endif
-                    if (request.Header.Id != response.Header.Id)
-                    {
-                        throw new DnsResponseException("Header id mismatch.");
-                    }
 
                     Enqueue(endpoint.AddressFamily, udpClient);
 
