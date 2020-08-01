@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -371,7 +370,7 @@ namespace DnsClient
 
             // Setting up name servers.
             // Using manually configured ones and/or auto resolved ones.
-            var servers = _originalOptions.NameServers?.ToArray() ?? new NameServer[0];
+            IReadOnlyCollection<NameServer> servers = _originalOptions.NameServers?.ToArray() ?? new NameServer[0];
 
             if (options.AutoResolveNameServers)
             {
@@ -380,7 +379,7 @@ namespace DnsClient
 
                 // This will periodically get triggered on Query calls and
                 // will perform the same check as on NetworkAddressChanged.
-                // The event doesn't seem to get fired on Linux for example... 
+                // The event doesn't seem to get fired on Linux for example...
                 // TODO: Maybe there is a better way, but this will work for now.
                 _skipper = new SkipWorker(
                 () =>
@@ -394,6 +393,8 @@ namespace DnsClient
                 },
                 skip: 60 * 1000);
             }
+
+            servers = NameServer.ValidateNameServers(servers);
 
             Settings = new LookupClientSettings(options, servers);
             Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout, Settings.FailedResultsCacheDuration);
@@ -647,6 +648,8 @@ namespace DnsClient
                 throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
             }
 
+            servers = NameServer.ValidateNameServers(servers, _logger);
+
             var head = new DnsRequestHeader(queryOptions.Recursion, DnsOpCode.Query);
             var request = new DnsRequestMessage(head, question, queryOptions);
             var handler = queryOptions.UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
@@ -702,6 +705,8 @@ namespace DnsClient
             {
                 throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
             }
+
+            servers = NameServer.ValidateNameServers(servers, _logger);
 
             var head = new DnsRequestHeader(queryOptions.Recursion, DnsOpCode.Query);
             var request = new DnsRequestMessage(head, question, queryOptions);
@@ -768,7 +773,7 @@ namespace DnsClient
 
                 if (settings.EnableAuditTrail && !isLastServer)
                 {
-                    audit?.AuditRetryNextServer(serverInfo);
+                    audit?.AuditRetryNextServer();
                 }
 
                 var cacheKey = string.Empty;
@@ -998,7 +1003,7 @@ namespace DnsClient
 
                 if (settings.EnableAuditTrail && serverIndex > 0 && !isLastServer)
                 {
-                    audit?.AuditRetryNextServer(serverInfo);
+                    audit?.AuditRetryNextServer();
                 }
 
                 var cacheKey = string.Empty;
@@ -1870,7 +1875,7 @@ namespace DnsClient
             }
         }
 
-        public void AuditRetryNextServer(NameServer current)
+        public void AuditRetryNextServer()
         {
             if (!Settings.EnableAuditTrail)
             {
