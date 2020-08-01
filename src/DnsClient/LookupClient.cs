@@ -380,7 +380,7 @@ namespace DnsClient
 
                 // This will periodically get triggered on Query calls and
                 // will perform the same check as on NetworkAddressChanged.
-                // The event doesn't seem to get fired on Linux for example... 
+                // The event doesn't seem to get fired on Linux for example...
                 // TODO: Maybe there is a better way, but this will work for now.
                 _skipper = new SkipWorker(
                 () =>
