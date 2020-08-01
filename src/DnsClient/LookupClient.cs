@@ -371,7 +371,7 @@ namespace DnsClient
 
             // Setting up name servers.
             // Using manually configured ones and/or auto resolved ones.
-            var servers = _originalOptions.NameServers?.ToArray() ?? new NameServer[0];
+            IReadOnlyCollection<NameServer> servers = _originalOptions.NameServers?.ToArray() ?? new NameServer[0];
 
             if (options.AutoResolveNameServers)
             {
@@ -394,6 +394,8 @@ namespace DnsClient
                 },
                 skip: 60 * 1000);
             }
+
+            servers = NameServer.ValidateNameServers(servers);
 
             Settings = new LookupClientSettings(options, servers);
             Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout, Settings.FailedResultsCacheDuration);
@@ -647,6 +649,8 @@ namespace DnsClient
                 throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
             }
 
+            servers = NameServer.ValidateNameServers(servers, _logger);
+
             var head = new DnsRequestHeader(queryOptions.Recursion, DnsOpCode.Query);
             var request = new DnsRequestMessage(head, question, queryOptions);
             var handler = queryOptions.UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
@@ -702,6 +706,8 @@ namespace DnsClient
             {
                 throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
             }
+
+            servers = NameServer.ValidateNameServers(servers, _logger);
 
             var head = new DnsRequestHeader(queryOptions.Recursion, DnsOpCode.Query);
             var request = new DnsRequestMessage(head, question, queryOptions);
@@ -768,7 +774,7 @@ namespace DnsClient
 
                 if (settings.EnableAuditTrail && !isLastServer)
                 {
-                    audit?.AuditRetryNextServer(serverInfo);
+                    audit?.AuditRetryNextServer();
                 }
 
                 var cacheKey = string.Empty;
@@ -998,7 +1004,7 @@ namespace DnsClient
 
                 if (settings.EnableAuditTrail && serverIndex > 0 && !isLastServer)
                 {
-                    audit?.AuditRetryNextServer(serverInfo);
+                    audit?.AuditRetryNextServer();
                 }
 
                 var cacheKey = string.Empty;
@@ -1870,7 +1876,7 @@ namespace DnsClient
             }
         }
 
-        public void AuditRetryNextServer(NameServer current)
+        public void AuditRetryNextServer()
         {
             if (!Settings.EnableAuditTrail)
             {

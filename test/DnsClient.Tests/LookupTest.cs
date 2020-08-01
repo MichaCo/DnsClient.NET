@@ -193,7 +193,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Lookup_LargeResultWithTCP()
         {
-            var dns = new LookupClient(NameServer.GooglePublicDns);
+            var dns = new LookupClient(NameServer.Cloudflare);
 
             var result = dns.Query("big.basic.caatestsuite.com", QueryType.CAA);
 

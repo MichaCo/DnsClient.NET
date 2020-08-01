@@ -249,13 +249,15 @@ namespace DnsClient
                 endPoints = new IPAddress[0];
             }
 
-            var filtered = endPoints
+            IReadOnlyCollection<NameServer> filtered = endPoints
                 .Where(p => (p.AddressFamily == AddressFamily.InterNetwork || p.AddressFamily == AddressFamily.InterNetworkV6)
-                    && (!p.IsIPv6SiteLocal || !skipIPv6SiteLocal))
+                    && (!p.IsIPv6SiteLocal || !skipIPv6SiteLocal))                
                 .Select(p => new NameServer(p))
                 .ToArray();
 
-            if (filtered.Length == 0 && fallbackToGooglePublicDns)
+            filtered = ValidateNameServers(filtered, logger);
+
+            if (filtered.Count == 0 && fallbackToGooglePublicDns)
             {
                 logger?.LogWarning("Could not resolve any NameServers, falling back to Google public servers.");
                 return new NameServer[]
@@ -267,7 +269,7 @@ namespace DnsClient
                 };
             }
 
-            logger?.LogDebug("Resolved {0} name servers: [{1}].", filtered.Length, string.Join(",", filtered.AsEnumerable()));
+            logger?.LogDebug("Resolved {0} name servers: [{1}].", filtered.Count, string.Join(",", filtered.AsEnumerable()));
             return filtered;
         }
 
@@ -302,6 +304,24 @@ namespace DnsClient
         }
 
 #endif
+
+        internal static IReadOnlyCollection<NameServer> ValidateNameServers(IReadOnlyCollection<NameServer> servers, ILogger logger = null)
+        {
+            // Right now, I'm only checking for ANY address, but might be more validation rules at some point...
+            var validServers = servers.Where(p => !p.IPEndPoint.Address.Equals(IPAddress.Any) && !p.IPEndPoint.Address.Equals(IPAddress.IPv6Any)).ToArray();
+
+            if (validServers.Length != servers.Count)
+            {
+                logger?.LogWarning("Unsupported ANY address cannot be used as name server.");
+
+                if (validServers.Length == 0)
+                {
+                    throw new InvalidOperationException("Unsupported ANY address cannot be used as name server and no other servers are configured to fall back to.");
+                }
+            }
+
+            return validServers;
+        }
 
         private static IReadOnlyCollection<IPAddress> QueryNetworkInterfaces()
         {
