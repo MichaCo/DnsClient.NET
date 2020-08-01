@@ -1471,7 +1471,10 @@ namespace DnsClient
 
             if (request.Header.Id != response.Header.Id)
             {
-                throw new DnsResponseException("Header id mismatch.");
+                _logger.LogWarning(
+                    "Request header id {0} does not match response header {1}. This might be due to some non-standard configuration in your network.",
+                    request.Header.Id,
+                    response.Header.Id);
             }
 
             audit?.AuditResolveServers(serverCount);
