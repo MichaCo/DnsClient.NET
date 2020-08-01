@@ -163,7 +163,7 @@ namespace DnsClient
         /// </returns>
         public override string ToString()
         {
-            return $"{Address}:{Port}";
+            return IPEndPoint.ToString();
         }
 
         /// <inheritdocs />
@@ -240,7 +240,7 @@ namespace DnsClient
                 }
                 else
                 {
-                    throw exceptions.First();
+                    throw new InvalidOperationException("Error resolving name servers", exceptions.First());
                 }
             }
 

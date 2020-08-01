@@ -132,17 +132,6 @@ namespace DnsClient.Tests
             Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryServerReverseAsync(servers, IPAddress.Loopback, null));
         }
 
-#if !NET461
-
-        [Fact]
-        public void NativeDnsServerResolution()
-        {
-            var ex = Record.Exception(() => NameServer.ResolveNameServersNative());
-            Assert.Null(ex);
-        }
-
-#endif
-
         [Fact]
         public async Task Lookup_GetHostAddresses_Local()
         {
