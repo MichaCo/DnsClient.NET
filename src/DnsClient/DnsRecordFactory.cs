@@ -184,9 +184,9 @@ namespace DnsClient
         private DnsResourceRecord ResolveTlsaRecord(ResourceRecordInfo info)
         {
             var startIndex = _reader.Index;
-            var certificateUsage = _reader.ReadByte();
-            var selector = _reader.ReadByte();
-            var matchingType = _reader.ReadByte();
+            var certificateUsage = (ECertificateUsage)_reader.ReadByte();
+            var selector = (ESelector)_reader.ReadByte();
+            var matchingType = (EMatchingType)_reader.ReadByte();
             var certificateAssociationData = Convert.ToBase64String(_reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray());
             return new TLSARecord(info, certificateUsage, selector, matchingType, certificateAssociationData);
         }

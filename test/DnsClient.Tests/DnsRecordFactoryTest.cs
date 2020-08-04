@@ -341,9 +341,9 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as TLSARecord;
 
-            Assert.Equal(certificateUsage, result.CertificateUsage);
-            Assert.Equal(selector, result.Selector);
-            Assert.Equal(matchingType, result.MatchingType);
+            Assert.Equal((ECertificateUsage)certificateUsage, result.CertificateUsage);
+            Assert.Equal((ESelector)selector, result.Selector);
+            Assert.Equal((EMatchingType)matchingType, result.MatchingType);
             // Checking this in both directions
             Assert.Equal(Convert.ToBase64String(Encoding.UTF8.GetBytes(certificateAssociationData)), result.CertificateAssociationData);
             Assert.Equal(certificateAssociationData, Encoding.UTF8.GetString(Convert.FromBase64String(result.CertificateAssociationData)));
