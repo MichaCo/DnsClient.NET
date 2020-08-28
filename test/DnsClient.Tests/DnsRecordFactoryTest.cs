@@ -347,6 +347,37 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void DnsRecordFactory_TLSARecord()
+        {
+            var certificateUsage = TlsaCertificateUsage.DANE_EE;
+            var selector = TlsaSelector.SPKI;
+            var matchingType = TlsaMatchingType.SHA256;
+
+            var certificateData = "8d3c943e527d7c3ed3ccab9f83bf81557cf772c9ce9c5e036e87bffb0df01d02";
+            // Value is stored as raw bytes in the record, so convert the HEX string above to it's original bytes
+            var fingerprintBytes = Enumerable.Range(0, certificateData.Length / 2)
+                .Select(i => Convert.ToByte(certificateData.Substring(i * 2, 2), 16));
+
+            var data = new List<byte>
+            {
+                (byte)certificateUsage,
+                (byte)selector,
+                (byte)matchingType
+            };
+            data.AddRange(fingerprintBytes);
+
+            var factory = GetFactory(data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.TLSA, QueryClass.IN, 0, data.Count);
+
+            var result = factory.GetRecord(info) as TlsaRecord;
+
+            Assert.Equal(certificateUsage, result.CertificateUsage);
+            Assert.Equal(selector, result.Selector);
+            Assert.Equal(matchingType, result.MatchingType);
+            Assert.Equal(certificateData, result.CertificateAssociationDataAsString);
+        }
+
+        [Fact]
         public void DnsRecordFactory_SpecialChars()
         {
             var textA = "\"äöü \\slash/! @bla.com \"";
