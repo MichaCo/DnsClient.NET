@@ -163,6 +163,13 @@ namespace DnsClient
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc3755">RFC 3755</seealso>
         RRSIG = ResourceRecordType.RRSIG,
+        
+        /// <summary>
+        /// TLSA rfc6698.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc6698">RFC 6698</seealso>
+        /// <seealso cref="TlsaRecord"/>
+        TLSA = ResourceRecordType.TLSA,
 
         /// <summary>
         /// DNS zone transfer request.

@@ -135,6 +135,10 @@ namespace DnsClient
                     result = ResolveOptRecord(info);
                     break;
 
+                case ResourceRecordType.TLSA:
+                    result = ResolveTlsaRecord(info);
+                    break;
+
                 case ResourceRecordType.URI:
                     result = ResolveUriRecord(info);
                     break;
@@ -239,6 +243,15 @@ namespace DnsClient
             var fingerprint = _reader.ReadBytes(info.RawDataLength - 2).ToArray();
             var fingerprintHexString = string.Join(string.Empty, fingerprint.Select(b => b.ToString("X2")));
             return new SshfpRecord(info, algorithm, fingerprintType, fingerprintHexString);
+        }
+
+        private DnsResourceRecord ResolveTlsaRecord(ResourceRecordInfo info)
+        {
+            var certificateUsage = _reader.ReadByte();
+            var selector = _reader.ReadByte();
+            var matchingType = _reader.ReadByte();
+            var certificateAssociationData = _reader.ReadBytes(info.RawDataLength - 3).ToArray();
+            return new TlsaRecord(info, certificateUsage, selector, matchingType, certificateAssociationData);
         }
 
         private DnsResourceRecord ResolveCaaRecord(ResourceRecordInfo info)

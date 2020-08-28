@@ -181,6 +181,13 @@ namespace DnsClient.Protocol
         RRSIG = 46,
 
         /// <summary>
+        /// TLSA rfc6698.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc6698">RFC 6698</seealso>
+        /// <seealso cref="TlsaRecord"/>
+        TLSA = 52,
+
+        /// <summary>
         /// A Uniform Resource Identifier (URI) resource record.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc7553">RFC 7553</seealso>
