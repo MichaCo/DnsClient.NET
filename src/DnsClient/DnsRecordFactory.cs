@@ -247,9 +247,9 @@ namespace DnsClient
 
         private DnsResourceRecord ResolveTlsaRecord(ResourceRecordInfo info)
         {
-            var certificateUsage = _reader.ReadByte();
-            var selector = _reader.ReadByte();
-            var matchingType = _reader.ReadByte();
+            var certificateUsage = (TlsaCertificateUsage) _reader.ReadByte();
+            var selector = (TlsaSelector) _reader.ReadByte();
+            var matchingType = (TlsaMatchingType) _reader.ReadByte();
             var certificateAssociationData = _reader.ReadBytes(info.RawDataLength - 3).ToArray();
             return new TlsaRecord(info, certificateUsage, selector, matchingType, certificateAssociationData);
         }

@@ -35,7 +35,7 @@ namespace DnsClient.Protocol
         /// the TLS handshake.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc6698#section-2.1.1">RFC 6698</seealso>
-        public byte CertificateUsage { get; }
+        public TlsaCertificateUsage CertificateUsage { get; }
 
         /// <summary>
         /// A one-octet value, called "selector", specifies which part of the TLS
@@ -45,7 +45,7 @@ namespace DnsClient.Protocol
         /// <seealso href="https://tools.ietf.org/html/rfc6698#section-2.1.2">RFC 6698</seealso>
         /// <seealso href="https://tools.ietf.org/html/rfc5280">RFC 5280</seealso>
         /// <seealso href="https://tools.ietf.org/html/rfc6376">RFC 6376</seealso>
-        public byte Selector { get; }
+        public TlsaSelector Selector { get; }
 
         /// <summary>
         /// A one-octet value, called "matching type", specifies how the
@@ -53,7 +53,7 @@ namespace DnsClient.Protocol
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc6698#section-2.1.3">RFC 6698</seealso>
         /// <seealso href="https://tools.ietf.org/html/rfc6234">RFC 6234</seealso>
-        public byte MatchingType { get; }
+        public TlsaMatchingType MatchingType { get; }
 
         /// <summary>
         /// This field specifies the "certificate association data" to be
@@ -78,7 +78,7 @@ namespace DnsClient.Protocol
         /// <param name="matchingType">The matching type.</param>
         /// <param name="certificateAssociationData">Certificate association data.</param>
         /// <exception cref="System.ArgumentNullException">If <paramref name="certificateAssociationData"/> or <paramref name="info"/> is null.</exception>
-        public TlsaRecord(ResourceRecordInfo info, byte certificateUsage, byte selector, byte matchingType, byte[] certificateAssociationData)
+        public TlsaRecord(ResourceRecordInfo info, TlsaCertificateUsage certificateUsage, TlsaSelector selector, TlsaMatchingType matchingType, byte[] certificateAssociationData)
             : base(info)
         {
             CertificateUsage = certificateUsage;
@@ -96,5 +96,68 @@ namespace DnsClient.Protocol
                 MatchingType,
                 CertificateAssociationDataAsString);
         }
+    }
+
+    /// <summary>
+    /// Certificate usage used by <see cref="TlsaRecord"/>
+    /// </summary>
+    public enum TlsaCertificateUsage
+    {
+        /// <summary>
+        /// Certificate Authority Constraint
+        /// </summary>
+        PKIX_TA = 0,
+
+        /// <summary>
+        /// Service Certificate Constraint
+        /// </summary>
+        PKIX_EE = 1,
+
+        /// <summary>
+        /// Trust Anchor Assertion
+        /// </summary>
+        DANE_TA = 2,
+
+        /// <summary>
+        /// Domain Issued Certificate
+        /// </summary>
+        DANE_EE = 3,
+    }
+
+    /// <summary>
+    /// Selector used by <see cref="TlsaRecord"/>
+    /// </summary>
+    public enum TlsaSelector
+    {
+        /// <summary>
+        /// Use full certificate
+        /// </summary>
+        CERT = 0,
+
+        /// <summary>
+        /// Use subject public key
+        /// </summary>
+        SPKI = 1,
+    }
+
+    /// <summary>
+    /// Matching type used by <see cref="TlsaRecord"/>
+    /// </summary>
+    public enum TlsaMatchingType
+    {
+        /// <summary>
+        /// No Hash
+        /// </summary>
+        FULL = 0,
+
+        /// <summary>
+        /// SHA-256 hash
+        /// </summary>
+        SHA256 = 1,
+
+        /// <summary>
+        /// SHA-512 hash
+        /// </summary>
+        SHA512 = 2,
     }
 }
