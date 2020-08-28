@@ -42,7 +42,7 @@ var ip = record?.Address;
 
 ### Supported resource records
 
-* A, AAAA, NS, CNAME, SOA, MB, MG, MR, WKS, HINFO, MINFO, MX, RP, TXT, AFSDB, URI, CAA, NULL, SSHFP
+* A, AAAA, NS, CNAME, SOA, MB, MG, MR, WKS, HINFO, MINFO, MX, RP, TXT, AFSDB, URI, CAA, NULL, SSHFP, TLSA
 * PTR for reverse lookups
 * SRV for service discovery. `LookupClient` has some extensions to help with that.
 * AXFR zone transfer (as per spec, LookupClient has to be set to TCP mode only for this type. Also, the result depends on if the DNS server trusts your current connection)
