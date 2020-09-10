@@ -93,11 +93,16 @@ namespace DnsClient.Protocol
         public const string SIP_SERVICE_KEY = "E2U+SIP";
         public const string EMAIL_SERVICE_KEY = "E2U+EMAIL";
         public const string WEB_SERVICE_KEY = "E2U+WEB";
+        public const string SIP_UDP_SERVICE_KEY = "SIP+D2U";
+        public const string SIP_TCP_SERVICE_KEY = "SIP+D2T";
+        public const string SIPS_TCP_SERVICE_KEY = "SIPS+D2T";
+        public const string SIP_WEBSOCKET_SERVICE_KEY = "SIP+D2W";
+        public const string SIPS_WEBSOCKET_SERVICE_KEY = "SIPS+D2W";
 
-        public const char NAPTR_A_FLAG = 'A';
-        public const char NAPTR_P_FLAG = 'P';
-        public const char NAPTR_S_FLAG = 'S';
-        public const char NAPTR_U_FLAG = 'U';
+        public const char A_FLAG = 'A';
+        public const char P_FLAG = 'P';
+        public const char S_FLAG = 'S';
+        public const char U_FLAG = 'U';
 
         /// <summary>
         /// Gets the Order.
