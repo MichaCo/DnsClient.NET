@@ -64,6 +64,14 @@ namespace DnsClient
             WriteByte(0);
         }
 
+        public virtual void WriteStringWithLengthPrefix(string query)
+        {
+            var bytes = Encoding.ASCII.GetBytes(query);
+            var len = bytes.Length;
+            WriteByte(Convert.ToByte(len));
+            WriteBytes(bytes, len);
+        }
+
         public virtual void WriteByte(byte b)
         {
             _buffer.Array[_buffer.Offset + Index++] = b;
