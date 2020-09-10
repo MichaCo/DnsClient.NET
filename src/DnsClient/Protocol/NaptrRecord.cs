@@ -86,7 +86,7 @@ namespace DnsClient.Protocol
     /// <summary>
     /// A <see cref="DnsResourceRecord"/> representing Naming Authority Pointer
     /// </summary>
-    /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
+    /// <seealso href="https://tools.ietf.org/html/rfc2915">RFC 2915</seealso>
     [CLSCompliant(false)]
     public class NaptrRecord : DnsResourceRecord
     {
