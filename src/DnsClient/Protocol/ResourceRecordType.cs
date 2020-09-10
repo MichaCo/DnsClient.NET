@@ -162,6 +162,13 @@ namespace DnsClient.Protocol
         SRV = 33,
 
         /// <summary>
+        /// The Naming Authority Pointer rfc3403
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
+        /// <seealso cref="NaptrRecord"/>
+        NAPTR = 35,
+
+        /// <summary>
         /// Option record.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc6891">RFC 6891</seealso>

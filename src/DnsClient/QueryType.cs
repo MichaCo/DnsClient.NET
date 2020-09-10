@@ -159,6 +159,13 @@ namespace DnsClient
         SRV = ResourceRecordType.SRV,
 
         /// <summary>
+        /// The Naming Authority Pointer rfc3403
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
+        /// <seealso cref="NaptrRecord"/>
+        NAPTR = ResourceRecordType.NAPTR, 
+        
+        /// <summary>
         /// RRSIG rfc3755.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc3755">RFC 3755</seealso>
