@@ -69,6 +69,8 @@ namespace DnsClient
             _buffer.Array[_buffer.Offset + Index++] = b;
         }
 
+        public virtual void WriteBytes(byte[] data) => WriteBytes(data, 0, data==null?0:data.Length); 
+        
         public virtual void WriteBytes(byte[] data, int length) => WriteBytes(data, 0, length);
 
         public virtual void WriteBytes(byte[] data, int dataOffset, int length)
