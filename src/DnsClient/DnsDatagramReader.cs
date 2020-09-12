@@ -131,6 +131,14 @@ namespace DnsClient
             return result;
         }
 
+        public ArraySegment<byte> ReadBytesToEnd(int startIndex, int lengthOfRawData)
+        {
+            var bytesRead = _index - startIndex;
+            var length = lengthOfRawData - bytesRead;
+
+            return ReadBytes(length);
+        }
+
         public IPAddress ReadIPAddress()
         {
             if (_count < _index + IPv4Length)

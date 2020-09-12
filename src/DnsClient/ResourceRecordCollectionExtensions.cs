@@ -213,6 +213,26 @@ namespace System.Linq
         }
 
         /// <summary>
+        /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="TLSARecord"/>s only
+        /// </summary>
+        /// <param name="records"></param>
+        /// <returns>The list of <see cref="TLSARecord"/>.</returns>
+        public static IEnumerable<TLSARecord> TLSARecords (this IEnumerable<DnsResourceRecord> records)
+        {
+            return records.OfType<TLSARecord>();
+        }
+
+        /// <summary>
+        /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="RRSIGRecord"/>s only
+        /// </summary>
+        /// <param name="records"></param>
+        /// <returns>The list of <see cref="RRSIGRecord"/>.</returns>
+        public static IEnumerable<RRSIGRecord> RRSIGRecords(this IEnumerable<DnsResourceRecord> records)
+        {
+            return records.OfType<RRSIGRecord>();
+        }
+
+        /// <summary>
         /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="DnsResourceRecord"/>s
         /// which have the <paramref name="type"/>.
         /// </summary>

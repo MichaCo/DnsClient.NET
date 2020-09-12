@@ -165,6 +165,12 @@ namespace DnsClient
         RRSIG = ResourceRecordType.RRSIG,
 
         /// <summary>
+        /// TLSA rfc6698
+        /// </summary>
+        /// <seealso href="https://https://tools.ietf.org/html/rfc6698">RFC 6698</seealso>
+        TLSA = ResourceRecordType.TLSA,
+
+        /// <summary>
         /// DNS zone transfer request.
         /// This can be used only if <see cref="DnsQuerySettings.UseTcpOnly"/> is set to true as <c>AXFR</c> is only supported via TCP.
         /// <para>
