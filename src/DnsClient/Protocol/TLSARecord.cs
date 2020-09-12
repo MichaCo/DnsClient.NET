@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DnsClient.Protocol
 {
@@ -21,9 +23,10 @@ namespace DnsClient.Protocol
 
         MATCHING TYPE: octet that specifies how the certificate association is presented
 
-        CERTIFICATE ASSOCIATION DATA: string of hexadecimal characters that specifies the 
+        CERTIFICATE ASSOCIATION DATA: string of hexadecimal characters that specifies the
         actual data to be matched given the settings of the other fields
 
+    Example:  _443._tcp.mailbox.org. TLSA
     */
 
     /// <summary>
@@ -31,46 +34,50 @@ namespace DnsClient.Protocol
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc7671"/>
     /// <seealso href="https://en.wikipedia.org/wiki/DNS-based_Authentication_of_Named_Entities#TLSA_RR"/>
-    [CLSCompliant(false)]
-    public class TLSARecord : DnsResourceRecord
+    public class TlsaRecord : DnsResourceRecord
     {
+        /// <summary>
+        /// Gets the <see cref="TlsaCertificateUsage"/>
+        /// </summary>
+        public TlsaCertificateUsage CertificateUsage { get; }
 
         /// <summary>
-        /// Gets the <see cref="ECertificateUsage"/>
+        /// Gets the <see cref="TlsaCertificateUsage"/>
         /// </summary>
-        public ECertificateUsage CertificateUsage { get; }
+        public TlsaSelector Selector { get; }
 
         /// <summary>
-        /// Gets the <see cref="ECertificateUsage"/>
+        /// Gets the <see cref="TlsaMatchingType"/>
         /// </summary>
-        public ESelector Selector { get; }
-
-        /// <summary>
-        /// Gets the <see cref="EMatchingType"/>
-        /// </summary>
-        public EMatchingType MatchingType { get; }
+        public TlsaMatchingType MatchingType { get; }
 
         /// <summary>
         /// Gets string that specifies the actual data to be matched given the settings of the other fields
         /// </summary>
-        public string CertificateAssociationData { get; }
-        
+        public IReadOnlyList<byte> CertificateAssociationData { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="TLSARecord"/> class
+        /// Gets the string representation of the <see cref="CertificateAssociationData"/> in hexadecimal.
+        /// </summary>
+        public string CertificateAssociationDataAsString { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="TlsaRecord"/> class
         /// </summary>
         /// <param name="info"></param>
         /// <param name="certificateUsage"></param>
         /// <param name="selector"></param>
         /// <param name="matchingType"></param>
         /// <param name="certificateAssociationData"></param>
-        public TLSARecord(ResourceRecordInfo info, ECertificateUsage certificateUsage, ESelector selector, EMatchingType matchingType, string certificateAssociationData)
+        /// <exception cref="ArgumentNullException">If <paramref name="info"/> or <paramref name="certificateAssociationData"/> is null.</exception>
+        public TlsaRecord(ResourceRecordInfo info, byte certificateUsage, byte selector, byte matchingType, byte[] certificateAssociationData)
             : base(info)
         {
-            CertificateUsage = certificateUsage;
-            Selector = selector;
-            MatchingType = matchingType;
-            CertificateAssociationData = certificateAssociationData;
+            CertificateUsage = (TlsaCertificateUsage)certificateUsage;
+            Selector = (TlsaSelector)selector;
+            MatchingType = (TlsaMatchingType)matchingType;
+            CertificateAssociationData = certificateAssociationData ?? throw new ArgumentNullException(nameof(certificateAssociationData));
+            CertificateAssociationDataAsString = string.Join(string.Empty, certificateAssociationData.Select(b => b.ToString("X2")));
         }
 
         /// <summary>
@@ -79,14 +86,14 @@ namespace DnsClient.Protocol
         /// <returns></returns>
         private protected override string RecordToString()
         {
-            return string.Format("{0} {1} {2} {3}", CertificateUsage, Selector, MatchingType, CertificateAssociationData);
+            return string.Format("{0} {1} {2} {3}", CertificateUsage, Selector, MatchingType, CertificateAssociationDataAsString);
         }
     }
 
     /// <summary>
     /// Gets octet that specifies how to verify the certificate
     /// </summary>
-    public enum ECertificateUsage : byte
+    public enum TlsaCertificateUsage : byte
     {
         /// <summary>
         /// RR points to a trust anchor and PKIX validation is required (PKIX-TA)
@@ -112,7 +119,7 @@ namespace DnsClient.Protocol
     /// <summary>
     /// Gets octet that specifies which part of the certificate should be checked
     /// </summary>
-    public enum ESelector : byte
+    public enum TlsaSelector : byte
     {
         /// <summary>
         /// Select the entire certificate for matching
@@ -128,7 +135,7 @@ namespace DnsClient.Protocol
     /// <summary>
     /// Gets octet that specifies how the certificate association is presented
     /// </summary>
-    public enum EMatchingType : byte
+    public enum TlsaMatchingType : byte
     {
         /// <summary>
         /// Value of 0: Exact match on selected content
@@ -141,7 +148,7 @@ namespace DnsClient.Protocol
         SHA256 = 1,
 
         /// <summary>
-        /// Value of 2: SHA-512 hash of selected content 
+        /// Value of 2: SHA-512 hash of selected content
         /// </summary>
         SHA512 = 2,
     }

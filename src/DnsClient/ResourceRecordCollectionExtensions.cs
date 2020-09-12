@@ -213,23 +213,23 @@ namespace System.Linq
         }
 
         /// <summary>
-        /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="TLSARecord"/>s only
+        /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="TlsaRecord"/>s only
         /// </summary>
         /// <param name="records"></param>
-        /// <returns>The list of <see cref="TLSARecord"/>.</returns>
-        public static IEnumerable<TLSARecord> TLSARecords (this IEnumerable<DnsResourceRecord> records)
+        /// <returns>The list of <see cref="TlsaRecord"/>.</returns>
+        public static IEnumerable<TlsaRecord> TlsaRecords (this IEnumerable<DnsResourceRecord> records)
         {
-            return records.OfType<TLSARecord>();
+            return records.OfType<TlsaRecord>();
         }
 
         /// <summary>
-        /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="RRSIGRecord"/>s only
+        /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="RRSigRecord"/>s only
         /// </summary>
         /// <param name="records"></param>
-        /// <returns>The list of <see cref="RRSIGRecord"/>.</returns>
-        public static IEnumerable<RRSIGRecord> RRSIGRecords(this IEnumerable<DnsResourceRecord> records)
+        /// <returns>The list of <see cref="RRSigRecord"/>.</returns>
+        public static IEnumerable<RRSigRecord> RRSigRecords(this IEnumerable<DnsResourceRecord> records)
         {
-            return records.OfType<RRSIGRecord>();
+            return records.OfType<RRSigRecord>();
         }
 
         /// <summary>

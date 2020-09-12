@@ -165,10 +165,25 @@ namespace DnsClient
         RRSIG = ResourceRecordType.RRSIG,
 
         /// <summary>
+        /// TODO
+        /// </summary>
+        NSEC = ResourceRecordType.NSEC,
+
+        /// <summary>
+        /// TODO
+        /// </summary>
+        DNSKEY = ResourceRecordType.DNSKEY,
+
+        /// <summary>
         /// TLSA rfc6698
         /// </summary>
         /// <seealso href="https://https://tools.ietf.org/html/rfc6698">RFC 6698</seealso>
         TLSA = ResourceRecordType.TLSA,
+
+        /// <summary>
+        /// TODO
+        /// </summary>
+        SPF = ResourceRecordType.SPF,
 
         /// <summary>
         /// DNS zone transfer request.

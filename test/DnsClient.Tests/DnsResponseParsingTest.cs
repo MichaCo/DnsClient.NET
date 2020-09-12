@@ -38,7 +38,10 @@ namespace DnsClient.Tests
                 ResourceRecordType.MF,
 #pragma warning restore CS0618 // Type or member is obsolete
                 ResourceRecordType.RRSIG,
-                ResourceRecordType.TLSA
+                ResourceRecordType.TLSA,
+                ResourceRecordType.NSEC,
+                ResourceRecordType.SPF,
+                ResourceRecordType.DNSKEY
             };
 
             foreach (var t in types)

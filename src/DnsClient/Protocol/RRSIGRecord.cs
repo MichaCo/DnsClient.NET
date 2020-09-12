@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace DnsClient.Protocol
 {
@@ -35,17 +36,17 @@ namespace DnsClient.Protocol
         ORIGINAL TTL: 4 octet field that specifies the TTL of the covered RRset as it
         appears in the authoritative zone, in network byte order
 
-        SIGNATURE EXPIRATION: 4 octet field that specifies the expiration date of the 
+        SIGNATURE EXPIRATION: 4 octet field that specifies the expiration date of the
         signature in the form of a 32-bit unsigned number of seconds elapsed
         since 1 January 1970 00:00:00 UTC, ignoring leap seconds, in network
         byte order
 
-        SIGNATURE INCEPTION: 4 octet field that specifies the inception date of the 
+        SIGNATURE INCEPTION: 4 octet field that specifies the inception date of the
         signature in the form of a 32-bit unsigned number of seconds elapsed
         since 1 January 1970 00:00:00 UTC, ignoring leap seconds, in network
         byte order
 
-        KEY TAG: 2 octet field that contains the key tag value of the DNSKEY RR that 
+        KEY TAG: 2 octet field that contains the key tag value of the DNSKEY RR that
         validates this signature, in network byte order
 
         SIGNER'S NAME FIELD: identifies the owner name of the DNSKEY
@@ -64,14 +65,12 @@ namespace DnsClient.Protocol
     /// <seealso href="https://tools.ietf.org/html/rfc4033"/>
     /// <seealso href="https://tools.ietf.org/html/rfc4034"/>
     /// <seealso href="https://tools.ietf.org/html/rfc4035"/>
-    [CLSCompliant(false)]
-    public class RRSIGRecord : DnsResourceRecord
+    public class RRSigRecord : DnsResourceRecord
     {
-
         /// <summary>
         /// Gets the type of the RRset that is covered by this RRSIG record.
         /// </summary>
-        public ushort Type { get; }
+        public ResourceRecordType CoveredType { get; }
 
         /// <summary>
         /// Gets cryptographic algorithm used to create the signature
@@ -86,59 +85,75 @@ namespace DnsClient.Protocol
         /// <summary>
         /// Gets TTL of the covered RRset as it appears in the authoritative zone
         /// </summary>
-        public uint OriginalTtl { get; }
+        public long OriginalTtl { get; }
 
         /// <summary>
         /// Gets the expiration date of the signature
         /// </summary>
-        public string SignatureExpiration { get; }
+        public DateTimeOffset SignatureExpiration { get; }
 
         /// <summary>
         /// Gets the inception date of the signature
         /// </summary>
-        public string SignatureInception { get; }
+        public DateTimeOffset SignatureInception { get; }
 
         /// <summary>
         /// Gets the key tag value of the DNSKEY RR that validates this signature
         /// </summary>
-        public ushort KeyTag { get; }
+        public int KeyTag { get; }
 
         /// <summary>
         /// Gets the owner name of the DNSKEY RR
         /// </summary>
-        public DnsString SignersNameField { get; }
+        public DnsString SignersName { get; }
 
         /// <summary>
         /// Gets the cryptographic signature that covers the RRSIG RDATA(excluding the Signature field) and the RRset
         /// </summary>
-        public string SignatureField { get; }
+        public IReadOnlyList<byte> Signature { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RRSIGRecord"/> class
+        /// Gets the Base64 string representation of the <see cref="Signature"/>.
+        /// </summary>
+        public string SignatureAsString { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="RRSigRecord"/> class
         /// </summary>
         /// <param name="info"></param>
-        /// <param name="type"></param>
+        /// <param name="coveredType"></param>
         /// <param name="algorithmNumber"></param>
         /// <param name="labels"></param>
         /// <param name="originalTtl"></param>
         /// <param name="signatureExpiration">Stored as YYYYMMDDHHmmSS</param>
         /// <param name="signatureInception">Stored as YYYYMMDDHHmmSS</param>
         /// <param name="keyTag"></param>
-        /// <param name="signersNameField"></param>
-        /// <param name="signatureField">Base64 encoded</param>
-        public RRSIGRecord(ResourceRecordInfo info, ushort type, byte algorithmNumber, byte labels, uint originalTtl,
-            uint signatureExpiration, uint signatureInception, ushort keyTag, DnsString signersNameField, string signatureField)
+        /// <param name="signersName"></param>
+        /// <param name="signature">Base64 encoded</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="info"/>, <paramref name="signersName"/> or <paramref name="signature"/> is null.</exception>
+        public RRSigRecord(
+            ResourceRecordInfo info,
+            int coveredType,
+            byte algorithmNumber,
+            byte labels,
+            long originalTtl,
+            long signatureExpiration,
+            long signatureInception,
+            int keyTag,
+            DnsString signersName,
+            byte[] signature)
             : base(info)
         {
-            Type = type;
+            CoveredType = (ResourceRecordType)coveredType;
             AlgorithmNumber = algorithmNumber;
             Labels = labels;
             OriginalTtl = originalTtl;
-            SignatureExpiration = SignatureDateToDigFormat(signatureExpiration);
-            SignatureInception = SignatureDateToDigFormat(signatureInception);
+            SignatureExpiration = FromUnixTimeSeconds(signatureExpiration);
+            SignatureInception = FromUnixTimeSeconds(signatureInception);
             KeyTag = keyTag;
-            SignersNameField = signersNameField;
-            SignatureField = signatureField;
+            SignersName = signersName ?? throw new ArgumentNullException(nameof(signersName));
+            Signature = signature ?? throw new ArgumentNullException(nameof(signature));
+            SignatureAsString = Convert.ToBase64String(signature);
         }
 
         /// <summary>
@@ -147,14 +162,24 @@ namespace DnsClient.Protocol
         /// <returns></returns>
         private protected override string RecordToString()
         {
-
-            return string.Format("{0} {1} {2} {3} {4} {5} {6} {7} {8}", (ResourceRecordType)Type, AlgorithmNumber, Labels,
-                OriginalTtl, SignatureExpiration, SignatureInception, KeyTag, SignersNameField, SignatureField);
+            return string.Format(
+                "{0} {1} {2} {3} {4} {5} {6} {7} {8}",
+                CoveredType,
+                AlgorithmNumber,
+                Labels,
+                OriginalTtl,
+                SignatureExpiration.ToString("yyyyMMddHHmmss"),
+                SignatureInception.ToString("yyyyMMddHHmmss"),
+                KeyTag,
+                SignersName,
+                SignatureAsString);
         }
 
-        private string SignatureDateToDigFormat(uint signatureDate)
+        // DateTimeOffset does have that method build in .NET47+ but not .NET45 which we will support. TODO: delete this when we drop support for .NET 4.5
+        private static DateTimeOffset FromUnixTimeSeconds(long seconds)
         {
-            return new DateTime(1970, 1, 1, 0, 0, 0).AddSeconds(signatureDate).ToRrsigDateString();
+            long ticks = seconds * TimeSpan.TicksPerSecond + new DateTime(1970, 1, 1, 0, 0, 0).Ticks;
+            return new DateTimeOffset(ticks, TimeSpan.Zero);
         }
     }
 }
