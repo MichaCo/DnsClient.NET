@@ -339,23 +339,23 @@ namespace DnsClient.Tests
             var factory = GetFactory(data.ToArray());
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.TLSA, QueryClass.IN, 0, data.Count);
 
-            var result = factory.GetRecord(info) as TLSARecord;
+            var result = factory.GetRecord(info) as TlsaRecord;
 
-            Assert.Equal((ECertificateUsage)certificateUsage, result.CertificateUsage);
-            Assert.Equal((ESelector)selector, result.Selector);
-            Assert.Equal((EMatchingType)matchingType, result.MatchingType);
+            Assert.Equal((TlsaCertificateUsage)certificateUsage, result.CertificateUsage);
+            Assert.Equal((TlsaSelector)selector, result.Selector);
+            Assert.Equal((TlsaMatchingType)matchingType, result.MatchingType);
             // Checking this in both directions
-            Assert.Equal(Convert.ToBase64String(Encoding.UTF8.GetBytes(certificateAssociationData)), result.CertificateAssociationData);
-            Assert.Equal(certificateAssociationData, Encoding.UTF8.GetString(Convert.FromBase64String(result.CertificateAssociationData)));
+            Assert.Equal(Encoding.UTF8.GetBytes(certificateAssociationData), result.CertificateAssociationData);
+            Assert.Equal(certificateAssociationData, Encoding.UTF8.GetString(result.CertificateAssociationData.ToArray()));
         }
 
         [Fact]
         public void DnsRecordFactory_RRSIGRecord()
         {
-            var type = 52;
+            var type = (ResourceRecordType)52;
             var algorithmNumber = 13;
             var labels = 5;
-            var originalTtl = (uint)300;
+            var originalTtl = 300;
             var signatureExpiration = 1589414400;
             var signatureInception = 1587600000;
             var keytag = 3942;
@@ -380,17 +380,17 @@ namespace DnsClient.Tests
             var factory = GetFactory(data.ToArray());
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.RRSIG, QueryClass.IN, 0, data.Count);
 
-            var result = factory.GetRecord(info) as RRSIGRecord;
-            Assert.Equal(type, result.Type);
+            var result = factory.GetRecord(info) as RRSigRecord;
+            Assert.Equal(type, result.CoveredType);
             Assert.Equal(algorithmNumber, result.AlgorithmNumber);
             Assert.Equal(labels, result.Labels);
             Assert.Equal(originalTtl, result.OriginalTtl);
-            Assert.Equal(new DateTime(1970, 1, 1, 0, 0, 0).AddSeconds(signatureExpiration).ToRrsigDateString(), result.SignatureExpiration);
-            Assert.Equal(new DateTime(1970, 1, 1, 0, 0, 0).AddSeconds(signatureInception).ToRrsigDateString(), result.SignatureInception);
-            Assert.Equal(signersName.Value, result.SignersNameField);
+            Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(signatureExpiration), result.SignatureExpiration);
+            Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(signatureInception), result.SignatureInception);
+            Assert.Equal(signersName.Value, result.SignersName);
             // Checking this in both directions
-            Assert.Equal(Convert.ToBase64String(Encoding.UTF8.GetBytes(signatureField)), result.SignatureField);
-            Assert.Equal(signatureField, Encoding.UTF8.GetString(Convert.FromBase64String(result.SignatureField)));
+            Assert.Equal(Encoding.UTF8.GetBytes(signatureField), result.Signature);
+            Assert.Equal(signatureField, Encoding.UTF8.GetString(result.Signature.ToArray()));
         }
 
         [Fact]

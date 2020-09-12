@@ -181,10 +181,25 @@ namespace DnsClient.Protocol
         RRSIG = 46,
 
         /// <summary>
+        /// TODO
+        /// </summary>
+        NSEC = 47,
+
+        /// <summary>
+        /// TODO
+        /// </summary>
+        DNSKEY = 48,
+
+        /// <summary>
         /// TLSA rfc6698
         /// </summary>
         /// <seealso href="https://https://tools.ietf.org/html/rfc6698">RFC 6698</seealso>
         TLSA = 52,
+
+        /// <summary>
+        /// TODO
+        /// </summary>
+        SPF = 99,
 
         /// <summary>
         /// A Uniform Resource Identifier (URI) resource record.

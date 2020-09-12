@@ -68,8 +68,7 @@ namespace DnsClient.Protocol
         /// <param name="weight">The weight.</param>
         /// <param name="target">The target.</param>
         /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="target"/> is null.</exception>
-        [CLSCompliant(false)]
-        public UriRecord(ResourceRecordInfo info, ushort priority, ushort weight, string target)
+        public UriRecord(ResourceRecordInfo info, int priority, int weight, string target)
             : base(info)
         {
             Target = target ?? throw new ArgumentNullException(nameof(target));
