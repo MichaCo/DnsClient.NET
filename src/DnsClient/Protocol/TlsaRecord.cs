@@ -36,6 +36,7 @@ namespace DnsClient.Protocol
     /// <summary>
     /// A <see cref="DnsResourceRecord"/> representing a TLSA record.
     /// </summary>
+    /// <seealso href="https://tools.ietf.org/html/rfc6698#Section2.1"/>
     /// <seealso href="https://tools.ietf.org/html/rfc7671"/>
     /// <seealso href="https://en.wikipedia.org/wiki/DNS-based_Authentication_of_Named_Entities#TLSA_RR"/>
     public class TlsaRecord : DnsResourceRecord

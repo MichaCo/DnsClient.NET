@@ -157,10 +157,6 @@ namespace DnsClient.Protocol
             SignatureAsString = Convert.ToBase64String(signature);
         }
 
-        /// <summary>
-        /// Returns same values as dig
-        /// </summary>
-        /// <returns></returns>
         private protected override string RecordToString()
         {
             return string.Format(
