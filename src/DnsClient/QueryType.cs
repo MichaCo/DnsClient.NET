@@ -159,6 +159,11 @@ namespace DnsClient
         SRV = ResourceRecordType.SRV,
 
         /// <summary>
+        /// TODO
+        /// </summary>
+        DS = ResourceRecordType.DS,
+
+        /// <summary>
         /// RRSIG rfc3755.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc3755">RFC 3755</seealso>

@@ -202,18 +202,19 @@ namespace DnsClient
         /// <returns>The <see cref="DnsString"/> representation.</returns>
         public static DnsString FromResponseQueryString(string query)
         {
+            var data = query;
             if (query.Length == 0 || query[query.Length - 1] != Dot)
             {
-                query += DotStr;
+                data += DotStr;
             }
 
-            if (query.Contains(ACEPrefix))
+            if (data.Contains(ACEPrefix))
             {
-                var unicode = IDN.GetUnicode(query);
+                var unicode = IDN.GetUnicode(data);
                 return new DnsString(unicode, query);
             }
 
-            return new DnsString(query, query);
+            return new DnsString(query, data);
         }
     }
 }

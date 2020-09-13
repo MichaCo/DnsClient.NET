@@ -353,7 +353,7 @@ namespace DnsClient.Tests
         public void DnsRecordFactory_RRSIGRecord()
         {
             var type = (ResourceRecordType)52;
-            var algorithmNumber = 13;
+            var algorithmNumber = DnsSecurityAlgorithm.ECDSAP256SHA256;
             var labels = 5;
             var originalTtl = 300;
             var signatureExpiration = 1589414400;
@@ -382,7 +382,7 @@ namespace DnsClient.Tests
 
             var result = factory.GetRecord(info) as RRSigRecord;
             Assert.Equal(type, result.CoveredType);
-            Assert.Equal(algorithmNumber, result.AlgorithmNumber);
+            Assert.Equal(algorithmNumber, result.Algorithm);
             Assert.Equal(labels, result.Labels);
             Assert.Equal(originalTtl, result.OriginalTtl);
             Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(signatureExpiration), result.SignatureExpiration);

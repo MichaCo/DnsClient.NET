@@ -169,6 +169,11 @@ namespace DnsClient.Protocol
         OPT = 41,
 
         /// <summary>
+        /// TODO
+        /// </summary>
+        DS = 43,
+
+        /// <summary>
         /// SSH finger print record
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc4255">RFC 4255</seealso>

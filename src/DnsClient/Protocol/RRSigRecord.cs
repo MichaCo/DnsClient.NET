@@ -24,43 +24,36 @@ namespace DnsClient.Protocol
            /                                                               /
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-        TYPE COVERED: 2 octet field that identifies the type of the RRset that is
-        covered by this RRSIG record, in network byte order
+        Type Covered: The Type Covered field identifies the type of the RRset that is
+        covered by this RRSIG record.
 
-        ALGORITHM NUMBER FIELD: 1 octet field that identifies the cryptographic algorithm
-        used to create the signature
+        Algorithm Number: The Algorithm Number field identifies the cryptographic algorithm
+        used to create the signature.
 
-        LABELS: 1 octet field that specifies the number of labels in the original RRSIG
-        RR owner name
+        Labels: The Labels field specifies the number of labels in the original RRSIG
+        RR owner name.
 
-        ORIGINAL TTL: 4 octet field that specifies the TTL of the covered RRset as it
-        appears in the authoritative zone, in network byte order
+        Original TTL: The Original TTL field specifies the TTL of the covered RRset as it
+        appears in the authoritative zone.
 
-        SIGNATURE EXPIRATION: 4 octet field that specifies the expiration date of the
-        signature in the form of a 32-bit unsigned number of seconds elapsed
-        since 1 January 1970 00:00:00 UTC, ignoring leap seconds, in network
-        byte order
+        Signature Expiration and Inception: The Signature Expiration and Inception fields specify a validity
+        period for the signature.
 
-        SIGNATURE INCEPTION: 4 octet field that specifies the inception date of the
-        signature in the form of a 32-bit unsigned number of seconds elapsed
-        since 1 January 1970 00:00:00 UTC, ignoring leap seconds, in network
-        byte order
+        Key Tag: The Key Tag field contains the key tag value of the DNSKEY RR that
+        validates this signature, in network byte order.
 
-        KEY TAG: 2 octet field that contains the key tag value of the DNSKEY RR that
-        validates this signature, in network byte order
+        Signer's Name: The Signer's Name field value identifies the owner name of the DNSKEY
+        RR that a validator is supposed to use to validate this signature.
 
-        SIGNER'S NAME FIELD: identifies the owner name of the DNSKEY
-        RR that a validator is supposed to use to validate this signature. SIZE UNKNOWN
-
-        SIGNATURE FIELD: ontains the cryptographic signature that covers
+        Signature Field: The Signature field contains the cryptographic signature that covers
         the RRSIG RDATA (excluding the Signature field) and the RRset
         specified by the RRSIG owner name, RRSIG class, and RRSIG Type
         Covered field.  The format of this field depends on the algorithm in
-        use SIZE UNKNOWN
+        use, and these formats are described in separate companion documents.
     */
 
     /// <summary>
-    /// a <see cref="DnsResourceRecord"/> representing a TLSA record
+    /// A <see cref="DnsResourceRecord"/> representing a RRSIG record.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc4033"/>
     /// <seealso href="https://tools.ietf.org/html/rfc4034"/>
@@ -68,73 +61,81 @@ namespace DnsClient.Protocol
     public class RRSigRecord : DnsResourceRecord
     {
         /// <summary>
-        /// Gets the type of the RRset that is covered by this RRSIG record.
+        /// Gets the type of the RRset that is covered by this <see cref="RRSigRecord"/>.
         /// </summary>
         public ResourceRecordType CoveredType { get; }
 
         /// <summary>
-        /// Gets cryptographic algorithm used to create the signature
+        /// Gets the cryptographic algorithm used to create the <see cref="Signature"/>.
         /// </summary>
-        public byte AlgorithmNumber { get; }
+        public DnsSecurityAlgorithm Algorithm { get; }
 
         /// <summary>
-        /// Gets number of labels in the original RRSIG RR owner name
+        /// Gets the number of labels in the original <see cref="RRSigRecord"/> RR owner name.
         /// </summary>
         public byte Labels { get; }
 
         /// <summary>
-        /// Gets TTL of the covered RRset as it appears in the authoritative zone
+        /// Gets the TTL of the covered RRset as it appears in the authoritative zone.
         /// </summary>
         public long OriginalTtl { get; }
 
         /// <summary>
-        /// Gets the expiration date of the signature
+        /// Gets the expiration date of the <see cref="Signature"/>.
+        /// This record MUST NOT be used for authentication prior to the <see cref="SignatureInception"/>
+        /// and MUST NOT be used for authentication after the <see cref="SignatureExpiration"/>.
         /// </summary>
         public DateTimeOffset SignatureExpiration { get; }
 
         /// <summary>
-        /// Gets the inception date of the signature
+        /// Gets the inception date of the <see cref="Signature"/>.
+        /// This record MUST NOT be used for authentication prior to the <see cref="SignatureInception"/>
+        /// and MUST NOT be used for authentication after the <see cref="SignatureExpiration"/>.
         /// </summary>
         public DateTimeOffset SignatureInception { get; }
 
         /// <summary>
-        /// Gets the key tag value of the DNSKEY RR that validates this signature
+        /// Gets the key tag value of the <see cref="DnsKeyRecord"/> that validates this <see cref="Signature"/>.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#appendix-B">Key Tag Calculation</seealso>
         public int KeyTag { get; }
 
         /// <summary>
-        /// Gets the owner name of the DNSKEY RR
+        /// Gets the value which identifies the owner name of the <see cref="DnsKeyRecord"/>
+        /// that a validator is supposed to use to validate this <see cref="Signature"/>.
         /// </summary>
         public DnsString SignersName { get; }
 
         /// <summary>
-        /// Gets the cryptographic signature that covers the RRSIG RDATA(excluding the Signature field) and the RRset
+        /// Gets the cryptographic signature that covers the RRSIG RDATA (excluding the Signature field)
+        /// and the RRset specified by the RRSIG owner name, RRSIG class, and RRSIG Type Covered field.
+        /// The format of this field depends on the algorithm in use.
         /// </summary>
         public IReadOnlyList<byte> Signature { get; }
 
         /// <summary>
-        /// Gets the Base64 string representation of the <see cref="Signature"/>.
+        /// Gets the base64 string representation of the <see cref="Signature"/>.
         /// </summary>
         public string SignatureAsString { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="RRSigRecord"/> class
+        /// Initializes a new instance of the <see cref="RRSigRecord"/> class.
         /// </summary>
         /// <param name="info"></param>
         /// <param name="coveredType"></param>
-        /// <param name="algorithmNumber"></param>
+        /// <param name="algorithm"></param>
         /// <param name="labels"></param>
         /// <param name="originalTtl"></param>
-        /// <param name="signatureExpiration">Stored as YYYYMMDDHHmmSS</param>
-        /// <param name="signatureInception">Stored as YYYYMMDDHHmmSS</param>
+        /// <param name="signatureExpiration"></param>
+        /// <param name="signatureInception"></param>
         /// <param name="keyTag"></param>
         /// <param name="signersName"></param>
-        /// <param name="signature">Base64 encoded</param>
+        /// <param name="signature"></param>
         /// <exception cref="ArgumentNullException">If <paramref name="info"/>, <paramref name="signersName"/> or <paramref name="signature"/> is null.</exception>
         public RRSigRecord(
             ResourceRecordInfo info,
             int coveredType,
-            byte algorithmNumber,
+            byte algorithm,
             byte labels,
             long originalTtl,
             long signatureExpiration,
@@ -145,7 +146,7 @@ namespace DnsClient.Protocol
             : base(info)
         {
             CoveredType = (ResourceRecordType)coveredType;
-            AlgorithmNumber = algorithmNumber;
+            Algorithm = (DnsSecurityAlgorithm)algorithm;
             Labels = labels;
             OriginalTtl = originalTtl;
             SignatureExpiration = FromUnixTimeSeconds(signatureExpiration);
@@ -165,7 +166,7 @@ namespace DnsClient.Protocol
             return string.Format(
                 "{0} {1} {2} {3} {4} {5} {6} {7} {8}",
                 CoveredType,
-                AlgorithmNumber,
+                Algorithm,
                 Labels,
                 OriginalTtl,
                 SignatureExpiration.ToString("yyyyMMddHHmmss"),
