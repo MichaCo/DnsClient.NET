@@ -2,7 +2,7 @@
   "profiles": {
     "MiniDig": {
       "commandName": "Project",
-      "commandLineArgs": "example.com nsec --time -1"
+      "commandLineArgs": "mx3.mailbox.org spf --time -1"
     }
   }
 }

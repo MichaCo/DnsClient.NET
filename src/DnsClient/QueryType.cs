@@ -12,7 +12,7 @@ namespace DnsClient
     /// The query type field appear in the question part of a query.
     /// Query types are a superset of <see cref="Protocol.ResourceRecordType"/>.
     /// </summary>
-    public enum QueryType : short
+    public enum QueryType
     {
         /// <summary>
         /// A host address.
@@ -189,8 +189,13 @@ namespace DnsClient
         TLSA = ResourceRecordType.TLSA,
 
         /// <summary>
-        /// TODO
+        /// SPF records don't officially have a dedicated RR type, <see cref="ResourceRecordType.TXT"/> should be used instead.
+        /// The behavior of TXT and SPF are the same.
         /// </summary>
+        /// <remarks>
+        /// This library will return a TXT record but will set the header type to SPF if such a record is returned.
+        /// </remarks>
+        /// <seealso href="https://tools.ietf.org/html/rfc7208">RFC 7208</seealso>
         SPF = ResourceRecordType.SPF,
 
         /// <summary>

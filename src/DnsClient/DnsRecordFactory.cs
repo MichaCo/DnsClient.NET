@@ -112,7 +112,7 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.TXT:
-                    result = ResolveTXTRecord(info);
+                    result = ResolveTxtRecord(info);
                     break;
 
                 case ResourceRecordType.RP:
@@ -157,6 +157,10 @@ namespace DnsClient
 
                 case ResourceRecordType.TLSA: // 52
                     result = ResolveTlsaRecord(info);
+                    break;
+
+                case ResourceRecordType.SPF: // 99
+                    result = ResolveTxtRecord(info);
                     break;
 
                 case ResourceRecordType.URI: // 256
@@ -208,7 +212,7 @@ namespace DnsClient
             return new MxRecord(info, preference, domain);
         }
 
-        private DnsResourceRecord ResolveTXTRecord(ResourceRecordInfo info)
+        private DnsResourceRecord ResolveTxtRecord(ResourceRecordInfo info)
         {
             int pos = _reader.Index;
 
