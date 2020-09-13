@@ -174,7 +174,7 @@ namespace DnsClient.Protocol
         DS = 43,
 
         /// <summary>
-        /// SSH finger print record
+        /// SSH finger print record.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc4255">RFC 4255</seealso>
         SSHFP = 44,
@@ -186,18 +186,19 @@ namespace DnsClient.Protocol
         RRSIG = 46,
 
         /// <summary>
-        /// TODO
+        /// NSEC rfc4034.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-4">RFC 4034</seealso>
         NSEC = 47,
 
         /// <summary>
-        /// DNSKEY rfc4034
+        /// DNSKEY rfc4034.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc4034#section-2"/>
         DNSKEY = 48,
 
         /// <summary>
-        /// TLSA rfc6698
+        /// TLSA rfc6698.
         /// </summary>
         /// <seealso href="https://https://tools.ietf.org/html/rfc6698">RFC 6698</seealso>
         TLSA = 52,

@@ -143,6 +143,10 @@ namespace DnsClient
                     result = ResolveRRSigRecord(info);
                     break;
 
+                case ResourceRecordType.NSEC: // 47
+                    result = ResolveNSecRecord(info);
+                    break;
+
                 case ResourceRecordType.DNSKEY: // 48
                     result = ResolveDnsKeyRecord(info);
                     break;
@@ -258,6 +262,14 @@ namespace DnsClient
             var signersName = _reader.ReadDnsName();
             var signature = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
             return new RRSigRecord(info, type, algorithmNumber, labels, originalTtl, signatureExpiration, signatureInception, keyTag, signersName, signature);
+        }
+
+        private DnsResourceRecord ResolveNSecRecord(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            var nextName = _reader.ReadDnsName();
+            var bitMaps = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
+            return new NSecRecord(info, nextName, bitMaps);
         }
 
         private DnsResourceRecord ResolveDnsKeyRecord(ResourceRecordInfo info)

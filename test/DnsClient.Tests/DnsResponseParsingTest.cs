@@ -41,7 +41,8 @@ namespace DnsClient.Tests
                 ResourceRecordType.TLSA,
                 ResourceRecordType.NSEC,
                 ResourceRecordType.SPF,
-                ResourceRecordType.DNSKEY
+                ResourceRecordType.DNSKEY,
+                ResourceRecordType.DS
             };
 
             foreach (var t in types)

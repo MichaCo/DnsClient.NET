@@ -364,7 +364,6 @@ namespace DnsClient.Tests
             writer.WriteHostName(signersName.Value);
             var signatureField = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-
             var data = new List<byte>();
 
             data.AddRange(BitConverter.IsLittleEndian ? BitConverter.GetBytes((ushort)type).Reverse() : BitConverter.GetBytes((ushort)type));
@@ -443,6 +442,40 @@ namespace DnsClient.Tests
             Assert.Equal("\\\"\\195\\164\\195\\182\\195\\188 \\\\slash/! @bla.com \\\"", result.EscapedText.ElementAt(0));
             Assert.Equal(result.Text.ElementAt(1), textB);
             Assert.Equal(result.EscapedText.ElementAt(1), textB);
+        }
+
+        [Fact]
+        public void DnsRecordFactory_NSecRecord()
+        {
+            var expectedBitMap = new byte[] { 0, 7, 98, 1, 128, 8, 0, 3, 128 };
+            var expectedTypes = new[]
+            {
+                ResourceRecordType.A,
+                ResourceRecordType.NS,
+                ResourceRecordType.SOA,
+                ResourceRecordType.MX,
+                ResourceRecordType.TXT,
+                ResourceRecordType.AAAA,
+                ResourceRecordType.RRSIG,
+                ResourceRecordType.NSEC,
+                ResourceRecordType.DNSKEY
+            };
+
+            var name = DnsString.Parse("example.com");
+            var writer = new DnsDatagramWriter();
+            writer.WriteHostName(name);
+
+            var data = writer.Data.Concat(expectedBitMap).ToArray();
+
+            var factory = GetFactory(data);
+
+            var info = new ResourceRecordInfo(name, ResourceRecordType.NSEC, QueryClass.IN, 0, data.Length);
+
+            var result = factory.GetRecord(info) as NSecRecord;
+            Assert.Equal(expectedBitMap, result.TypeBitMapsRaw);
+            Assert.Equal(expectedTypes.Length, result.TypeBitMaps.Count);
+            Assert.Equal(expectedTypes, result.TypeBitMaps);
+            Assert.Equal(name, result.NextDomainName);
         }
     }
 }

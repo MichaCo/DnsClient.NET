@@ -170,8 +170,9 @@ namespace DnsClient
         RRSIG = ResourceRecordType.RRSIG,
 
         /// <summary>
-        /// TODO
+        /// NSEC rfc4034.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-4">RFC 4034</seealso>
         NSEC = ResourceRecordType.NSEC,
 
         /// <summary>
