@@ -2,7 +2,7 @@
   "profiles": {
     "MiniDig": {
       "commandName": "Project",
-      "commandLineArgs": "-s localhost mcnet.com any --time -1"
+      "commandLineArgs": "example.com nsec --time -1"
     }
   }
 }

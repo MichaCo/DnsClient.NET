@@ -135,6 +135,10 @@ namespace DnsClient
                     result = ResolveOptRecord(info);
                     break;
 
+                case ResourceRecordType.DS: // 43
+                    result = ResolveDsRecord(info);
+                    break;
+
                 case ResourceRecordType.SSHFP: // 44
                     result = ResolveSshfpRecord(info);
                     break;
@@ -238,6 +242,16 @@ namespace DnsClient
             // Consume bytes in case the OPT record has any.
             var bytes = _reader.ReadBytes(info.RawDataLength).ToArray();
             return new OptRecord((int)info.RecordClass, ttlFlag: info.InitialTimeToLive, length: info.RawDataLength, data: bytes);
+        }
+
+        private DnsResourceRecord ResolveDsRecord(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            var keyTag = _reader.ReadUInt16NetworkOrder();
+            var algorithm = _reader.ReadByte();
+            var digestType = _reader.ReadByte();
+            var digest = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
+            return new DsRecord(info, keyTag, algorithm, digestType, digest);
         }
 
         private DnsResourceRecord ResolveSshfpRecord(ResourceRecordInfo info)

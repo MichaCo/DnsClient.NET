@@ -169,8 +169,9 @@ namespace DnsClient.Protocol
         OPT = 41,
 
         /// <summary>
-        /// TODO
+        /// DS rfc4034
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-5.1">RFC 4034</seealso>
         DS = 43,
 
         /// <summary>
