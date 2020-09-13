@@ -12,7 +12,7 @@ namespace DnsClient
     /// The query type field appear in the question part of a query.
     /// Query types are a superset of <see cref="Protocol.ResourceRecordType"/>.
     /// </summary>
-    public enum QueryType : short
+    public enum QueryType
     {
         /// <summary>
         /// A host address.
@@ -159,19 +159,27 @@ namespace DnsClient
         SRV = ResourceRecordType.SRV,
 
         /// <summary>
+        /// DS rfc4034
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-5.1">RFC 4034</seealso>
+        DS = ResourceRecordType.DS,
+
+        /// <summary>
         /// RRSIG rfc3755.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc3755">RFC 3755</seealso>
         RRSIG = ResourceRecordType.RRSIG,
 
         /// <summary>
-        /// TODO
+        /// NSEC rfc4034.
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-4">RFC 4034</seealso>
         NSEC = ResourceRecordType.NSEC,
 
         /// <summary>
-        /// TODO
+        /// DNSKEY rfc4034
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-2">RFC 4034</seealso>
         DNSKEY = ResourceRecordType.DNSKEY,
 
         /// <summary>
@@ -181,8 +189,13 @@ namespace DnsClient
         TLSA = ResourceRecordType.TLSA,
 
         /// <summary>
-        /// TODO
+        /// SPF records don't officially have a dedicated RR type, <see cref="ResourceRecordType.TXT"/> should be used instead.
+        /// The behavior of TXT and SPF are the same.
         /// </summary>
+        /// <remarks>
+        /// This library will return a TXT record but will set the header type to SPF if such a record is returned.
+        /// </remarks>
+        /// <seealso href="https://tools.ietf.org/html/rfc7208">RFC 7208</seealso>
         SPF = ResourceRecordType.SPF,
 
         /// <summary>
