@@ -211,7 +211,7 @@ namespace DnsClient
             if (data.Contains(ACEPrefix))
             {
                 var unicode = IDN.GetUnicode(data);
-                return new DnsString(unicode, query);
+                return new DnsString(query, unicode);
             }
 
             return new DnsString(query, data);
