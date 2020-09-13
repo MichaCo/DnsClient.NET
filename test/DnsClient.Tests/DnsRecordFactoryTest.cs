@@ -445,6 +445,29 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void DnsRecordFactory_DnsKeyRecord()
+        {
+            var expectedPublicKey = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var expectedBytes = Encoding.UTF8.GetBytes(expectedPublicKey);
+            var name = DnsString.Parse("example.com");
+            var writer = new DnsDatagramWriter();
+            writer.WriteInt16NetworkOrder(256);
+            writer.WriteByte(3);
+            writer.WriteByte((byte)DnsSecurityAlgorithm.RSASHA256);
+            writer.WriteBytes(expectedBytes, expectedBytes.Length);
+
+            var factory = GetFactory(writer.Data.ToArray());
+
+            var info = new ResourceRecordInfo(name, ResourceRecordType.DNSKEY, QueryClass.IN, 0, writer.Data.Count);
+
+            var result = factory.GetRecord(info) as DnsKeyRecord;
+            Assert.Equal(expectedBytes, result.PublicKey);
+            Assert.Equal(256, result.Flags);
+            Assert.Equal(3, result.Protocol);
+            Assert.Equal(DnsSecurityAlgorithm.RSASHA256, result.Algorithm);
+        }
+
+        [Fact]
         public void DnsRecordFactory_NSecRecord()
         {
             var expectedBitMap = new byte[] { 0, 7, 98, 1, 128, 8, 0, 3, 128 };
