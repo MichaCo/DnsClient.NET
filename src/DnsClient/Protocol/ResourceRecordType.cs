@@ -191,8 +191,9 @@ namespace DnsClient.Protocol
         NSEC = 47,
 
         /// <summary>
-        /// TODO
+        /// DNSKEY rfc4034
         /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-2"/>
         DNSKEY = 48,
 
         /// <summary>
