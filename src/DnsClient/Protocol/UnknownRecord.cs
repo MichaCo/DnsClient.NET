@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace DnsClient.Protocol
@@ -28,10 +29,15 @@ namespace DnsClient.Protocol
         /// <value>
         /// The byte array.
         /// </value>
-        public byte[] Data { get; }
+        public IReadOnlyList<byte> Data { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NullRecord" /> class.
+        /// Gets the unknown bytes as Base64 string.
+        /// </summary>
+        public string DataAsString { get; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="UnknownRecord" /> class.
         /// </summary>
         /// <param name="info">The information.</param>
         /// <param name="data">The raw data.</param>
@@ -40,11 +46,12 @@ namespace DnsClient.Protocol
             : base(info)
         {
             Data = data ?? throw new ArgumentNullException(nameof(data));
+            DataAsString = Convert.ToBase64String(data);
         }
 
         private protected override string RecordToString()
         {
-            return Convert.ToBase64String(Data);
+            return DataAsString;
         }
     }
 }

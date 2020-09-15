@@ -345,6 +345,82 @@ namespace DnsClient.Tests
         }
 
         [Fact]
+        public void DnsRecordFactory_TLSARecord()
+        {
+            var certificateUsage = 0;
+            var selector = 1;
+            var matchingType = 1;
+            var certificateAssociationData = "CDE0D742D6998AA554A92D890F8184C698CFAC8A26FA59875A990C03E576343C";
+            var expectedBytes = Enumerable.Range(0, certificateAssociationData.Length)
+                .Where(x => x % 2 == 0)
+                .Select(x => Convert.ToByte(certificateAssociationData.Substring(x, 2), 16))
+                .ToArray();
+
+            var data = new List<byte>()
+            {
+                (byte)certificateUsage,
+                (byte)selector,
+                (byte)matchingType,
+            };
+
+            data.AddRange(expectedBytes);
+
+            var factory = GetFactory(data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.TLSA, QueryClass.IN, 0, data.Count);
+
+            var result = factory.GetRecord(info) as TlsaRecord;
+
+            Assert.Equal((TlsaCertificateUsage)certificateUsage, result.CertificateUsage);
+            Assert.Equal((TlsaSelector)selector, result.Selector);
+            Assert.Equal((TlsaMatchingType)matchingType, result.MatchingType);
+            // Checking this in both directions
+            Assert.Equal(expectedBytes, result.CertificateAssociationData);
+            Assert.Equal(certificateAssociationData, result.CertificateAssociationDataAsString);
+        }
+
+        [Fact]
+        public void DnsRecordFactory_RRSIGRecord()
+        {
+            var type = ResourceRecordType.NSEC;
+            var algorithmNumber = DnsSecurityAlgorithm.ECDSAP256SHA256;
+            var labels = 5;
+            var originalTtl = 300;
+            var signatureExpiration = 1589414400;
+            var signatureInception = 1587600000;
+            short keytag = 3942;
+            var signersName = DnsString.Parse("result.example.com");
+            var signatureString = "kfyyKQoPZJFyOFSDqav7wj5XNRPqZssV2K2k8MJun28QSsCMHyWOjw9Hk4KofnEIUWNui3mMgAEFYbwoeRKkMf5uDAh6ryJ4veQNj86mgYJrpJppUplqlqJE8o1bx0I1VfwheL+M23bL5MnqSGiI5igmMDyeVUraVOO4RQyfGN0=";
+            var signature = Convert.FromBase64String(signatureString);
+
+            var writer = new DnsDatagramWriter();
+
+            writer.WriteInt16NetworkOrder((short)type);
+            writer.WriteByte((byte)algorithmNumber);
+            writer.WriteByte((byte)labels);
+            writer.WriteInt32NetworkOrder(originalTtl);
+            writer.WriteInt32NetworkOrder(signatureExpiration);
+            writer.WriteInt32NetworkOrder(signatureInception);
+            writer.WriteInt16NetworkOrder(keytag);
+            writer.WriteHostName(signersName.Value);
+            writer.WriteBytes(signature, signature.Length);
+
+            var factory = GetFactory(writer.Data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.RRSIG, QueryClass.IN, 0, writer.Data.Count);
+
+            var result = factory.GetRecord(info) as RRSigRecord;
+            Assert.Equal(type, result.CoveredType);
+            Assert.Equal(algorithmNumber, result.Algorithm);
+            Assert.Equal(labels, result.Labels);
+            Assert.Equal(originalTtl, result.OriginalTtl);
+            Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(signatureExpiration), result.SignatureExpiration);
+            Assert.Equal(DateTimeOffset.FromUnixTimeSeconds(signatureInception), result.SignatureInception);
+            Assert.Equal(signersName.Value, result.SignersName);
+
+            Assert.Equal(signature, result.Signature);
+            Assert.Equal(signatureString, result.SignatureAsString);
+        }
+
+        [Fact]
         public void DnsRecordFactory_SSHFPRecord()
         {
             var algo = SshfpAlgorithm.RSA;
@@ -394,6 +470,91 @@ namespace DnsClient.Tests
             Assert.Equal("\\\"\\195\\164\\195\\182\\195\\188 \\\\slash/! @bla.com \\\"", result.EscapedText.ElementAt(0));
             Assert.Equal(result.Text.ElementAt(1), textB);
             Assert.Equal(result.EscapedText.ElementAt(1), textB);
+        }
+
+        [Fact]
+        public void DnsRecordFactory_DnsKeyRecord()
+        {
+            var expectedPublicKey = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var expectedBytes = Encoding.UTF8.GetBytes(expectedPublicKey);
+            var name = DnsString.Parse("example.com");
+            var writer = new DnsDatagramWriter();
+            writer.WriteInt16NetworkOrder(256);
+            writer.WriteByte(3);
+            writer.WriteByte((byte)DnsSecurityAlgorithm.RSASHA256);
+            writer.WriteBytes(expectedBytes, expectedBytes.Length);
+
+            var factory = GetFactory(writer.Data.ToArray());
+
+            var info = new ResourceRecordInfo(name, ResourceRecordType.DNSKEY, QueryClass.IN, 0, writer.Data.Count);
+
+            var result = factory.GetRecord(info) as DnsKeyRecord;
+            Assert.Equal(expectedBytes, result.PublicKey);
+            Assert.Equal(256, result.Flags);
+            Assert.Equal(3, result.Protocol);
+            Assert.Equal(DnsSecurityAlgorithm.RSASHA256, result.Algorithm);
+        }
+
+        [Fact]
+        public void DnsRecordFactory_DsRecord()
+        {
+            var expectedDigest = "3490A6806D47F17A34C29E2CE80E8A999FFBE4BE";
+            var expectedBytes = Enumerable.Range(0, expectedDigest.Length)
+                     .Where(x => x % 2 == 0)
+                     .Select(x => Convert.ToByte(expectedDigest.Substring(x, 2), 16))
+                     .ToArray();
+
+            var name = DnsString.Parse("example.com");
+            var writer = new DnsDatagramWriter();
+            writer.WriteInt16NetworkOrder(31589);
+            writer.WriteByte(8); // algorithm
+            writer.WriteByte(1); // type
+            writer.WriteBytes(expectedBytes, expectedBytes.Length);
+
+            var factory = GetFactory(writer.Data.ToArray());
+
+            var info = new ResourceRecordInfo(name, ResourceRecordType.DS, QueryClass.IN, 0, writer.Data.Count);
+
+            var result = factory.GetRecord(info) as DsRecord;
+            Assert.Equal(expectedBytes, result.Digest);
+            Assert.Equal(expectedDigest, result.DigestAsString);
+            Assert.Equal(31589, result.KeyTag);
+            Assert.Equal(8, (int)result.Algorithm);
+            Assert.Equal(1, result.DigestType);
+        }
+
+        [Fact]
+        public void DnsRecordFactory_NSecRecord()
+        {
+            var expectedBitMap = new byte[] { 0, 7, 98, 1, 128, 8, 0, 3, 128 };
+            var expectedTypes = new[]
+            {
+                ResourceRecordType.A,
+                ResourceRecordType.NS,
+                ResourceRecordType.SOA,
+                ResourceRecordType.MX,
+                ResourceRecordType.TXT,
+                ResourceRecordType.AAAA,
+                ResourceRecordType.RRSIG,
+                ResourceRecordType.NSEC,
+                ResourceRecordType.DNSKEY
+            };
+
+            var name = DnsString.Parse("example.com");
+            var writer = new DnsDatagramWriter();
+            writer.WriteHostName(name);
+
+            var data = writer.Data.Concat(expectedBitMap).ToArray();
+
+            var factory = GetFactory(data);
+
+            var info = new ResourceRecordInfo(name, ResourceRecordType.NSEC, QueryClass.IN, 0, data.Length);
+
+            var result = factory.GetRecord(info) as NSecRecord;
+            Assert.Equal(expectedBitMap, result.TypeBitMapsRaw);
+            Assert.Equal(expectedTypes.Length, result.TypeBitMaps.Count);
+            Assert.Equal(expectedTypes, result.TypeBitMaps);
+            Assert.Equal(name, result.NextDomainName);
         }
     }
 }

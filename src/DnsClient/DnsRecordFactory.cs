@@ -112,22 +112,22 @@ namespace DnsClient
                     break;
 
                 case ResourceRecordType.TXT:
-                    result = ResolveTXTRecord(info);
+                    result = ResolveTxtRecord(info);
                     break;
 
                 case ResourceRecordType.RP:
                     result = new RpRecord(info, _reader.ReadDnsName(), _reader.ReadDnsName());
                     break;
 
-                case ResourceRecordType.AFSDB:
+                case ResourceRecordType.AFSDB: // 18
                     result = new AfsDbRecord(info, (AfsType)_reader.ReadUInt16NetworkOrder(), _reader.ReadDnsName());
                     break;
 
-                case ResourceRecordType.AAAA:
+                case ResourceRecordType.AAAA: // 28
                     result = new AaaaRecord(info, _reader.ReadIPv6Address());
                     break;
 
-                case ResourceRecordType.SRV:
+                case ResourceRecordType.SRV: // 33
                     result = ResolveSrvRecord(info);
                     break;
 
@@ -135,20 +135,44 @@ namespace DnsClient
                     result = ResolveNaptrRecord(info);
                     break;
 
-                case ResourceRecordType.OPT:
+                case ResourceRecordType.OPT: // 41
                     result = ResolveOptRecord(info);
                     break;
 
-                case ResourceRecordType.URI:
+                case ResourceRecordType.DS: // 43
+                    result = ResolveDsRecord(info);
+                    break;
+
+                case ResourceRecordType.SSHFP: // 44
+                    result = ResolveSshfpRecord(info);
+                    break;
+
+                case ResourceRecordType.RRSIG: // 46
+                    result = ResolveRRSigRecord(info);
+                    break;
+
+                case ResourceRecordType.NSEC: // 47
+                    result = ResolveNSecRecord(info);
+                    break;
+
+                case ResourceRecordType.DNSKEY: // 48
+                    result = ResolveDnsKeyRecord(info);
+                    break;
+
+                case ResourceRecordType.TLSA: // 52
+                    result = ResolveTlsaRecord(info);
+                    break;
+
+                case ResourceRecordType.SPF: // 99
+                    result = ResolveTxtRecord(info);
+                    break;
+
+                case ResourceRecordType.URI: // 256
                     result = ResolveUriRecord(info);
                     break;
 
-                case ResourceRecordType.CAA:
+                case ResourceRecordType.CAA: // 257
                     result = ResolveCaaRecord(info);
-                    break;
-
-                case ResourceRecordType.SSHFP:
-                    result = ResolveSshfpRecord(info);
                     break;
 
                 default:
@@ -162,19 +186,17 @@ namespace DnsClient
             return result;
         }
 
-        private DnsResourceRecord ResolveUriRecord(ResourceRecordInfo info)
+        private DnsResourceRecord ResolveSoaRecord(ResourceRecordInfo info)
         {
-            var prio = _reader.ReadUInt16NetworkOrder();
-            var weight = _reader.ReadUInt16NetworkOrder();
-            var target = _reader.ReadString(info.RawDataLength - 4);
-            return new UriRecord(info, prio, weight, target);
-        }
+            var mName = _reader.ReadDnsName();
+            var rName = _reader.ReadDnsName();
+            var serial = _reader.ReadUInt32NetworkOrder();
+            var refresh = _reader.ReadUInt32NetworkOrder();
+            var retry = _reader.ReadUInt32NetworkOrder();
+            var expire = _reader.ReadUInt32NetworkOrder();
+            var minimum = _reader.ReadUInt32NetworkOrder();
 
-        private DnsResourceRecord ResolveOptRecord(ResourceRecordInfo info)
-        {
-            // Consume bytes in case the OPT record has any.
-            var bytes = _reader.ReadBytes(info.RawDataLength).ToArray();
-            return new OptRecord((int)info.RecordClass, ttlFlag: info.InitialTimeToLive, length: info.RawDataLength, data: bytes);
+            return new SoaRecord(info, mName, rName, serial, refresh, retry, expire, minimum);
         }
 
         private DnsResourceRecord ResolveWksRecord(ResourceRecordInfo info)
@@ -194,17 +216,23 @@ namespace DnsClient
             return new MxRecord(info, preference, domain);
         }
 
-        private DnsResourceRecord ResolveSoaRecord(ResourceRecordInfo info)
+        private DnsResourceRecord ResolveTxtRecord(ResourceRecordInfo info)
         {
-            var mName = _reader.ReadDnsName();
-            var rName = _reader.ReadDnsName();
-            var serial = _reader.ReadUInt32NetworkOrder();
-            var refresh = _reader.ReadUInt32NetworkOrder();
-            var retry = _reader.ReadUInt32NetworkOrder();
-            var expire = _reader.ReadUInt32NetworkOrder();
-            var minimum = _reader.ReadUInt32NetworkOrder();
+            int pos = _reader.Index;
 
-            return new SoaRecord(info, mName, rName, serial, refresh, retry, expire, minimum);
+            var values = new List<string>();
+            var utf8Values = new List<string>();
+            while ((_reader.Index - pos) < info.RawDataLength)
+            {
+                var length = _reader.ReadByte();
+                var bytes = _reader.ReadBytes(length);
+                var escaped = DnsDatagramReader.ParseString(bytes);
+                var utf = DnsDatagramReader.ReadUTF8String(bytes);
+                values.Add(escaped);
+                utf8Values.Add(utf);
+            }
+
+            return new TxtRecord(info, values.ToArray(), utf8Values.ToArray());
         }
 
         private DnsResourceRecord ResolveSrvRecord(ResourceRecordInfo info)
@@ -229,23 +257,21 @@ namespace DnsClient
             return new NaptrRecord(info, order, preference, flags, services, regexp, replacement);
         }
 
-        private DnsResourceRecord ResolveTXTRecord(ResourceRecordInfo info)
+        private DnsResourceRecord ResolveOptRecord(ResourceRecordInfo info)
         {
-            int pos = _reader.Index;
+            // Consume bytes in case the OPT record has any.
+            var bytes = _reader.ReadBytes(info.RawDataLength).ToArray();
+            return new OptRecord((int)info.RecordClass, ttlFlag: info.InitialTimeToLive, length: info.RawDataLength, data: bytes);
+        }
 
-            var values = new List<string>();
-            var utf8Values = new List<string>();
-            while ((_reader.Index - pos) < info.RawDataLength)
-            {
-                var length = _reader.ReadByte();
-                var bytes = _reader.ReadBytes(length);
-                var escaped = DnsDatagramReader.ParseString(bytes);
-                var utf = DnsDatagramReader.ReadUTF8String(bytes);
-                values.Add(escaped);
-                utf8Values.Add(utf);
-            }
-
-            return new TxtRecord(info, values.ToArray(), utf8Values.ToArray());
+        private DnsResourceRecord ResolveDsRecord(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            var keyTag = _reader.ReadUInt16NetworkOrder();
+            var algorithm = _reader.ReadByte();
+            var digestType = _reader.ReadByte();
+            var digest = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
+            return new DsRecord(info, keyTag, algorithm, digestType, digest);
         }
 
         private DnsResourceRecord ResolveSshfpRecord(ResourceRecordInfo info)
@@ -255,6 +281,57 @@ namespace DnsClient
             var fingerprint = _reader.ReadBytes(info.RawDataLength - 2).ToArray();
             var fingerprintHexString = string.Join(string.Empty, fingerprint.Select(b => b.ToString("X2")));
             return new SshfpRecord(info, algorithm, fingerprintType, fingerprintHexString);
+        }
+
+        private DnsResourceRecord ResolveRRSigRecord(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            var type = _reader.ReadUInt16NetworkOrder();
+            var algorithmNumber = _reader.ReadByte();
+            var labels = _reader.ReadByte();
+            var originalTtl = _reader.ReadUInt32NetworkOrder();
+            var signatureExpiration = _reader.ReadUInt32NetworkOrder();
+            var signatureInception = _reader.ReadUInt32NetworkOrder();
+            var keyTag = _reader.ReadUInt16NetworkOrder();
+            var signersName = _reader.ReadDnsName();
+            var signature = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
+            return new RRSigRecord(info, type, algorithmNumber, labels, originalTtl, signatureExpiration, signatureInception, keyTag, signersName, signature);
+        }
+
+        private DnsResourceRecord ResolveNSecRecord(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            var nextName = _reader.ReadDnsName();
+            var bitMaps = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
+            return new NSecRecord(info, nextName, bitMaps);
+        }
+
+        private DnsResourceRecord ResolveDnsKeyRecord(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            int flags = _reader.ReadUInt16NetworkOrder();
+            var protocol = _reader.ReadByte();
+            var algorithm = _reader.ReadByte();
+            var publicKey = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
+            return new DnsKeyRecord(info, flags, protocol, algorithm, publicKey);
+        }
+
+        private DnsResourceRecord ResolveTlsaRecord(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            var certificateUsage = _reader.ReadByte();
+            var selector = _reader.ReadByte();
+            var matchingType = _reader.ReadByte();
+            var certificateAssociationData = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
+            return new TlsaRecord(info, certificateUsage, selector, matchingType, certificateAssociationData);
+        }
+
+        private DnsResourceRecord ResolveUriRecord(ResourceRecordInfo info)
+        {
+            var prio = _reader.ReadUInt16NetworkOrder();
+            var weight = _reader.ReadUInt16NetworkOrder();
+            var target = _reader.ReadString(info.RawDataLength - 4);
+            return new UriRecord(info, prio, weight, target);
         }
 
         private DnsResourceRecord ResolveCaaRecord(ResourceRecordInfo info)

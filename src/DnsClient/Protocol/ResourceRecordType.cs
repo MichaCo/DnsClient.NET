@@ -15,7 +15,7 @@ namespace DnsClient.Protocol
     /// </summary>
     /// <seealso cref="DnsResourceRecord"/>
     /// <seealso cref="ResourceRecordType"/>
-    public enum ResourceRecordType : short
+    public enum ResourceRecordType
     {
         /// <summary>
         /// A host address.
@@ -176,7 +176,13 @@ namespace DnsClient.Protocol
         OPT = 41,
 
         /// <summary>
-        /// SSH finger print record
+        /// DS rfc4034
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-5.1">RFC 4034</seealso>
+        DS = 43,
+
+        /// <summary>
+        /// SSH finger print record.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc4255">RFC 4255</seealso>
         SSHFP = 44,
@@ -186,6 +192,34 @@ namespace DnsClient.Protocol
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc3755">RFC 3755</seealso>
         RRSIG = 46,
+
+        /// <summary>
+        /// NSEC rfc4034.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-4">RFC 4034</seealso>
+        NSEC = 47,
+
+        /// <summary>
+        /// DNSKEY rfc4034.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-2"/>
+        DNSKEY = 48,
+
+        /// <summary>
+        /// TLSA rfc6698.
+        /// </summary>
+        /// <seealso href="https://https://tools.ietf.org/html/rfc6698">RFC 6698</seealso>
+        TLSA = 52,
+
+        /// <summary>
+        /// SPF records don't officially have a dedicated RR type, <see cref="ResourceRecordType.TXT"/> should be used instead.
+        /// The behavior of TXT and SPF are the same.
+        /// </summary>
+        /// <remarks>
+        /// This library will return a TXT record but will set the header type to SPF if such a record is returned.
+        /// </remarks>
+        /// <seealso href="https://tools.ietf.org/html/rfc7208">RFC 7208</seealso>
+        SPF = 99,
 
         /// <summary>
         /// A Uniform Resource Identifier (URI) resource record.
