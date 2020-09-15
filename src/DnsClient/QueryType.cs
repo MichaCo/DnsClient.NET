@@ -12,7 +12,7 @@ namespace DnsClient
     /// The query type field appear in the question part of a query.
     /// Query types are a superset of <see cref="Protocol.ResourceRecordType"/>.
     /// </summary>
-    public enum QueryType : short
+    public enum QueryType
     {
         /// <summary>
         /// A host address.
@@ -159,17 +159,50 @@ namespace DnsClient
         SRV = ResourceRecordType.SRV,
 
         /// <summary>
-        /// The Naming Authority Pointer rfc3403
+        /// The Naming Authority Pointer rfc2915
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc2915">RFC 2915</seealso>
         /// <seealso cref="NaptrRecord"/>
         NAPTR = ResourceRecordType.NAPTR, 
         
+        /// DS rfc4034
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-5.1">RFC 4034</seealso>
+        DS = ResourceRecordType.DS,
+
         /// <summary>
         /// RRSIG rfc3755.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc3755">RFC 3755</seealso>
         RRSIG = ResourceRecordType.RRSIG,
+
+        /// <summary>
+        /// NSEC rfc4034.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-4">RFC 4034</seealso>
+        NSEC = ResourceRecordType.NSEC,
+
+        /// <summary>
+        /// DNSKEY rfc4034
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4034#section-2">RFC 4034</seealso>
+        DNSKEY = ResourceRecordType.DNSKEY,
+
+        /// <summary>
+        /// TLSA rfc6698
+        /// </summary>
+        /// <seealso href="https://https://tools.ietf.org/html/rfc6698">RFC 6698</seealso>
+        TLSA = ResourceRecordType.TLSA,
+
+        /// <summary>
+        /// SPF records don't officially have a dedicated RR type, <see cref="ResourceRecordType.TXT"/> should be used instead.
+        /// The behavior of TXT and SPF are the same.
+        /// </summary>
+        /// <remarks>
+        /// This library will return a TXT record but will set the header type to SPF if such a record is returned.
+        /// </remarks>
+        /// <seealso href="https://tools.ietf.org/html/rfc7208">RFC 7208</seealso>
+        SPF = ResourceRecordType.SPF,
 
         /// <summary>
         /// DNS zone transfer request.
