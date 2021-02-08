@@ -16,7 +16,8 @@ pr:
 variables:
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
-  versionSuffix: 'beta-$(Build.BuildNumber)'
+  ${{ if neq(Build.SourceBranch, 'refs/heads/master') }}:
+    versionSuffix: 'beta-$(Build.BuildNumber)'
 
 jobs:
 - job: 'Linux'
