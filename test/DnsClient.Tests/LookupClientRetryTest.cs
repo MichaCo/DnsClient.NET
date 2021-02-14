@@ -639,6 +639,71 @@ namespace DnsClient.Tests
             Assert.Single(calledIps);
         }
 
+        /* See https://github.com/MichaCo/DnsClient.NET/issues/93
+         * Test should proof that 
+         * First server has DNS error
+         * Second returns empty result
+         * => Depending on settings (don't throw DNS, continue on DNS and don't continue on empty)
+         *      The result should be an empty result and no error.
+         */
+
+        [Fact]
+        public void AcceptEmptyResponse_ContinueOnDnsErrors()
+        {
+            var ip1 = IPAddress.Parse("127.0.10.1");
+            var ip2 = IPAddress.Parse("127.0.10.2");
+            var ip3 = IPAddress.Parse("127.0.10.3");
+            var options = new LookupClientOptions(
+                new NameServer(ip1),
+                new NameServer(ip2),
+                new NameServer(ip3))
+            {
+                ContinueOnEmptyResponse = false,
+                ContinueOnDnsError = true,
+                ThrowDnsErrors = false,
+                Retries = 5,
+                UseCache = false,
+                EnableAuditTrail = true,
+                UseRandomNameServer = false,
+                UseTcpFallback = false
+            };
+
+            var calledIps = new List<IPAddress>();
+            var messageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                var status = DnsHeaderResponseCode.NoError;
+
+                // response from ip1 & 2 should be retried with same server.
+                if (ip.Address == ip1)
+                {
+                    status = DnsHeaderResponseCode.NotExistentDomain;
+                }
+                if (ip.Address == ip2)
+                {
+                    status = DnsHeaderResponseCode.NoError;
+                }
+                if (ip.Address == ip3)
+                {
+                    status = DnsHeaderResponseCode.NoError;
+                }
+
+                calledIps.Add(ip.Address);
+                return new DnsResponseMessage(new DnsResponseHeader(req.Header.Id, (ushort)status, 0, 0, 0, 0), 0);
+            });
+
+            var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
+            var result = lookup.Query("test.com", QueryType.A);
+
+            // 2nd server already returns an empty result, expecting not to hit the 3rd one
+            Assert.Equal(2, calledIps.Count);
+
+            // Empty result expected
+            Assert.Equal(0, result.Answers.Count);
+
+            // Response wasn't an error.
+            Assert.False(result.HasError);
+        }
+
         /* DNS response parse error handling and retries */
 
         // https://github.com/MichaCo/DnsClient.NET/issues/52
