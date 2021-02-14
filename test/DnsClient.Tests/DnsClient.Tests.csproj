@@ -1,18 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>
-      <!--net461-->;net471;netcoreapp3.1;<!--netcoreapp1.1-->
+      net471;netcoreapp3.1;
     </TargetFrameworks>
     <AssemblyName>DnsClient.Tests</AssemblyName>
     <AssemblyOriginatorKeyFile>../../tools/key.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <PackageId>DnsClient.Tests</PackageId>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <NetStandardImplicitPackageVersion>1.6.1</NetStandardImplicitPackageVersion>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
 
@@ -26,12 +21,9 @@
     <ProjectReference Include="..\..\src\DnsClient\DnsClient.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' != 'netcoreapp1.1' ">
+  <ItemGroup>
     <ProjectReference Include="..\..\test-other\ApiDesign.OldReference\ApiDesign.OldReference.csproj" />
     <PackageReference Include="Moq" Version="4.13.1" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' != 'netcoreapp1.1' ">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.5.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
       <PrivateAssets>all</PrivateAssets>
@@ -39,19 +31,14 @@
     </PackageReference>
     <PackageReference Include="xunit" Version="2.4.1" />
   </ItemGroup>
-  <!--<ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.2.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="xunit" Version="2.4.1" />
-  </ItemGroup>-->
-
+  
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <DefineConstants>$(DefineConstants);ENABLE_REMOTE_DNS</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
     <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
   </ItemGroup>
 </Project>
