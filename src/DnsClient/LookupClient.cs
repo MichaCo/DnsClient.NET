@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Net;
-using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -371,16 +370,16 @@ namespace DnsClient
 
             // Setting up name servers.
             // Using manually configured ones and/or auto resolved ones.
-            var servers = _originalOptions.NameServers?.ToArray() ?? new NameServer[0];
+            IReadOnlyCollection<NameServer> servers = _originalOptions.NameServers?.ToArray() ?? new NameServer[0];
 
             if (options.AutoResolveNameServers)
             {
                 _resolvedNameServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false);
                 servers = servers.Concat(_resolvedNameServers).ToArray();
-                
+
                 // This will periodically get triggered on Query calls and
                 // will perform the same check as on NetworkAddressChanged.
-                // The event doesn't seem to get fired on Linux for example... 
+                // The event doesn't seem to get fired on Linux for example...
                 // TODO: Maybe there is a better way, but this will work for now.
                 _skipper = new SkipWorker(
                 () =>
@@ -395,8 +394,10 @@ namespace DnsClient
                 skip: 60 * 1000);
             }
 
+            servers = NameServer.ValidateNameServers(servers);
+
             Settings = new LookupClientSettings(options, servers);
-            Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout);
+            Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout, Settings.FailedResultsCacheDuration);
         }
 
         private void CheckResolvedNameservers()
@@ -482,6 +483,22 @@ namespace DnsClient
 
             var settings = GetSettings(queryOptions);
             return QueryInternal(question, settings, settings.ShuffleNameServers());
+        }
+
+        /// <inheritdoc/>
+        public IDnsQueryResponse QueryCache(string query, QueryType queryType, QueryClass queryClass = QueryClass.IN)
+            => QueryCache(new DnsQuestion(query, queryType, queryClass));
+
+        /// <inheritdoc/>
+        public IDnsQueryResponse QueryCache(DnsQuestion question)
+        {
+            if (question is null)
+            {
+                throw new ArgumentNullException(nameof(question));
+            }
+
+            var settings = GetSettings();
+            return QueryCache(question, settings);
         }
 
         /// <inheritdoc/>
@@ -631,6 +648,8 @@ namespace DnsClient
                 throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
             }
 
+            servers = NameServer.ValidateNameServers(servers, _logger);
+
             var head = new DnsRequestHeader(queryOptions.Recursion, DnsOpCode.Query);
             var request = new DnsRequestMessage(head, question, queryOptions);
             var handler = queryOptions.UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
@@ -686,6 +705,8 @@ namespace DnsClient
             {
                 throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
             }
+
+            servers = NameServer.ValidateNameServers(servers, _logger);
 
             var head = new DnsRequestHeader(queryOptions.Recursion, DnsOpCode.Query);
             var request = new DnsRequestMessage(head, question, queryOptions);
@@ -752,7 +773,7 @@ namespace DnsClient
 
                 if (settings.EnableAuditTrail && !isLastServer)
                 {
-                    audit?.AuditRetryNextServer(serverInfo);
+                    audit?.AuditRetryNextServer();
                 }
 
                 var cacheKey = string.Empty;
@@ -878,6 +899,11 @@ namespace DnsClient
                         }
 
                         // If its the last server, return.
+                        if (settings.UseCache && settings.CacheFailedResults)
+                        {
+                            Cache.Add(cacheKey, lastQueryResponse, true);
+                        }
+
                         return lastQueryResponse;
                     }
                     catch (Exception ex) when (
@@ -977,7 +1003,7 @@ namespace DnsClient
 
                 if (settings.EnableAuditTrail && serverIndex > 0 && !isLastServer)
                 {
-                    audit?.AuditRetryNextServer(serverInfo);
+                    audit?.AuditRetryNextServer();
                 }
 
                 var cacheKey = string.Empty;
@@ -1129,6 +1155,11 @@ namespace DnsClient
                         }
 
                         // If its the last server, return.
+                        if (settings.UseCache && settings.CacheFailedResults)
+                        {
+                            Cache.Add(cacheKey, lastQueryResponse, true);
+                        }
+
                         return lastQueryResponse;
                     }
                     catch (Exception ex) when (
@@ -1200,6 +1231,30 @@ namespace DnsClient
             {
                 AuditTrail = audit?.Build()
             };
+        }
+
+        private IDnsQueryResponse QueryCache(
+            DnsQuestion question,
+            DnsQuerySettings settings)
+        {
+            if (question == null)
+            {
+                throw new ArgumentNullException(nameof(question));
+            }
+
+            var head = new DnsRequestHeader(false, DnsOpCode.Query);
+            var request = new DnsRequestMessage(head, question);
+
+            var cacheKey = ResponseCache.GetCacheKey(request.Question);
+
+            if (TryGetCachedResult(cacheKey, request, settings, out var cachedResponse))
+            {
+                return cachedResponse;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         private enum HandleError
@@ -1416,7 +1471,10 @@ namespace DnsClient
 
             if (request.Header.Id != response.Header.Id)
             {
-                throw new DnsResponseException("Header id mismatch.");
+                _logger.LogWarning(
+                    "Request header id {0} does not match response header {1}. This might be due to some non-standard configuration in your network.",
+                    request.Header.Id,
+                    response.Header.Id);
             }
 
             audit?.AuditResolveServers(serverCount);
@@ -1820,7 +1878,7 @@ namespace DnsClient
             }
         }
 
-        public void AuditRetryNextServer(NameServer current)
+        public void AuditRetryNextServer()
         {
             if (!Settings.EnableAuditTrail)
             {

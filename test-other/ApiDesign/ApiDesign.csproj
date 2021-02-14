@@ -5,9 +5,6 @@
     <AssemblyName>ApiDesign</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>ApiDesign</PackageId>
-    <GenerateAssemblyConfigurationAttribute>false</GenerateAssemblyConfigurationAttribute>
-    <GenerateAssemblyCompanyAttribute>false</GenerateAssemblyCompanyAttribute>
-    <GenerateAssemblyProductAttribute>false</GenerateAssemblyProductAttribute>
     <LangVersion>7.2</LangVersion>
   </PropertyGroup>
 
