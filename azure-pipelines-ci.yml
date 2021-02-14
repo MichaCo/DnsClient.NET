@@ -64,7 +64,7 @@ jobs:
       projects: 'test/DnsClient.Tests/*.csproj'
       publishTestResults: true      
       arguments: '-c Release --no-build --no-restore --collect "Code coverage"'
-  - script: 'dotnet pack src\DnsClient\DnsClient.csproj -c Release --no-build --no-restore --version-suffix $(versionSuffix) -v normal -o $(Build.ArtifactStagingDirectory)'
+  - script: 'dotnet pack src\DnsClient\DnsClient.csproj -c Release --no-build --no-restore --version-suffix "$(versionSuffix)" -v normal -o $(Build.ArtifactStagingDirectory)'
     name: 'PackBeta'
     displayName: 'dotnet pack'
   - task: PublishBuildArtifacts@1
