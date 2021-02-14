@@ -18,6 +18,8 @@ variables:
   buildConfiguration: 'Release'
   ${{ if not(eq(variables['Build.SourceBranch'], 'refs/heads/master')) }}:
     versionSuffix: 'beta-$(Build.BuildNumber)'
+  ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/master') }}:
+    versionSuffix: ''
 
 jobs:
 - job: 'Linux'
