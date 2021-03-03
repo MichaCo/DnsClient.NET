@@ -36,17 +36,17 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <PackageReference Include="System.Buffers" Version="4.4.0" />
+    <PackageReference Include="System.Buffers" Version="4.5.1" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'net471' ">
-    <PackageReference Include="System.Buffers" Version="4.4.0" />
+    <PackageReference Include="System.Buffers" Version="4.5.1" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="System.Buffers" Version="4.4.0" />
+    <PackageReference Include="System.Buffers" Version="4.5.1" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
-    <PackageReference Include="System.Buffers" Version="4.4.0" />
+    <PackageReference Include="System.Buffers" Version="4.5.1" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     <PackageReference Include="System.Net.NetworkInformation" Version="4.3.0" />
     <PackageReference Include="System.Globalization.Extensions" Version="4.3.0" />
