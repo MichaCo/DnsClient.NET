@@ -357,7 +357,7 @@ namespace DnsClient.Tests
             public async Task Lookup_QueryTimesOut_Udp_Async()
             {
                 var client = new LookupClient(
-                    new LookupClientOptions(NameServer.GooglePublicDns)
+                    new LookupClientOptions(new NameServer(IPAddress.Loopback))
                     {
                         Timeout = s_timeout,
                         Retries = 0,
@@ -374,7 +374,7 @@ namespace DnsClient.Tests
             public void Lookup_QueryTimesOut_Udp_Sync()
             {
                 var client = new LookupClient(
-                    new LookupClientOptions(NameServer.GooglePublicDns)
+                    new LookupClientOptions(new NameServer(IPAddress.Loopback))
                     {
                         Timeout = s_timeout,
                         Retries = 0,
@@ -391,7 +391,7 @@ namespace DnsClient.Tests
             public async Task Lookup_QueryTimesOut_Tcp_Async()
             {
                 var client = new LookupClient(
-                    new LookupClientOptions(NameServer.GooglePublicDns)
+                    new LookupClientOptions(new NameServer(IPAddress.Loopback))
                     {
                         Timeout = s_timeout,
                         Retries = 0,
@@ -408,7 +408,7 @@ namespace DnsClient.Tests
             public void Lookup_QueryTimesOut_Tcp_Sync()
             {
                 var client = new LookupClient(
-                    new LookupClientOptions(NameServer.GooglePublicDns)
+                    new LookupClientOptions(new NameServer(IPAddress.Loopback))
                     {
                         Timeout = s_timeout,
                         Retries = 0,

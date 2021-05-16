@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 
 namespace DnsClient
 {
@@ -45,10 +43,17 @@ namespace DnsClient
         /// </summary>
         public string Value { get; }
 
-        internal DnsString(string original, string value)
+        /// <summary>
+        /// Gets the number of labels of this <see cref="DnsString"/> or null if not applicable.
+        /// This property is only set if the <see cref="Parse(string)"/> method was used to create this instance.
+        /// </summary>
+        public int? NumberOfLabels { get; }
+
+        internal DnsString(string original, string value, int? numLabels = null)
         {
             Original = original;
             Value = value;
+            NumberOfLabels = numLabels;
         }
 
         /// <summary>
@@ -59,6 +64,52 @@ namespace DnsClient
         /// The result of the conversion.
         /// </returns>
         public static implicit operator string(DnsString name) => name?.Value;
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static DnsString operator +(DnsString a, DnsString b)
+        {
+            if (a is null)
+            {
+                throw new ArgumentNullException(nameof(a));
+            }
+
+            if (b is null)
+            {
+                throw new ArgumentNullException(nameof(b));
+            }
+
+            var result = a.Value + (b.Value.Length > 1 ? b.Value : string.Empty);
+            return new DnsString(result, result);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="a"></param>
+        /// <param name="b"></param>
+        /// <returns></returns>
+        public static DnsString operator +(DnsString a, string b)
+        {
+            if (a is null)
+            {
+                throw new ArgumentNullException(nameof(a));
+            }
+
+            if (string.IsNullOrWhiteSpace(b))
+            {
+                throw new ArgumentException($"'{nameof(b)}' cannot be null or empty.", nameof(b));
+            }
+
+            b = b[0] == Dot ? b.Substring(1) : b;
+
+            var parsed = Parse(b);
+            return a + parsed;
+        }
 
         /// <inheritdoc />
         public override string ToString()
@@ -82,18 +133,6 @@ namespace DnsClient
 
             return obj.ToString().Equals(Value);
         }
-
-        // removed as this is actually the wrong label representation (also, doesn't work if there are escaped \. in the value
-        /////// <summary>
-        /////// Returns labels representation of the <see cref="Value"/>.
-        /////// </summary>
-        ////public IReadOnlyList<string> Labels
-        ////{
-        ////    get
-        ////    {
-        ////        return Value.Split('.').Reverse().Select(p => p + DotStr).ToArray();
-        ////    }
-        ////}
 
         /// <summary>
         /// Parses the given <paramref name="query"/> and validates all labels.
@@ -155,7 +194,9 @@ namespace DnsClient
                                 result += Dot;
                             }
 
-                            return new DnsString(query, result);
+                            var labels = result.Split(new[] { Dot }, StringSplitOptions.RemoveEmptyEntries);
+
+                            return new DnsString(query, result, labels.Length);
                         }
                         catch (Exception ex)
                         {
@@ -185,10 +226,10 @@ namespace DnsClient
 
             if (query[query.Length - 1] != Dot)
             {
-                return new DnsString(query, query + Dot);
+                return new DnsString(query, query + Dot, labelsCount);
             }
 
-            return new DnsString(query, query);
+            return new DnsString(query, query, labelsCount);
         }
 
         /// <summary>

@@ -34,7 +34,8 @@ namespace DigApp
 
         public CommandOption ReversArg { get; }
 
-        public DigCommand(CommandLineApplication app, string[] originalArgs) : base(app, originalArgs)
+        public DigCommand(CommandLineApplication app, string[] originalArgs) 
+            : base(app, originalArgs)
         {
             DomainArg = app.Argument("domain", "domain name", false);
             QTypeArg = app.Argument("q-type", "QType", false);
@@ -102,6 +103,7 @@ namespace DigApp
                 }
             }
 
+
             try
             {
                 // finally running the command
@@ -110,6 +112,29 @@ namespace DigApp
                 var lookup = GetDnsLookup(options);
 
                 Console.WriteLine($"; Servers: {string.Join(", ", lookup.NameServers)}");
+
+
+                var parsedDnsString = DnsString.Parse(useDomain);
+                if (parsedDnsString.NumberOfLabels == 1 && !parsedDnsString.Original.EndsWith("."))
+                {
+                    foreach(var server in lookup.NameServers)
+                    {
+                        if(server.DnsSuffix != null)
+                        {
+                            var newQuery = parsedDnsString + server.DnsSuffix;
+
+                            var serverResult = useQClass == 0 ?
+                                await lookup.QueryServerAsync(new[] { server }, newQuery, useQType).ConfigureAwait(false) :
+                                await lookup.QueryServerAsync(new[] { server }, newQuery, useQType, useQClass).ConfigureAwait(false);
+
+                            if (!serverResult.HasError)
+                            {
+                                Console.WriteLine(serverResult.AuditTrail);
+                                return 0;
+                            }
+                        }
+                    }
+                }
 
                 var result = useQClass == 0 ?
                     await lookup.QueryAsync(useDomain, useQType).ConfigureAwait(false) :

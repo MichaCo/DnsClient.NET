@@ -1,15 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <VersionPrefix>1.4.0</VersionPrefix>
+    <VersionPrefix>1.5.0</VersionPrefix>
     <VersionSuffix Condition="'$(VersionSuffix)'!='' AND '$(BuildNumber)' != ''">$(VersionSuffix)-$(BuildNumber)</VersionSuffix>
 
-    <TargetFrameworks>netstandard1.3;netstandard2.0;netstandard2.1;net45;net471</TargetFrameworks>
+    <TargetFrameworks>netstandard1.3;netstandard2.0;netstandard2.1;net50;net45;net471</TargetFrameworks>
     <DebugType>full</DebugType>
 
     <Product>DnsClient.NET</Product>
     <Description>DnsClient.NET is a simple yet very powerful and high performance open source library for the .NET Framework to do DNS lookups</Description>
 
-    <Copyright>Copyright (c) 2020 MichaConrad</Copyright>
+    <Copyright>Copyright (c) 2021 Michael Conrad</Copyright>
     <Authors>MichaCo</Authors>
     <AssemblyName>DnsClient</AssemblyName>
 
@@ -28,7 +28,7 @@
     <RepositoryUrl>https://github.com/MichaCo/DnsClient.NET</RepositoryUrl>
 
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <LangVersion>7.2</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

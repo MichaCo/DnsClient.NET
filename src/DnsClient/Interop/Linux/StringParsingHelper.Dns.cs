@@ -22,7 +22,7 @@ namespace DnsClient.Linux
             return rcr.TryGetNextValue("search", out dnsSuffix) ? dnsSuffix : string.Empty;
         }
 
-        internal static List<IPAddress> ParseDnsAddressesFromResolvConfFile(string filePath)
+        internal static List<NameServer> ParseDnsAddressesFromResolvConfFile(string filePath)
         {
             // Parse /etc/resolv.conf for all of the "nameserver" entries.
             // These are the DNS servers the machine is configured to use.
@@ -31,7 +31,7 @@ namespace DnsClient.Linux
             // the machine's DNS servers listed in it.
             string data = File.ReadAllText(filePath);
             RowConfigReader rcr = new RowConfigReader(data);
-            List<IPAddress> addresses = new List<IPAddress>();
+            List<NameServer> addresses = new List<NameServer>();
 
             string addressString = null;
             while (rcr.TryGetNextValue("nameserver", out addressString))

@@ -66,9 +66,10 @@ namespace DnsClient
         /// Initializes a new instance of the <see cref="NameServer"/> class.
         /// </summary>
         /// <param name="endPoint">The name server endpoint.</param>
+        /// <param name="dnsSuffix">An optional DNS suffix.</param>
         /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
-        public NameServer(IPAddress endPoint)
-            : this(new IPEndPoint(endPoint, DefaultPort))
+        public NameServer(IPAddress endPoint, string dnsSuffix = null)
+            : this(new IPEndPoint(endPoint, DefaultPort), dnsSuffix)
         {
         }
 
@@ -77,18 +78,21 @@ namespace DnsClient
         /// </summary>
         /// <param name="endPoint">The name server endpoint.</param>
         /// <param name="port">The name server port.</param>
+        /// <param name="dnsSuffix">An optional DNS suffix.</param>
         /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
-        public NameServer(IPAddress endPoint, int port)
+        public NameServer(IPAddress endPoint, int port, string dnsSuffix = null)
             : this(new IPEndPoint(endPoint, port))
         {
+            DnsSuffix = string.IsNullOrWhiteSpace(dnsSuffix) ? null : dnsSuffix;
         }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="NameServer"/> class.
         /// </summary>
         /// <param name="endPoint">The name server endpoint.</param>
+        /// <param name="dnsSuffix">An optional DNS suffix.</param>
         /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
-        public NameServer(IPEndPoint endPoint)
+        public NameServer(IPEndPoint endPoint, string dnsSuffix = null)
         {
             IPEndPoint = endPoint ?? throw new ArgumentNullException(nameof(endPoint));
         }
@@ -149,6 +153,11 @@ namespace DnsClient
 
         internal IPEndPoint IPEndPoint { get; }
 
+        /// <summary>
+        /// Gets an optional DNS suffix which a resolver can use to append to queries or to find servers suitable for a query.
+        /// </summary>
+        public string DnsSuffix { get; }
+
         internal static NameServer[] Convert(IReadOnlyCollection<IPAddress> addresses)
             => addresses?.Select(p => (NameServer)p).ToArray();
 
@@ -199,16 +208,17 @@ namespace DnsClient
         /// </returns>
         public static IReadOnlyCollection<NameServer> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true)
         {
-            IReadOnlyCollection<IPAddress> endPoints = new IPAddress[0];
+            // TODO: Use Array.Empty after dropping NET45
+            IReadOnlyCollection<NameServer> nameServers = new NameServer[0];
 
-            List<Exception> exceptions = new List<Exception>();
+            var exceptions = new List<Exception>();
 
             var logger = Logging.LoggerFactory?.CreateLogger(typeof(NameServer).FullName);
 
             logger?.LogDebug("Starting to resolve NameServers, skipIPv6SiteLocal:{0}.", skipIPv6SiteLocal);
             try
             {
-                endPoints = QueryNetworkInterfaces();
+                nameServers = QueryNetworkInterfaces();
             }
             catch (Exception ex)
             {
@@ -221,7 +231,7 @@ namespace DnsClient
             {
                 try
                 {
-                    endPoints = ResolveNameServersNative();
+                    nameServers = ResolveNameServersNative();
                     exceptions.Clear();
                 }
                 catch (Exception ex)
@@ -244,15 +254,10 @@ namespace DnsClient
                 }
             }
 
-            if (endPoints == null)
-            {
-                endPoints = new IPAddress[0];
-            }
-
-            IReadOnlyCollection<NameServer> filtered = endPoints
-                .Where(p => (p.AddressFamily == AddressFamily.InterNetwork || p.AddressFamily == AddressFamily.InterNetworkV6)
-                    && (!p.IsIPv6SiteLocal || !skipIPv6SiteLocal))                
-                .Select(p => new NameServer(p))
+            IReadOnlyCollection<NameServer> filtered = nameServers
+                .Where(p => (p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetwork 
+                            || p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetworkV6)
+                    && (!p.IPEndPoint.Address.IsIPv6SiteLocal || !skipIPv6SiteLocal))
                 .ToArray();
 
             filtered = ValidateNameServers(filtered, logger);
@@ -286,18 +291,21 @@ namespace DnsClient
         /// <returns>
         /// The list of name servers.
         /// </returns>
-        public static IReadOnlyCollection<IPAddress> ResolveNameServersNative()
+        public static IReadOnlyCollection<NameServer> ResolveNameServersNative()
         {
-            IPAddress[] addresses = null;
+            List<NameServer> addresses = new List<NameServer>();
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var fixedInfo = Windows.IpHlpApi.FixedNetworkInformation.GetFixedInformation();
-
-                addresses = fixedInfo.DnsAddresses.ToArray();
+                
+                foreach(var ip in fixedInfo.DnsAddresses)
+                {
+                    addresses.Add(new NameServer(ip, DefaultPort, fixedInfo.DomainName));
+                }
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(EtcResolvConfFile).ToArray();
+                addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(EtcResolvConfFile);
             }
 
             return addresses;
@@ -323,9 +331,9 @@ namespace DnsClient
             return validServers;
         }
 
-        private static IReadOnlyCollection<IPAddress> QueryNetworkInterfaces()
+        private static IReadOnlyCollection<NameServer> QueryNetworkInterfaces()
         {
-            var result = new HashSet<IPAddress>();
+            var result = new HashSet<NameServer>();
 
             var adapters = NetworkInterface.GetAllNetworkInterfaces();
 
@@ -334,11 +342,11 @@ namespace DnsClient
                     .Where(p => (p.OperationalStatus == OperationalStatus.Up || p.OperationalStatus == OperationalStatus.Unknown)
                     && p.NetworkInterfaceType != NetworkInterfaceType.Loopback))
             {
-                foreach (IPAddress dnsAddress in networkInterface
-                    .GetIPProperties()
-                    .DnsAddresses)
+                var properties = networkInterface.GetIPProperties();
+                
+                foreach (var ip in properties.DnsAddresses)
                 {
-                    result.Add(dnsAddress);
+                    result.Add(new NameServer(ip, DefaultPort, properties.DnsSuffix));
                 }
             }
 

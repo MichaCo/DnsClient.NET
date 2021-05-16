@@ -394,7 +394,7 @@ namespace DnsClient
                 skip: 60 * 1000);
             }
 
-            servers = NameServer.ValidateNameServers(servers);
+            servers = NameServer.ValidateNameServers(servers, _logger);
 
             Settings = new LookupClientSettings(options, servers);
             Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout, Settings.FailedResultsCacheDuration);
@@ -548,11 +548,37 @@ namespace DnsClient
 
         /// <inheritdoc/>
         public IDnsQueryResponse QueryServer(IReadOnlyCollection<NameServer> servers, DnsQuestion question)
-            => QueryInternal(question, Settings, servers);
+        {
+            if (servers == null)
+            {
+                throw new ArgumentNullException(nameof(servers));
+            }
+
+            if (servers.Count == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
+            }
+
+            servers = NameServer.ValidateNameServers(servers, _logger);
+            return QueryInternal(question, Settings, servers);
+        }
 
         /// <inheritdoc/>
         public IDnsQueryResponse QueryServer(IReadOnlyCollection<NameServer> servers, DnsQuestion question, DnsQueryOptions queryOptions)
-            => QueryInternal(question, queryOptions, servers);
+        {
+            if (servers == null)
+            {
+                throw new ArgumentNullException(nameof(servers));
+            }
+
+            if (servers.Count == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
+            }
+
+            servers = NameServer.ValidateNameServers(servers, _logger);
+            return QueryInternal(question, queryOptions, servers);
+        }
 
         /// <inheritdoc/>
         public Task<IDnsQueryResponse> QueryServerAsync(IReadOnlyCollection<IPAddress> servers, string query, QueryType queryType, QueryClass queryClass = QueryClass.IN, CancellationToken cancellationToken = default)
@@ -568,11 +594,37 @@ namespace DnsClient
 
         /// <inheritdoc/>
         public Task<IDnsQueryResponse> QueryServerAsync(IReadOnlyCollection<NameServer> servers, DnsQuestion question, CancellationToken cancellationToken = default)
-            => QueryInternalAsync(question, Settings, servers, cancellationToken);
+        {
+            if (servers == null)
+            {
+                throw new ArgumentNullException(nameof(servers));
+            }
+
+            if (servers.Count == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
+            }
+
+            servers = NameServer.ValidateNameServers(servers, _logger);
+            return QueryInternalAsync(question, Settings, servers, cancellationToken);
+        }
 
         /// <inheritdoc/>
         public Task<IDnsQueryResponse> QueryServerAsync(IReadOnlyCollection<NameServer> servers, DnsQuestion question, DnsQueryOptions queryOptions, CancellationToken cancellationToken = default)
-            => QueryInternalAsync(question, queryOptions, servers, cancellationToken);
+        {
+            if (servers == null)
+            {
+                throw new ArgumentNullException(nameof(servers));
+            }
+
+            if (servers.Count == 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
+            }
+
+            servers = NameServer.ValidateNameServers(servers, _logger);
+            return QueryInternalAsync(question, queryOptions, servers, cancellationToken);
+        }
 
         /// <inheritdoc/>
         public IDnsQueryResponse QueryServerReverse(IReadOnlyCollection<IPAddress> servers, IPAddress ipAddress)
@@ -648,8 +700,6 @@ namespace DnsClient
                 throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
             }
 
-            servers = NameServer.ValidateNameServers(servers, _logger);
-
             var head = new DnsRequestHeader(queryOptions.Recursion, DnsOpCode.Query);
             var request = new DnsRequestMessage(head, question, queryOptions);
             var handler = queryOptions.UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
@@ -705,8 +755,6 @@ namespace DnsClient
             {
                 throw new ArgumentOutOfRangeException(nameof(servers), "List of configured name servers must not be empty.");
             }
-
-            servers = NameServer.ValidateNameServers(servers, _logger);
 
             var head = new DnsRequestHeader(queryOptions.Recursion, DnsOpCode.Query);
             var request = new DnsRequestMessage(head, question, queryOptions);

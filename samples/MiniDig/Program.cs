@@ -7,26 +7,40 @@ namespace DigApp
 {
     public class Program
     {
-        public static async Task Main(string[] args)
+        public static async Task<int> Main(string[] args)
         {
             DnsClient.Tracing.Source.Switch.Level = SourceLevels.Information;
             DnsClient.Tracing.Source.Listeners.Add(new ConsoleTraceListener());
 
             var app = new CommandLineApplication(throwOnUnexpectedArg: true);
 
-            app.Command("perf", (perfApp) => new PerfCommand(perfApp, args), throwOnUnexpectedArg: true);
-            app.Command("random", (randApp) => new RandomCommand(randApp, args), throwOnUnexpectedArg: true);
-
-            var defaultCommand = new DigCommand(app, args);
-
             try
             {
-                await app.ExecuteAsync(args).ConfigureAwait(false);
+                app.Command("perf", (perfApp) => new PerfCommand(perfApp, args), throwOnUnexpectedArg: true);
+                app.Command("random", (randApp) => new RandomCommand(randApp, args), throwOnUnexpectedArg: true);
+
+                app.Command("dig", (digApp) => new DigCommand(digApp, args), throwOnUnexpectedArg: true);
+
+                var defaultCommand = new DigCommand(app, args);
+                return await app.ExecuteAsync(args).ConfigureAwait(false);
+            }
+            catch (UnrecognizedCommandParsingException ex)
+            {
+                Console.WriteLine(ex.Message);
+                app.ShowHelp();
+            }
+            catch (CommandParsingException ex)
+            {
+                Console.WriteLine(ex.Message);
+                app.ShowHelp();
             }
             catch (Exception ex)
             {
                 Console.WriteLine(ex);
+                return 500;
             }
+
+            return -1;
         }
     }
 

@@ -1,11 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net45;net471;netcoreapp3.1;</TargetFrameworks>
+    <TargetFramework>net50</TargetFramework>
     <AssemblyName>MiniDig</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>MiniDig</PackageId>
-    <LangVersion>7.2</LangVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
