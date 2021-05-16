@@ -131,6 +131,10 @@ namespace DnsClient
                     result = ResolveSrvRecord(info);
                     break;
 
+                case ResourceRecordType.NAPTR:
+                    result = ResolveNaptrRecord(info);
+                    break;
+
                 case ResourceRecordType.OPT: // 41
                     result = ResolveOptRecord(info);
                     break;
@@ -239,6 +243,18 @@ namespace DnsClient
             var target = _reader.ReadDnsName();
 
             return new SrvRecord(info, priority, weight, port, target);
+        }
+
+        private DnsResourceRecord ResolveNaptrRecord(ResourceRecordInfo info)
+        {
+            var order = _reader.ReadUInt16NetworkOrder();
+            var preference = _reader.ReadUInt16NetworkOrder();
+            var flags = _reader.ReadStringWithLengthPrefix();
+            var services = _reader.ReadStringWithLengthPrefix();
+            var regexp = _reader.ReadStringWithLengthPrefix();
+            var replacement = _reader.ReadDnsName();
+
+            return new NaptrRecord(info, order, preference, flags, services, regexp, replacement);
         }
 
         private DnsResourceRecord ResolveOptRecord(ResourceRecordInfo info)

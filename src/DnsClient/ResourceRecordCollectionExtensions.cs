@@ -193,6 +193,17 @@ namespace System.Linq
         }
 
         /// <summary>
+        /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="NaptrRecord"/>s only.
+        /// </summary>
+        /// <param name="records">The records.</param>
+        /// <returns>The list of <see cref="NaptrRecord"/>.</returns>
+        [CLSCompliant(false)]
+        public static IEnumerable<NaptrRecord> NaptrRecords(this IEnumerable<DnsResourceRecord> records)
+        {
+            return records.OfType<NaptrRecord>();
+        }
+
+        /// <summary>
         /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="UriRecord"/>s only.
         /// </summary>
         /// <param name="records">The records.</param>

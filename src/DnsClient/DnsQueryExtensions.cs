@@ -579,6 +579,38 @@ namespace DnsClient
         }
 
         /// <summary>
+        /// The <c>ResolveService</c> method does a <see cref="QueryType.SRV"/> lookup for <c>{<paramref name="service"/>}</c>
+        /// and aggregates the result (hostname, port and list of <see cref="IPAddress"/>s) to a <see cref="ServiceHostEntry"/>.
+        /// <para>
+        /// This method expects matching A or AAAA records to populate the <see cref="IPHostEntry.AddressList"/>,
+        /// and/or a <see cref="ResourceRecordType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
+        /// </para>
+        /// </summary>
+        /// <remarks>
+        /// The returned list of <see cref="IPAddress"/>s and/or the hostname can be empty if no matching additional records are found.
+        /// </remarks>
+        /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
+        /// <param name="service">The name of the service to look for. Must have <c>_</c> prefix and domain and protocol.</param>
+        /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="service"/> are null.</exception>
+        /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
+        public static ServiceHostEntry[] ResolveService(this IDnsQuery query, string service)
+        {
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+            if (string.IsNullOrWhiteSpace(service))
+            {
+                throw new ArgumentNullException(nameof(service));
+            }
+
+            var result = query.Query(service, QueryType.SRV);
+
+            return ResolveServiceProcessResult(result);
+        }
+
+        /// <summary>
         /// The <c>ResolveServiceAsync</c> method does a <see cref="QueryType.SRV"/> lookup for <c>_{<paramref name="serviceName"/>}[._{<paramref name="tag"/>}].{<paramref name="baseDomain"/>}</c>
         /// and aggregates the result (hostname, port and list of <see cref="IPAddress"/>s) to a <see cref="ServiceHostEntry"/>.
         /// <para>
@@ -614,6 +646,39 @@ namespace DnsClient
             var queryString = ConcatServiceName(baseDomain, serviceName, tag);
 
             var result = await query.QueryAsync(queryString, QueryType.SRV).ConfigureAwait(false);
+
+            return ResolveServiceProcessResult(result);
+        }
+
+
+        /// <summary>
+        /// The <c>ResolveServiceAsync</c> method does a <see cref="QueryType.SRV"/> lookup for <c>{<paramref name="service"/>}</c>
+        /// and aggregates the result (hostname, port and list of <see cref="IPAddress"/>s) to a <see cref="ServiceHostEntry"/>.
+        /// <para>
+        /// This method expects matching A or AAAA records to populate the <see cref="IPHostEntry.AddressList"/>,
+        /// and/or a <see cref="ResourceRecordType.CNAME"/> record to populate the <see cref="IPHostEntry.HostName"/> property of the result.
+        /// </para>
+        /// </summary>
+        /// <remarks>
+        /// The returned list of <see cref="IPAddress"/>s and/or the hostname can be empty if no matching additional records are found.
+        /// </remarks>
+        /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
+        /// <param name="service">The name of the service to look for. Must have <c>_</c> prefix and domain and protocol.</param>
+        /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
+        /// <exception cref="ArgumentNullException">If <paramref name="service"/> are null.</exception>
+        /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
+        public static async Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string service)
+        {
+            if (query == null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+            if (string.IsNullOrWhiteSpace(service))
+            {
+                throw new ArgumentNullException(nameof(service));
+            }
+
+            var result = await query.QueryAsync(service, QueryType.SRV).ConfigureAwait(false);
 
             return ResolveServiceProcessResult(result);
         }
