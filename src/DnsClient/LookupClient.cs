@@ -238,7 +238,7 @@ namespace DnsClient
         /// This will implicitly use the name server(s) configured by the local network adapter(s).
         /// </summary>
         /// <remarks>
-        /// This uses <see cref="NameServer.ResolveNameServers(bool, bool)"/>.
+        /// This uses <see cref="NameServer.ResolveNameServers(bool, bool, bool)"/>.
         /// The resulting list of name servers is highly dependent on the local network configuration and OS.
         /// </remarks>
         /// <example>
@@ -374,7 +374,7 @@ namespace DnsClient
 
             if (options.AutoResolveNameServers)
             {
-                _resolvedNameServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false);
+                _resolvedNameServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false, evaluateNameResolutionPolicy: options.UseNameResolutionPolicyTable);
                 servers = servers.Concat(_resolvedNameServers).ToArray();
 
                 // This will periodically get triggered on Query calls and
@@ -389,7 +389,7 @@ namespace DnsClient
                         _logger.LogDebug("Checking resolved name servers for network changes...");
                     }
 
-                    CheckResolvedNameservers();
+                    CheckResolvedNameservers(options);
                 },
                 skip: 60 * 1000);
             }
@@ -400,11 +400,11 @@ namespace DnsClient
             Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout, Settings.FailedResultsCacheDuration);
         }
 
-        private void CheckResolvedNameservers()
+        private void CheckResolvedNameservers(LookupClientOptions options)
         {
             try
             {
-                var newServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false);
+                var newServers = NameServer.ResolveNameServers(skipIPv6SiteLocal: true, fallbackToGooglePublicDns: false, evaluateNameResolutionPolicy: options.UseNameResolutionPolicyTable);
 
                 if (newServers == null || newServers.Count == 0)
                 {

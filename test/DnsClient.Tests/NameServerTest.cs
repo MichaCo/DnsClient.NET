@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using DnsClient.Windows;
 using Xunit;
 
 namespace DnsClient.Tests
@@ -56,6 +57,14 @@ namespace DnsClient.Tests
 
             await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.QueryServerAsync(new[] { IPAddress.Any }, "query", QueryType.A));
             await Assert.ThrowsAnyAsync<InvalidOperationException>(() => client.QueryServerReverseAsync(new[] { IPAddress.Any }, IPAddress.Loopback));
+        }
+
+        [Fact]
+        public void ValidateNameResolutionPolicyDoesntThrowNormally()
+        {
+            var ex  = Record.Exception(() => NameResolutionPolicy.Resolve());
+
+            Assert.Null(ex);
         }
     }
 }

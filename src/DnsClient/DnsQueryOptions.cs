@@ -400,6 +400,12 @@ namespace DnsClient
         public bool AutoResolveNameServers { get; set; } = true;
 
         /// <summary>
+        /// Gets or sets a flag indicating whether the Name Resolution Policy table in Windows should be evaluated
+        /// while trying to discover which nameservers should be used automatically.
+        /// </summary>
+        public bool UseNameResolutionPolicyTable { get; set; } = true;
+
+        /// <summary>
         /// Gets or sets a <see cref="TimeSpan"/> which can override the TTL of a resource record in case the
         /// TTL of the record is lower than this minimum value.
         /// Default is <c>Null</c>.
