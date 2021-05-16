@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
-
-#if !NETCOREAPP1_1
 
 namespace DnsClient.Tests
 {
@@ -15,67 +10,74 @@ namespace DnsClient.Tests
     public class ApiCompatibilityTest
     {
         [Fact]
-        public void API_1_1_0_Compat()
+        public void API_Compat()
         {
             var test = new ApiDesign.OldReference.TestLookupClient();
-            var error = Record.Exception(() => test.TestQuery());
+            var error = Record.Exception(() => test.TestQuery_1_1());
 
             Assert.Null(error);
         }
 
         [Fact]
-        public async Task API_1_1_0_CompatAsync()
+        public async Task API_CompatAsync()
         {
             var test = new ApiDesign.OldReference.TestLookupClient();
-            var error = await Record.ExceptionAsync(() => test.TestQueryAsync());
+            var error = await Record.ExceptionAsync(() => test.TestQueryAsync_1_1());
 
             Assert.Null(error);
         }
 
         [Fact]
-        public void API_1_1_0_PropertiesNonDefaults()
+        public void API_CompatPropertiesNonDefaults()
         {
             var test = new ApiDesign.OldReference.TestLookupClient();
 
-            test.SetNonDefaults();
+            var client = test.SetNonDefaults();
 
-            Assert.NotEmpty(test.Client.NameServers);
-            Assert.False(test.Client.UseCache);
-            Assert.True(test.Client.EnableAuditTrail);
-            Assert.Equal(TimeSpan.FromSeconds(11), test.Client.MinimumCacheTimeout);
-            Assert.False(test.Client.Recursion);
-            Assert.True(test.Client.ThrowDnsErrors);
-            Assert.Equal(10, test.Client.Retries);
-            Assert.Equal(TimeSpan.FromMinutes(1), test.Client.Timeout);
-            Assert.False(test.Client.UseTcpFallback);
-            Assert.True(test.Client.UseTcpOnly);
-            Assert.False(test.Client.ContinueOnDnsError);
-            Assert.False(test.Client.UseRandomNameServer);
+            Assert.NotEmpty(client.NameServers);
+            Assert.False(client.UseCache);
+            Assert.True(client.EnableAuditTrail);
+            Assert.Equal(TimeSpan.FromSeconds(11), client.MinimumCacheTimeout);
+            Assert.False(client.Recursion);
+            Assert.True(client.ThrowDnsErrors);
+            Assert.Equal(10, client.Retries);
+            Assert.Equal(TimeSpan.FromMinutes(1), client.Timeout);
+            Assert.False(client.UseTcpFallback);
+            Assert.True(client.UseTcpOnly);
+            Assert.False(client.ContinueOnDnsError);
+            Assert.False(client.UseRandomNameServer);
 
-            Assert.False(test.Client.Settings.UseCache);
-            Assert.True(test.Client.Settings.EnableAuditTrail);
-            Assert.Equal(TimeSpan.FromSeconds(11), test.Client.Settings.MinimumCacheTimeout);
-            Assert.False(test.Client.Settings.Recursion);
-            Assert.True(test.Client.Settings.ThrowDnsErrors);
-            Assert.Equal(10, test.Client.Settings.Retries);
-            Assert.Equal(TimeSpan.FromMinutes(1), test.Client.Settings.Timeout);
-            Assert.False(test.Client.Settings.UseTcpFallback);
-            Assert.True(test.Client.Settings.UseTcpOnly);
-            Assert.False(test.Client.Settings.ContinueOnDnsError);
-            Assert.False(test.Client.Settings.UseRandomNameServer);
-
+            Assert.False(client.Settings.UseCache);
+            Assert.True(client.Settings.EnableAuditTrail);
+            Assert.Equal(TimeSpan.FromSeconds(11), client.Settings.MinimumCacheTimeout);
+            Assert.False(client.Settings.Recursion);
+            Assert.True(client.Settings.ThrowDnsErrors);
+            Assert.Equal(10, client.Settings.Retries);
+            Assert.Equal(TimeSpan.FromMinutes(1), client.Settings.Timeout);
+            Assert.False(client.Settings.UseTcpFallback);
+            Assert.True(client.Settings.UseTcpOnly);
+            Assert.False(client.Settings.ContinueOnDnsError);
+            Assert.False(client.Settings.UseRandomNameServer);
         }
+
+        [Fact]
+        public void API_CompatProtocol_1_1()
+        {
+            var test = new ApiDesign.OldReference.TestLookupClient();
+
+            test.TestProtocol_1_1();
+        }
+
+#if NETCOREAPP3_1
+        [Fact]
+        public void API_CompatProtocol_1_2()
+        {
+            var test = new ApiDesign.OldReference.TestLookupClient();
+
+            test.TestProtocol_1_2();
+        }
+#endif
     }
 
 #pragma warning restore CS0618 // Type or member is obsolete
 }
-
-#else
-namespace System.Diagnostics.CodeAnalysis
-{
-    public class ExcludeFromCodeCoverageAttribute : Attribute
-    {
-    }
-}
-
-#endif

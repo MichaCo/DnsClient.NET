@@ -1,11 +1,11 @@
-﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+﻿using System;
+using System.Diagnostics;
+using DnsClient.Internal;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace DnsClient
 {
-    using System;
-    using System.Diagnostics;
-    using DnsClient.Internal;
-
     public static class Tracing
     {
         public static TraceSource Source { get; } = new TraceSource("DnsClient", SourceLevels.Error);
@@ -24,7 +24,7 @@ namespace DnsClient
 
                 public TraceLogger(string name)
                 {
-                    this._name = name ?? throw new ArgumentNullException(nameof(name));
+                    _name = name ?? throw new ArgumentNullException(nameof(name));
                 }
 
                 public bool IsEnabled(LogLevel logLevel)

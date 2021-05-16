@@ -389,37 +389,37 @@ namespace DnsClient
         internal const string YXDomain = "Name Exists when it should not";
         internal const string YXRRSet = "RR Set Exists when it should not";
 
-        private static readonly Dictionary<DnsResponseCode, string> errors = new Dictionary<DnsResponseCode, string>()
+        private static readonly Dictionary<DnsResponseCode, string> s_errors = new Dictionary<DnsResponseCode, string>()
         {
-            { DnsResponseCode.NoError, DnsResponseCodeText.NoError },
-            { DnsResponseCode.FormatError, DnsResponseCodeText.FormErr },
-            { DnsResponseCode.ServerFailure, DnsResponseCodeText.ServFail },
-            { DnsResponseCode.NotExistentDomain, DnsResponseCodeText.NXDomain },
-            { DnsResponseCode.NotImplemented, DnsResponseCodeText.NotImp },
-            { DnsResponseCode.Refused, DnsResponseCodeText.Refused },
-            { DnsResponseCode.ExistingDomain, DnsResponseCodeText.YXDomain },
-            { DnsResponseCode.ExistingResourceRecordSet, DnsResponseCodeText.YXRRSet },
-            { DnsResponseCode.MissingResourceRecordSet, DnsResponseCodeText.NXRRSet },
-            { DnsResponseCode.NotAuthorized, DnsResponseCodeText.NotAuth },
-            { DnsResponseCode.NotZone, DnsResponseCodeText.NotZone },
-            { DnsResponseCode.BadVersionOrBadSignature, DnsResponseCodeText.BADVERS },
-            { DnsResponseCode.BadKey, DnsResponseCodeText.BADKEY },
-            { DnsResponseCode.BadTime, DnsResponseCodeText.BADTIME },
-            { DnsResponseCode.BadMode, DnsResponseCodeText.BADMODE },
-            { DnsResponseCode.BadName, DnsResponseCodeText.BADNAME },
-            { DnsResponseCode.BadAlgorithm, DnsResponseCodeText.BADALG },
-            { DnsResponseCode.BadTruncation, DnsResponseCodeText.BADTRUNC },
-            { DnsResponseCode.BadCookie, DnsResponseCodeText.BADCOOKIE },
+            { DnsResponseCode.NoError, NoError },
+            { DnsResponseCode.FormatError, FormErr },
+            { DnsResponseCode.ServerFailure, ServFail },
+            { DnsResponseCode.NotExistentDomain, NXDomain },
+            { DnsResponseCode.NotImplemented, NotImp },
+            { DnsResponseCode.Refused, Refused },
+            { DnsResponseCode.ExistingDomain, YXDomain },
+            { DnsResponseCode.ExistingResourceRecordSet, YXRRSet },
+            { DnsResponseCode.MissingResourceRecordSet, NXRRSet },
+            { DnsResponseCode.NotAuthorized, NotAuth },
+            { DnsResponseCode.NotZone, NotZone },
+            { DnsResponseCode.BadVersionOrBadSignature, BADVERS },
+            { DnsResponseCode.BadKey, BADKEY },
+            { DnsResponseCode.BadTime, BADTIME },
+            { DnsResponseCode.BadMode, BADMODE },
+            { DnsResponseCode.BadName, BADNAME },
+            { DnsResponseCode.BadAlgorithm, BADALG },
+            { DnsResponseCode.BadTruncation, BADTRUNC },
+            { DnsResponseCode.BadCookie, BADCOOKIE },
         };
 
         public static string GetErrorText(DnsResponseCode code)
         {
-            if (!errors.ContainsKey(code))
+            if (!s_errors.ContainsKey(code))
             {
                 return Unassigned;
             }
 
-            return errors[code];
+            return s_errors[code];
         }
     }
 }

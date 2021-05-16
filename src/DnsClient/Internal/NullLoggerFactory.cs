@@ -1,7 +1,7 @@
-﻿namespace DnsClient.Internal
-{
-    using System;
+﻿using System;
 
+namespace DnsClient.Internal
+{
     internal class NullLoggerFactory : ILoggerFactory
     {
         public ILogger CreateLogger(string categoryName)

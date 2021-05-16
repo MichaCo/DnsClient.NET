@@ -254,7 +254,7 @@ namespace DnsClient
             var regexp = _reader.ReadStringWithLengthPrefix();
             var replacement = _reader.ReadDnsName();
 
-            return new NaptrRecord(info, order, preference, flags, services, regexp, replacement);
+            return new NAPtrRecord(info, order, preference, flags, services, regexp, replacement);
         }
 
         private DnsResourceRecord ResolveOptRecord(ResourceRecordInfo info)

@@ -229,6 +229,8 @@ namespace DnsClient
 #if !NET45
             if (exceptions.Count > 0)
             {
+                logger?.LogDebug("Using native path to resolve servers.");
+
                 try
                 {
                     nameServers = ResolveNameServersNative();
@@ -255,7 +257,7 @@ namespace DnsClient
             }
 
             IReadOnlyCollection<NameServer> filtered = nameServers
-                .Where(p => (p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetwork 
+                .Where(p => (p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetwork
                             || p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetworkV6)
                     && (!p.IPEndPoint.Address.IsIPv6SiteLocal || !skipIPv6SiteLocal))
                 .ToArray();
@@ -297,8 +299,8 @@ namespace DnsClient
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var fixedInfo = Windows.IpHlpApi.FixedNetworkInformation.GetFixedInformation();
-                
-                foreach(var ip in fixedInfo.DnsAddresses)
+
+                foreach (var ip in fixedInfo.DnsAddresses)
                 {
                     addresses.Add(new NameServer(ip, DefaultPort, fixedInfo.DomainName));
                 }
@@ -343,7 +345,7 @@ namespace DnsClient
                     && p.NetworkInterfaceType != NetworkInterfaceType.Loopback))
             {
                 var properties = networkInterface.GetIPProperties();
-                
+
                 foreach (var ip in properties.DnsAddresses)
                 {
                     result.Add(new NameServer(ip, DefaultPort, properties.DnsSuffix));

@@ -89,10 +89,10 @@ namespace DnsClient.Protocol
                 throw new DnsResponseParseException("NSEC record with too small bitmap.");
             }
 
-            for (int n = 0; n < data.Length; n++)
+            for (var n = 0; n < data.Length; n++)
             {
-                byte window = data[n++];
-                byte len = data[n++];
+                var window = data[n++];
+                var len = data[n++];
 
                 if (window == 0 && len == 0)
                 {
@@ -109,11 +109,11 @@ namespace DnsClient.Protocol
                     throw new DnsResponseParseException("NSEC record with bitmap length > packet length.");
                 }
 
-                for (int k = 0; k < len; k++)
+                for (var k = 0; k < len; k++)
                 {
-                    byte val = data[n++];
+                    var val = data[n++];
 
-                    for (int bit = 0; bit < 8; ++bit, val >>= 1)
+                    for (var bit = 0; bit < 8; ++bit, val >>= 1)
                     {
                         if ((val & 1) == 1)
                         {

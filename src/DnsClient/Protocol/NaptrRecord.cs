@@ -2,9 +2,8 @@
 
 namespace DnsClient.Protocol
 {
-    #region RFC Specifications
     /*
-        RFC 2915 : 
+        RFC 2915 :
         The DNS type code [1] for NAPTR is 35.
 
        Depending on the value of the
@@ -15,7 +14,7 @@ namespace DnsClient.Protocol
        resolution server for URI resolution, a service URI for ENUM style
        e.164 number to URI mapping, etc).
 
-        Points on the Flag field : RFC 2915, section 2 
+        Points on the Flag field : RFC 2915, section 2
 
           A <character-string> containing flags to control aspects of the
           rewriting and interpretation of the fields in the record.  Flags
@@ -34,11 +33,8 @@ namespace DnsClient.Protocol
           URI that adheres to the 'absoluteURI' production found in the
           ABNF of RFC 2396 [9].
 
-     */
-
-    /*
     * http://www.faqs.org/rfcs/rfc2915.html
-    * 
+    *
     8. DNS Packet Format
 
          The packet format for the NAPTR record is:
@@ -62,109 +58,169 @@ namespace DnsClient.Protocol
 
     where:
 
-    Flags 
+    Flags
         A <character-string> which contains various flags.
 
-    Services 
+    Services
         A <character-string> which contains protocol and service
       identifiers.
 
-    Regexp 
+    Regexp
         A <character-string> which contains a regular expression.
 
-    Replacement 
+    Replacement
         A <domain-name> which specifies the new value in the
         case where the regular expression is a simple replacement
         operation.
 
     <character-string> and <domain-name> as used here are defined in
     RFC1035 [1].
-
     */
-    #endregion
 
     /// <summary>
     /// A <see cref="DnsResourceRecord"/> representing Naming Authority Pointer
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc2915">RFC 2915</seealso>
-    [CLSCompliant(false)]
-    public class NaptrRecord : DnsResourceRecord
+    public class NAPtrRecord : DnsResourceRecord
     {
-        public const string SIP_SERVICE_KEY = "E2U+SIP";
-        public const string EMAIL_SERVICE_KEY = "E2U+EMAIL";
-        public const string WEB_SERVICE_KEY = "E2U+WEB";
-        public const string SIP_UDP_SERVICE_KEY = "SIP+D2U";
-        public const string SIP_TCP_SERVICE_KEY = "SIP+D2T";
-        public const string SIPS_TCP_SERVICE_KEY = "SIPS+D2T";
-        public const string SIP_WEBSOCKET_SERVICE_KEY = "SIP+D2W";
-        public const string SIPS_WEBSOCKET_SERVICE_KEY = "SIPS+D2W";
-
-        public const char A_FLAG = 'A';
-        public const char P_FLAG = 'P';
-        public const char S_FLAG = 'S';
-        public const char U_FLAG = 'U';
+        /// <summary>
+        /// A known value of <see cref="Services"/> property of a <see cref="NAPtrRecord"/>.
+        /// </summary>
+        public const string ServiceKeySip = "E2U+SIP";
 
         /// <summary>
-        /// Gets the Order.
+        /// A known value of <see cref="Services"/> property of a <see cref="NAPtrRecord"/>.
         /// </summary>
-        /// <value>
-        /// The Order.
-        /// </value>
-        public ushort Order { get; }
+        public const string ServiceKeyEmail = "E2U+EMAIL";
+
         /// <summary>
-        /// Gets the Preference.
+        /// A known value of <see cref="Services"/> property of a <see cref="NAPtrRecord"/>.
         /// </summary>
-        /// <value>
-        /// The Preference.
-        /// </value>
-        public ushort Preference { get; }
+        public const string ServiceKeyWeb = "E2U+WEB";
+
         /// <summary>
-        /// Gets the Flags.
+        /// A known value of <see cref="Services"/> property of a <see cref="NAPtrRecord"/>.
+        /// </summary>
+        public const string ServiceKeySipUdp = "SIP+D2U";
+
+        /// <summary>
+        /// A known value of <see cref="Services"/> property of a <see cref="NAPtrRecord"/>.
+        /// </summary>
+        public const string ServiceKeySipTcp = "SIP+D2T";
+
+        /// <summary>
+        /// A known value of <see cref="Services"/> property of a <see cref="NAPtrRecord"/>.
+        /// </summary>
+        public const string ServiceKeySipsTcp = "SIPS+D2T";
+
+        /// <summary>
+        /// A known value of <see cref="Services"/> property of a <see cref="NAPtrRecord"/>.
+        /// </summary>
+        public const string ServiceKeySipWebsocket = "SIP+D2W";
+
+        /// <summary>
+        /// A known value of <see cref="Services"/> property of a <see cref="NAPtrRecord"/>.
+        /// </summary>
+        public const string ServiceKeySipsWebsocket = "SIPS+D2W";
+
+        /// <summary>
+        /// One of the values of the <see cref="Flags"/> property of a <see cref="NAPtrRecord"/>.
+        /// At this time only four flags, "S", "A", "U", and "P", are defined.
+        /// The "S", "A" and "U" flags denote a terminal lookup.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2915">RFC 2915</seealso>
+        public const char AFlag = 'A';
+
+        /// <summary>
+        /// One of the values of the <see cref="Flags"/> property of a <see cref="NAPtrRecord"/>.
+        /// At this time only four flags, "S", "A", "U", and "P", are defined.
+        /// The "S", "A" and "U" flags denote a terminal lookup.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2915">RFC 2915</seealso>
+        public const char PFlag = 'P';
+
+        /// <summary>
+        /// One of the values of the <see cref="Flags"/> property of a <see cref="NAPtrRecord"/>.
+        /// At this time only four flags, "S", "A", "U", and "P", are defined.
+        /// The "S", "A" and "U" flags denote a terminal lookup.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2915">RFC 2915</seealso>
+        public const char SFlag = 'S';
+
+        /// <summary>
+        /// One of the values of the <see cref="Flags"/> property of a <see cref="NAPtrRecord"/>.
+        /// At this time only four flags, "S", "A", "U", and "P", are defined.
+        /// The "S", "A" and "U" flags denote a terminal lookup.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc2915">RFC 2915</seealso>
+        public const char UFlag = 'U';
+
+        /// <summary>
+        /// Gets the order.
         /// </summary>
         /// <value>
-        /// The Flags.
+        /// The order.
+        /// </value>
+        public int Order { get; }
+
+        /// <summary>
+        /// Gets the preference.
+        /// </summary>
+        /// <value>
+        /// The preference.
+        /// </value>
+        public int Preference { get; }
+
+        /// <summary>
+        /// Gets the flags.
+        /// </summary>
+        /// <value>
+        /// The flags.
         /// </value>
         public string Flags { get; }
+
         /// <summary>
-        /// Gets the Services.
+        /// Gets the services.
         /// </summary>
         /// <value>
-        /// The Services.
+        /// The services.
         /// </value>
         public string Services { get; }
+
         /// <summary>
-        /// Gets the Regexp.
+        /// Gets the regular expression.
         /// </summary>
         /// <value>
-        /// The Regexp.
+        /// The regular expression.
         /// </value>
-        public string Regexp { get; }
+        public string RegularExpression { get; }
+
         /// <summary>
-        /// Gets the Replacement.
+        /// Gets the replacement.
         /// </summary>
         /// <value>
-        /// The Replacement.
+        /// The replacement.
         /// </value>
         public DnsString Replacement { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NaptrRecord" /> class.
+        /// Initializes a new instance of the <see cref="NAPtrRecord" /> class.
         /// </summary>
         /// <param name="info">The information.</param>
         /// <param name="order">The order.</param>
         /// <param name="preference">The preference.</param>
         /// <param name="flags">The flags.</param>
         /// <param name="services">The services.</param>
-        /// <param name="regexp">The regexp.</param>
+        /// <param name="regexp">The regular expression.</param>
         /// <param name="replacement">The replacement.</param>
-        public NaptrRecord(ResourceRecordInfo info, ushort order, ushort preference, string flags, string services, string regexp, DnsString replacement)
+        public NAPtrRecord(ResourceRecordInfo info, int order, int preference, string flags, string services, string regexp, DnsString replacement)
             : base(info)
         {
             Order = order;
             Preference = preference;
             Flags = flags;
             Services = services ?? throw new ArgumentNullException(nameof(services));
-            Regexp = regexp;
+            RegularExpression = regexp;
             Replacement = replacement ?? throw new ArgumentNullException(nameof(replacement));
         }
 
@@ -175,7 +231,7 @@ namespace DnsClient.Protocol
                 Preference,
                 Flags,
                 Services,
-                Regexp,
+                RegularExpression,
                 Replacement);
         }
     }

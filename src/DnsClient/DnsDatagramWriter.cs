@@ -16,7 +16,7 @@ namespace DnsClient
 
         private readonly PooledBytes _pooledBytes;
 
-        private ArraySegment<byte> _buffer;
+        private readonly ArraySegment<byte> _buffer;
 
         public ArraySegment<byte> Data
         {
@@ -42,7 +42,7 @@ namespace DnsClient
         public virtual void WriteHostName(string queryName)
         {
             var bytes = Encoding.UTF8.GetBytes(queryName);
-            int lastOctet = 0;
+            var lastOctet = 0;
             var index = 0;
             if (bytes.Length <= 1)
             {
@@ -64,11 +64,16 @@ namespace DnsClient
             WriteByte(0);
         }
 
-        public virtual void WriteStringWithLengthPrefix(string query)
+        public virtual void WriteStringWithLengthPrefix(string value)
         {
-            var bytes = Encoding.ASCII.GetBytes(query);
+            var bytes = Encoding.UTF8.GetBytes(value);
             var len = bytes.Length;
-            WriteByte(Convert.ToByte(len));
+            if (len > byte.MaxValue)
+            {
+                throw new ArgumentException("Value is too long.", nameof(value));
+            }
+
+            WriteByte((byte)len);
             WriteBytes(bytes, len);
         }
 
@@ -77,8 +82,6 @@ namespace DnsClient
             _buffer.Array[_buffer.Offset + Index++] = b;
         }
 
-        public virtual void WriteBytes(byte[] data) => WriteBytes(data, 0, data==null?0:data.Length); 
-        
         public virtual void WriteBytes(byte[] data, int length) => WriteBytes(data, 0, length);
 
         public virtual void WriteBytes(byte[] data, int dataOffset, int length)

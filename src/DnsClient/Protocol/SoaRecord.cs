@@ -73,6 +73,7 @@ namespace DnsClient.Protocol
     /// A <see cref="DnsResourceRecord"/> representing a SOA (Start Of Authority) record.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.13">RFC 1035</seealso>
+    // TODO: For V2 Remove CLS incompliant properties - make ushort => int. Currently would break backward compat...
     [CLSCompliant(false)]
     public class SoaRecord : DnsResourceRecord
     {

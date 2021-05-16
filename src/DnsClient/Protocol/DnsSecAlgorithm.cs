@@ -1,6 +1,7 @@
 ﻿namespace DnsClient.Protocol
 {
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable CA1707 // Identifiers should not contain underscores
 
     public enum DnsSecurityAlgorithm
     {
@@ -23,5 +24,6 @@
         PRIVATEOID = 254
     }
 
+#pragma warning restore CA1707 // Identifiers should not contain underscores
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }

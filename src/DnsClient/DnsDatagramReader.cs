@@ -232,7 +232,7 @@ namespace DnsClient
                 {
                     try
                     {
-                        label = DnsString.IDN.GetUnicode(label);
+                        label = DnsString.s_idn.GetUnicode(label);
                     }
                     catch { /* just do nothing in case the IDN is invalid, better to return something at least */ }
                 }

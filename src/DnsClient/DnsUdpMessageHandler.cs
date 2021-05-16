@@ -12,8 +12,8 @@ namespace DnsClient
     internal class DnsUdpMessageHandler : DnsMessageHandler
     {
         private const int MaxSize = 4096;
-        private static ConcurrentQueue<UdpClient> _clients = new ConcurrentQueue<UdpClient>();
-        private static ConcurrentQueue<UdpClient> _clientsIPv6 = new ConcurrentQueue<UdpClient>();
+        private static ConcurrentQueue<UdpClient> s_clients = new ConcurrentQueue<UdpClient>();
+        private static ConcurrentQueue<UdpClient> s_clientsIPv6 = new ConcurrentQueue<UdpClient>();
         private readonly bool _enableClientQueue;
 
         public override DnsMessageHandleType Type { get; } = DnsMessageHandleType.UDP;
@@ -180,11 +180,11 @@ namespace DnsClient
             {
                 if (family == AddressFamily.InterNetwork)
                 {
-                    _clients.Enqueue(client);
+                    s_clients.Enqueue(client);
                 }
                 else
                 {
-                    _clientsIPv6.Enqueue(client);
+                    s_clientsIPv6.Enqueue(client);
                 }
             }
         }
@@ -193,10 +193,10 @@ namespace DnsClient
         {
             if (family == AddressFamily.InterNetwork)
             {
-                return _clients.TryDequeue(out client);
+                return s_clients.TryDequeue(out client);
             }
 
-            return _clientsIPv6.TryDequeue(out client);
+            return s_clientsIPv6.TryDequeue(out client);
         }
     }
 }
