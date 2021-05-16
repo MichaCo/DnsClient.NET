@@ -14,6 +14,7 @@ namespace DnsClient.Tests
 
             Assert.Equal("www.google.com.", query.Value);
             Assert.Equal("www.google.com", query.Original);
+            Assert.Equal(3, query.NumberOfLabels);
         }
 
         [Fact]
@@ -22,6 +23,16 @@ namespace DnsClient.Tests
             var name = DnsString.Parse("abc.xyz.example.com.");
 
             Assert.Equal("abc.xyz.example.com.", name.Value);
+            Assert.Equal(4, name.NumberOfLabels);
+        }
+
+        [Fact]
+        public void DnsString_SimpleValidShort()
+        {
+            var name = DnsString.Parse("host-name");
+
+            Assert.Equal("host-name.", name.Value);
+            Assert.Equal(1, name.NumberOfLabels);
         }
 
         [Fact]
@@ -41,6 +52,7 @@ namespace DnsClient.Tests
             DnsString name = DnsString.Parse(val);
 
             Assert.Equal(name.ToString(), val + ".");
+            Assert.Equal(3, name.NumberOfLabels);
         }
 
         [Fact]
@@ -59,6 +71,7 @@ namespace DnsClient.Tests
             var domain = "müsli.de";
             DnsString name = DnsString.Parse(domain);
             Assert.Equal("xn--msli-0ra.de.", name.Value);
+            Assert.Equal(2, name.NumberOfLabels);
         }
 
         [Fact]
@@ -178,6 +191,93 @@ namespace DnsClient.Tests
             object name2 = new object();
 
             Assert.False(name.Equals(name2));
+        }
+
+        [Fact]
+        public void DnsString_ConcatA()
+        {
+            DnsString a = DnsString.Parse("hostname");
+            DnsString b = DnsString.Parse("some.domain");
+
+            var result = a + b;
+            Assert.Equal("hostname.some.domain.", result.Value);
+        }
+
+        [Fact]
+        public void DnsString_ConcatB()
+        {
+            DnsString a = DnsString.Parse("hostname.");
+            DnsString b = DnsString.Parse("some.domain.");
+
+            var result = a + b;
+            Assert.Equal("hostname.some.domain.", result.Value);
+        }
+
+        [Fact]
+        public void DnsString_ConcatC()
+        {
+            var result = DnsString.RootLabel + DnsString.RootLabel;
+            Assert.Equal(".", result.Value);
+        }
+
+        [Fact]
+        public void DnsString_ConcatNullA()
+        {
+            Assert.Throws<ArgumentNullException>(() => DnsString.RootLabel + (DnsString)null);
+        }
+
+        [Fact]
+        public void DnsString_ConcatNullB()
+        {
+            Assert.Throws<ArgumentNullException>(() => (DnsString)null + DnsString.RootLabel);
+        }
+
+        [Fact]
+        public void DnsString_ConcatStringA()
+        {
+            DnsString a = DnsString.Parse("hostname");
+            var b = "some.domain";
+
+            var result = a + b;
+            Assert.Equal("hostname.some.domain.", result.Value);
+        }
+
+        [Fact]
+        public void DnsString_ConcatStringB()
+        {
+            DnsString a = DnsString.Parse("hostname.");
+            var b = "some.domain.";
+
+            var result = a + b;
+            Assert.Equal("hostname.some.domain.", result.Value);
+        }
+
+        [Fact]
+        public void DnsString_ConcatStringC()
+        {
+            DnsString a = DnsString.Parse(".");
+            var b = ".";
+
+            var result = a + b;
+            Assert.Equal(".", result.Value);
+        }
+
+        [Fact]
+        public void DnsString_ConcatStringNull()
+        {
+            Assert.Throws<ArgumentException>(() => DnsString.RootLabel + (string)null);
+        }
+
+        [Fact]
+        public void DnsString_ConcatStringNullB()
+        {
+            Assert.Throws<ArgumentException>(() => DnsString.RootLabel + "  ");
+        }
+
+        [Fact]
+        public void DnsString_ConcatStringNullC()
+        {
+            Assert.Throws<ArgumentNullException>(() => (DnsString)null + "");
         }
     }
 }

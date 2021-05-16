@@ -2,7 +2,7 @@
   "profiles": {
     "MiniDig": {
       "commandName": "Project",
-      "commandLineArgs": "mx3.mailbox.org spf --time -1"
+      "commandLineArgs": "google.com"
     }
   }
 }

@@ -146,6 +146,7 @@ namespace DigApp
 
         protected virtual void Configure()
         {
+            App.HelpOption("-? | -h | --help | --helpme");
             ServerArg = App.Option(
                 "-s | --server",
                 "The DNS server <name|ip>#<port> (multiple)",
@@ -193,8 +194,6 @@ namespace DigApp
                 "--dnssec",
                 "Request DNS SEC records (do flag).",
                 CommandOptionType.NoValue);
-
-            App.HelpOption("-? | -h | --help | --helpme");
         }
 
         protected abstract Task<int> Execute();
