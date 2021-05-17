@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using Microsoft.Win32;
 
 namespace DnsClient.Windows
@@ -17,6 +18,13 @@ namespace DnsClient.Windows
         /// <returns>Returns a list of name servers</returns>
         internal static IReadOnlyCollection<NameServer> Resolve(bool includeGenericServers = true, bool includeDirectAccessServers = true)
         {
+            var nameServers = new HashSet<NameServer>();
+#if !NET45
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return nameServers;
+            }
+#endif
             // [MS-GPNRPT] dictates that the NRPT is stored in two separate registry keys.
             //
             //  - The Policy key is pushed down through Group Policy.
@@ -24,8 +32,6 @@ namespace DnsClient.Windows
             //
             // Each key will contain one or more NRP rules where the key name is a unique GUID.
             // If the key exists in both Policy and Parameters, then Policy will take precedence.
-
-            var nameServers = new HashSet<NameServer>();
 
             var policyRoot = Registry.LocalMachine.OpenSubKey(@"Software\Policies\Microsoft\Windows NT\DNSClient\DnsPolicyConfig\");
             var parametersRoot = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\Dnscache\Parameters\DnsPolicyConfig\");
