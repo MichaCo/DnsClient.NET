@@ -82,9 +82,8 @@ namespace DnsClient
         /// <param name="dnsSuffix">An optional DNS suffix.</param>
         /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
         public NameServer(IPAddress endPoint, int port, string dnsSuffix = null)
-            : this(new IPEndPoint(endPoint, port))
+            : this(new IPEndPoint(endPoint, port), dnsSuffix)
         {
-            DnsSuffix = string.IsNullOrWhiteSpace(dnsSuffix) ? null : dnsSuffix;
         }
 
         /// <summary>
@@ -202,18 +201,13 @@ namespace DnsClient
         /// If <paramref name="fallbackToGooglePublicDns" /> is enabled, this method will return the Google public DNS endpoints if no
         /// local DNS server was found.
         /// </para>
-        /// <para>
-        /// If <paramref name="evaluateNameResolutionPolicy"/> is enabled on a Windows machine, this method will query the Name Resolution Policy Table (NRPT) 
-        /// and include the name servers listed in the policy.
-        /// </para>
         /// </summary>
         /// <param name="skipIPv6SiteLocal">If set to <c>true</c> local IPv6 sites are skipped.</param>
         /// <param name="fallbackToGooglePublicDns">If set to <c>true</c> the public Google DNS servers are returned if no other servers could be found.</param>
-        /// <param name="evaluateNameResolutionPolicy">If set to <c>true</c> on a Windows machine the Name Resolution Policy Table (NRPT) will be added to the name server list.</param>
         /// <returns>
         /// The list of name servers.
         /// </returns>
-        public static IReadOnlyCollection<NameServer> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true, bool evaluateNameResolutionPolicy = true)
+        public static IReadOnlyCollection<NameServer> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true)
         {
             // TODO: Use Array.Empty after dropping NET45
             IReadOnlyCollection<NameServer> nameServers = new NameServer[0];
@@ -248,34 +242,31 @@ namespace DnsClient
                 }
             }
 
-            if (evaluateNameResolutionPolicy)
+            try
             {
-                try
-                {
-                    var nprt = ResolveNameResolutionPolicyServers();
+                var nprt = ResolveNameResolutionPolicyServers();
 
-                    if (nprt.Any())
+                if (nprt.Count != 0)
+                {
+                    var servers = new HashSet<NameServer>();
+
+                    foreach (var server in nprt)
                     {
-                        var servers = new HashSet<NameServer>();
-
-                        foreach (var server in nprt)
-                        {
-                            servers.Add(server);
-                        }
-
-                        foreach (var server in nameServers)
-                        {
-                            servers.Add(server);
-                        }
-
-                        nameServers = servers;
+                        servers.Add(server);
                     }
+
+                    foreach (var server in nameServers)
+                    {
+                        servers.Add(server);
+                    }
+
+                    nameServers = servers;
                 }
-                catch (Exception ex)
-                {
-                    logger?.LogInformation(ex, "Resolving name servers from NRPT failed.");
-                    exceptions.Add(ex);
-                }
+            }
+            catch (Exception ex)
+            {
+                logger?.LogInformation(ex, "Resolving name servers from NRPT failed.");
+                exceptions.Add(ex);
             }
 #endif
             if (!fallbackToGooglePublicDns && exceptions.Count > 0)

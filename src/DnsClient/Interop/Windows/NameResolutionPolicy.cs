@@ -52,7 +52,7 @@ namespace DnsClient.Windows
 
                 foreach (var policyGuid in policyNames)
                 {
-                    var policyKey = OpenPreferredKey(policyGuid, policyRoot, parametersRoot);
+                    var policyKey = policyRoot?.OpenSubKey(policyGuid) ?? parametersRoot?.OpenSubKey(policyGuid);
 
                     if (policyKey == null)
                     {
@@ -60,7 +60,7 @@ namespace DnsClient.Windows
                         continue;
                     }
 
-                    try
+                    using (policyKey)
                     {
                         var name = policyKey.GetValue("Name") as string[];
                         var dnsServers = policyKey.GetValue("GenericDNSServers")?.ToString();
@@ -75,10 +75,6 @@ namespace DnsClient.Windows
                         {
                             AddServers(nameServers, name, directAccessDnsServers);
                         }
-                    }
-                    finally
-                    {
-                        policyKey.Dispose();
                     }
                 }
             }
@@ -107,7 +103,8 @@ namespace DnsClient.Windows
 
                 if (IPAddress.TryParse(s, out IPAddress address) &&
                     (address.AddressFamily == AddressFamily.InterNetwork ||
-                     address.AddressFamily == AddressFamily.InterNetworkV6))
+                     address.AddressFamily == AddressFamily.InterNetworkV6) &&
+                     names != null)
                 {
                     // Name can be a suffix (starts with .) or a prefix
                     // we want to ignore it if it's not a suffix
@@ -118,12 +115,6 @@ namespace DnsClient.Windows
                     }
                 }
             }
-        }
-
-        private static RegistryKey OpenPreferredKey(string policyGuid, RegistryKey policyRoot, RegistryKey parametersRoot)
-        {
-            return policyRoot?.OpenSubKey(policyGuid) ??
-                   parametersRoot?.OpenSubKey(policyGuid);
         }
     }
 }
