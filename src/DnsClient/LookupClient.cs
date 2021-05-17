@@ -956,7 +956,7 @@ namespace DnsClient
                     }
                     catch (Exception ex) when (
                         ex is TimeoutException timeoutEx
-                        || handler.IsTransientException(ex)
+                        || DnsMessageHandler.IsTransientException(ex)
                         || ex is OperationCanceledException)
                     {
                         var handle = HandleTimeoutException(ex, request, settings, serverInfo, handler.Type, isLastServer: isLastServer, isLastTry: isLastTry, currentTry: tries);
@@ -1098,10 +1098,14 @@ namespace DnsClient
 
                         DnsResponseMessage response;
                         Action onCancel = () => { };
-                        Task<DnsResponseMessage> resultTask = handler.QueryAsync(serverInfo.IPEndPoint, request, cancellationToken, (cancel) =>
-                        {
-                            onCancel = cancel;
-                        });
+                        Task<DnsResponseMessage> resultTask = handler.QueryAsync(
+                            serverInfo.IPEndPoint,
+                            request,
+                            (cancel) =>
+                            {
+                                onCancel = cancel;
+                            },
+                            cancellationToken);
 
                         if (settings.Timeout != System.Threading.Timeout.InfiniteTimeSpan
                             || (cancellationToken != CancellationToken.None && cancellationToken.CanBeCanceled))
@@ -1115,7 +1119,7 @@ namespace DnsClient
                             using (cts)
                             using (linkedCts)
                             {
-                                response = await resultTask.WithCancellation((linkedCts ?? cts).Token, onCancel).ConfigureAwait(false);
+                                response = await resultTask.WithCancellation(onCancel, (linkedCts ?? cts).Token).ConfigureAwait(false);
                             }
                         }
                         else
@@ -1212,7 +1216,7 @@ namespace DnsClient
                     }
                     catch (Exception ex) when (
                         ex is TimeoutException timeoutEx
-                        || handler.IsTransientException(ex)
+                        || DnsMessageHandler.IsTransientException(ex)
                         || ex is OperationCanceledException)
                     {
                         if (!cancellationToken.IsCancellationRequested)
@@ -1703,7 +1707,7 @@ namespace DnsClient
     internal class LookupClientAudit
     {
         private static readonly int s_printOffset = -32;
-        private StringBuilder _auditWriter = new StringBuilder();
+        private readonly StringBuilder _auditWriter = new StringBuilder();
         private Stopwatch _swatch;
 
         public DnsQuerySettings Settings { get; }
@@ -1906,12 +1910,11 @@ namespace DnsClient
                 return;
             }
 
-            var aggEx = ex as AggregateException;
             if (ex is DnsResponseException dnsEx)
             {
                 _auditWriter.AppendLine($";; Error: {DnsResponseCodeText.GetErrorText(dnsEx.Code)} {dnsEx.InnerException?.Message ?? dnsEx.Message}");
             }
-            else if (aggEx != null)
+            else if (ex is AggregateException aggEx)
             {
                 _auditWriter.AppendLine($";; Error: {aggEx.InnerException?.Message ?? aggEx.Message}");
             }

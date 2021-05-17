@@ -9,7 +9,7 @@ namespace Benchmarks
     {
         public class ForeachVsSelect
         {
-            private static List<ModelA> s_source = new List<ModelA>(Enumerable.Repeat(new ModelA(), 10000).ToArray());
+            private static readonly List<ModelA> s_source = new List<ModelA>(Enumerable.Repeat(new ModelA(), 10000).ToArray());
 
             public ForeachVsSelect()
             {

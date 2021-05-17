@@ -48,30 +48,7 @@ namespace DnsClient
                     Source.TraceEvent(GetTraceEventType(logLevel), eventId, result);
                 }
 
-                private LogLevel GetLogLevel(TraceEventType type)
-                {
-                    switch (type)
-                    {
-                        case TraceEventType.Critical:
-                            return LogLevel.Critical;
-
-                        case TraceEventType.Error:
-                            return LogLevel.Error;
-
-                        case TraceEventType.Warning:
-                            return LogLevel.Warning;
-
-                        case TraceEventType.Information:
-                            return LogLevel.Information;
-
-                        case TraceEventType.Verbose:
-                            return LogLevel.Debug;
-                    }
-
-                    return LogLevel.None;
-                }
-
-                private TraceEventType GetTraceEventType(LogLevel logLevel)
+                private static TraceEventType GetTraceEventType(LogLevel logLevel)
                 {
                     switch (logLevel)
                     {

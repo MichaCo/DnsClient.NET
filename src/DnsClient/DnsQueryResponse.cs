@@ -142,7 +142,7 @@ namespace DnsClient
                 return false;
             }
 
-            if (!(obj is DnsQueryResponse response))
+            if (obj is not DnsQueryResponse response)
             {
                 return false;
             }

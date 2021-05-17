@@ -16,12 +16,12 @@ namespace DigApp
 
             try
             {
-                app.Command("perf", (perfApp) => new PerfCommand(perfApp, args), throwOnUnexpectedArg: true);
-                app.Command("random", (randApp) => new RandomCommand(randApp, args), throwOnUnexpectedArg: true);
+                _ = app.Command("perf", (perfApp) => _ = new PerfCommand(perfApp, args), throwOnUnexpectedArg: true);
+                _ = app.Command("random", (randApp) => _ = new RandomCommand(randApp, args), throwOnUnexpectedArg: true);
 
-                app.Command("dig", (digApp) => new DigCommand(digApp, args), throwOnUnexpectedArg: true);
+                // Command must initialize so that it adds the configuration.
+                _ = new DigCommand(app, args);
 
-                var defaultCommand = new DigCommand(app, args);
                 return await app.ExecuteAsync(args).ConfigureAwait(false);
             }
             catch (UnrecognizedCommandParsingException ex)

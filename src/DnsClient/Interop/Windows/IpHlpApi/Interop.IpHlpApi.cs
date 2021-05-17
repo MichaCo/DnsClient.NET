@@ -19,7 +19,7 @@ internal static partial class Interop
         internal const uint ERROR_NOT_FOUND = 1168;
 
         [DllImport(Libraries.IpHlpApi)]
-        internal extern static uint GetAdaptersAddresses(
+        internal static extern uint GetAdaptersAddresses(
             AddressFamily family,
             uint flags,
             IntPtr pReserved,
@@ -27,7 +27,7 @@ internal static partial class Interop
             ref uint outBufLen);
 
         [DllImport(Libraries.IpHlpApi, ExactSpelling = true)]
-        internal extern static uint GetNetworkParams(IntPtr pFixedInfo, ref uint pOutBufLen);
+        internal static extern uint GetNetworkParams(IntPtr pFixedInfo, ref uint pOutBufLen);
 
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
         internal struct FIXED_INFO

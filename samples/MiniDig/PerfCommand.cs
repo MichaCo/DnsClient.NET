@@ -19,7 +19,6 @@ namespace DigApp
         private long _allExcecutions = 0;
         private bool _running;
         private LookupClientOptions _settings;
-        private LookupClient _lookup;
         private int _errors;
         private int _success;
         private Spiner _spinner;
@@ -69,7 +68,6 @@ namespace DigApp
 
             _settings = GetLookupSettings();
             _settings.EnableAuditTrail = false;
-            _lookup = GetDnsLookup(_settings);
             _running = true;
 
             Console.WriteLine($"; <<>> Starting perf run with {_clients} (x{_tasks}) clients running for {_runtime} seconds <<>>");

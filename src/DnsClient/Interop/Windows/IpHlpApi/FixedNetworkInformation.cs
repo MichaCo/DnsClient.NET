@@ -24,19 +24,18 @@ namespace DnsClient.Windows.IpHlpApi
         public static FixedNetworkInformation GetFixedInformation()
         {
             var info = new FixedNetworkInformation();
-            uint size = 0;
-            DisposableIntPtr buffer = null;
-            Interop.IpHlpApi.FIXED_INFO fixedInfo = new Interop.IpHlpApi.FIXED_INFO();
-
+            uint size = 0;            
             uint result = Interop.IpHlpApi.GetNetworkParams(IntPtr.Zero, ref size);
 
             while (result == Interop.IpHlpApi.ERROR_BUFFER_OVERFLOW)
             {
-                using (buffer = DisposableIntPtr.Alloc((int)size))
+                using (var buffer = DisposableIntPtr.Alloc((int)size))
                 {
                     if (buffer.IsValid)
                     {
                         result = Interop.IpHlpApi.GetNetworkParams(buffer.Ptr, ref size);
+
+                        Interop.IpHlpApi.FIXED_INFO fixedInfo;
                         if (result == Interop.IpHlpApi.ERROR_SUCCESS)
                         {
                             fixedInfo = Marshal.PtrToStructure<Interop.IpHlpApi.FIXED_INFO>(buffer.Ptr);
@@ -48,9 +47,8 @@ namespace DnsClient.Windows.IpHlpApi
 
                         var dnsAddresses = new List<IPAddress>();
                         Interop.IpHlpApi.IP_ADDR_STRING addr = fixedInfo.DnsServerList;
-                        IPAddress ip;
 
-                        if (IPAddress.TryParse(addr.IpAddress, out ip))
+                        if (IPAddress.TryParse(addr.IpAddress, out IPAddress ip))
                         {
                             dnsAddresses.Add(ip);
 

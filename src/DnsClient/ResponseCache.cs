@@ -97,7 +97,7 @@ namespace DnsClient
 
         public IDnsQueryResponse Get(string key)
         {
-            return Get(key, out double? effectiveTtl);
+            return Get(key, out _);
         }
 
         public IDnsQueryResponse Get(string key, out double? effectiveTtl)
@@ -118,7 +118,7 @@ namespace DnsClient
                 effectiveTtl = entry.TTL;
                 if (entry.IsExpiredFor(DateTimeOffset.UtcNow))
                 {
-                    _cache.TryRemove(key, out entry);
+                    _cache.TryRemove(key, out _);
                 }
                 else
                 {
@@ -197,7 +197,7 @@ namespace DnsClient
             {
                 if (entry.Value.IsExpiredFor(now))
                 {
-                    cache._cache.TryRemove(entry.Key, out ResponseEntry o);
+                    cache._cache.TryRemove(entry.Key, out _);
                 }
             }
 

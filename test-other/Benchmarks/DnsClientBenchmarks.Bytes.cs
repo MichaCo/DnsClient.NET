@@ -121,7 +121,7 @@ namespace Benchmarks
             {
                 for (int i = 0; i < Ops; i++)
                 {
-                    var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(i));
+                    _ = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(i));
                 }
             }
 
@@ -152,7 +152,7 @@ namespace Benchmarks
                 for (int i = 0; i < Ops; i++)
                 {
                     intArray[0] = IPAddress.HostToNetworkOrder(i);
-                    var result = MemoryMarshal.AsBytes(new ReadOnlySpan<int>(intArray));
+                    _ = MemoryMarshal.AsBytes(new ReadOnlySpan<int>(intArray));
                 }
             }
         }

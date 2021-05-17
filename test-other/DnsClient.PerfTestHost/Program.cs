@@ -10,7 +10,7 @@ namespace DnsClient.PerfTestHost
 {
     internal class Program
     {
-        private static void Main(string[] args)
+        private static void Main()
         {
             var port = 5053;
             var server = new StaticDnsServer(

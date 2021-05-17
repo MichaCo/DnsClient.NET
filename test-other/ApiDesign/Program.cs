@@ -9,7 +9,7 @@ namespace ApiDesign
 {
     public class Program
     {
-        public static async Task Main(string[] args)
+        public static async Task Main()
         {
             var services = new ServiceCollection();
             services

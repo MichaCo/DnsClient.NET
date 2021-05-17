@@ -31,8 +31,8 @@ namespace DnsClient
 
         internal static readonly IdnMapping s_idn = new IdnMapping();
 
-        private const char Dot = '.';
-        private const string DotStr = ".";
+        internal const char Dot = '.';
+        internal const string DotStr = ".";
 
         /// <summary>
         /// Gets the original value.
@@ -58,7 +58,7 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="DnsString"/> to <see cref="System.String"/>.
+        /// Performs an implicit conversion from <see cref="DnsString"/> to <see cref="string"/>.
         /// </summary>
         /// <param name="name">The name.</param>
         /// <returns>

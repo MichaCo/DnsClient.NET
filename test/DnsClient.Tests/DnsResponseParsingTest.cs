@@ -321,8 +321,6 @@ namespace DnsClient.Tests
 
         private class TestMessageHandler : DnsMessageHandler
         {
-            private const int MaxSize = 4096;
-
             // raw bytes from mcnet.com
             private static readonly byte[] s_zoneData = new byte[]
             {
@@ -359,8 +357,8 @@ namespace DnsClient.Tests
             public override Task<DnsResponseMessage> QueryAsync(
                 IPEndPoint server,
                 DnsRequestMessage request,
-                CancellationToken cancellationToken,
-                Action<Action> cancelationCallback)
+                Action<Action> cancelationCallback,
+                CancellationToken cancellationToken)
             {
                 // no need to run async here as we don't do any IO
                 return Task.FromResult(Query(server, request, Timeout.InfiniteTimeSpan));

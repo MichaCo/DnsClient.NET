@@ -81,9 +81,8 @@ namespace DnsClient
         /// <param name="dnsSuffix">An optional DNS suffix.</param>
         /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
         public NameServer(IPAddress endPoint, int port, string dnsSuffix = null)
-            : this(new IPEndPoint(endPoint, port))
+            : this(new IPEndPoint(endPoint, port), dnsSuffix)
         {
-            DnsSuffix = string.IsNullOrWhiteSpace(dnsSuffix) ? null : dnsSuffix;
         }
 
         /// <summary>
@@ -95,6 +94,7 @@ namespace DnsClient
         public NameServer(IPEndPoint endPoint, string dnsSuffix = null)
         {
             IPEndPoint = endPoint ?? throw new ArgumentNullException(nameof(endPoint));
+            DnsSuffix = string.IsNullOrWhiteSpace(dnsSuffix) ? null : dnsSuffix;
         }
 
         /// <summary>
@@ -165,10 +165,10 @@ namespace DnsClient
             => addresses?.Select(p => (NameServer)p).ToArray();
 
         /// <summary>
-        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// Returns a <see cref="string" /> that represents this instance.
         /// </summary>
         /// <returns>
-        /// A <see cref="System.String" /> that represents this instance.
+        /// A <see cref="string" /> that represents this instance.
         /// </returns>
         public override string ToString()
         {

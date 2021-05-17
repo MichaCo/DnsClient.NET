@@ -201,18 +201,9 @@ namespace DnsClient
             }
             set
             {
-                if (value < MinimumBufferSize)
-                {
-                    _ednsBufferSize = MinimumBufferSize;
-                }
-                else if (value > MaximumBufferSize)
-                {
-                    _ednsBufferSize = MaximumBufferSize;
-                }
-                else
-                {
-                    _ednsBufferSize = value;
-                }
+                _ednsBufferSize =
+                    value < MinimumBufferSize ? MinimumBufferSize :
+                    value > MaximumBufferSize ? MaximumBufferSize : value;
             }
         }
 
@@ -733,7 +724,7 @@ namespace DnsClient
     public class DnsQueryAndServerSettings : DnsQuerySettings, IEquatable<DnsQueryAndServerSettings>
     {
         private readonly NameServer[] _endpoints;
-        private readonly Random _rnd = new Random();
+        private readonly Random _rnd = new();
 
         /// <summary>
         /// Gets a collection of name servers which should be used to query.

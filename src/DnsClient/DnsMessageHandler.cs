@@ -20,12 +20,15 @@ namespace DnsClient
 
         public abstract DnsResponseMessage Query(IPEndPoint endpoint, DnsRequestMessage request, TimeSpan timeout);
 
-        public abstract Task<DnsResponseMessage> QueryAsync(IPEndPoint endpoint, DnsRequestMessage request, CancellationToken cancellationToken,
-            Action<Action> cancelationCallback);
+        public abstract Task<DnsResponseMessage> QueryAsync(
+            IPEndPoint endpoint,
+            DnsRequestMessage request,
+            Action<Action> cancelationCallback,
+            CancellationToken cancellationToken);
 
         // Transient errors will be retried on the same NameServer before the resolver moves on
         // to the next configured NameServer (if any).
-        public bool IsTransientException<T>(T exception) where T : Exception
+        public static bool IsTransientException<T>(T exception) where T : Exception
         {
             if (exception is SocketException socketException)
             {

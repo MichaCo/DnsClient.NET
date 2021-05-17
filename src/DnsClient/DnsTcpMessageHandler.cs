@@ -24,20 +24,20 @@ namespace DnsClient
                 using (var cts = new CancellationTokenSource(timeout))
                 {
                     Action onCancel = () => { };
-                    return QueryAsync(endpoint, request, cts.Token, (s) => onCancel = s)
-                        .WithCancellation(cts.Token, onCancel)
+                    return QueryAsync(endpoint, request, (s) => onCancel = s, cts.Token)
+                        .WithCancellation(onCancel, cts.Token)
                         .ConfigureAwait(false).GetAwaiter().GetResult();
                 }
             }
 
-            return QueryAsync(endpoint, request, CancellationToken.None, (s) => { }).ConfigureAwait(false).GetAwaiter().GetResult();
+            return QueryAsync(endpoint, request, (s) => { }, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         public override async Task<DnsResponseMessage> QueryAsync(
             IPEndPoint server,
             DnsRequestMessage request,
-            CancellationToken cancellationToken,
-            Action<Action> cancelationCallback)
+            Action<Action> cancelationCallback,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -152,7 +152,7 @@ namespace DnsClient
                     int readSize = length > 4096 ? 4096 : length;
 
                     while (!cancellationToken.IsCancellationRequested
-                        && (bytesReceived += (read = await stream.ReadAsync(memory.Buffer, bytesReceived, readSize, cancellationToken).ConfigureAwait(false))) < length)
+                        && (bytesReceived += read = await stream.ReadAsync(memory.Buffer, bytesReceived, readSize, cancellationToken).ConfigureAwait(false)) < length)
                     {
                         if (read <= 0)
                         {

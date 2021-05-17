@@ -100,7 +100,7 @@ namespace DnsClient
             Id = GetNextUniqueId();
         }
 
-        private ushort GetNextUniqueId()
+        private static ushort GetNextUniqueId()
         {
             return (ushort)s_random.Next(1, ushort.MaxValue);
         }

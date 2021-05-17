@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
+using DnsClient;
 
 namespace System.Net
 {
@@ -30,7 +31,7 @@ namespace System.Net
                 // reversed bytes need to be split into 4 bit parts and separated by '.'
                 var newBytes = bytes
                     .SelectMany(b => new[] { (b >> 0) & 0xf, (b >> 4) & 0xf })
-                    .Aggregate(new StringBuilder(), (s, b) => s.Append(b.ToString("x")).Append(".")) + "ip6.arpa.";
+                    .Aggregate(new StringBuilder(), (s, b) => s.Append(b.ToString("x")).Append(DnsString.Dot)) + "ip6.arpa.";
 
                 return newBytes;
             }

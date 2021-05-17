@@ -1664,7 +1664,7 @@ namespace DnsClient.Tests
             return _onQuery(endpoint, request);
         }
 
-        public override Task<DnsResponseMessage> QueryAsync(IPEndPoint endpoint, DnsRequestMessage request, CancellationToken cancellationToken, Action<Action> cancelationCallback)
+        public override Task<DnsResponseMessage> QueryAsync(IPEndPoint endpoint, DnsRequestMessage request, Action<Action> cancelationCallback, CancellationToken cancellationToken)
         {
             return Task.FromResult(_onQuery(endpoint, request));
         }

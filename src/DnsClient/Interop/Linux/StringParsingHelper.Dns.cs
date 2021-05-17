@@ -17,9 +17,8 @@ namespace DnsClient.Linux
         {
             string data = File.ReadAllText(filePath);
             RowConfigReader rcr = new RowConfigReader(data);
-            string dnsSuffix;
 
-            return rcr.TryGetNextValue("search", out dnsSuffix) ? dnsSuffix : string.Empty;
+            return rcr.TryGetNextValue("search", out var dnsSuffix) ? dnsSuffix : string.Empty;
         }
 
         internal static List<NameServer> ParseDnsAddressesFromResolvConfFile(string filePath)
@@ -33,11 +32,9 @@ namespace DnsClient.Linux
             RowConfigReader rcr = new RowConfigReader(data);
             List<NameServer> addresses = new List<NameServer>();
 
-            string addressString = null;
-            while (rcr.TryGetNextValue("nameserver", out addressString))
+            while (rcr.TryGetNextValue("nameserver", out var addressString))
             {
-                IPAddress parsedAddress;
-                if (IPAddress.TryParse(addressString, out parsedAddress))
+                if (IPAddress.TryParse(addressString, out IPAddress parsedAddress))
                 {
                     addresses.Add(parsedAddress);
                 }

@@ -12,8 +12,7 @@ namespace Benchmarks
     {
         public class LoopupAsyncVsSync
         {
-            private LookupClient _lookup;
-            private LookupClient _lookupNoTtl;
+            private readonly LookupClient _lookup;
 
             public LoopupAsyncVsSync()
             {
@@ -22,36 +21,30 @@ namespace Benchmarks
                     {
                         UseCache = false
                     });
-
-                _lookupNoTtl = new LookupClient(new LookupClientOptions(IPAddress.Loopback)
-                {
-                    UseCache = false,
-                    Timeout = TimeSpan.FromMilliseconds(Timeout.Infinite)
-                });
             }
 
             [Benchmark(Baseline = true)]
             public async Task Async()
             {
-                var result = await _lookup.QueryAsync("localhost", QueryType.A);
+                _ = await _lookup.QueryAsync("localhost", QueryType.A);
             }
 
             [Benchmark]
             public async Task AsyncNoTtl()
             {
-                var result = await _lookup.QueryAsync("localhost", QueryType.A);
+                _ = await _lookup.QueryAsync("localhost", QueryType.A);
             }
 
             [Benchmark]
             public void Sync()
             {
-                var result = _lookup.Query("localhost", QueryType.A);
+                _ = _lookup.Query("localhost", QueryType.A);
             }
         }
 
         public class LoopupCachedAsyncVsSync
         {
-            private LookupClient _lookup;
+            private readonly LookupClient _lookup;
 
             public LoopupCachedAsyncVsSync()
             {
@@ -64,13 +57,13 @@ namespace Benchmarks
             [Benchmark(Baseline = true)]
             public async Task Async()
             {
-                var result = await _lookup.QueryAsync("localhost", QueryType.A);
+                _ = await _lookup.QueryAsync("localhost", QueryType.A);
             }
 
             [Benchmark]
             public void Sync()
             {
-                var result = _lookup.Query("localhost", QueryType.A);
+                _ = _lookup.Query("localhost", QueryType.A);
             }
         }
     }
