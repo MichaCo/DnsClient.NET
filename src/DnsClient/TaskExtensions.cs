@@ -2,7 +2,7 @@
 {
     internal static class TaskExtensions
     {
-        public static async Task<T> WithCancellation<T>(this Task<T> task, CancellationToken cancellationToken, Action onCancel)
+        public static async Task<T> WithCancellation<T>(this Task<T> task, Action onCancel, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<bool>();
 

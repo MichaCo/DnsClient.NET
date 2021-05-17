@@ -38,22 +38,22 @@ namespace DnsClient
     /// </example>
     public class LookupClient : ILookupClient, IDnsQuery
     {
-        private const int c_eventStartQuery = 1;
-        private const int c_eventQuery = 2;
-        private const int c_eventQueryCachedResult = 3;
-        private const int c_eventQueryTruncated = 5;
-        private const int c_eventQuerySuccess = 10;
-        private const int c_eventQueryReturnResponseError = 11;
-        private const int c_eventQuerySuccessEmpty = 12;
+        private const int LogEventStartQuery = 1;
+        private const int LogEventQuery = 2;
+        private const int LogEventQueryCachedResult = 3;
+        private const int LogEventQueryTruncated = 5;
+        private const int LogEventQuerySuccess = 10;
+        private const int LogEventQueryReturnResponseError = 11;
+        private const int LogEventQuerySuccessEmpty = 12;
 
-        private const int c_eventQueryRetryErrorNextServer = 20;
-        private const int c_eventQueryRetryErrorSameServer = 21;
+        private const int LogEventQueryRetryErrorNextServer = 20;
+        private const int LogEventQueryRetryErrorSameServer = 21;
 
-        private const int c_eventQueryFail = 90;
-        private const int c_eventQueryBadTruncation = 91;
+        private const int LogEventQueryFail = 90;
+        private const int LogEventQueryBadTruncation = 91;
 
-        private const int c_eventResponseOpt = 31;
-        private const int c_eventResponseMissingOpt = 80;
+        private const int LogEventResponseOpt = 31;
+        private const int LogEventResponseMissingOpt = 80;
 
         private readonly LookupClientOptions _originalOptions;
         private readonly DnsMessageHandler _messageHandler;
@@ -707,7 +707,7 @@ namespace DnsClient
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug(c_eventStartQuery, "Begin query [{0}] via {1} => {2} on [{3}].", head, handler.Type, question, string.Join(", ", servers));
+                _logger.LogDebug(LogEventStartQuery, "Begin query [{0}] via {1} => {2} on [{3}].", head, handler.Type, question, string.Join(", ", servers));
             }
 
             var result = ResolveQuery(servers.ToList(), queryOptions, handler, request, audit);
@@ -763,7 +763,7 @@ namespace DnsClient
 
             if (_logger.IsEnabled(LogLevel.Debug))
             {
-                _logger.LogDebug(c_eventStartQuery, "Begin query [{0}] via {1} => {2} on [{3}].", head, handler.Type, question, string.Join(", ", servers));
+                _logger.LogDebug(LogEventStartQuery, "Begin query [{0}] via {1} => {2} on [{3}].", head, handler.Type, question, string.Join(", ", servers));
             }
 
             var result = await ResolveQueryAsync(servers.ToList(), queryOptions, handler, request, audit, cancellationToken: cancellationToken).ConfigureAwait(false);
@@ -851,7 +851,7 @@ namespace DnsClient
                     if (_logger.IsEnabled(LogLevel.Debug))
                     {
                         _logger.LogDebug(
-                            c_eventQuery,
+                            LogEventQuery,
                             "TryResolve {0} via {1} => {2} on {3}, try {4}/{5}.",
                             request.Header.Id,
                             handler.Type,
@@ -956,7 +956,7 @@ namespace DnsClient
                     }
                     catch (Exception ex) when (
                         ex is TimeoutException timeoutEx
-                        || handler.IsTransientException(ex)
+                        || DnsMessageHandler.IsTransientException(ex)
                         || ex is OperationCanceledException)
                     {
                         var handle = HandleTimeoutException(ex, request, settings, serverInfo, handler.Type, isLastServer: isLastServer, isLastTry: isLastTry, currentTry: tries);
@@ -1081,7 +1081,7 @@ namespace DnsClient
                     if (_logger.IsEnabled(LogLevel.Debug))
                     {
                         _logger.LogDebug(
-                            c_eventQuery,
+                            LogEventQuery,
                             "TryResolve {0} via {1} => {2} on {3}, try {4}/{5}.",
                             request.Header.Id,
                             handler.Type,
@@ -1098,10 +1098,14 @@ namespace DnsClient
 
                         DnsResponseMessage response;
                         Action onCancel = () => { };
-                        Task<DnsResponseMessage> resultTask = handler.QueryAsync(serverInfo.IPEndPoint, request, cancellationToken, (cancel) =>
-                        {
-                            onCancel = cancel;
-                        });
+                        Task<DnsResponseMessage> resultTask = handler.QueryAsync(
+                            serverInfo.IPEndPoint,
+                            request,
+                            (cancel) =>
+                            {
+                                onCancel = cancel;
+                            },
+                            cancellationToken);
 
                         if (settings.Timeout != System.Threading.Timeout.InfiniteTimeSpan
                             || (cancellationToken != CancellationToken.None && cancellationToken.CanBeCanceled))
@@ -1115,7 +1119,7 @@ namespace DnsClient
                             using (cts)
                             using (linkedCts)
                             {
-                                response = await resultTask.WithCancellation((linkedCts ?? cts).Token, onCancel).ConfigureAwait(false);
+                                response = await resultTask.WithCancellation(onCancel, (linkedCts ?? cts).Token).ConfigureAwait(false);
                             }
                         }
                         else
@@ -1212,7 +1216,7 @@ namespace DnsClient
                     }
                     catch (Exception ex) when (
                         ex is TimeoutException timeoutEx
-                        || handler.IsTransientException(ex)
+                        || DnsMessageHandler.IsTransientException(ex)
                         || ex is OperationCanceledException)
                     {
                         if (!cancellationToken.IsCancellationRequested)
@@ -1336,22 +1340,22 @@ namespace DnsClient
                 switch (handle)
                 {
                     case HandleError.Throw:
-                        eventId = c_eventQueryFail;
+                        eventId = LogEventQueryFail;
                         message += " Throwing the error.";
                         break;
 
                     case HandleError.ReturnResponse:
-                        eventId = c_eventQueryReturnResponseError;
+                        eventId = LogEventQueryReturnResponseError;
                         message += " Returning response.";
                         break;
 
                     case HandleError.RetryCurrentServer:
-                        eventId = c_eventQueryRetryErrorSameServer;
+                        eventId = LogEventQueryRetryErrorSameServer;
                         message += " Re-trying {5}/{6}....";
                         break;
 
                     case HandleError.RetryNextServer:
-                        eventId = c_eventQueryRetryErrorNextServer;
+                        eventId = LogEventQueryRetryErrorNextServer;
                         message += " Trying next server.";
                         break;
                 }
@@ -1380,8 +1384,8 @@ namespace DnsClient
             {
                 // lets assume the response was truncated and retry with TCP.
                 // (Not retrying other servers as it is very unlikely they would provide better results on this network)
-                this._logger.LogError(
-                    c_eventQueryBadTruncation,
+                _logger.LogError(
+                    LogEventQueryBadTruncation,
                     ex,
                     "Query {0} via {1} => {2} error parsing the response. The response seems to be truncated without TC flag set! Re-trying via TCP anyways.",
                     request.Header.Id,
@@ -1394,8 +1398,8 @@ namespace DnsClient
 
             if (isLastServer)
             {
-                this._logger.LogError(
-                    c_eventQueryFail,
+                _logger.LogError(
+                    LogEventQueryFail,
                     ex,
                     "Query {0} via {1} => {2} error parsing the response. Throwing the error.",
                     request.Header.Id,
@@ -1406,8 +1410,8 @@ namespace DnsClient
             }
 
             // Otherwise, lets continue at least with the next server
-            this._logger.LogWarning(
-                c_eventQueryRetryErrorNextServer,
+            _logger.LogWarning(
+                LogEventQueryRetryErrorNextServer,
                 ex,
                 "Query {0} via {1} => {2} error parsing the response. Trying next server.",
                 request.Header.Id,
@@ -1424,7 +1428,7 @@ namespace DnsClient
                 if (_logger.IsEnabled(LogLevel.Information))
                 {
                     _logger.LogInformation(
-                        c_eventQueryFail,
+                        LogEventQueryFail,
                         ex,
                         "Query {0} via {1} => {2} on {3} timed out or is a transient error. Throwing the error.",
                         request.Header.Id,
@@ -1440,7 +1444,7 @@ namespace DnsClient
                 if (_logger.IsEnabled(LogLevel.Information))
                 {
                     _logger.LogInformation(
-                        c_eventQueryRetryErrorNextServer,
+                        LogEventQueryRetryErrorNextServer,
                         ex,
                         "Query {0} via {1} => {2} on {3} timed out or is a transient error. Trying next server",
                         request.Header.Id,
@@ -1455,7 +1459,7 @@ namespace DnsClient
             if (_logger.IsEnabled(LogLevel.Information))
             {
                 _logger.LogInformation(
-                    c_eventQueryRetryErrorSameServer,
+                    LogEventQueryRetryErrorSameServer,
                     ex,
                     "Query {0} via {1} => {2} on {3} timed out or is a transient error. Re-trying {4}/{5}...",
                     request.Header.Id,
@@ -1474,7 +1478,7 @@ namespace DnsClient
             if (_logger.IsEnabled(LogLevel.Warning))
             {
                 _logger.LogWarning(
-                    isLastServer ? c_eventQueryFail : c_eventQueryRetryErrorNextServer,
+                    isLastServer ? LogEventQueryFail : LogEventQueryRetryErrorNextServer,
                     ex,
                     "Query {0} via {1} => {2} on {3} failed with an error."
                         + (isLastServer ? " Throwing the error." : " Trying next server."),
@@ -1511,7 +1515,7 @@ namespace DnsClient
 
                 if (_logger.IsEnabled(LogLevel.Information))
                 {
-                    _logger.LogInformation(c_eventQueryTruncated, "Query {0} via {1} => {2} was truncated, re-trying with TCP.", request.Header.Id, handleType, request.Question);
+                    _logger.LogInformation(LogEventQueryTruncated, "Query {0} via {1} => {2} was truncated, re-trying with TCP.", request.Header.Id, handleType, request.Question);
                 }
 
                 return new TruncatedQueryResponse();
@@ -1537,7 +1541,7 @@ namespace DnsClient
                 if (_logger.IsEnabled(LogLevel.Debug))
                 {
                     _logger.LogDebug(
-                        c_eventQuerySuccess,
+                        LogEventQuerySuccess,
                         "Got {0} answers for query {1} via {2} => {3} from {4}.",
                         response.Answers.Count,
                         request.Header.Id,
@@ -1573,7 +1577,7 @@ namespace DnsClient
                     && _logger.IsEnabled(LogLevel.Information))
                 {
                     _logger.LogInformation(
-                        c_eventQuerySuccessEmpty,
+                        LogEventQuerySuccessEmpty,
                         "Got no answer for query {0} via {1} => {2} from {3}. Trying next server.",
                         request.Header.Id,
                         handleType,
@@ -1595,7 +1599,7 @@ namespace DnsClient
                 {
                     if (_logger.IsEnabled(LogLevel.Debug))
                     {
-                        _logger.LogDebug(c_eventQueryCachedResult, "Got cached result for query {0} => {1}.", request.Header.Id, request.Question);
+                        _logger.LogDebug(LogEventQueryCachedResult, "Got cached result for query {0} => {1}.", request.Header.Id, request.Question);
                     }
 
                     if (settings.EnableAuditTrail)
@@ -1622,7 +1626,7 @@ namespace DnsClient
                 {
                     if (_logger.IsEnabled(LogLevel.Information))
                     {
-                        _logger.LogInformation(c_eventResponseMissingOpt, "Response {0} => {1} is missing the requested OPT record.", response.Header.Id, response.Questions.FirstOrDefault());
+                        _logger.LogInformation(LogEventResponseMissingOpt, "Response {0} => {1} is missing the requested OPT record.", response.Header.Id, response.Questions.FirstOrDefault());
                     }
                 }
                 else if (record is OptRecord optRecord)
@@ -1636,7 +1640,7 @@ namespace DnsClient
                     if (_logger.IsEnabled(LogLevel.Debug))
                     {
                         _logger.LogDebug(
-                            c_eventResponseOpt,
+                            LogEventResponseOpt,
                             "Response {0} => {1} opt record sets buffer of {2} to {3}.",
                             response.Header.Id,
                             response.Questions.FirstOrDefault(),
@@ -1703,7 +1707,7 @@ namespace DnsClient
     internal class LookupClientAudit
     {
         private static readonly int s_printOffset = -32;
-        private StringBuilder _auditWriter = new StringBuilder();
+        private readonly StringBuilder _auditWriter = new StringBuilder();
         private Stopwatch _swatch;
 
         public DnsQuerySettings Settings { get; }
@@ -1906,12 +1910,11 @@ namespace DnsClient
                 return;
             }
 
-            var aggEx = ex as AggregateException;
             if (ex is DnsResponseException dnsEx)
             {
                 _auditWriter.AppendLine($";; Error: {DnsResponseCodeText.GetErrorText(dnsEx.Code)} {dnsEx.InnerException?.Message ?? dnsEx.Message}");
             }
-            else if (aggEx != null)
+            else if (ex is AggregateException aggEx)
             {
                 _auditWriter.AppendLine($";; Error: {aggEx.InnerException?.Message ?? aggEx.Message}");
             }

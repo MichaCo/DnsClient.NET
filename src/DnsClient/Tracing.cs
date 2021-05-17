@@ -1,11 +1,11 @@
-﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+﻿using System;
+using System.Diagnostics;
+using DnsClient.Internal;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace DnsClient
 {
-    using System;
-    using System.Diagnostics;
-    using DnsClient.Internal;
-
     public static class Tracing
     {
         public static TraceSource Source { get; } = new TraceSource("DnsClient", SourceLevels.Error);
@@ -24,7 +24,7 @@ namespace DnsClient
 
                 public TraceLogger(string name)
                 {
-                    this._name = name ?? throw new ArgumentNullException(nameof(name));
+                    _name = name ?? throw new ArgumentNullException(nameof(name));
                 }
 
                 public bool IsEnabled(LogLevel logLevel)
@@ -48,30 +48,7 @@ namespace DnsClient
                     Source.TraceEvent(GetTraceEventType(logLevel), eventId, result);
                 }
 
-                private LogLevel GetLogLevel(TraceEventType type)
-                {
-                    switch (type)
-                    {
-                        case TraceEventType.Critical:
-                            return LogLevel.Critical;
-
-                        case TraceEventType.Error:
-                            return LogLevel.Error;
-
-                        case TraceEventType.Warning:
-                            return LogLevel.Warning;
-
-                        case TraceEventType.Information:
-                            return LogLevel.Information;
-
-                        case TraceEventType.Verbose:
-                            return LogLevel.Debug;
-                    }
-
-                    return LogLevel.None;
-                }
-
-                private TraceEventType GetTraceEventType(LogLevel logLevel)
+                private static TraceEventType GetTraceEventType(LogLevel logLevel)
                 {
                     switch (logLevel)
                     {

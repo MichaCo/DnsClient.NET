@@ -9,9 +9,9 @@ namespace Benchmarks
     {
         public class CharValidate
         {
-            private static readonly Regex c_regex = new Regex("^[a-zA-Z0-9._-]+$", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant);
-            public const string c_longValue = "a.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.thema.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.thema.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.them";
-            public const string c_shortValue = "a.very.short.hostname";
+            private static readonly Regex s_regex = new Regex("^[a-zA-Z0-9._-]+$", RegexOptions.Compiled | RegexOptions.Singleline | RegexOptions.CultureInvariant);
+            public const string LongValue = "a.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.thema.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.thema.very.long.hostname.with.all.kind.of.valid.values.in.it.so.the.check.loops.through.all.of.them";
+            public const string ShortValue = "a.very.short.hostname";
 
             private static bool IsHostNameChar(char c)
             {
@@ -22,9 +22,12 @@ namespace Benchmarks
             public bool ForeachLongName()
             {
                 var result = true;
-                foreach (var chr in c_longValue)
+                foreach (var chr in LongValue)
                 {
-                    if (!IsHostNameChar(chr)) throw new Exception("not expected");
+                    if (!IsHostNameChar(chr))
+                    {
+                        throw new Exception("not expected");
+                    }
                 }
 
                 return result;
@@ -34,9 +37,12 @@ namespace Benchmarks
             public bool Foreach()
             {
                 var result = true;
-                foreach (var chr in c_shortValue)
+                foreach (var chr in ShortValue)
                 {
-                    if (!IsHostNameChar(chr)) throw new Exception("not expected");
+                    if (!IsHostNameChar(chr))
+                    {
+                        throw new Exception("not expected");
+                    }
                 }
 
                 return result;
@@ -45,7 +51,7 @@ namespace Benchmarks
             [Benchmark]
             public bool LinqAnyLongName()
             {
-                var result = c_longValue.Any(p => !IsHostNameChar(p));
+                var result = LongValue.Any(p => !IsHostNameChar(p));
 
                 return result;
             }
@@ -53,7 +59,7 @@ namespace Benchmarks
             [Benchmark]
             public bool LinqAny()
             {
-                var result = c_shortValue.Any(p => !IsHostNameChar(p));
+                var result = ShortValue.Any(p => !IsHostNameChar(p));
 
                 return result;
             }
@@ -62,7 +68,7 @@ namespace Benchmarks
             public bool RegExLongName()
             {
                 var result = true;
-                if (!c_regex.IsMatch(c_longValue))
+                if (!s_regex.IsMatch(LongValue))
                 {
                     throw new Exception();
                 }
@@ -74,7 +80,7 @@ namespace Benchmarks
             public bool RegEx()
             {
                 var result = true;
-                if (!c_regex.IsMatch(c_shortValue))
+                if (!s_regex.IsMatch(ShortValue))
                 {
                     throw new Exception();
                 }

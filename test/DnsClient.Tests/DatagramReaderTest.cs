@@ -6,10 +6,11 @@ using Xunit;
 
 namespace DnsClient.Tests
 {
+
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class DatagramReaderTest
     {
-        private static byte[] ReferenceBitData = new byte[]
+        private static readonly byte[] s_referenceBitData = new byte[]
         {
             2, 97, 97, 3, 99, 111, 109, 0, // aa.com.       0-8
             2, 98, 192, 0,                 // b.ref to 0    8-11
@@ -28,7 +29,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DatagramReader_LabelTest_DnsName()
         {
-            var data = ReferenceBitData.Concat(new byte[] { 192, 0 });
+            var data = s_referenceBitData.Concat(new byte[] { 192, 0 });
             var reader = new DnsDatagramReader(new ArraySegment<byte>(data.ToArray()));
 
             reader.Advance(36);
@@ -39,7 +40,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DatagramReader_LabelTest_DnsName_LengthOutOfBounds()
         {
-            var data = ReferenceBitData.Concat(new byte[] { 192, 23 });
+            var data = s_referenceBitData.Concat(new byte[] { 192, 23 });
             var reader = new DnsDatagramReader(new ArraySegment<byte>(data.ToArray()));
 
             reader.Advance(36);

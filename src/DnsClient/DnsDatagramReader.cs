@@ -18,11 +18,10 @@ namespace DnsClient
         private readonly byte[] _ipV6Buffer = new byte[16];
         private readonly ArraySegment<byte> _data;
         private readonly int _count;
-        private int _index;
 
-        public int Index => _index;
+        public int Index { get; private set; }
 
-        public bool DataAvailable => _count - _data.Offset > 0 && _index < _count;
+        public bool DataAvailable => _count - _data.Offset > 0 && Index < _count;
 
         public DnsDatagramReader(ArraySegment<byte> data, int startIndex = 0)
         {
@@ -33,7 +32,7 @@ namespace DnsClient
 
             _data = data;
             _count = data.Count;
-            _index = startIndex;
+            Index = startIndex;
         }
 
         public string ReadStringWithLengthPrefix()
@@ -45,13 +44,13 @@ namespace DnsClient
 
         public string ReadString(int length)
         {
-            if (_count < _index + length)
+            if (_count < Index + length)
             {
-                throw new DnsResponseParseException("Cannot read string.", _data.ToArray(), _index, length);
+                throw new DnsResponseParseException("Cannot read string.", _data.ToArray(), Index, length);
             }
 
-            var result = Encoding.ASCII.GetString(_data.Array, _data.Offset + _index, length);
-            _index += length;
+            var result = Encoding.ASCII.GetString(_data.Array, _data.Offset + Index, length);
+            Index += length;
             return result;
         }
 
@@ -66,9 +65,9 @@ namespace DnsClient
 
         public static string ParseString(DnsDatagramReader reader, int length)
         {
-            if (reader._count < reader._index + length)
+            if (reader._count < reader.Index + length)
             {
-                throw new DnsResponseParseException("Cannot parse string.", reader._data.ToArray(), reader._index, length);
+                throw new DnsResponseParseException("Cannot parse string.", reader._data.ToArray(), reader.Index, length);
             }
 
             var builder = StringBuilderObjectPool.Default.Get();
@@ -111,29 +110,29 @@ namespace DnsClient
 
         public byte ReadByte()
         {
-            if (_count < _index + 1)
+            if (_count < Index + 1)
             {
-                throw new DnsResponseParseException("Cannot read byte.", _data.ToArray(), _index, 1);
+                throw new DnsResponseParseException("Cannot read byte.", _data.ToArray(), Index, 1);
             }
 
-            return _data.Array[_data.Offset + _index++];
+            return _data.Array[_data.Offset + Index++];
         }
 
         public ArraySegment<byte> ReadBytes(int length)
         {
-            if (_count < _index + length)
+            if (_count < Index + length)
             {
-                throw new DnsResponseParseException("Cannot read bytes.", _data.ToArray(), _index, length);
+                throw new DnsResponseParseException("Cannot read bytes.", _data.ToArray(), Index, length);
             }
 
-            var result = new ArraySegment<byte>(_data.Array, _data.Offset + _index, length);
-            _index += length;
+            var result = new ArraySegment<byte>(_data.Array, _data.Offset + Index, length);
+            Index += length;
             return result;
         }
 
         public ArraySegment<byte> ReadBytesToEnd(int startIndex, int lengthOfRawData)
         {
-            var bytesRead = _index - startIndex;
+            var bytesRead = Index - startIndex;
             var length = lengthOfRawData - bytesRead;
 
             return ReadBytes(length);
@@ -141,15 +140,15 @@ namespace DnsClient
 
         public IPAddress ReadIPAddress()
         {
-            if (_count < _index + IPv4Length)
+            if (_count < Index + IPv4Length)
             {
-                throw new DnsResponseParseException($"Cannot read IPv4 address, expected {IPv4Length} bytes.", _data.ToArray(), _index, IPv4Length);
+                throw new DnsResponseParseException($"Cannot read IPv4 address, expected {IPv4Length} bytes.", _data.ToArray(), Index, IPv4Length);
             }
 
-            _ipV4Buffer[0] = _data.Array[_data.Offset + _index];
-            _ipV4Buffer[1] = _data.Array[_data.Offset + _index + 1];
-            _ipV4Buffer[2] = _data.Array[_data.Offset + _index + 2];
-            _ipV4Buffer[3] = _data.Array[_data.Offset + _index + 3];
+            _ipV4Buffer[0] = _data.Array[_data.Offset + Index];
+            _ipV4Buffer[1] = _data.Array[_data.Offset + Index + 1];
+            _ipV4Buffer[2] = _data.Array[_data.Offset + Index + 2];
+            _ipV4Buffer[3] = _data.Array[_data.Offset + Index + 3];
 
             Advance(IPv4Length);
             return new IPAddress(_ipV4Buffer);
@@ -157,14 +156,14 @@ namespace DnsClient
 
         public IPAddress ReadIPv6Address()
         {
-            if (_count < _index + IPv6Length)
+            if (_count < Index + IPv6Length)
             {
-                throw new DnsResponseParseException($"Cannot read IPv6 address, expected {IPv6Length} bytes.", _data.ToArray(), _index, IPv6Length);
+                throw new DnsResponseParseException($"Cannot read IPv6 address, expected {IPv6Length} bytes.", _data.ToArray(), Index, IPv6Length);
             }
 
             for (var i = 0; i < IPv6Length; i++)
             {
-                _ipV6Buffer[i] = _data.Array[_data.Offset + _index + i];
+                _ipV6Buffer[i] = _data.Array[_data.Offset + Index + i];
             }
 
             Advance(IPv6Length);
@@ -173,22 +172,22 @@ namespace DnsClient
 
         public void Advance(int length)
         {
-            if (_count < _index + length)
+            if (_count < Index + length)
             {
-                throw new DnsResponseParseException("Cannot advance the reader.", _data.ToArray(), _index, length);
+                throw new DnsResponseParseException("Cannot advance the reader.", _data.ToArray(), Index, length);
             }
 
-            _index += length;
+            Index += length;
         }
 
         public void SanitizeResult(int expectedIndex, int dataLength)
         {
-            if (_index != expectedIndex)
+            if (Index != expectedIndex)
             {
                 throw new DnsResponseParseException(
-                    message: $"Record reader index out of sync. Expected to read till {expectedIndex} but tried to read till index {_index}.",
+                    message: $"Record reader index out of sync. Expected to read till {expectedIndex} but tried to read till index {Index}.",
                     data: _data.ToArray(),
-                    index: _index,
+                    index: Index,
                     length: dataLength);
             }
         }
@@ -225,32 +224,32 @@ namespace DnsClient
                     }
                 }
 
-                builder.Append(".");
+                builder.Append(DnsString.Dot);
 
                 var label = Encoding.UTF8.GetString(labelArray.Array, labelArray.Offset, labelArray.Count);
                 if (label.StartsWith(ACEPrefix, StringComparison.Ordinal))
                 {
                     try
                     {
-                        label = DnsString.IDN.GetUnicode(label);
+                        label = DnsString.s_idn.GetUnicode(label);
                     }
                     catch { /* just do nothing in case the IDN is invalid, better to return something at least */ }
                 }
 
                 original.Append(label);
-                original.Append(".");
+                original.Append(DnsString.Dot);
             }
 
             var value = builder.ToString();
-            if (value.Length == 0 || value[value.Length - 1] != '.')
+            if (value.Length == 0 || value[value.Length - 1] != DnsString.Dot)
             {
-                value += '.';
+                value += DnsString.Dot;
             }
 
             var orig = original.ToString();
-            if (orig.Length == 0 || orig[orig.Length - 1] != '.')
+            if (orig.Length == 0 || orig[orig.Length - 1] != DnsString.Dot)
             {
-                orig += '.';
+                orig += DnsString.Dot;
             }
 
             StringBuilderObjectPool.Default.Return(builder);
@@ -267,7 +266,7 @@ namespace DnsClient
             {
                 var label = Encoding.UTF8.GetString(labelArray.Array, labelArray.Offset, labelArray.Count);
                 result.Append(label);
-                result.Append(".");
+                result.Append(DnsString.Dot);
             }
 
             string value = result.ToString();
@@ -293,8 +292,8 @@ namespace DnsClient
                     {
                         // invalid length pointer, seems to be actual length of a label which exceeds 63 chars...
                         // get back one and continue other labels
-                        _index--;
-                        result.Add(_data.SubArray(_index, length));
+                        Index--;
+                        result.Add(_data.SubArray(Index, length));
                         Advance(length);
                         continue;
                     }
@@ -305,13 +304,13 @@ namespace DnsClient
                     return result;
                 }
 
-                if (_index + length >= _count)
+                if (Index + length >= _count)
                 {
                     throw new DnsResponseParseException(
-                        "Found invalid label position.", _data.ToArray(), _index, length);
+                        "Found invalid label position.", _data.ToArray(), Index, length);
                 }
 
-                var label = _data.SubArray(_index, length);
+                var label = _data.SubArray(Index, length);
 
                 // maybe store original bytes in this instance too?
                 result.Add(label);
@@ -324,21 +323,21 @@ namespace DnsClient
 
         public ushort ReadUInt16()
         {
-            if (_count < _index + 2)
+            if (_count < Index + 2)
             {
-                throw new DnsResponseParseException("Cannot read more Int16.", _data.ToArray(), _index, 2);
+                throw new DnsResponseParseException("Cannot read more Int16.", _data.ToArray(), Index, 2);
             }
 
-            var result = BitConverter.ToUInt16(_data.Array, _data.Offset + _index);
-            _index += 2;
+            var result = BitConverter.ToUInt16(_data.Array, _data.Offset + Index);
+            Index += 2;
             return result;
         }
 
         public ushort ReadUInt16NetworkOrder()
         {
-            if (_count < _index + 2)
+            if (_count < Index + 2)
             {
-                throw new DnsResponseParseException("Cannot read more Int16.", _data.ToArray(), _index, 2);
+                throw new DnsResponseParseException("Cannot read more Int16.", _data.ToArray(), Index, 2);
             }
 
             return (ushort)(ReadByte() << 8 | ReadByte());
@@ -346,9 +345,9 @@ namespace DnsClient
 
         public uint ReadUInt32NetworkOrder()
         {
-            if (_count < _index + 4)
+            if (_count < Index + 4)
             {
-                throw new DnsResponseParseException("Cannot read more Int32.", _data.ToArray(), _index, 4);
+                throw new DnsResponseParseException("Cannot read more Int32.", _data.ToArray(), Index, 4);
             }
 
             return (uint)(ReadUInt16NetworkOrder() << 16 | ReadUInt16NetworkOrder());

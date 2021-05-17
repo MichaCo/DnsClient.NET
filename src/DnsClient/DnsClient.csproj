@@ -30,6 +30,9 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
+  <PropertyGroup>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\icon.png" Pack="true" PackagePath="" />

@@ -103,38 +103,6 @@ namespace DnsClient.Tests
             Assert.Equal((int)weight, first.Weight);
         }
 
-#if ENABLE_REMOTE_DNS
-        [Fact]
-        public async Task ResolveService_WithNAPTR()
-        {
-            var client = new LookupClient(NameServer.GooglePublicDns);
-            var result = await client.QueryAsync("tel.t-online.de", QueryType.NAPTR);
-
-            Assert.NotEmpty(result.Answers.NaptrRecords());
-            var naptrRecord = result.Answers.NaptrRecords().First();
-            Assert.NotNull(naptrRecord);
-            Assert.True(naptrRecord.Order > 0);
-
-            var hosts = client.ResolveService(naptrRecord.Replacement);
-            Assert.NotEmpty(hosts);
-            var host = hosts.First();
-            Assert.NotNull(host.HostName); 
-
-            /*result = await client.QueryAsync(naptrRecord.Replacement, QueryType.SRV);
-            Assert.NotEmpty(result.Answers.SrvRecords());
-            var srvRecord = result.Answers.SrvRecords().First();
-            Assert.NotNull(srvRecord);
-            Assert.True(srvRecord.Port > 0);
-
-            var srv1st = result.Answers.SrvRecords().OrderBy(srv => srv.Priority).First();
-            result = await client.QueryAsync(srv1st.Target, QueryType.A);
-            Assert.NotEmpty(result.Answers.ARecords());
-            var aRecord = result.Answers.ARecords().First();
-            Assert.NotNull(aRecord);*/
-        }
-#endif
-
-
         [Fact]
         public void Lookup_Query_QuestionCannotBeNull()
         {
@@ -782,6 +750,23 @@ namespace DnsClient.Tests
 
             Assert.Equal("8.8.8.8.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.6.8.4.0.6.8.4.1.0.0.2.ip6.arpa.", result);
             Assert.Contains("dns.google", queryResult.Answers.PtrRecords().First().PtrDomainName);
+        }
+
+        [Fact]
+        public async Task Lookup_Query_NaPtr()
+        {
+            var client = new LookupClient(NameServer.GooglePublicDns);
+            var result = await client.QueryAsync("tel.t-online.de", QueryType.NAPTR);
+
+            Assert.NotEmpty(result.Answers.NAPtrRecords());
+            var naptrRecord = result.Answers.NAPtrRecords().First();
+            Assert.NotNull(naptrRecord);
+            Assert.True(naptrRecord.Order > 0);
+
+            var hosts = client.ResolveService(naptrRecord.Replacement);
+            Assert.NotEmpty(hosts);
+            var host = hosts.First();
+            Assert.NotNull(host.HostName);
         }
 
 #endif

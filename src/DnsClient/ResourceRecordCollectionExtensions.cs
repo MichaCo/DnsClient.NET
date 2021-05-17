@@ -54,6 +54,7 @@ namespace System.Linq
         /// </summary>
         /// <param name="records">The records.</param>
         /// <returns>The list of <see cref="SoaRecord"/>.</returns>
+        // TODO: For V2 Remove CLS incompliant properties - make ushort => int. Currently would break backward compat...
         [CLSCompliant(false)]
         public static IEnumerable<SoaRecord> SoaRecords(this IEnumerable<DnsResourceRecord> records)
         {
@@ -135,6 +136,7 @@ namespace System.Linq
         /// </summary>
         /// <param name="records">The records.</param>
         /// <returns>The list of <see cref="MxRecord"/>.</returns>
+        // TODO: For V2 Remove CLS incompliant properties - make ushort => int. Currently would break backward compat...
         [CLSCompliant(false)]
         public static IEnumerable<MxRecord> MxRecords(this IEnumerable<DnsResourceRecord> records)
         {
@@ -186,6 +188,7 @@ namespace System.Linq
         /// </summary>
         /// <param name="records">The records.</param>
         /// <returns>The list of <see cref="SrvRecord"/>.</returns>
+        // TODO: For V2 Remove CLS incompliant properties - make ushort => int. Currently would break backward compat...
         [CLSCompliant(false)]
         public static IEnumerable<SrvRecord> SrvRecords(this IEnumerable<DnsResourceRecord> records)
         {
@@ -193,14 +196,13 @@ namespace System.Linq
         }
 
         /// <summary>
-        /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="NaptrRecord"/>s only.
+        /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="NAPtrRecord"/>s only.
         /// </summary>
         /// <param name="records">The records.</param>
-        /// <returns>The list of <see cref="NaptrRecord"/>.</returns>
-        [CLSCompliant(false)]
-        public static IEnumerable<NaptrRecord> NaptrRecords(this IEnumerable<DnsResourceRecord> records)
+        /// <returns>The list of <see cref="NAPtrRecord"/>.</returns>
+        public static IEnumerable<NAPtrRecord> NAPtrRecords(this IEnumerable<DnsResourceRecord> records)
         {
-            return records.OfType<NaptrRecord>();
+            return records.OfType<NAPtrRecord>();
         }
 
         /// <summary>

@@ -152,7 +152,7 @@ namespace DnsClient.Tests
             Assert.Equal(1 * 1000, effectiveTtl);
 
             await Task.Delay(1100);
-            var item3 = cache.Get("key", out double? effectiveTtl2);
+            var item3 = cache.Get("key", out _);
 
             Assert.Null(item3);
         }

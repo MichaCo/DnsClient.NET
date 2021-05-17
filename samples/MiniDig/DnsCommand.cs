@@ -140,9 +140,9 @@ namespace DigApp
 
         public bool GetUseTcpValue() => UseTcpArg.HasValue();
 
-        public bool GetUseTcp() => UseTcpArg.HasValue() ? true : false;
+        public bool GetUseTcp() => UseTcpArg.HasValue();
 
-        public bool GetNoTcp() => NoTcpArg.HasValue() ? true : false;
+        public bool GetNoTcp() => NoTcpArg.HasValue();
 
         protected virtual void Configure()
         {

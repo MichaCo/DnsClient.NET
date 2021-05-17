@@ -14,7 +14,7 @@ namespace DnsClient
         public static readonly IPEndPoint AnyIPEndPoint = new IPEndPoint(IPAddress.Any, AnyPort);
 
         // static dns server statically always returns this static response ^^
-        private static byte[] Response = new byte[]
+        private static readonly byte[] s_response = new byte[]
         {
             0, 42, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 5, 113, 117, 101, 114, 121, 0, 0, 1, 0, 1, 0, 0, 0, 100, 0, 4, 123, 45, 67, 9
         };
@@ -95,7 +95,6 @@ namespace DnsClient
 
         private void HandleRequest(int id)
         {
-            var obj = new object();
             while (!_cancelSource.IsCancellationRequested)
             {
                 try
@@ -115,58 +114,57 @@ namespace DnsClient
             }
         }
 
-        private async Task HandleRequestAsync(int id)
-        {
-            var obj = new object();
-            while (!_cancelSource.IsCancellationRequested)
-            {
-                try
-                {
-                    using (var memory = new PooledBytes(512))
-                    {
-                        var segment = new ArraySegment<byte>(memory.Buffer, 0, memory.Buffer.Length);
-                        var result = await _server.Client.ReceiveFromAsync(segment, SocketFlags.None, AnyIPEndPoint);
-                        Interlocked.Increment(ref _workerHitCounter[id]);
-                        await HandleResponseSocketPooledAsync(_server.Client, result.RemoteEndPoint, segment);
-                    }
-                }
-                catch
-                {
-                    break;
-                }
-            }
-        }
+        ////private async Task HandleRequestAsync(int id)
+        ////{
+        ////    while (!_cancelSource.IsCancellationRequested)
+        ////    {
+        ////        try
+        ////        {
+        ////            using (var memory = new PooledBytes(512))
+        ////            {
+        ////                var segment = new ArraySegment<byte>(memory.Buffer, 0, memory.Buffer.Length);
+        ////                var result = await _server.Client.ReceiveFromAsync(segment, SocketFlags.None, AnyIPEndPoint);
+        ////                Interlocked.Increment(ref _workerHitCounter[id]);
+        ////                await HandleResponseSocketPooledAsync(_server.Client, result.RemoteEndPoint, segment);
+        ////            }
+        ////        }
+        ////        catch
+        ////        {
+        ////            break;
+        ////        }
+        ////    }
+        ////}
 
         private void HandleResponseSocketPooled(Socket server, EndPoint remoteEndpoint, byte[] receiveBuffer)
         {
-            using (var memory = new PooledBytes(Response.Length))
+            using (var memory = new PooledBytes(s_response.Length))
             {
                 //Buffer.BlockCopy(Response, 0, memory.Buffer, 0, Response.Length);
                 memory.Buffer[0] = receiveBuffer[0];
                 memory.Buffer[1] = receiveBuffer[1];
-                for (var i = 2; i < Response.Length; i++)
+                for (var i = 2; i < s_response.Length; i++)
                 {
-                    memory.Buffer[i] = Response[i];
+                    memory.Buffer[i] = s_response[i];
                 }
 
                 server.SendTo(memory.Buffer, 0, memory.Buffer.Length, SocketFlags.None, remoteEndpoint);
             }
         }
 
-        private async Task HandleResponseSocketPooledAsync(Socket server, EndPoint remoteEndpoint, ArraySegment<byte> receiveBuffer)
-        {
-            using (var memory = new PooledBytes(Response.Length))
-            {
-                //Buffer.BlockCopy(Response, 0, memory.Buffer, 0, Response.Length);
-                memory.Buffer[0] = receiveBuffer.Array[0];
-                memory.Buffer[1] = receiveBuffer.Array[1];
-                for (var i = 2; i < Response.Length; i++)
-                {
-                    memory.Buffer[i] = Response[i];
-                }
+        ////private async Task HandleResponseSocketPooledAsync(Socket server, EndPoint remoteEndpoint, ArraySegment<byte> receiveBuffer)
+        ////{
+        ////    using (var memory = new PooledBytes(s_response.Length))
+        ////    {
+        ////        //Buffer.BlockCopy(Response, 0, memory.Buffer, 0, Response.Length);
+        ////        memory.Buffer[0] = receiveBuffer.Array[0];
+        ////        memory.Buffer[1] = receiveBuffer.Array[1];
+        ////        for (var i = 2; i < s_response.Length; i++)
+        ////        {
+        ////            memory.Buffer[i] = s_response[i];
+        ////        }
 
-                await server.SendToAsync(new ArraySegment<byte>(memory.Buffer, 0, memory.Buffer.Length), SocketFlags.None, remoteEndpoint);
-            }
-        }
+        ////        await server.SendToAsync(new ArraySegment<byte>(memory.Buffer, 0, memory.Buffer.Length), SocketFlags.None, remoteEndpoint);
+        ////    }
+        ////}
     }
 }

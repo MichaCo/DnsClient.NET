@@ -20,15 +20,15 @@ namespace Benchmarks
         public class DatagramReader_ReadIpAddress
         {
             private const int Ops = 100000;
-            private static byte[] bytes = new byte[] { 26, 25, 24, 23 };
-            private readonly long address = 387455258;
+            private static readonly byte[] s_bytes = new byte[] { 26, 25, 24, 23 };
+            private readonly long _address = 387455258;
 
             [Benchmark(Baseline = true, OperationsPerInvoke = Ops)]
             public void FromBytes()
             {
                 for (int i = 0; i < Ops; i++)
                 {
-                    var ip = new IPAddress(bytes);
+                    _ = new IPAddress(s_bytes);
                 }
             }
 
@@ -37,7 +37,7 @@ namespace Benchmarks
             {
                 for (int i = 0; i < Ops; i++)
                 {
-                    var ip = new IPAddress(address);
+                    _ = new IPAddress(_address);
                 }
             }
 
@@ -46,7 +46,7 @@ namespace Benchmarks
             {
                 for (int i = 0; i < Ops; i++)
                 {
-                    var ip = new IPAddress(address);
+                    _ = new IPAddress(_address);
                 }
             }
 
@@ -58,7 +58,7 @@ namespace Benchmarks
                 ReadOnlySpan<byte> span = bytes.AsSpan();
                 for (int i = 0; i < Ops; i++)
                 {
-                    var ip = new IPAddress(span);
+                    _ =  new IPAddress(span);
                 }
             }
 
@@ -67,8 +67,8 @@ namespace Benchmarks
 
         public class DatagramReader_FullRead
         {
-            private static readonly ArraySegment<byte> _bigSegment = new ArraySegment<byte>(TestMessageHandler.BigData, 0, TestMessageHandler.BigData.Length);
-            private static readonly ArraySegment<byte> _smallSegment = new ArraySegment<byte>(TestMessageHandler.SmallData, 0, TestMessageHandler.SmallData.Length);
+            private static readonly ArraySegment<byte> s_bigSegment = new ArraySegment<byte>(TestMessageHandler.BigData, 0, TestMessageHandler.BigData.Length);
+            private static readonly ArraySegment<byte> s_smallSegment = new ArraySegment<byte>(TestMessageHandler.SmallData, 0, TestMessageHandler.SmallData.Length);
             private readonly TestMessageHandler _handler;
 
             public DatagramReader_FullRead()
@@ -79,33 +79,33 @@ namespace Benchmarks
             [Benchmark()]
             public int ReadBigData()
             {
-                return _handler.GetResponseMessage(_bigSegment).MessageSize;
+                return _handler.GetResponseMessage(s_bigSegment).MessageSize;
             }
 
             [Benchmark()]
             public int ReadSmallData()
             {
-                return _handler.GetResponseMessage(_smallSegment).MessageSize;
+                return _handler.GetResponseMessage(s_smallSegment).MessageSize;
             }
 
-            //[Benchmark]
-            //public int DoNothingSmall()
-            //{
-            //    return DoNothing(_smallSegment);
-            //}
+            ////[Benchmark]
+            ////public int DoNothingSmall()
+            ////{
+            ////    return DoNothing(_smallSegment);
+            ////}
 
-            //[Benchmark]
-            //public int DoNothingBig()
-            //{
-            //    return DoNothing(_bigSegment);
-            //}
+            ////[Benchmark]
+            ////public int DoNothingBig()
+            ////{
+            ////    return DoNothing(_bigSegment);
+            ////}
 
-            private int DoNothing(ArraySegment<byte> data)
-            {
-                // do I allocate?
-                var x = data;
-                return x.Count;
-            }
+            ////private int DoNothing(ArraySegment<byte> data)
+            ////{
+            ////    // do I allocate?
+            ////    var x = data;
+            ////    return x.Count;
+            ////}
 
             private class TestMessageHandler : DnsMessageHandler
             {
@@ -138,8 +138,8 @@ namespace Benchmarks
                 public override Task<DnsResponseMessage> QueryAsync(
                     IPEndPoint server,
                     DnsRequestMessage request,
-                    CancellationToken cancellationToken,
-                    Action<Action> cancelationCallback)
+                    Action<Action> cancelationCallback,
+                    CancellationToken cancellationToken)
                 {
                     // no need to run async here as we don't do any IO
                     throw new NotImplementedException();

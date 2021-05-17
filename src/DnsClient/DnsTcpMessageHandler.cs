@@ -24,20 +24,20 @@ namespace DnsClient
                 using (var cts = new CancellationTokenSource(timeout))
                 {
                     Action onCancel = () => { };
-                    return QueryAsync(endpoint, request, cts.Token, (s) => onCancel = s)
-                        .WithCancellation(cts.Token, onCancel)
+                    return QueryAsync(endpoint, request, (s) => onCancel = s, cts.Token)
+                        .WithCancellation(onCancel, cts.Token)
                         .ConfigureAwait(false).GetAwaiter().GetResult();
                 }
             }
 
-            return QueryAsync(endpoint, request, CancellationToken.None, (s) => { }).ConfigureAwait(false).GetAwaiter().GetResult();
+            return QueryAsync(endpoint, request, (s) => { }, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         public override async Task<DnsResponseMessage> QueryAsync(
             IPEndPoint server,
             DnsRequestMessage request,
-            CancellationToken cancellationToken,
-            Action<Action> cancelationCallback)
+            Action<Action> cancelationCallback,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -50,7 +50,11 @@ namespace DnsClient
 
             cancelationCallback(() =>
             {
-                if (entry == null) return;
+                if (entry == null)
+                {
+                    return;
+                }
+
                 entry.DisposeClient();
             });
 
@@ -148,7 +152,7 @@ namespace DnsClient
                     int readSize = length > 4096 ? 4096 : length;
 
                     while (!cancellationToken.IsCancellationRequested
-                        && (bytesReceived += (read = await stream.ReadAsync(memory.Buffer, bytesReceived, readSize, cancellationToken).ConfigureAwait(false))) < length)
+                        && (bytesReceived += read = await stream.ReadAsync(memory.Buffer, bytesReceived, readSize, cancellationToken).ConfigureAwait(false)) < length)
                     {
                         if (read <= 0)
                         {
@@ -177,7 +181,7 @@ namespace DnsClient
 
         private class ClientPool : IDisposable
         {
-            private bool disposedValue = false;
+            private bool _disposedValue = false;
             private readonly bool _enablePool;
             private ConcurrentQueue<ClientEntry> _clients = new ConcurrentQueue<ClientEntry>();
             private readonly IPEndPoint _endpoint;
@@ -190,7 +194,10 @@ namespace DnsClient
 
             public async Task<ClientEntry> GetNextClient()
             {
-                if (disposedValue) throw new ObjectDisposedException(nameof(ClientPool));
+                if (_disposedValue)
+                {
+                    throw new ObjectDisposedException(nameof(ClientPool));
+                }
 
                 ClientEntry entry = null;
                 if (_enablePool)
@@ -212,9 +219,20 @@ namespace DnsClient
 
             public void Enqueue(ClientEntry entry)
             {
-                if (disposedValue) throw new ObjectDisposedException(nameof(ClientPool));
-                if (entry == null) throw new ArgumentNullException(nameof(entry));
-                if (!entry.Client.Client.RemoteEndPoint.Equals(_endpoint)) throw new ArgumentException("Invalid endpoint.");
+                if (_disposedValue)
+                {
+                    throw new ObjectDisposedException(nameof(ClientPool));
+                }
+
+                if (entry == null)
+                {
+                    throw new ArgumentNullException(nameof(entry));
+                }
+
+                if (!entry.Client.Client.RemoteEndPoint.Equals(_endpoint))
+                {
+                    throw new ArgumentException("Invalid endpoint.");
+                }
 
                 // TickCount swap will be fine here as the entry just gets disposed and we'll create a new one starting at 0+ again, totally fine...
                 if (_enablePool && entry.Client.Connected && entry.StartMillis + entry.MaxLiveTime >= (Environment.TickCount & int.MaxValue))
@@ -230,7 +248,10 @@ namespace DnsClient
 
             public bool TryDequeue(out ClientEntry entry)
             {
-                if (disposedValue) throw new ObjectDisposedException(nameof(ClientPool));
+                if (_disposedValue)
+                {
+                    throw new ObjectDisposedException(nameof(ClientPool));
+                }
 
                 bool result;
                 while (result = _clients.TryDequeue(out entry))
@@ -251,7 +272,7 @@ namespace DnsClient
 
             protected virtual void Dispose(bool disposing)
             {
-                if (!disposedValue)
+                if (!_disposedValue)
                 {
                     if (disposing)
                     {
@@ -263,7 +284,7 @@ namespace DnsClient
                         _clients = new ConcurrentQueue<ClientEntry>();
                     }
 
-                    disposedValue = true;
+                    _disposedValue = true;
                 }
             }
 

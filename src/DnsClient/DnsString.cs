@@ -29,9 +29,10 @@ namespace DnsClient
         /// </summary>
         public static readonly DnsString RootLabel = new DnsString(".", ".");
 
-        internal static readonly IdnMapping IDN = new IdnMapping();
-        private const char Dot = '.';
-        private const string DotStr = ".";
+        internal static readonly IdnMapping s_idn = new IdnMapping();
+
+        internal const char Dot = '.';
+        internal const string DotStr = ".";
 
         /// <summary>
         /// Gets the original value.
@@ -57,7 +58,7 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="DnsString"/> to <see cref="System.String"/>.
+        /// Performs an implicit conversion from <see cref="DnsString"/> to <see cref="string"/>.
         /// </summary>
         /// <param name="name">The name.</param>
         /// <returns>
@@ -66,7 +67,7 @@ namespace DnsClient
         public static implicit operator string(DnsString name) => name?.Value;
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
@@ -88,7 +89,7 @@ namespace DnsClient
         }
 
         /// <summary>
-        /// 
+        ///
         /// </summary>
         /// <param name="a"></param>
         /// <param name="b"></param>
@@ -188,7 +189,7 @@ namespace DnsClient
                     {
                         try
                         {
-                            var result = IDN.GetAscii(query);
+                            var result = s_idn.GetAscii(query);
                             if (result[result.Length - 1] != Dot)
                             {
                                 result += Dot;
@@ -251,7 +252,7 @@ namespace DnsClient
 
             if (data.Contains(ACEPrefix))
             {
-                var unicode = IDN.GetUnicode(data);
+                var unicode = s_idn.GetUnicode(data);
                 return new DnsString(query, unicode);
             }
 

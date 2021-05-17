@@ -13,8 +13,13 @@ namespace DigApp
 {
     public class RandomCommand : DnsCommand
     {
+        private static readonly Random s_randmom = new Random();
+
+        private readonly ConcurrentDictionary<string, int> _errorsPerCode = new ConcurrentDictionary<string, int>();
+        private readonly ConcurrentDictionary<NameServer, int> _successByServer = new ConcurrentDictionary<NameServer, int>();
+        private readonly ConcurrentDictionary<NameServer, int> _failByServer = new ConcurrentDictionary<NameServer, int>();
+
         private ConcurrentQueue<string> _domainNames;
-        private static Random _randmom = new Random();
         private int _clients;
         private int _runtime;
         private long _reportExcecutions = 0;
@@ -23,9 +28,6 @@ namespace DigApp
         private LookupClientOptions _settings;
         private LookupClient _lookup;
         private int _errors;
-        private ConcurrentDictionary<string, int> _errorsPerCode = new ConcurrentDictionary<string, int>();
-        private ConcurrentDictionary<NameServer, int> _successByServer = new ConcurrentDictionary<NameServer, int>();
-        private ConcurrentDictionary<NameServer, int> _failByServer = new ConcurrentDictionary<NameServer, int>();
         private int _success;
         private Spiner _spinner;
         private bool _runSync;
@@ -64,7 +66,7 @@ namespace DigApp
         protected override async Task<int> Execute()
         {
             var lines = File.ReadAllLines("names.txt");
-            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(',') + 1)).OrderBy(x => _randmom.Next(0, lines.Length * 2)));
+            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(',') + 1)).OrderBy(x => s_randmom.Next(0, lines.Length * 2)));
 
             _clients = ClientsArg.HasValue() ? int.Parse(ClientsArg.Value()) : 10;
             _runtime = RuntimeArg.HasValue() ? int.Parse(RuntimeArg.Value()) <= 1 ? 5 : int.Parse(RuntimeArg.Value()) : 5;

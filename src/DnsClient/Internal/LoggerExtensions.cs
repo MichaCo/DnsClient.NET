@@ -1,9 +1,9 @@
-﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+﻿using System;
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace DnsClient.Internal
 {
-    using System;
-
     public static class LoggerExtensions
     {
         public static void LogDebug(this ILogger logger, int eventId, Exception exception, string message, params object[] args)

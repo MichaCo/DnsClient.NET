@@ -108,6 +108,7 @@ namespace DnsClient.Protocol
     /// A <see cref="DnsResourceRecord"/> representing a location of the server(s) for a specific protocol and domain.
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
+    // TODO: For V2 Remove CLS incompliant properties - make ushort => int. Currently would break backward compat...
     [CLSCompliant(false)]
     public class SrvRecord : DnsResourceRecord
     {

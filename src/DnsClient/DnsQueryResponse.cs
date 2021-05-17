@@ -119,7 +119,11 @@ namespace DnsClient
 
         internal DnsQueryResponse(DnsResponseMessage dnsResponseMessage, NameServer nameServer, DnsQuerySettings settings)
         {
-            if (dnsResponseMessage == null) throw new ArgumentNullException(nameof(dnsResponseMessage));
+            if (dnsResponseMessage == null)
+            {
+                throw new ArgumentNullException(nameof(dnsResponseMessage));
+            }
+
             Header = dnsResponseMessage.Header;
             MessageSize = dnsResponseMessage.MessageSize;
             Questions = dnsResponseMessage.Questions.ToArray();
@@ -138,7 +142,7 @@ namespace DnsClient
                 return false;
             }
 
-            if (!(obj is DnsQueryResponse response))
+            if (obj is not DnsQueryResponse response)
             {
                 return false;
             }

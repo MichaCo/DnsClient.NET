@@ -156,10 +156,10 @@ namespace DnsClient
         private bool HasFlag(DnsHeaderFlag flag) => (HeaderFlags & flag) != 0;
 
         /// <summary>
-        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// Returns a <see cref="string" /> that represents this instance.
         /// </summary>
         /// <returns>
-        /// A <see cref="System.String" /> that represents this instance.
+        /// A <see cref="string" /> that represents this instance.
         /// </returns>
         public override string ToString()
         {

@@ -81,9 +81,8 @@ namespace DnsClient
         /// <param name="dnsSuffix">An optional DNS suffix.</param>
         /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
         public NameServer(IPAddress endPoint, int port, string dnsSuffix = null)
-            : this(new IPEndPoint(endPoint, port))
+            : this(new IPEndPoint(endPoint, port), dnsSuffix)
         {
-            DnsSuffix = string.IsNullOrWhiteSpace(dnsSuffix) ? null : dnsSuffix;
         }
 
         /// <summary>
@@ -95,6 +94,7 @@ namespace DnsClient
         public NameServer(IPEndPoint endPoint, string dnsSuffix = null)
         {
             IPEndPoint = endPoint ?? throw new ArgumentNullException(nameof(endPoint));
+            DnsSuffix = string.IsNullOrWhiteSpace(dnsSuffix) ? null : dnsSuffix;
         }
 
         /// <summary>
@@ -165,10 +165,10 @@ namespace DnsClient
             => addresses?.Select(p => (NameServer)p).ToArray();
 
         /// <summary>
-        /// Returns a <see cref="System.String" /> that represents this instance.
+        /// Returns a <see cref="string" /> that represents this instance.
         /// </summary>
         /// <returns>
-        /// A <see cref="System.String" /> that represents this instance.
+        /// A <see cref="string" /> that represents this instance.
         /// </returns>
         public override string ToString()
         {
@@ -229,6 +229,8 @@ namespace DnsClient
 #if !NET45
             if (exceptions.Count > 0)
             {
+                logger?.LogDebug("Using native path to resolve servers.");
+
                 try
                 {
                     nameServers = ResolveNameServersNative();
@@ -255,7 +257,7 @@ namespace DnsClient
             }
 
             IReadOnlyCollection<NameServer> filtered = nameServers
-                .Where(p => (p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetwork 
+                .Where(p => (p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetwork
                             || p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetworkV6)
                     && (!p.IPEndPoint.Address.IsIPv6SiteLocal || !skipIPv6SiteLocal))
                 .ToArray();
@@ -297,8 +299,8 @@ namespace DnsClient
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 var fixedInfo = Windows.IpHlpApi.FixedNetworkInformation.GetFixedInformation();
-                
-                foreach(var ip in fixedInfo.DnsAddresses)
+
+                foreach (var ip in fixedInfo.DnsAddresses)
                 {
                     addresses.Add(new NameServer(ip, DefaultPort, fixedInfo.DomainName));
                 }
@@ -343,7 +345,7 @@ namespace DnsClient
                     && p.NetworkInterfaceType != NetworkInterfaceType.Loopback))
             {
                 var properties = networkInterface.GetIPProperties();
-                
+
                 foreach (var ip in properties.DnsAddresses)
                 {
                     result.Add(new NameServer(ip, DefaultPort, properties.DnsSuffix));

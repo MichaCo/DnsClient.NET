@@ -107,13 +107,13 @@ namespace Benchmarks
         public class DnsDatagramWriter_IntToBytes
         {
             private const int Ops = 100000;
-            private readonly byte[] forMemoryBuffer;
+            private readonly byte[] _forMemoryBuffer;
 
             public DnsDatagramWriter_IntToBytes()
             {
                 // could use array pool, but that has overhead, unfair to compair as we would
                 // not get a new array everytime to write an integer...
-                forMemoryBuffer = new byte[4];
+                _forMemoryBuffer = new byte[4];
             }
 
             [Benchmark(Baseline = true, OperationsPerInvoke = Ops)]
@@ -121,7 +121,7 @@ namespace Benchmarks
             {
                 for (int i = 0; i < Ops; i++)
                 {
-                    var bytes = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(i));
+                    _ = BitConverter.GetBytes(IPAddress.HostToNetworkOrder(i));
                 }
             }
 
@@ -131,7 +131,7 @@ namespace Benchmarks
                 for (int i = 0; i < Ops; i++)
                 {
                     var netInt = IPAddress.HostToNetworkOrder(i);
-                    MemoryMarshal.TryWrite(forMemoryBuffer, ref netInt);
+                    MemoryMarshal.TryWrite(_forMemoryBuffer, ref netInt);
                 }
             }
 
@@ -141,7 +141,7 @@ namespace Benchmarks
                 for (int i = 0; i < Ops; i++)
                 {
                     var netInt = IPAddress.HostToNetworkOrder(i);
-                    MemoryMarshal.Write(forMemoryBuffer, ref netInt);
+                    MemoryMarshal.Write(_forMemoryBuffer, ref netInt);
                 }
             }
 
@@ -152,7 +152,7 @@ namespace Benchmarks
                 for (int i = 0; i < Ops; i++)
                 {
                     intArray[0] = IPAddress.HostToNetworkOrder(i);
-                    var result = MemoryMarshal.AsBytes(new ReadOnlySpan<int>(intArray));
+                    _ = MemoryMarshal.AsBytes(new ReadOnlySpan<int>(intArray));
                 }
             }
         }
@@ -217,7 +217,7 @@ namespace Benchmarks
 
         public class AllocateVsPooledWriteHostName
         {
-            public const string domainName = "www.hello.world.fcking.funny.com";
+            public const string DomainName = "www.hello.world.fcking.funny.com";
 
             public AllocateVsPooledWriteHostName()
             {
@@ -229,7 +229,7 @@ namespace Benchmarks
                 // allocate array manually (not pooled)
                 using (var writer = new DnsDatagramWriter(new ArraySegment<byte>(new byte[DnsDatagramWriter.BufferSize])))
                 {
-                    writer.WriteHostName(domainName);
+                    writer.WriteHostName(DomainName);
                     return writer.Data;
                 }
             }
@@ -239,7 +239,7 @@ namespace Benchmarks
             {
                 using (var writer = new DnsDatagramWriter())
                 {
-                    writer.WriteHostName(domainName);
+                    writer.WriteHostName(DomainName);
                     return writer.Data;
                 }
             }
@@ -283,12 +283,12 @@ namespace Benchmarks
         {
             private const int Ops = 1000;
             private const string ShortTestValue = "some.strange.domain.doodle.com.";
-            private static readonly int ShortTestValueByteLength = Encoding.UTF8.GetByteCount(ShortTestValue);
+            private static readonly int s_shortTestValueByteLength = Encoding.UTF8.GetByteCount(ShortTestValue);
 
             [Benchmark(Baseline = true, OperationsPerInvoke = Ops)]
             public ArraySegment<byte> BufferedWrite()
             {
-                using (var bytes = new PooledBytes(ShortTestValueByteLength * Ops + Ops))
+                using (var bytes = new PooledBytes(s_shortTestValueByteLength * Ops + Ops))
                 using (var writer = new DnsDatagramWriter(bytes.BufferSegment))
                 {
                     for (var i = 0; i < Ops; i++)
@@ -303,7 +303,7 @@ namespace Benchmarks
             [Benchmark(OperationsPerInvoke = Ops)]
             public void MemoryWrite()
             {
-                using (var writer = new TestingDnsDatagramWriter(ShortTestValueByteLength * Ops))
+                using (var writer = new TestingDnsDatagramWriter(s_shortTestValueByteLength * Ops))
                 {
                     for (var i = 0; i < Ops; i++)
                     {
@@ -315,11 +315,11 @@ namespace Benchmarks
 
         internal class TestingDnsDatagramWriter : DnsDatagramWriter
         {
-            private static readonly int IntSize = Marshal.SizeOf<int>();
-            private static readonly int ShortSize = Marshal.SizeOf<short>();
-            private static readonly int UShortSize = Marshal.SizeOf<ushort>();
-            private static readonly int UIntSize = Marshal.SizeOf<uint>();
             private const byte DotByte = 46;
+            private static readonly int s_intSize = Marshal.SizeOf<int>();
+            private static readonly int s_shortSize = Marshal.SizeOf<short>();
+            private static readonly int s_ushortSize = Marshal.SizeOf<ushort>();
+            private static readonly int s_uintSize = Marshal.SizeOf<uint>();
 
             private readonly IMemoryOwner<byte> _ownedMemory;
             private readonly Memory<byte> _memory;
@@ -387,7 +387,7 @@ namespace Benchmarks
 
             public override void WriteInt16NetworkOrder(short value)
             {
-                var slice = _memory.Slice(Index, ShortSize);
+                var slice = _memory.Slice(Index, s_shortSize);
 
                 if (BitConverter.IsLittleEndian)
                 {
@@ -398,12 +398,12 @@ namespace Benchmarks
                     BinaryPrimitives.WriteInt32LittleEndian(slice.Span, value);
                 }
 
-                Index += ShortSize;
+                Index += s_shortSize;
             }
 
             public override void WriteInt32NetworkOrder(int value)
             {
-                var slice = _ownedMemory.Memory.Slice(Index, IntSize);
+                var slice = _ownedMemory.Memory.Slice(Index, s_intSize);
 
                 if (BitConverter.IsLittleEndian)
                 {
@@ -414,12 +414,12 @@ namespace Benchmarks
                     BinaryPrimitives.WriteInt32LittleEndian(slice.Span, value);
                 }
 
-                Index += IntSize;
+                Index += s_intSize;
             }
 
             public override void WriteUInt16NetworkOrder(ushort value)
             {
-                var slice = _ownedMemory.Memory.Slice(Index, UShortSize);
+                var slice = _ownedMemory.Memory.Slice(Index, s_ushortSize);
 
                 if (BitConverter.IsLittleEndian)
                 {
@@ -430,12 +430,12 @@ namespace Benchmarks
                     BinaryPrimitives.WriteUInt16LittleEndian(slice.Span, value);
                 }
 
-                Index += UShortSize;
+                Index += s_ushortSize;
             }
 
             public override void WriteUInt32NetworkOrder(uint value)
             {
-                var slice = _ownedMemory.Memory.Slice(Index, UIntSize);
+                var slice = _ownedMemory.Memory.Slice(Index, s_uintSize);
 
                 if (BitConverter.IsLittleEndian)
                 {
@@ -446,7 +446,7 @@ namespace Benchmarks
                     BinaryPrimitives.WriteUInt32LittleEndian(slice.Span, value);
                 }
 
-                Index += UIntSize;
+                Index += s_uintSize;
             }
 
             protected override void Dispose(bool disposing)

@@ -277,22 +277,22 @@ namespace DnsClient.Tests
             var writer = new DnsDatagramWriter();
             writer.WriteUInt16NetworkOrder(0x1e);
             writer.WriteUInt16NetworkOrder(0x00);
-            writer.WriteStringWithLengthPrefix(NaptrRecord.S_FLAG.ToString()); 
-            writer.WriteStringWithLengthPrefix(NaptrRecord.SIP_UDP_SERVICE_KEY);
+            writer.WriteStringWithLengthPrefix(NAPtrRecord.SFlag.ToString()); 
+            writer.WriteStringWithLengthPrefix(NAPtrRecord.ServiceKeySipUdp);
             writer.WriteStringWithLengthPrefix("");
             writer.WriteHostName(name.Value);
             var factory = GetFactory(writer.Data.ToArray());
 
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.NAPTR, QueryClass.IN, 0, writer.Data.Count);
 
-            var result = factory.GetRecord(info) as NaptrRecord;
+            var result = factory.GetRecord(info) as NAPtrRecord;
 
             Assert.Equal(name, result.Replacement);
             Assert.True(result.Order == 0x1e);
             Assert.True(result.Preference == 0x00);
-            Assert.Equal(NaptrRecord.S_FLAG.ToString(), result.Flags);
-            Assert.Equal(NaptrRecord.SIP_UDP_SERVICE_KEY, result.Services);
-            Assert.Equal("", result.Regexp);
+            Assert.Equal(NAPtrRecord.SFlag.ToString(), result.Flags);
+            Assert.Equal(NAPtrRecord.ServiceKeySipUdp, result.Services);
+            Assert.Equal("", result.RegularExpression);
         }
 
         [Fact]

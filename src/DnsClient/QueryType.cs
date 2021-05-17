@@ -162,9 +162,10 @@ namespace DnsClient
         /// The Naming Authority Pointer rfc2915
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc2915">RFC 2915</seealso>
-        /// <seealso cref="NaptrRecord"/>
-        NAPTR = ResourceRecordType.NAPTR, 
-        
+        /// <seealso cref="NAPtrRecord"/>
+        NAPTR = ResourceRecordType.NAPTR,
+
+        /// <summary>
         /// DS rfc4034
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc4034#section-5.1">RFC 4034</seealso>

@@ -30,7 +30,7 @@ namespace DnsClient
         /// An inverse query.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc3425">RFC 3425</seealso>
-        [Obsolete]
+        [Obsolete("obsolete per RFC")]
         IQuery,
 
         /// <summary>

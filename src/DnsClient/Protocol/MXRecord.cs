@@ -31,6 +31,7 @@ namespace DnsClient.Protocol
     /// </summary>
     /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.9">RFC 1035</seealso>
     /// <seealso href="https://tools.ietf.org/html/rfc974">RFC 974</seealso>
+    // TODO: For V2 Remove CLS incompliant properties - make ushort => int. Currently would break backward compat...
     [CLSCompliant(false)]
     public class MxRecord : DnsResourceRecord
     {

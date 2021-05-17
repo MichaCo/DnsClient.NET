@@ -97,21 +97,28 @@ namespace DnsClient
 
         public IDnsQueryResponse Get(string key)
         {
-            return Get(key, out double? effectiveTtl);
+            return Get(key, out _);
         }
 
         public IDnsQueryResponse Get(string key, out double? effectiveTtl)
         {
             effectiveTtl = null;
-            if (key == null) throw new ArgumentNullException(key);
-            if (!Enabled) return null;
+            if (key == null)
+            {
+                throw new ArgumentNullException(key);
+            }
+
+            if (!Enabled)
+            {
+                return null;
+            }
 
             if (_cache.TryGetValue(key, out ResponseEntry entry))
             {
                 effectiveTtl = entry.TTL;
                 if (entry.IsExpiredFor(DateTimeOffset.UtcNow))
                 {
-                    _cache.TryRemove(key, out entry);
+                    _cache.TryRemove(key, out _);
                 }
                 else
                 {
@@ -125,7 +132,10 @@ namespace DnsClient
 
         public bool Add(string key, IDnsQueryResponse response, bool cacheFailures = false)
         {
-            if (key == null) throw new ArgumentNullException(key);
+            if (key == null)
+            {
+                throw new ArgumentNullException(key);
+            }
 
             if (Enabled && response != null && (cacheFailures || (!response.HasError && response.Answers.Count > 0)))
             {
@@ -187,7 +197,7 @@ namespace DnsClient
             {
                 if (entry.Value.IsExpiredFor(now))
                 {
-                    cache._cache.TryRemove(entry.Key, out ResponseEntry o);
+                    cache._cache.TryRemove(entry.Key, out _);
                 }
             }
 
@@ -203,7 +213,11 @@ namespace DnsClient
 
             // TickCount jump every 25days to int.MinValue, adjusting...
             var currentTicks = Environment.TickCount & int.MaxValue;
-            if (_lastCleanup + s_cleanupInterval < 0 || currentTicks + s_cleanupInterval < 0) _lastCleanup = 0;
+            if (_lastCleanup + s_cleanupInterval < 0 || currentTicks + s_cleanupInterval < 0)
+            {
+                _lastCleanup = 0;
+            }
+
             if (!_cleanupRunning && _lastCleanup + s_cleanupInterval < currentTicks)
             {
                 lock (_cleanupLock)

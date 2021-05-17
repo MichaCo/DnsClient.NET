@@ -46,8 +46,7 @@ namespace System.IO
         /// </summary>
         public string GetNextValue(string key)
         {
-            string value;
-            if (!TryGetNextValue(key, out value))
+            if (!TryGetNextValue(key, out var value))
             {
                 throw new InvalidOperationException("Couldn't get next value with key " + key);
             }
@@ -72,8 +71,7 @@ namespace System.IO
 
             // First, find the key, by repeatedly searching for occurrences.
             // We only match an occurrence if it starts a line, by itself, with no preceding whitespace.
-            int keyIndex;
-            if (!TryFindNextKeyOccurrence(key, _currentIndex, out keyIndex))
+            if (!TryFindNextKeyOccurrence(key, _currentIndex, out var keyIndex))
             {
                 value = null;
                 return false;
@@ -141,7 +139,7 @@ namespace System.IO
                     }
                 }
 
-                startIndex = startIndex + key.Length;
+                startIndex += key.Length;
             }
         }
 
@@ -164,8 +162,7 @@ namespace System.IO
         {
             // PERF: We don't need to allocate a new string here, we can parse an Int32 "in-place" in the existing string.
             string value = GetNextValue(key);
-            int result;
-            if (int.TryParse(value, out result))
+            if (int.TryParse(value, out var result))
             {
                 return result;
             }

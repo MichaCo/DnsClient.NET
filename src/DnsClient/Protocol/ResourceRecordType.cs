@@ -165,7 +165,7 @@ namespace DnsClient.Protocol
         /// The Naming Authority Pointer rfc3403
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc2915">RFC 2915</seealso>
-        /// <seealso cref="NaptrRecord"/>
+        /// <seealso cref="NAPtrRecord"/>
         NAPTR = 35,
 
         /// <summary>
