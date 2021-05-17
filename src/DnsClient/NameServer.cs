@@ -6,6 +6,7 @@ using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using DnsClient.Internal;
+using DnsClient.Windows;
 
 namespace DnsClient
 {
@@ -242,8 +243,34 @@ namespace DnsClient
                     exceptions.Add(ex);
                 }
             }
-#endif
 
+            try
+            {
+                var nprt = ResolveNameResolutionPolicyServers();
+
+                if (nprt.Count != 0)
+                {
+                    var servers = new HashSet<NameServer>();
+
+                    foreach (var server in nprt)
+                    {
+                        servers.Add(server);
+                    }
+
+                    foreach (var server in nameServers)
+                    {
+                        servers.Add(server);
+                    }
+
+                    nameServers = servers;
+                }
+            }
+            catch (Exception ex)
+            {
+                logger?.LogInformation(ex, "Resolving name servers from NRPT failed.");
+                exceptions.Add(ex);
+            }
+#endif
             if (!fallbackToGooglePublicDns && exceptions.Count > 0)
             {
                 if (exceptions.Count > 1)
@@ -313,8 +340,20 @@ namespace DnsClient
             return addresses;
         }
 
-#endif
+        /// <summary>
+        /// On a Windows machine query the Name Resolution Policy table for a list of policy-defined name servers.
+        /// </summary>
+        /// <returns>Returns a collection of name servers from the policy table</returns>
+        public static IReadOnlyCollection<NameServer> ResolveNameResolutionPolicyServers()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                return NameResolutionPolicy.Resolve();
+            }
 
+            return Array.Empty<NameServer>();
+        }
+#endif
         internal static IReadOnlyCollection<NameServer> ValidateNameServers(IReadOnlyCollection<NameServer> servers, ILogger logger = null)
         {
             // Right now, I'm only checking for ANY address, but might be more validation rules at some point...
