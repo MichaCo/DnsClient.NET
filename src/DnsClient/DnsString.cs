@@ -121,7 +121,11 @@ namespace DnsClient
         /// <inheritdoc />
         public override int GetHashCode()
         {
+#if NET5_0_OR_GREATER || NETSTANDARD2_1
+            return Value.GetHashCode(StringComparison.Ordinal);
+#else
             return Value.GetHashCode();
+#endif
         }
 
         /// <inheritdoc />
@@ -132,7 +136,7 @@ namespace DnsClient
                 return false;
             }
 
-            return obj.ToString().Equals(Value);
+            return obj.ToString().Equals(Value, StringComparison.Ordinal);
         }
 
         /// <summary>
@@ -160,7 +164,7 @@ namespace DnsClient
                 throw new ArgumentException($"'{query}' is not a legal name, found leading root label.", nameof(query));
             }
 
-            if (query.Length == 0 || (query.Length == 1 && query.Equals(DotStr)))
+            if (query.Length == 0 || (query.Length == 1 && query.Equals(DotStr, StringComparison.Ordinal)))
             {
                 return RootLabel;
             }
@@ -250,7 +254,11 @@ namespace DnsClient
                 data += DotStr;
             }
 
+#if NET5_0_OR_GREATER || NETSTANDARD2_1
+            if (data.Contains(ACEPrefix, StringComparison.Ordinal))
+#else
             if (data.Contains(ACEPrefix))
+#endif
             {
                 var unicode = s_idn.GetUnicode(data);
                 return new DnsString(query, unicode);

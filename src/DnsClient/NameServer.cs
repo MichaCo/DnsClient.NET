@@ -67,9 +67,40 @@ namespace DnsClient
         /// Initializes a new instance of the <see cref="NameServer"/> class.
         /// </summary>
         /// <param name="endPoint">The name server endpoint.</param>
-        /// <param name="dnsSuffix">An optional DNS suffix.</param>
         /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
-        public NameServer(IPAddress endPoint, string dnsSuffix = null)
+        public NameServer(IPAddress endPoint)
+            : this(new IPEndPoint(endPoint, DefaultPort))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NameServer"/> class.
+        /// </summary>
+        /// <param name="endPoint">The name server endpoint.</param>
+        /// <param name="port">The name server port.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
+        public NameServer(IPAddress endPoint, int port)
+            : this(new IPEndPoint(endPoint, port))
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NameServer"/> class.
+        /// </summary>
+        /// <param name="endPoint">The name server endpoint.</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
+        public NameServer(IPEndPoint endPoint)
+        {
+            IPEndPoint = endPoint ?? throw new ArgumentNullException(nameof(endPoint));
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NameServer"/> class.
+        /// </summary>
+        /// <param name="endPoint">The name server endpoint.</param>
+        /// <param name="dnsSuffix">An optional DNS suffix (can be null).</param>
+        /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
+        public NameServer(IPAddress endPoint, string dnsSuffix)
             : this(new IPEndPoint(endPoint, DefaultPort), dnsSuffix)
         {
         }
@@ -79,9 +110,9 @@ namespace DnsClient
         /// </summary>
         /// <param name="endPoint">The name server endpoint.</param>
         /// <param name="port">The name server port.</param>
-        /// <param name="dnsSuffix">An optional DNS suffix.</param>
+        /// <param name="dnsSuffix">An optional DNS suffix (can be null).</param>
         /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
-        public NameServer(IPAddress endPoint, int port, string dnsSuffix = null)
+        public NameServer(IPAddress endPoint, int port, string dnsSuffix)
             : this(new IPEndPoint(endPoint, port), dnsSuffix)
         {
         }
@@ -90,11 +121,11 @@ namespace DnsClient
         /// Initializes a new instance of the <see cref="NameServer"/> class.
         /// </summary>
         /// <param name="endPoint">The name server endpoint.</param>
-        /// <param name="dnsSuffix">An optional DNS suffix.</param>
+        /// <param name="dnsSuffix">An optional DNS suffix (can be null).</param>
         /// <exception cref="ArgumentNullException">If <paramref name="endPoint"/>is <c>null</c>.</exception>
-        public NameServer(IPEndPoint endPoint, string dnsSuffix = null)
+        public NameServer(IPEndPoint endPoint, string dnsSuffix)
+            : this(endPoint)
         {
-            IPEndPoint = endPoint ?? throw new ArgumentNullException(nameof(endPoint));
             DnsSuffix = string.IsNullOrWhiteSpace(dnsSuffix) ? null : dnsSuffix;
         }
 
@@ -353,7 +384,9 @@ namespace DnsClient
 
             return Array.Empty<NameServer>();
         }
+
 #endif
+
         internal static IReadOnlyCollection<NameServer> ValidateNameServers(IReadOnlyCollection<NameServer> servers, ILogger logger = null)
         {
             // Right now, I'm only checking for ANY address, but might be more validation rules at some point...

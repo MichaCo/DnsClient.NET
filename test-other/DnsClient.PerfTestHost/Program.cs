@@ -10,7 +10,7 @@ namespace DnsClient.PerfTestHost
 {
     internal class Program
     {
-        private static void Main()
+        private static async Task Main()
         {
             var port = 5053;
             var server = new StaticDnsServer(
@@ -33,20 +33,15 @@ namespace DnsClient.PerfTestHost
 
             var client = new LookupClient(options);
 
-            var tasksCount = 12;
-            //Console.WriteLine("warmup");
-            //RunSync(client, 5, tasksCount);
-            //RunAsync(client, 5, tasksCount).Wait();
-            Console.WriteLine("running...");
-            Console.ReadKey();
-            double runTime = 2;
-            for (var i = 1; i <= 3; i++)
+            var tasksCount = 16;
+            double runTime = 1;
+            for (var i = 0; i < 4; i++)
             {
                 for (var run = 0; run < 5; run++)
                 {
-                    RunSync(client, runTime, tasksCount * i);
+                    RunSync(client, runTime, tasksCount + 8 * i);
 
-                    RunAsync(client, runTime, tasksCount * i).GetAwaiter().GetResult();
+                    await RunAsync(client, runTime, tasksCount + 8 * i);
                 }
             }
 
@@ -84,11 +79,11 @@ namespace DnsClient.PerfTestHost
             },
             Enumerable.Repeat(act, tasksCount).ToArray());
 
-            double tookInMs = (double)tookOverall / (Stopwatch.Frequency / 1000);
-            double msPerExec = tookInMs / execCount;
-            double execPerSec = execCount / runTime;
+            double execPerMs = execCount / swatch.ElapsedMilliseconds;
+            double exedTimeInMs = 1 / execPerMs;
+            double execPerSec = execCount / swatch.Elapsed.TotalSeconds;
 
-            Console.WriteLine($"{tasksCount,-5} {"sync",5} {execCount,10} {execPerSec,10:N0} {msPerExec,10:N5}");
+            Console.WriteLine($"{tasksCount,-5} {"sync",5} {execCount,10} execs {execPerSec,10:N0}/sec {execPerMs,10:N0}/ms {exedTimeInMs,10:N4} ms/exec.");
         }
 
         private static async Task RunAsync(LookupClient client, double runTime, int tasksCount = 8)
@@ -124,11 +119,11 @@ namespace DnsClient.PerfTestHost
 
             await Task.WhenAll(tasks.ToArray());
 
-            double tookInMs = (double)tookOverall / (Stopwatch.Frequency / 1000);
-            double msPerExec = tookInMs / execCount;
-            double execPerSec = execCount / runTime;
+            double execPerMs = execCount / swatch.ElapsedMilliseconds;
+            double exedTimeInMs = 1 / execPerMs;
+            double execPerSec = execCount / swatch.Elapsed.TotalSeconds;
 
-            Console.WriteLine($"{tasksCount,-5} {"async",5} {execCount,10} {execPerSec,10:N0} {msPerExec,10:N5}");
+            Console.WriteLine($"{tasksCount,-5} {"async",5} {execCount,10} execs {execPerSec,10:N0}/sec {execPerMs,10:N0}/ms {exedTimeInMs,10:N4} ms/exec.");
         }
     }
 }

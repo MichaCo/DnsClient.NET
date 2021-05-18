@@ -277,7 +277,7 @@ namespace DnsClient.Tests
             var writer = new DnsDatagramWriter();
             writer.WriteUInt16NetworkOrder(0x1e);
             writer.WriteUInt16NetworkOrder(0x00);
-            writer.WriteStringWithLengthPrefix(NAPtrRecord.SFlag.ToString()); 
+            writer.WriteStringWithLengthPrefix(NAPtrRecord.SFlag.ToString());
             writer.WriteStringWithLengthPrefix(NAPtrRecord.ServiceKeySipUdp);
             writer.WriteStringWithLengthPrefix("");
             writer.WriteHostName(name.Value);

@@ -77,6 +77,14 @@ namespace DnsClient.Tests
             test.TestProtocol_1_2();
         }
 #endif
+
+        [Fact]
+        public void API_CompatOther()
+        {
+            var test = new ApiDesign.OldReference.TestLookupClient();
+
+            test.TestOtherTypes();
+        }
     }
 
 #pragma warning restore CS0618 // Type or member is obsolete

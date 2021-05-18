@@ -53,7 +53,7 @@ namespace ApiDesign
                 }
                 catch { }
 
-               // var r = lookup.QueryServer(new NameServer[] { NameServer.Cloudflare, NameServer.Cloudflare2 }, new DnsQuestion("google.com", QueryType.A));
+                // var r = lookup.QueryServer(new NameServer[] { NameServer.Cloudflare, NameServer.Cloudflare2 }, new DnsQuestion("google.com", QueryType.A));
 
                 await Task.Delay(5000);
             }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using DnsClient;
 using DnsClient.Protocol;
@@ -17,6 +16,21 @@ namespace ApiDesign.OldReference
             _client = new LookupClient(IPAddress.Loopback, 5465);
             _client = new LookupClient(new IPEndPoint(IPAddress.Loopback, 4444), new IPEndPoint(IPAddress.Loopback, 4443), new IPEndPoint(IPAddress.Loopback, 4442));
             _client = new LookupClient();
+        }
+
+        public void TestOtherTypes()
+        {
+            var nameServer = new NameServer(IPAddress.Any);
+            nameServer = new NameServer(new IPEndPoint(IPAddress.Any, 7979));
+            _ = nameServer.SupportedUdpPayloadSize;
+
+            ////_ = NameServer.ResolveNameServers(true, false); actually changed the return type.
+
+#if NETCOREAPP3_1
+
+            // Added in 1.2
+            _ = NameServer.ResolveNameServersNative();
+#endif
         }
 
         public LookupClient SetNonDefaults()

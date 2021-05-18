@@ -25,9 +25,6 @@ namespace Benchmarks
 
             server.Start();
 
-#if NETCOREAPP2_1
-            new DnsClientBenchmarks.StringSplit().ManualSplitMemoryT2();
-#endif
             do
             {
                 //var config = ManualConfig.Create(DefaultConfig.Instance)
@@ -71,7 +68,7 @@ namespace Benchmarks
                     .WithIterationCount(10)
                     .WithEvaluateOverhead(false);
 
-                Add(coreJob);
+                AddJob(coreJob);
 
                 //var clrJob = Job.MediumRun
                 //    .With(Runtime.Clr)
@@ -83,13 +80,13 @@ namespace Benchmarks
 
                 //Add(clrJob);
 
-                Add(StatisticColumn.OperationsPerSecond);
+                AddColumn(StatisticColumn.OperationsPerSecond);
 
-                Add(EnvironmentAnalyser.Default);
-                Add(MemoryDiagnoser.Default);
+                AddAnalyser(EnvironmentAnalyser.Default);
+                AddDiagnoser(MemoryDiagnoser.Default);
 
-                Add(MarkdownExporter.GitHub);
-                Add(MarkdownExporter.StackOverflow);
+                AddExporter(MarkdownExporter.GitHub);
+                AddExporter(MarkdownExporter.StackOverflow);
             }
         }
     }
