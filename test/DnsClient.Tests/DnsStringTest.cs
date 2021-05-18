@@ -223,13 +223,13 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsString_ConcatNullA()
         {
-            Assert.Throws<ArgumentNullException>(() => DnsString.RootLabel + (DnsString)null);
+            Assert.Throws<ArgumentNullException>(() => DnsString.RootLabel + null);
         }
 
         [Fact]
         public void DnsString_ConcatNullB()
         {
-            Assert.Throws<ArgumentNullException>(() => (DnsString)null + DnsString.RootLabel);
+            Assert.Throws<ArgumentNullException>(() => null + DnsString.RootLabel);
         }
 
         [Fact]

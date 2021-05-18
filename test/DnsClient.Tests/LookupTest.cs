@@ -60,9 +60,9 @@ namespace DnsClient.Tests
             Assert.Single(result);
             var first = result.First();
             Assert.Equal(targetHost.ToString(), first.HostName);
-            Assert.Equal((int)port, first.Port);
-            Assert.Equal((int)prio, first.Priority);
-            Assert.Equal((int)weight, first.Weight);
+            Assert.Equal(port, first.Port);
+            Assert.Equal(prio, first.Priority);
+            Assert.Equal(weight, first.Weight);
         }
 
         [Fact]
@@ -98,9 +98,9 @@ namespace DnsClient.Tests
             Assert.Single(result);
             var first = result.First();
             Assert.Equal(targetHost.ToString(), first.HostName);
-            Assert.Equal((int)port, first.Port);
-            Assert.Equal((int)prio, first.Priority);
-            Assert.Equal((int)weight, first.Weight);
+            Assert.Equal(port, first.Port);
+            Assert.Equal(prio, first.Priority);
+            Assert.Equal(weight, first.Weight);
         }
 
         [Fact]
