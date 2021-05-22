@@ -141,8 +141,8 @@ namespace DnsClient.Tests
 
             var answer = result.Answers.OfType<ARecord>().First();
             Assert.Equal("127.0.0.1", answer.Address.ToString());
-            Assert.Equal(QueryClass.IN, result.Questions.First().QuestionClass);
-            Assert.Equal(QueryType.A, result.Questions.First().QuestionType);
+            Assert.Equal(QueryClass.IN, result.Questions[0].QuestionClass);
+            Assert.Equal(QueryType.A, result.Questions[0].QuestionType);
             Assert.True(result.Header.AnswerCount > 0);
         }
 
@@ -155,8 +155,8 @@ namespace DnsClient.Tests
 
             var answer = result.Answers.OfType<ARecord>().First();
             Assert.Equal("127.0.0.1", answer.Address.ToString());
-            Assert.Equal(QueryClass.IN, result.Questions.First().QuestionClass);
-            Assert.Equal(QueryType.A, result.Questions.First().QuestionType);
+            Assert.Equal(QueryClass.IN, result.Questions[0].QuestionClass);
+            Assert.Equal(QueryType.A, result.Questions[0].QuestionType);
             Assert.True(result.Header.AnswerCount > 0);
         }
 

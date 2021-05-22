@@ -12,7 +12,7 @@ namespace DnsClient.Tests
         [Fact]
         public void API_Compat()
         {
-            var test = new ApiDesign.OldReference.TestLookupClient();
+            var test = new OldReference.TestLookupClient();
             var error = Record.Exception(() => test.TestQuery_1_1());
 
             Assert.Null(error);
@@ -21,7 +21,7 @@ namespace DnsClient.Tests
         [Fact]
         public async Task API_CompatAsync()
         {
-            var test = new ApiDesign.OldReference.TestLookupClient();
+            var test = new OldReference.TestLookupClient();
             var error = await Record.ExceptionAsync(() => test.TestQueryAsync_1_1());
 
             Assert.Null(error);
@@ -30,7 +30,7 @@ namespace DnsClient.Tests
         [Fact]
         public void API_CompatPropertiesNonDefaults()
         {
-            var test = new ApiDesign.OldReference.TestLookupClient();
+            var test = new OldReference.TestLookupClient();
 
             var client = test.SetNonDefaults();
 
@@ -63,7 +63,7 @@ namespace DnsClient.Tests
         [Fact]
         public void API_CompatProtocol_1_1()
         {
-            var test = new ApiDesign.OldReference.TestLookupClient();
+            var test = new OldReference.TestLookupClient();
 
             test.TestProtocol_1_1();
         }
@@ -72,7 +72,7 @@ namespace DnsClient.Tests
         [Fact]
         public void API_CompatProtocol_1_2()
         {
-            var test = new ApiDesign.OldReference.TestLookupClient();
+            var test = new OldReference.TestLookupClient();
 
             test.TestProtocol_1_2();
         }
@@ -81,7 +81,7 @@ namespace DnsClient.Tests
         [Fact]
         public void API_CompatOther()
         {
-            var test = new ApiDesign.OldReference.TestLookupClient();
+            var test = new OldReference.TestLookupClient();
 
             test.TestOtherTypes();
         }

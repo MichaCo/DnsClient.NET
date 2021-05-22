@@ -39,7 +39,7 @@ namespace DnsClient.Tests
 
             // assert
             Assert.Equal(1, result.Header.AnswerCount);
-            Assert.Equal("query.", result.Answers.First().DomainName.Value);
+            Assert.Equal("query.", result.Answers[0].DomainName.Value);
             Assert.Equal(IPAddress.Any, result.Answers.ARecords().First().Address);
         }
     }

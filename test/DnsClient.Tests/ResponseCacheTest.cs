@@ -60,7 +60,7 @@ namespace DnsClient.Tests
             var item = cache.Get("key", out double? effectiveTtl);
 
             Assert.NotNull(item);
-            Assert.Equal(0, item.Answers.First().TimeToLive);
+            Assert.Equal(0, item.Answers[0].TimeToLive);
             Assert.Equal(minTtl, effectiveTtl);
         }
 
@@ -79,7 +79,7 @@ namespace DnsClient.Tests
 
             Assert.NotNull(item);
             Assert.Equal(1, cache.Count);
-            Assert.Equal(60 * 60 * 24, item.Answers.First().TimeToLive);
+            Assert.Equal(60 * 60 * 24, item.Answers[0].TimeToLive);
             Assert.Equal(maxTtl, effectiveTtl);
         }
 

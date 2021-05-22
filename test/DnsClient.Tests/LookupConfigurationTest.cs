@@ -682,7 +682,7 @@ namespace DnsClient.Tests
         public void ConfigMatrix_ServersQueriesExpectServers(TestMatrixItem test)
         {
             var unresolvedOptions = new LookupClientOptions() { AutoResolveNameServers = false };
-            Assert.Throws<ArgumentOutOfRangeException>("servers", () => test.Invoke(lookupClientOptions: unresolvedOptions, useServers: new NameServer[0]));
+            Assert.Throws<ArgumentOutOfRangeException>("servers", () => test.Invoke(lookupClientOptions: unresolvedOptions, useServers: Array.Empty<NameServer>()));
         }
 
         [Theory]

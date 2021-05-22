@@ -73,7 +73,7 @@ namespace DnsClient.Tests
                 //writer.WriteUInt16Network((ushort)message.Header.AdditionalCount);
                 writer.WriteUInt16NetworkOrder(0);
 
-                var answer = message.Answers.First();
+                var answer = message.Answers[0];
                 writer.WriteHostName(answer.DomainName.Value);
                 writer.WriteUInt16NetworkOrder((ushort)answer.RecordType);
                 writer.WriteUInt16NetworkOrder((ushort)answer.RecordClass);
