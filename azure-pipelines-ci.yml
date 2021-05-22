@@ -44,14 +44,6 @@ jobs:
       publishTestResults: false      
       arguments: '-c Release --no-build --no-restore -f netcoreapp3.1'
 
-  # TODO: re-work unit tests to run without unpredictable local DNS results or run bind on those build agents?
-  # - task: DotNetCoreCLI@2
-  #   inputs:
-  #     command: 'test'
-  #     projects: 'test/DnsClient.Tests/*.csproj'
-  #     publishTestResults: true
-  #     arguments: '-c Release -f netcoreapp3.0'
-
 - job: Windows
   displayName: 'Build & Test on Windows'
   pool:
@@ -73,7 +65,7 @@ jobs:
       command: 'test'
       projects: 'test/**/*.csproj'
       publishTestResults: true      
-      arguments: '-c Release --no-build --no-restore --collect "Code coverage"'
+      arguments: '-c Release --no-build --no-restore --collect "Code coverage" --settings:.runsettings'
   - script: 'dotnet pack src\DnsClient\DnsClient.csproj -c Release --no-build --no-restore --version-suffix "$(versionSuffix)" -v normal -o $(Build.ArtifactStagingDirectory)'
     name: 'PackBeta'
     displayName: 'dotnet pack'
