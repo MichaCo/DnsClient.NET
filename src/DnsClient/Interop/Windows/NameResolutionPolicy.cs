@@ -10,7 +10,7 @@ namespace DnsClient.Windows
 {
     internal static class NameResolutionPolicy
     {
-        private static readonly char[] SplitOn = new char[] { ';' };
+        private static readonly char[] s_splitOn = new char[] { ';' };
 
         /// <summary>
         /// Resolve all names from the Name Resolution policy in Windows.
@@ -100,7 +100,7 @@ namespace DnsClient.Windows
                 return;
             }
 
-            var servers = dnsServers.Split(SplitOn, StringSplitOptions.RemoveEmptyEntries);
+            var servers = dnsServers.Split(s_splitOn, StringSplitOptions.RemoveEmptyEntries);
 
             foreach (var s in servers)
             {

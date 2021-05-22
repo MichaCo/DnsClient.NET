@@ -148,9 +148,9 @@ namespace DnsClient
             }
 
             return
-                Header.ToString().Equals(response.Header.ToString())
-                && string.Join("", Questions).Equals(string.Join("", response.Questions))
-                && string.Join("", AllRecords).Equals(string.Join("", response.AllRecords));
+                Header.ToString().Equals(response.Header.ToString(), StringComparison.OrdinalIgnoreCase)
+                && string.Join("", Questions).Equals(string.Join("", response.Questions), StringComparison.OrdinalIgnoreCase)
+                && string.Join("", AllRecords).Equals(string.Join("", response.AllRecords), StringComparison.OrdinalIgnoreCase);
         }
 
         /// <inheritdoc />
@@ -158,7 +158,13 @@ namespace DnsClient
         {
             if (!_hashCode.HasValue)
             {
-                _hashCode = (Header.ToString() + string.Join("", Questions) + string.Join("", AllRecords)).GetHashCode();
+                var value = (Header.ToString() + string.Join("", Questions) + string.Join("", AllRecords));
+
+#if NET5_0_OR_GREATER || NETSTANDARD2_1
+                _hashCode = value.GetHashCode(StringComparison.Ordinal);
+#else
+                _hashCode = value.GetHashCode();
+#endif
             }
 
             return _hashCode.Value;

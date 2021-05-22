@@ -1,6 +1,3 @@
-# editorconfig.org
-
-# top-most EditorConfig file
 root = true
 
 # Default settings:
@@ -27,8 +24,10 @@ csharp_new_line_before_members_in_anonymous_types = true
 csharp_new_line_between_query_expression_clauses = true
 
 #Formatting - indentation options
+csharp_indent_block_contents = true
+csharp_indent_braces = false
 csharp_indent_case_contents = true
-csharp_indent_case_contents_when_block = true
+csharp_indent_case_contents_when_block = false
 csharp_indent_switch_labels = true
 csharp_indent_labels = one_less_than_current
 
@@ -42,9 +41,9 @@ dotnet_style_qualification_for_method = false:warning
 dotnet_style_qualification_for_event = false:warning
 
 #Style - implicit and explicit types
-csharp_style_var_for_built_in_types = true:none
-csharp_style_var_when_type_is_apparent = true:none
-csharp_style_var_elsewhere = false:none
+csharp_style_var_for_built_in_types = true:silent
+csharp_style_var_when_type_is_apparent = true:silent
+csharp_style_var_elsewhere = false:silent
 dotnet_style_predefined_type_for_locals_parameters_members = true:warning
 dotnet_style_predefined_type_for_member_access = true:warning
 
@@ -81,17 +80,19 @@ dotnet_sort_system_directives_first = true
 dotnet_separate_import_directive_groups = false
 dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity:suggestion
 csharp_prefer_braces = true:warning
-csharp_preserve_single_line_blocks = false:none
+csharp_preserve_single_line_blocks = true:none
 
 #Formatting - organize using statement
-csharp_preserve_single_line_statements = false:suggestion
+csharp_preserve_single_line_statements = false:none
 csharp_prefer_static_local_function = true:none
-csharp_prefer_simple_using_statement = false:none
-csharp_style_prefer_switch_expression = false:none
+csharp_prefer_simple_using_statement = false:silent
+csharp_style_prefer_switch_expression = false:silent
 
 # Code quality
 dotnet_style_readonly_field = true:warning
 dotnet_code_quality_unused_parameters = all:warning
+csharp_style_unused_value_expression_statement_preference = discard_variable:silent
+csharp_style_unused_value_assignment_preference = discard_variable:suggestion
 
 #Style - Expression-level  preferences
 dotnet_style_object_initializer = true:silent
@@ -104,9 +105,10 @@ dotnet_style_prefer_inferred_tuple_names = true:suggestion
 dotnet_style_prefer_inferred_anonymous_type_member_names = true:silent
 dotnet_style_prefer_auto_properties = true:silent
 dotnet_style_prefer_conditional_expression_over_assignment = true:silent
-dotnet_style_prefer_conditional_expression_over_return = true:silent
+dotnet_style_prefer_conditional_expression_over_return = false:silent
 csharp_prefer_simple_default_expression = true:suggestion
-csharp_style_implicit_object_creation_when_type_is_apparent = true:silent
+csharp_style_implicit_object_creation_when_type_is_apparent = false:silent
+csharp_style_deconstructed_variable_declaration = true:warning
 
 #Style - expression bodied member options
 csharp_style_expression_bodied_methods = true:silent
@@ -122,6 +124,9 @@ csharp_style_expression_bodied_local_functions = true:silent
 csharp_style_pattern_matching_over_is_with_cast_check = true:suggestion
 csharp_style_pattern_matching_over_as_with_null_check = true:warning
 csharp_style_inlined_variable_declaration = true:warning
+csharp_style_prefer_pattern_matching = true:silent
+csharp_style_prefer_not_pattern = true:silent
+visual_basic_style_prefer_isnot_expression = true:silent
 
 # Null checking preferences
 csharp_style_throw_expression = true:suggestion
@@ -140,7 +145,7 @@ csharp_space_after_dot = false
 csharp_space_after_keywords_in_control_flow_statements = true
 csharp_space_after_semicolon_in_for_statement = true
 csharp_space_around_binary_operators = before_and_after
-csharp_space_around_declaration_statements = do_not_ignore
+csharp_space_around_declaration_statements = false
 csharp_space_before_colon_in_inheritance_clause = true
 csharp_space_before_comma = false
 csharp_space_before_dot = false
@@ -174,6 +179,29 @@ dotnet_diagnostic.CA1825.severity = silent
 # CA1835: Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync' - (TODO: more improvements needed)
 dotnet_diagnostic.CA1835.severity = silent
 
+# All the style rules we want to enforce during build...
+dotnet_diagnostic.CA2211.severity = warning
+
+dotnet_diagnostic.IDE0001.severity = warning
+dotnet_diagnostic.IDE0003.severity = warning
+dotnet_diagnostic.IDE0004.severity = warning
+dotnet_diagnostic.IDE0011.severity = warning
+dotnet_diagnostic.IDE0033.severity = warning
+dotnet_diagnostic.IDE0035.severity = warning
+dotnet_diagnostic.IDE0036.severity = warning
+dotnet_diagnostic.IDE0042.severity = warning
+dotnet_diagnostic.IDE0044.severity = warning
+dotnet_diagnostic.IDE0049.severity = warning
+dotnet_diagnostic.IDE0051.severity = warning
+dotnet_diagnostic.IDE0052.severity = warning
+dotnet_diagnostic.IDE0055.severity = warning
+dotnet_diagnostic.IDE0060.severity = warning
+dotnet_diagnostic.IDE0082.severity = warning
+dotnet_diagnostic.IDE1006.severity = warning
+#dotnet_analyzer_diagnostic.category-Style.severity = warning
+
+
+
 # Xml project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
 indent_size = 2
@@ -204,3 +232,4 @@ indent_size = 2
 end_of_line = lf
 [*.{cmd,bat}]
 end_of_line = crlf
+

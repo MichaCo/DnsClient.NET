@@ -121,7 +121,7 @@ namespace DnsClient
         /// </summary>
         /// <param name="ipAddress">The <see cref="IPAddress"/>.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="ipAddress"/> is null.</exception>
         /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="DnsQueryOptions.ThrowDnsErrors"/> is enabled) returned error results.</exception>
@@ -133,7 +133,7 @@ namespace DnsClient
         /// <param name="ipAddress">The <see cref="IPAddress"/>.</param>
         /// <param name="queryOptions">Query options to be used instead of <see cref="LookupClient"/>'s settings.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="ipAddress"/> is null.</exception>
         /// <exception cref="DnsResponseException">After retries and fallbacks, if none of the servers were accessible, timed out or (if <see cref="DnsQueryOptions.ThrowDnsErrors"/> is enabled) returned error results.</exception>
@@ -145,7 +145,7 @@ namespace DnsClient
         /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="ipAddress"/> is null.</exception>
         /// <exception cref="OperationCanceledException">If cancellation has been requested for the passed in <paramref name="cancellationToken"/>.</exception>
@@ -159,7 +159,7 @@ namespace DnsClient
         /// <param name="queryOptions">Query options to be used instead of <see cref="LookupClient"/>'s settings.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="ipAddress"/> is null.</exception>
         /// <exception cref="OperationCanceledException">If cancellation has been requested for the passed in <paramref name="cancellationToken"/>.</exception>
@@ -375,7 +375,7 @@ namespace DnsClient
         /// <param name="servers">The list of one or more server(s) which should be used for the lookup.</param>
         /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
         /// <exception cref="ArgumentNullException">If <paramref name="servers"/> or <paramref name="ipAddress"/> is null.</exception>
@@ -389,7 +389,7 @@ namespace DnsClient
         /// <param name="servers">The list of one or more server(s) which should be used for the lookup.</param>
         /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
         /// <exception cref="ArgumentNullException">If <paramref name="servers"/> or <paramref name="ipAddress"/> is null.</exception>
@@ -403,7 +403,7 @@ namespace DnsClient
         /// <param name="servers">The list of one or more server(s) which should be used for the lookup.</param>
         /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
         /// <exception cref="ArgumentNullException">If <paramref name="servers"/> or <paramref name="ipAddress"/> is null.</exception>
@@ -418,7 +418,7 @@ namespace DnsClient
         /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
         /// <param name="queryOptions">Query options to be used instead of <see cref="LookupClient"/>'s settings.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
         /// <exception cref="ArgumentNullException">If <paramref name="servers"/>, <paramref name="ipAddress"/> or <paramref name="queryOptions"/> is null.</exception>
@@ -433,7 +433,7 @@ namespace DnsClient
         /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
         /// <exception cref="ArgumentNullException">If <paramref name="servers"/> or <paramref name="ipAddress"/> is null.</exception>
@@ -449,7 +449,7 @@ namespace DnsClient
         /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
         /// <exception cref="ArgumentNullException">If <paramref name="servers"/> or <paramref name="ipAddress"/> is null.</exception>
@@ -465,7 +465,7 @@ namespace DnsClient
         /// <param name="ipAddress">The <see cref="IPAddress" />.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
         /// <exception cref="ArgumentNullException">If <paramref name="servers"/> or <paramref name="ipAddress"/> is null.</exception>
@@ -482,7 +482,7 @@ namespace DnsClient
         /// <param name="queryOptions">Query options to be used instead of <see cref="LookupClient"/>'s settings.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
-        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="DnsClient.Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
+        /// The <see cref="IDnsQueryResponse" /> which might contain the <see cref="Protocol.PtrRecord" /> for the <paramref name="ipAddress"/>.
         /// </returns>
         /// <exception cref="ArgumentOutOfRangeException">If the <paramref name="servers"/> collection doesn't contain any elements.</exception>
         /// <exception cref="ArgumentNullException">If <paramref name="servers"/>, <paramref name="ipAddress"/> or <paramref name="queryOptions"/> is null.</exception>

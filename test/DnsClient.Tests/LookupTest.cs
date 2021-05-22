@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
@@ -60,9 +61,9 @@ namespace DnsClient.Tests
             Assert.Single(result);
             var first = result.First();
             Assert.Equal(targetHost.ToString(), first.HostName);
-            Assert.Equal((int)port, first.Port);
-            Assert.Equal((int)prio, first.Priority);
-            Assert.Equal((int)weight, first.Weight);
+            Assert.Equal(port, first.Port);
+            Assert.Equal(prio, first.Priority);
+            Assert.Equal(weight, first.Weight);
         }
 
         [Fact]
@@ -98,9 +99,9 @@ namespace DnsClient.Tests
             Assert.Single(result);
             var first = result.First();
             Assert.Equal(targetHost.ToString(), first.HostName);
-            Assert.Equal((int)port, first.Port);
-            Assert.Equal((int)prio, first.Priority);
-            Assert.Equal((int)weight, first.Weight);
+            Assert.Equal(port, first.Port);
+            Assert.Equal(prio, first.Priority);
+            Assert.Equal(weight, first.Weight);
         }
 
         [Fact]
@@ -141,8 +142,8 @@ namespace DnsClient.Tests
 
             var answer = result.Answers.OfType<ARecord>().First();
             Assert.Equal("127.0.0.1", answer.Address.ToString());
-            Assert.Equal(QueryClass.IN, result.Questions.First().QuestionClass);
-            Assert.Equal(QueryType.A, result.Questions.First().QuestionType);
+            Assert.Equal(QueryClass.IN, result.Questions[0].QuestionClass);
+            Assert.Equal(QueryType.A, result.Questions[0].QuestionType);
             Assert.True(result.Header.AnswerCount > 0);
         }
 
@@ -155,8 +156,8 @@ namespace DnsClient.Tests
 
             var answer = result.Answers.OfType<ARecord>().First();
             Assert.Equal("127.0.0.1", answer.Address.ToString());
-            Assert.Equal(QueryClass.IN, result.Questions.First().QuestionClass);
-            Assert.Equal(QueryType.A, result.Questions.First().QuestionType);
+            Assert.Equal(QueryClass.IN, result.Questions[0].QuestionClass);
+            Assert.Equal(QueryType.A, result.Questions[0].QuestionType);
             Assert.True(result.Header.AnswerCount > 0);
         }
 
@@ -921,6 +922,8 @@ namespace DnsClient.Tests
             Assert.Equal("dnsclient.michaco.net", result.HostName);
         }
 
+#if ENABLE_REMOTE_DNS
+
         [Fact]
         public async Task GetHostEntryAsync_ByName_OneIp_NoAlias()
         {
@@ -932,6 +935,22 @@ namespace DnsClient.Tests
             Assert.True(result.Aliases.Length == 0);
             Assert.Equal("localhost", result.HostName);
         }
+
+        [Fact]
+        public async Task GetHostEntryAsync_ByName_HostDoesNotExist_WithThrow()
+        {
+            var client = new LookupClient(
+                new LookupClientOptions()
+                {
+                    ThrowDnsErrors = true
+                });
+
+            var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.GetHostEntryAsync("lolhost"));
+
+            Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
+        }
+
+#endif
 
         [Fact]
         public async Task GetHostEntryAsync_ByName_EmptyString()
@@ -951,20 +970,6 @@ namespace DnsClient.Tests
             Assert.True(result.AddressList.Length == 0);
             Assert.True(result.Aliases.Length == 0);
             Assert.Equal("lolhost", result.HostName);
-        }
-
-        [Fact]
-        public async Task GetHostEntryAsync_ByName_HostDoesNotExist_WithThrow()
-        {
-            var client = new LookupClient(
-                new LookupClientOptions()
-                {
-                    ThrowDnsErrors = true
-                });
-
-            var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.GetHostEntryAsync("lolhost"));
-
-            Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
         }
 
         [Fact]

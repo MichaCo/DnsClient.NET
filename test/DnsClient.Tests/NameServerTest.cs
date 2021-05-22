@@ -62,7 +62,7 @@ namespace DnsClient.Tests
         [Fact]
         public void ValidateNameResolutionPolicyDoesntThrowNormally()
         {
-            var ex  = Record.Exception(() => NameResolutionPolicy.Resolve());
+            var ex = Record.Exception(() => NameResolutionPolicy.Resolve());
 
             Assert.Null(ex);
         }

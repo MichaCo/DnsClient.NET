@@ -5,6 +5,10 @@ using System.Linq;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 namespace DnsClient
 {
+#if !NETSTANDARD1_3
+    [Serializable]
+#endif
+
     public class DnsResponseParseException : Exception
 
     {

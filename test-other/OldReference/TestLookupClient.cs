@@ -1,22 +1,32 @@
 ﻿using System;
 using System.Net;
-using System.Threading;
 using System.Threading.Tasks;
 using DnsClient;
 using DnsClient.Protocol;
 
-namespace ApiDesign.OldReference
+namespace OldReference
 {
     public class TestLookupClient
     {
-        private readonly LookupClient _client;
-
         public TestLookupClient()
         {
-            _client = new LookupClient(IPAddress.Loopback, IPAddress.Loopback, IPAddress.Loopback);
-            _client = new LookupClient(IPAddress.Loopback, 5465);
-            _client = new LookupClient(new IPEndPoint(IPAddress.Loopback, 4444), new IPEndPoint(IPAddress.Loopback, 4443), new IPEndPoint(IPAddress.Loopback, 4442));
-            _client = new LookupClient();
+            _ = new LookupClient(IPAddress.Loopback, IPAddress.Loopback, IPAddress.Loopback);
+            _ = new LookupClient(IPAddress.Loopback, 5465);
+            _ = new LookupClient(new IPEndPoint(IPAddress.Loopback, 4444), new IPEndPoint(IPAddress.Loopback, 4443), new IPEndPoint(IPAddress.Loopback, 4442));
+            _ = new LookupClient();
+        }
+
+        public void TestOtherTypes()
+        {
+            _ = new NameServer(IPAddress.Any);
+            var nameServer = new NameServer(new IPEndPoint(IPAddress.Any, 7979));
+
+            _ = nameServer.SupportedUdpPayloadSize;
+
+            ////_ = NameServer.ResolveNameServers(true, false); actually changed the return type.
+            ////// Added in 1.2
+            ////_ = NameServer.ResolveNameServersNative();
+            //// changed return type to IReadonlyCollection at some point...
         }
 
         public LookupClient SetNonDefaults()
@@ -38,8 +48,6 @@ namespace ApiDesign.OldReference
 
             return client;
         }
-
-        public ILookupClient Client => _client;
 
         public void TestQuery_1_1()
         {

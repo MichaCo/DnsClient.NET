@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<RunSettings>
+    <DataCollectionRunSettings>
+    <DataCollectors>
+        <DataCollector friendlyName="Code Coverage" uri="datacollector://Microsoft/CodeCoverage/2.0" assemblyQualifiedName="Microsoft.VisualStudio.Coverage.DynamicCoverageDataCollector, Microsoft.VisualStudio.TraceCollector, Culture=neutral">
+            <Configuration>
+                <CodeCoverage>
+                    <!-- Match assembly file paths: -->
+                    <ModulePaths>
+                        <Include>
+                            <ModulePath>.*\DnsClient.dll</ModulePath>
+                        </Include>
+                        <Exclude>
+                            <ModulePath>.*tests.dll</ModulePath>
+                        </Exclude>
+                    </ModulePaths>
+                </CodeCoverage>
+            </Configuration>
+        </DataCollector>
+    </DataCollectors>
+    </DataCollectionRunSettings>
+</RunSettings>

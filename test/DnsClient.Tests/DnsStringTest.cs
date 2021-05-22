@@ -55,6 +55,7 @@ namespace DnsClient.Tests
             Assert.Equal(3, name.NumberOfLabels);
         }
 
+#if !NET5_0_OR_GREATER // Actually changed behavior in NET50
         [Fact]
         public void DnsString_ReadPuny_IDNA2003_Invalid()
         {
@@ -64,6 +65,7 @@ namespace DnsClient.Tests
             DnsString result = DnsString.Parse(val);
             Assert.Equal(expected, result.Value);
         }
+#endif
 
         [Fact]
         public void QDnsString_ParsePuny()
@@ -223,13 +225,13 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsString_ConcatNullA()
         {
-            Assert.Throws<ArgumentNullException>(() => DnsString.RootLabel + (DnsString)null);
+            Assert.Throws<ArgumentNullException>(() => DnsString.RootLabel + null);
         }
 
         [Fact]
         public void DnsString_ConcatNullB()
         {
-            Assert.Throws<ArgumentNullException>(() => (DnsString)null + DnsString.RootLabel);
+            Assert.Throws<ArgumentNullException>(() => null + DnsString.RootLabel);
         }
 
         [Fact]

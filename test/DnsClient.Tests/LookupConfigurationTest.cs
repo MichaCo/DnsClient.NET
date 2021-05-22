@@ -76,7 +76,7 @@ namespace DnsClient.Tests
             var opt = (DnsQuerySettings)new DnsQueryOptions();
 
             // typed overload
-            Assert.False(opt.Equals((DnsQuerySettings)null));
+            Assert.False(opt.Equals(null));
 
             // object overload
             Assert.False(opt.Equals((object)null));
@@ -113,7 +113,7 @@ namespace DnsClient.Tests
             var opt = (DnsQueryAndServerSettings)new DnsQueryAndServerOptions();
 
             // typed overload
-            Assert.False(opt.Equals((DnsQueryAndServerSettings)null));
+            Assert.False(opt.Equals(null));
 
             // object overload
             Assert.False(opt.Equals((object)null));
@@ -150,7 +150,7 @@ namespace DnsClient.Tests
             var opt = new LookupClientSettings(new LookupClientOptions() { AutoResolveNameServers = false });
 
             // typed overload
-            Assert.False(opt.Equals((LookupClientSettings)null));
+            Assert.False(opt.Equals(null));
 
             // object overload
             Assert.False(opt.Equals((object)null));
@@ -682,7 +682,7 @@ namespace DnsClient.Tests
         public void ConfigMatrix_ServersQueriesExpectServers(TestMatrixItem test)
         {
             var unresolvedOptions = new LookupClientOptions() { AutoResolveNameServers = false };
-            Assert.Throws<ArgumentOutOfRangeException>("servers", () => test.Invoke(lookupClientOptions: unresolvedOptions, useServers: new NameServer[0]));
+            Assert.Throws<ArgumentOutOfRangeException>("servers", () => test.Invoke(lookupClientOptions: unresolvedOptions, useServers: Array.Empty<NameServer>()));
         }
 
         [Theory]

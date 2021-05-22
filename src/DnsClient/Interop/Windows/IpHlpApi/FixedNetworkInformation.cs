@@ -24,7 +24,7 @@ namespace DnsClient.Windows.IpHlpApi
         public static FixedNetworkInformation GetFixedInformation()
         {
             var info = new FixedNetworkInformation();
-            uint size = 0;            
+            uint size = 0;
             uint result = Interop.IpHlpApi.GetNetworkParams(IntPtr.Zero, ref size);
 
             while (result == Interop.IpHlpApi.ERROR_BUFFER_OVERFLOW)

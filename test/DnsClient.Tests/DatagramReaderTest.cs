@@ -87,7 +87,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DatagramReader_IndexOutOfRange()
         {
-            Action act = () => new DnsDatagramReader(new ArraySegment<byte>(new byte[10]), 11);
+            Action act = () => _ = new DnsDatagramReader(new ArraySegment<byte>(new byte[10]), 11);
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
 
@@ -107,7 +107,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DatagramReader_IndexOutOfRangeNegativ()
         {
-            Action act = () => new DnsDatagramReader(new ArraySegment<byte>(new byte[10]), -1);
+            Action act = () => _ = new DnsDatagramReader(new ArraySegment<byte>(new byte[10]), -1);
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
 

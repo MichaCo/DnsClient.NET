@@ -83,7 +83,6 @@ namespace DnsClient
         /// <seealso href="https://tools.ietf.org/html/rfc2136">RFC 2136</seealso>
         NotZone = 10,
 
-
         /// <summary>
         /// Unassigned value
         /// </summary>
@@ -186,7 +185,6 @@ namespace DnsClient
         /// <seealso href="https://tools.ietf.org/html/rfc2136">RFC 2136</seealso>
         NotZone = 10,
 
-
         /// <summary>
         /// Unassigned value
         /// </summary>
@@ -276,6 +274,10 @@ namespace DnsClient
     /// A DnsClient specific exception transporting additional information about the query causing this exception.
     /// </summary>
     /// <seealso cref="System.Exception" />
+#if !NETSTANDARD1_3
+    [Serializable]
+#endif
+
     public class DnsResponseException : Exception
     {
         /// <summary>

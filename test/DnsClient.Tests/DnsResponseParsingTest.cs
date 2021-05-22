@@ -255,7 +255,7 @@ namespace DnsClient.Tests
             Assert.Equal(86400, (int)validateRecord.Retry);
             Assert.Equal("hostmaster.mcnet.com.", validateRecord.RName);
             Assert.Equal(2017010600, (int)validateRecord.Serial);
-            Assert.Equal(100, (int)validateRecord.InitialTimeToLive);
+            Assert.Equal(100, validateRecord.InitialTimeToLive);
         }
 
         [Fact]

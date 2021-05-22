@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitignore = .gitignore
-		appveyor.yml = appveyor.yml
+		.runsettings = .runsettings
 		azure-pipelines-ci.yml = azure-pipelines-ci.yml
 		LICENSE = LICENSE
 		README.md = README.md
@@ -42,9 +42,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnsClient.TestsCommon", "te
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnsClient.PerfTestHost", "test-other\DnsClient.PerfTestHost\DnsClient.PerfTestHost.csproj", "{58173158-2B2D-4C26-A666-495641477066}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiDesign.OldReference", "test-other\ApiDesign.OldReference\ApiDesign.OldReference.csproj", "{77554E92-95AB-404F-8999-A82BE4978361}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test-other", "test-other", "{28CFF2BF-88D0-481F-829E-43B51DE7FB1F}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OldReference", "test-other\OldReference\OldReference.csproj", "{8A0A1464-246A-444F-B2DC-1F5E2B850AC5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnsClient.ThirdParty.Tests", "test\DnsClient.ThirdParty.Tests\DnsClient.ThirdParty.Tests.csproj", "{FBE30B1A-F2E6-47E3-B930-838578818883}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -80,10 +82,14 @@ Global
 		{58173158-2B2D-4C26-A666-495641477066}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{58173158-2B2D-4C26-A666-495641477066}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{58173158-2B2D-4C26-A666-495641477066}.Release|Any CPU.Build.0 = Release|Any CPU
-		{77554E92-95AB-404F-8999-A82BE4978361}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{77554E92-95AB-404F-8999-A82BE4978361}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{77554E92-95AB-404F-8999-A82BE4978361}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{77554E92-95AB-404F-8999-A82BE4978361}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8A0A1464-246A-444F-B2DC-1F5E2B850AC5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8A0A1464-246A-444F-B2DC-1F5E2B850AC5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8A0A1464-246A-444F-B2DC-1F5E2B850AC5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8A0A1464-246A-444F-B2DC-1F5E2B850AC5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FBE30B1A-F2E6-47E3-B930-838578818883}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FBE30B1A-F2E6-47E3-B930-838578818883}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FBE30B1A-F2E6-47E3-B930-838578818883}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FBE30B1A-F2E6-47E3-B930-838578818883}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -96,7 +102,8 @@ Global
 		{7461E2C7-008E-4E61-ABC3-AF85DE37084B} = {28CFF2BF-88D0-481F-829E-43B51DE7FB1F}
 		{8422A76D-CC40-4B4B-AA03-C17C3D86A073} = {28CFF2BF-88D0-481F-829E-43B51DE7FB1F}
 		{58173158-2B2D-4C26-A666-495641477066} = {28CFF2BF-88D0-481F-829E-43B51DE7FB1F}
-		{77554E92-95AB-404F-8999-A82BE4978361} = {28CFF2BF-88D0-481F-829E-43B51DE7FB1F}
+		{8A0A1464-246A-444F-B2DC-1F5E2B850AC5} = {28CFF2BF-88D0-481F-829E-43B51DE7FB1F}
+		{FBE30B1A-F2E6-47E3-B930-838578818883} = {34E43CED-3DF4-49CE-8556-69225ABD84E6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E26DC1C5-A82B-4984-88DB-107C9D66271F}

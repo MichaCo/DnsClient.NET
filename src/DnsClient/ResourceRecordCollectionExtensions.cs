@@ -230,7 +230,7 @@ namespace System.Linq
         /// </summary>
         /// <param name="records"></param>
         /// <returns>The list of <see cref="TlsaRecord"/>.</returns>
-        public static IEnumerable<TlsaRecord> TlsaRecords (this IEnumerable<DnsResourceRecord> records)
+        public static IEnumerable<TlsaRecord> TlsaRecords(this IEnumerable<DnsResourceRecord> records)
         {
             return records.OfType<TlsaRecord>();
         }

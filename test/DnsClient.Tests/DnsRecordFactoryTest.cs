@@ -24,7 +24,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_PTRRecordNotEnoughData()
         {
-            var data = new byte[0];
+            var data = Array.Empty<byte>();
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.PTR, QueryClass.IN, 0, data.Length);
 
@@ -128,7 +128,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_NSRecordNotEnoughData()
         {
-            var data = new byte[0];
+            var data = Array.Empty<byte>();
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.NS, QueryClass.IN, 0, data.Length);
 
@@ -165,7 +165,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_MXRecordOrderMissing()
         {
-            var data = new byte[0];
+            var data = Array.Empty<byte>();
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.MX, QueryClass.IN, 0, data.Length);
 
@@ -216,7 +216,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_SOARecordEmpty()
         {
-            var data = new byte[0];
+            var data = Array.Empty<byte>();
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.SOA, QueryClass.IN, 0, data.Length);
 
@@ -244,7 +244,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_SRVRecordEmpty()
         {
-            var data = new byte[0];
+            var data = Array.Empty<byte>();
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.SRV, QueryClass.IN, 0, data.Length);
 
@@ -277,7 +277,7 @@ namespace DnsClient.Tests
             var writer = new DnsDatagramWriter();
             writer.WriteUInt16NetworkOrder(0x1e);
             writer.WriteUInt16NetworkOrder(0x00);
-            writer.WriteStringWithLengthPrefix(NAPtrRecord.SFlag.ToString()); 
+            writer.WriteStringWithLengthPrefix(NAPtrRecord.SFlag.ToString());
             writer.WriteStringWithLengthPrefix(NAPtrRecord.ServiceKeySipUdp);
             writer.WriteStringWithLengthPrefix("");
             writer.WriteHostName(name.Value);
@@ -312,7 +312,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_TXTRecordWrongTextLength()
         {
-            var data = new byte[0];
+            var data = Array.Empty<byte>();
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.TXT, QueryClass.IN, 0, data.Length);
 

@@ -34,7 +34,7 @@ namespace DigApp
 
         public CommandOption ReversArg { get; }
 
-        public DigCommand(CommandLineApplication app, string[] originalArgs) 
+        public DigCommand(CommandLineApplication app, string[] originalArgs)
             : base(app, originalArgs)
         {
             DomainArg = app.Argument("domain", "domain name", false);
@@ -103,7 +103,6 @@ namespace DigApp
                 }
             }
 
-
             try
             {
                 // finally running the command
@@ -113,13 +112,12 @@ namespace DigApp
 
                 Console.WriteLine($"; Servers: {string.Join(", ", lookup.NameServers)}");
 
-
                 var parsedDnsString = DnsString.Parse(useDomain);
                 if (parsedDnsString.NumberOfLabels == 1 && !parsedDnsString.Original.EndsWith("."))
                 {
-                    foreach(var server in lookup.NameServers)
+                    foreach (var server in lookup.NameServers)
                     {
-                        if(server.DnsSuffix != null)
+                        if (server.DnsSuffix != null)
                         {
                             var newQuery = parsedDnsString + server.DnsSuffix;
 

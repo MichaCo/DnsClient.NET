@@ -66,7 +66,7 @@ namespace DigApp
         protected override async Task<int> Execute()
         {
             var lines = File.ReadAllLines("names.txt");
-            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(',') + 1)).OrderBy(x => s_randmom.Next(0, lines.Length * 2)));
+            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(',', StringComparison.Ordinal) + 1)).OrderBy(x => s_randmom.Next(0, lines.Length * 2)));
 
             _clients = ClientsArg.HasValue() ? int.Parse(ClientsArg.Value()) : 10;
             _runtime = RuntimeArg.HasValue() ? int.Parse(RuntimeArg.Value()) <= 1 ? 5 : int.Parse(RuntimeArg.Value()) : 5;
