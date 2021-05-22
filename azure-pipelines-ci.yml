@@ -32,6 +32,7 @@ jobs:
       command: 'build'
       projects: |
         src/**/*.csproj
+        test/**/*.csproj
       arguments: '-c Release'
     name: 'Build'
     displayName: 'dotnet build'
@@ -63,7 +64,7 @@ jobs:
       command: 'build'
       projects: |
         src/**/*.csproj
-        test/DnsClient.Tests/*.csproj
+        test/**/*.csproj
       arguments: '-c Release'
     name: 'Build'    
   - task: DotNetCoreCLI@2

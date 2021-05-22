@@ -1376,11 +1376,10 @@ namespace DnsClient
         private HandleError HandleDnsResponeParseException(DnsResponseParseException ex, DnsRequestMessage request, DnsMessageHandleType handleType, bool isLastServer)
         {
             // Don't try to fallback to TCP if we already are on TCP
+            // Assuming that if we only got 512 or less bytes, its probably some network issue.
+            // Second assumption: If the parser tried to read outside the provided data, this might also be a network issue.
             if (handleType == DnsMessageHandleType.UDP
-                // Assuming that if we only got 512 or less bytes, its probably some network issue.
-                && (ex.ResponseData.Length <= DnsQueryOptions.MinimumBufferSize
-                // Second assumption: If the parser tried to read outside the provided data, this might also be a network issue.
-                || ex.ReadLength + ex.Index > ex.ResponseData.Length))
+                && (ex.ResponseData.Length <= DnsQueryOptions.MinimumBufferSize || ex.ReadLength + ex.Index > ex.ResponseData.Length))
             {
                 // lets assume the response was truncated and retry with TCP.
                 // (Not retrying other servers as it is very unlikely they would provide better results on this network)
