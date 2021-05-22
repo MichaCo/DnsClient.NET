@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
@@ -921,6 +922,8 @@ namespace DnsClient.Tests
             Assert.Equal("dnsclient.michaco.net", result.HostName);
         }
 
+#if ENABLE_REMOTE_DNS
+
         [Fact]
         public async Task GetHostEntryAsync_ByName_OneIp_NoAlias()
         {
@@ -932,6 +935,22 @@ namespace DnsClient.Tests
             Assert.True(result.Aliases.Length == 0);
             Assert.Equal("localhost", result.HostName);
         }
+
+        [Fact]
+        public async Task GetHostEntryAsync_ByName_HostDoesNotExist_WithThrow()
+        {
+            var client = new LookupClient(
+                new LookupClientOptions()
+                {
+                    ThrowDnsErrors = true
+                });
+
+            var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.GetHostEntryAsync("lolhost"));
+
+            Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
+        }
+
+#endif
 
         [Fact]
         public async Task GetHostEntryAsync_ByName_EmptyString()
@@ -951,20 +970,6 @@ namespace DnsClient.Tests
             Assert.True(result.AddressList.Length == 0);
             Assert.True(result.Aliases.Length == 0);
             Assert.Equal("lolhost", result.HostName);
-        }
-
-        [Fact]
-        public async Task GetHostEntryAsync_ByName_HostDoesNotExist_WithThrow()
-        {
-            var client = new LookupClient(
-                new LookupClientOptions()
-                {
-                    ThrowDnsErrors = true
-                });
-
-            var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.GetHostEntryAsync("lolhost"));
-
-            Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
         }
 
         [Fact]
