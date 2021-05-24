@@ -195,6 +195,10 @@ namespace DnsClient
         /// <seealso href="https://tools.ietf.org/html/rfc5155">RFC 5155</seealso>
         NSEC3 = ResourceRecordType.NSEC3,
 
+        /// <summary>
+        /// NSEC3PARAM rfc5155.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc5155#section-4">RFC 5155</seealso>
         NSEC3PARAM = ResourceRecordType.NSEC3PARAM,
 
         /// <summary>

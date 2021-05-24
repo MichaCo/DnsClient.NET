@@ -612,7 +612,32 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public void DnsRecord_TestBitmap()
+        public void DnsRecordFactory_NSec3ParamRecord()
+        {
+            var salt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+            var name = DnsString.Parse("example.com");
+
+            var writer = new DnsDatagramWriter();
+            writer.WriteByte(1); // Algorithm
+            writer.WriteByte(2); // Flags
+            writer.WriteUInt16NetworkOrder(100); // Iterations
+            writer.WriteByte((byte)salt.Length);
+            writer.WriteBytes(salt, salt.Length);
+
+            var factory = GetFactory(writer.Data);
+
+            var info = new ResourceRecordInfo(name, ResourceRecordType.NSEC3PARAM, QueryClass.IN, 0, writer.Data.Count);
+
+            var result = factory.GetRecord(info) as NSec3ParamRecord;
+
+            Assert.Equal(1, result.HashAlgorithm);
+            Assert.Equal(2, result.Flags);
+            Assert.Equal(100, result.Iterations);
+            Assert.Equal(salt, result.Salt);
+        }
+
+        [Fact]
+        public void DnsRecord_TestBitmap_MaxWindows()
         {
             var data = Enumerable.Repeat(0, ushort.MaxValue).Select((v, i) => (ushort)i).ToArray();
 

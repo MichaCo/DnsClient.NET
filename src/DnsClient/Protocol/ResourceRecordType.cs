@@ -211,6 +211,10 @@ namespace DnsClient.Protocol
         /// <seealso href="https://tools.ietf.org/html/rfc5155">RFC 5155</seealso>
         NSEC3 = 50,
 
+        /// <summary>
+        /// NSEC3PARAM rfc5155.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc5155#section-4">RFC 5155</seealso>
         NSEC3PARAM = 51,
 
         /// <summary>

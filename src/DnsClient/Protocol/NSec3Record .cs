@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 using DnsClient.Internal;
 
 namespace DnsClient.Protocol
@@ -93,9 +92,11 @@ namespace DnsClient.Protocol
         public IReadOnlyList<ResourceRecordType> TypeBitMaps { get; }
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="NSecRecord"/> class
+        /// Initializes a new instance of the <see cref="NSec3Record"/> class
         /// </summary>
-        /// <exception cref="ArgumentNullException">If <paramref name="info"/>, <paramref name="nextOwnersName"/> or <paramref name="bitmap"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">
+        /// If <paramref name="info"/>, <paramref name="nextOwnersName"/>, <paramref name="salt"/> or <paramref name="bitmap"/> is null.
+        /// </exception>
         public NSec3Record(
             ResourceRecordInfo info,
             byte hashAlgorithm,
@@ -124,7 +125,6 @@ namespace DnsClient.Protocol
 
             TypeBitMapsRaw = bitmap;
             TypeBitMaps = NSecRecord.ReadBitmap(bitmap).OrderBy(p => p).Select(p => (ResourceRecordType)p).ToArray();
-            using var sha = SHA1.Create();
         }
 
         private protected override string RecordToString()
