@@ -110,9 +110,11 @@ namespace DnsClient.Protocol
             HashAlgorithm = hashAlgorithm;
             Flags = flags;
             Iterations = iterations;
-            Salt = salt;
+            Salt = salt ?? throw new ArgumentNullException(nameof(salt));
+            TypeBitMapsRaw = bitmap ?? throw new ArgumentNullException(nameof(bitmap));
+
             SaltAsString = Salt.Length == 0 ? "-" : string.Join(string.Empty, Salt.Select(b => b.ToString("X2")));
-            NextOwnersName = nextOwnersName;
+            NextOwnersName = nextOwnersName ?? throw new ArgumentNullException(nameof(nextOwnersName));
 
             try
             {
@@ -123,7 +125,6 @@ namespace DnsClient.Protocol
                 // Nothing - I'm just not trusting myself
             }
 
-            TypeBitMapsRaw = bitmap;
             TypeBitMaps = NSecRecord.ReadBitmap(bitmap).OrderBy(p => p).Select(p => (ResourceRecordType)p).ToArray();
         }
 
