@@ -110,7 +110,7 @@ namespace DnsClient.Protocol
         /// <param name="address">The address.</param>
         /// <param name="protocol">The protocol.</param>
         /// <param name="bitmap">The raw data.</param>
-        /// <exception cref="System.ArgumentNullException">
+        /// <exception cref="ArgumentNullException">
         /// If <paramref name="address"/> or <paramref name="info"/> or <paramref name="bitmap"/> is null.
         /// </exception>
         public WksRecord(ResourceRecordInfo info, IPAddress address, int protocol, byte[] bitmap)

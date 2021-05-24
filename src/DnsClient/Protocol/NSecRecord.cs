@@ -52,14 +52,12 @@ namespace DnsClient.Protocol
         public DnsString NextDomainName { get; }
 
         /// <summary>
-        /// Gets the raw data of the type bit maps field.
-        /// The Type Bit Maps field identifies the RRset types that exist at the NSEC RR's owner name.
+        /// Gets the type bit maps field which identifies the RRSet types that exist at the NSEC RR's owner name.
         /// </summary>
         public IReadOnlyList<byte> TypeBitMapsRaw { get; }
 
         /// <summary>
-        /// Gets the represented RR types of the <see cref="TypeBitMapsRaw"/> data.
-        /// The Type Bit Maps field identifies the RRset types that exist at the NSEC RR's owner name.
+        /// Gets the type bit maps field which identifies the RRSet types that exist at the NSEC RR's owner name.
         /// </summary>
         public IReadOnlyList<ResourceRecordType> TypeBitMaps { get; }
 
@@ -72,7 +70,7 @@ namespace DnsClient.Protocol
         {
             NextDomainName = nextDomainName ?? throw new ArgumentNullException(nameof(nextDomainName));
             TypeBitMapsRaw = typeBitMaps ?? throw new ArgumentNullException(nameof(typeBitMaps));
-            TypeBitMaps = GetTypes(typeBitMaps);
+            TypeBitMaps = ReadBitmap(typeBitMaps).OrderBy(p => p).Select(p => (ResourceRecordType)p).ToArray();
         }
 
         private protected override string RecordToString()
@@ -80,36 +78,34 @@ namespace DnsClient.Protocol
             return string.Format("{0} {1}", NextDomainName, string.Join(" ", TypeBitMaps));
         }
 
-        private static IReadOnlyList<ResourceRecordType> GetTypes(byte[] data)
+        internal static IEnumerable<int> ReadBitmap(byte[] data)
         {
-            var result = new List<ResourceRecordType>();
-
             if (data.Length < 2)
             {
-                throw new DnsResponseParseException("NSEC record with too small bitmap.");
+                throw new DnsResponseParseException("Invalid bitmap length, less than 2 bytes available.");
             }
 
-            for (var n = 0; n < data.Length; n++)
+            for (var n = 0; n < data.Length;)
             {
                 var window = data[n++];
                 var len = data[n++];
 
                 if (window == 0 && len == 0)
                 {
-                    break;
+                    continue;
                 }
 
                 if (len > 32)
                 {
-                    throw new DnsResponseParseException("NSEC record with invalid bitmap length.");
+                    throw new DnsResponseParseException("Invalid bitmap length, more than 32 bytes in a window.");
                 }
 
                 if (n + len > data.Length)
                 {
-                    throw new DnsResponseParseException("NSEC record with bitmap length > packet length.");
+                    throw new DnsResponseParseException("Invalid bitmap length, more bytes requested then available.");
                 }
 
-                for (var k = 0; k < len; k++)
+                for (var k = 0; k < len && n < data.Length; k++)
                 {
                     var val = data[n++];
 
@@ -117,14 +113,72 @@ namespace DnsClient.Protocol
                     {
                         if ((val & 1) == 1)
                         {
-                            var x = ((7 - bit) + 8 * (k) + 256 * window);
-                            result.Add((ResourceRecordType)x);
+                            yield return (7 - bit) + 8 * (k) + 256 * window;
                         }
                     }
                 }
             }
+        }
 
-            return result.OrderBy(p => p).ToArray();
+        internal static IEnumerable<byte> WriteBitmap(ushort[] values)
+        {
+            Array.Sort(values);
+            int prevValue = -1;
+
+            // max 256 windows à 32bytes possible
+            bool[] windowsInUse = new bool[256];
+            int maxVal = 0;
+
+            // 32x256 bytes possible
+            byte[] typebits = new byte[8192];
+            int used = 0;
+
+            foreach (var val in values)
+            {
+                if (val == prevValue)
+                {
+                    continue;
+                }
+
+                prevValue = val;
+
+                typebits[val / 8] |= (byte)(0x80 >> (val % 8));
+                windowsInUse[val / 256] = true;
+                if (val > maxVal)
+                {
+                    maxVal = val;
+                }
+            }
+
+            for (var block = 0; block <= maxVal / 256; block++)
+            {
+                var blockLen = 0;
+                if (!windowsInUse[block])
+                {
+                    continue;
+                }
+
+                for (var i = 0; i < 32; i++)
+                {
+                    if (typebits[block * 32 + i] != 0)
+                    {
+                        blockLen = i + 1;
+                    }
+                }
+
+                if (blockLen == 0)
+                {
+                    continue;
+                }
+
+                yield return (byte)block;
+                yield return (byte)blockLen;
+                for (var i = 0; i < blockLen; i++)
+                {
+                    yield return typebits[block * 32 + i];
+                }
+                used += blockLen + 2;
+            }
         }
     }
 }

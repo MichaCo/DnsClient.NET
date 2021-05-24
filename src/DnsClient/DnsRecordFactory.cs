@@ -159,6 +159,14 @@ namespace DnsClient
                     result = ResolveDnsKeyRecord(info);
                     break;
 
+                case ResourceRecordType.NSEC3: // 50
+                    result = ResolveNSec3Record(info);
+                    break;
+
+                case ResourceRecordType.NSEC3PARAM: // 51
+                    result = ResolveNSec3ParamRecord(info);
+                    break;
+
                 case ResourceRecordType.TLSA: // 52
                     result = ResolveTlsaRecord(info);
                     break;
@@ -304,6 +312,30 @@ namespace DnsClient
             var nextName = _reader.ReadDnsName();
             var bitMaps = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
             return new NSecRecord(info, nextName, bitMaps);
+        }
+
+        private DnsResourceRecord ResolveNSec3Record(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            var hashAlgorithm = _reader.ReadByte();
+            var flags = _reader.ReadByte();
+            var iterations = _reader.ReadUInt16NetworkOrder();
+            var saltLength = _reader.ReadByte();
+            var salt = _reader.ReadBytes(saltLength).ToArray();
+            var nextOwnerLength = _reader.ReadByte();
+            var nextOwnersName = _reader.ReadBytes(nextOwnerLength).ToArray();
+            var bitMaps = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
+            return new NSec3Record(info, hashAlgorithm, flags, iterations, salt, nextOwnersName, bitMaps);
+        }
+
+        private DnsResourceRecord ResolveNSec3ParamRecord(ResourceRecordInfo info)
+        {
+            var hashAlgorithm = _reader.ReadByte();
+            var flags = _reader.ReadByte();
+            var iterations = _reader.ReadUInt16NetworkOrder();
+            var saltLength = _reader.ReadByte();
+            var salt = _reader.ReadBytes(saltLength).ToArray();
+            return new NSec3ParamRecord(info, hashAlgorithm, flags, iterations, salt);
         }
 
         private DnsResourceRecord ResolveDnsKeyRecord(ResourceRecordInfo info)

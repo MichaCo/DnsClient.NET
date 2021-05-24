@@ -206,13 +206,25 @@ namespace DnsClient.Protocol
         DNSKEY = 48,
 
         /// <summary>
+        /// NSEC3 rfc5155.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc5155">RFC 5155</seealso>
+        NSEC3 = 50,
+
+        /// <summary>
+        /// NSEC3PARAM rfc5155.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc5155#section-4">RFC 5155</seealso>
+        NSEC3PARAM = 51,
+
+        /// <summary>
         /// TLSA rfc6698.
         /// </summary>
         /// <seealso href="https://https://tools.ietf.org/html/rfc6698">RFC 6698</seealso>
         TLSA = 52,
 
         /// <summary>
-        /// SPF records don't officially have a dedicated RR type, <see cref="ResourceRecordType.TXT"/> should be used instead.
+        /// SPF records don't officially have a dedicated RR type, <see cref="TXT"/> should be used instead.
         /// The behavior of TXT and SPF are the same.
         /// </summary>
         /// <remarks>

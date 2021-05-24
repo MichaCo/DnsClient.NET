@@ -41,6 +41,8 @@ namespace DnsClient.Tests
                 ResourceRecordType.NAPTR,
                 ResourceRecordType.TLSA,
                 ResourceRecordType.NSEC,
+                ResourceRecordType.NSEC3,
+                ResourceRecordType.NSEC3PARAM,
                 ResourceRecordType.SPF,
                 ResourceRecordType.DNSKEY,
                 ResourceRecordType.DS

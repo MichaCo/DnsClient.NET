@@ -41,7 +41,7 @@ namespace DnsClient.Protocol
         /// </summary>
         /// <param name="info">The information.</param>
         /// <param name="data">The raw data.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="data"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="info"/> or <paramref name="data"/> is null.</exception>
         public UnknownRecord(ResourceRecordInfo info, byte[] data)
             : base(info)
         {

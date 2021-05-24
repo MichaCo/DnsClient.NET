@@ -34,6 +34,8 @@ var ip = record?.Address;
   * Minimum TTL setting to overrule the result's TTL and always cache the responses for at least that time. (Even very low value, like a few milliseconds, do make a huge difference if used in high traffic low latency scenarios)
   * Maximum TTL to limit cache duration
   * Cache can be disabled
+* Nameserver auto discovery. If no servers are explicitly configured, DnsClient will try its best to resolve them based on your local system configuration.
+  This includes DNS servers configured via network interfaces or even via Windows specific [NRPT policies](https://docs.microsoft.com/en-us/openspecs/windows_protocols/ms-gpnrpt/8cc31cb9-20cb-4140-9e85-3e08703b4745).
 * Multiple DNS endpoints can be configured. DnsClient will use them in random or sequential order (configurable), with re-tries.
 * Configurable retry of queries
 * Optional audit trail of each response and exception
@@ -42,32 +44,19 @@ var ip = record?.Address;
 
 ### Supported resource records
 
-* A, AAAA, NS, CNAME, SOA, MB, MG, MR, WKS, HINFO, MINFO, MX, RP, TXT, AFSDB, URI, CAA, NULL, SSHFP, TLSA, RRSIG, NSEC, DNSKEY, DS
+* A, AAAA, NS, CNAME, SOA, MB, MG, MR, WKS, HINFO, MINFO, MX, RP, TXT, AFSDB, URI, CAA, NULL, SSHFP, TLSA, RRSIG, NSEC, NSEC3, NSEC3PARAM, DNSKEY, DS
 * PTR for reverse lookups
 * SRV for service discovery. `LookupClient` has some extensions to help with that.
 * AXFR zone transfer (as per spec, LookupClient has to be set to TCP mode only for this type. Also, the result depends on if the DNS server trusts your current connection)
 
 ## Build from Source
 
-The solution requires a .NET Core 3.x SDK and the [.NET 4.7.1 Dev Pack](https://www.microsoft.com/net/download/dotnet-framework/net471) being installed.
-
-Just clone the repository and open the solution in Visual Studio 2017/2019.
-
-The unit tests don't require any additional setup right now.
-
-If you want to test the different record types, there are config files for Bind under tools. 
-Just [download Bind](https://www.isc.org/downloads/) for Windows and copy the binaries to tools/BIND, then run bind.cmd.
-If you are running this on Linux, you can use my config files and replace the default ones if you want.
-
-Now, you can use **samples/MiniDig** to query the local DNS server. 
-The following should return many different resource records:
-
-``` cmd
-dotnet run -s localhost mcnet.com any
-```
+To build and contribute to this project, you must have the latest [.NET 5 SDK](https://dotnet.microsoft.com/download) installed.
+Just clone the repository and open the solution in Visual Studio 2019.
 
 ## Examples
 
+* See [MiniDig](https://github.com/MichaCo/DnsClient.NET/tree/dev/samples/MiniDig)'s readme for what this example command line tool can do.
 * More documentation and a simple query window on http://dnsclient.michaco.net
 * The [Samples](https://github.com/MichaCo/DnsClient.NET.Samples) repository (there might be more in the future).
-* [MiniDig](https://github.com/MichaCo/DnsClient.NET/tree/dev/samples/MiniDig)
+
