@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Text;
+using DnsClient.Internal;
 using DnsClient.Protocol;
 using Xunit;
 
@@ -19,6 +20,11 @@ namespace DnsClient.Tests
         internal DnsRecordFactory GetFactory(byte[] data)
         {
             return new DnsRecordFactory(new DnsDatagramReader(new ArraySegment<byte>(data)));
+        }
+
+        internal DnsRecordFactory GetFactory(ArraySegment<byte> data)
+        {
+            return new DnsRecordFactory(new DnsDatagramReader(data));
         }
 
         [Fact]
@@ -51,7 +57,7 @@ namespace DnsClient.Tests
             var name = DnsString.Parse("result.example.com");
             var writer = new DnsDatagramWriter();
             writer.WriteHostName(name.Value);
-            var factory = GetFactory(writer.Data.ToArray());
+            var factory = GetFactory(writer.Data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.PTR, QueryClass.IN, 0, writer.Data.Count);
 
             var result = factory.GetRecord(info) as PtrRecord;
@@ -65,7 +71,7 @@ namespace DnsClient.Tests
             var name = DnsString.Parse("Müsli.de");
             var writer = new DnsDatagramWriter();
             writer.WriteHostName(name.Value);
-            var factory = GetFactory(writer.Data.ToArray());
+            var factory = GetFactory(writer.Data);
             var info = new ResourceRecordInfo("Müsli.de", ResourceRecordType.MB, QueryClass.IN, 0, writer.Data.Count);
 
             var result = factory.GetRecord(info) as MbRecord;
@@ -154,7 +160,7 @@ namespace DnsClient.Tests
             var writer = new DnsDatagramWriter();
             var name = DnsString.Parse("result.example.com");
             writer.WriteHostName(name.Value);
-            var factory = GetFactory(writer.Data.ToArray());
+            var factory = GetFactory(writer.Data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.NS, QueryClass.IN, 0, writer.Data.Count);
 
             var result = factory.GetRecord(info) as NsRecord;
@@ -204,7 +210,7 @@ namespace DnsClient.Tests
             writer.WriteByte(1);
             writer.WriteHostName(name.Value);
 
-            var factory = GetFactory(writer.Data.ToArray());
+            var factory = GetFactory(writer.Data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.MX, QueryClass.IN, 0, writer.Data.Count);
 
             var result = factory.GetRecord(info) as MxRecord;
@@ -258,7 +264,7 @@ namespace DnsClient.Tests
             var writer = new DnsDatagramWriter();
             writer.WriteBytes(new byte[] { 0, 1, 1, 0, 2, 3 }, 6);
             writer.WriteHostName(name.Value);
-            var factory = GetFactory(writer.Data.ToArray());
+            var factory = GetFactory(writer.Data);
 
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.SRV, QueryClass.IN, 0, writer.Data.Count);
 
@@ -281,7 +287,7 @@ namespace DnsClient.Tests
             writer.WriteStringWithLengthPrefix(NAPtrRecord.ServiceKeySipUdp);
             writer.WriteStringWithLengthPrefix("");
             writer.WriteHostName(name.Value);
-            var factory = GetFactory(writer.Data.ToArray());
+            var factory = GetFactory(writer.Data);
 
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.NAPTR, QueryClass.IN, 0, writer.Data.Count);
 
@@ -404,7 +410,7 @@ namespace DnsClient.Tests
             writer.WriteHostName(signersName.Value);
             writer.WriteBytes(signature, signature.Length);
 
-            var factory = GetFactory(writer.Data.ToArray());
+            var factory = GetFactory(writer.Data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.RRSIG, QueryClass.IN, 0, writer.Data.Count);
 
             var result = factory.GetRecord(info) as RRSigRecord;
@@ -484,7 +490,7 @@ namespace DnsClient.Tests
             writer.WriteByte((byte)DnsSecurityAlgorithm.RSASHA256);
             writer.WriteBytes(expectedBytes, expectedBytes.Length);
 
-            var factory = GetFactory(writer.Data.ToArray());
+            var factory = GetFactory(writer.Data);
 
             var info = new ResourceRecordInfo(name, ResourceRecordType.DNSKEY, QueryClass.IN, 0, writer.Data.Count);
 
@@ -511,7 +517,7 @@ namespace DnsClient.Tests
             writer.WriteByte(1); // type
             writer.WriteBytes(expectedBytes, expectedBytes.Length);
 
-            var factory = GetFactory(writer.Data.ToArray());
+            var factory = GetFactory(writer.Data);
 
             var info = new ResourceRecordInfo(name, ResourceRecordType.DS, QueryClass.IN, 0, writer.Data.Count);
 
@@ -540,21 +546,82 @@ namespace DnsClient.Tests
                 ResourceRecordType.DNSKEY
             };
 
+            var bitmap = NSecRecord.WriteBitmap(expectedTypes.Select(p => (ushort)p).ToArray()).ToArray();
+
             var name = DnsString.Parse("example.com");
             var writer = new DnsDatagramWriter();
             writer.WriteHostName(name);
+            writer.WriteBytes(bitmap, bitmap.Length);
 
-            var data = writer.Data.Concat(expectedBitMap).ToArray();
+            var factory = GetFactory(writer.Data);
 
-            var factory = GetFactory(data);
-
-            var info = new ResourceRecordInfo(name, ResourceRecordType.NSEC, QueryClass.IN, 0, data.Length);
+            var info = new ResourceRecordInfo(name, ResourceRecordType.NSEC, QueryClass.IN, 0, writer.Data.Count);
 
             var result = factory.GetRecord(info) as NSecRecord;
+            Assert.Equal(expectedBitMap, bitmap);
             Assert.Equal(expectedBitMap, result.TypeBitMapsRaw);
             Assert.Equal(expectedTypes.Length, result.TypeBitMaps.Count);
             Assert.Equal(expectedTypes, result.TypeBitMaps);
             Assert.Equal(name, result.NextDomainName);
+        }
+
+        [Fact]
+        public void DnsRecordFactory_NSec3Record()
+        {
+            var expectedTypes = new[]
+            {
+                ResourceRecordType.A,
+                ResourceRecordType.NS,
+                ResourceRecordType.SOA,
+                ResourceRecordType.MX,
+                ResourceRecordType.TXT,
+                ResourceRecordType.AAAA,
+                ResourceRecordType.RRSIG,
+                ResourceRecordType.NSEC3PARAM
+            };
+
+            var expectedBitmap = NSecRecord.WriteBitmap(expectedTypes.Select(p => (ushort)p).ToArray()).ToArray();
+            var salt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+            var nextName = Enumerable.Repeat(0, 50).Select((p, i) => (byte)i).ToArray();
+            var nameEncoded = Base32Hex.ToBase32HexString(nextName);
+            var name = DnsString.Parse("example.com");
+
+            var writer = new DnsDatagramWriter();
+            writer.WriteByte(1); // Algorithm
+            writer.WriteByte(2); // Flags
+            writer.WriteUInt16NetworkOrder(100); // Iterations
+            writer.WriteByte((byte)salt.Length);
+            writer.WriteBytes(salt, salt.Length);
+            writer.WriteByte((byte)nextName.Length);
+            writer.WriteBytes(nextName, nextName.Length);
+            writer.WriteBytes(expectedBitmap, expectedBitmap.Length);
+
+            var factory = GetFactory(writer.Data);
+
+            var info = new ResourceRecordInfo(name, ResourceRecordType.NSEC3, QueryClass.IN, 0, writer.Data.Count);
+
+            var result = factory.GetRecord(info) as NSec3Record;
+
+            Assert.Equal(1, result.HashAlgorithm);
+            Assert.Equal(2, result.Flags);
+            Assert.Equal(100, result.Iterations);
+            Assert.Equal(salt, result.Salt);
+            Assert.Equal(nextName, result.NextOwnersName);
+            Assert.Equal(nameEncoded, result.NextOwnersNameAsString);
+            Assert.Equal(expectedTypes, result.TypeBitMaps);
+        }
+
+        [Fact]
+        public void DnsRecord_TestBitmap()
+        {
+            var data = Enumerable.Repeat(0, ushort.MaxValue).Select((v, i) => (ushort)i).ToArray();
+
+            var bitmap = NSecRecord.WriteBitmap(data).ToArray();
+
+            var result = NSecRecord.ReadBitmap(bitmap).OrderBy(p => p).Select(p => (ushort)p).ToArray();
+            _ = NSecRecord.ReadBitmap(bitmap).OrderBy(p => p).Select(p => (ResourceRecordType)p).ToArray();
+
+            Assert.Equal(data, result);
         }
     }
 }

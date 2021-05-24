@@ -10,7 +10,7 @@ namespace DnsClient
 
     /// <summary>
     /// The query type field appear in the question part of a query.
-    /// Query types are a superset of <see cref="Protocol.ResourceRecordType"/>.
+    /// Query types are a superset of <see cref="ResourceRecordType"/>.
     /// </summary>
     public enum QueryType
     {
@@ -188,6 +188,14 @@ namespace DnsClient
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc4034#section-2">RFC 4034</seealso>
         DNSKEY = ResourceRecordType.DNSKEY,
+
+        /// <summary>
+        /// NSEC3 rfc5155.
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc5155">RFC 5155</seealso>
+        NSEC3 = ResourceRecordType.NSEC3,
+
+        NSEC3PARAM = ResourceRecordType.NSEC3PARAM,
 
         /// <summary>
         /// TLSA rfc6698

@@ -40,7 +40,7 @@ namespace DnsClient.Protocol
         /// </summary>
         /// <param name="info">The information.</param>
         /// <param name="anything">Anything.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="anything"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="info"/> or <paramref name="anything"/> is null.</exception>
         public NullRecord(ResourceRecordInfo info, byte[] anything)
             : base(info)
         {
