@@ -1564,9 +1564,13 @@ namespace DnsClient
                 {
                     handleError = HandleError.RetryNextServer;
                 }
+
                 // Try next server if the question isn't answered (ignoring ANY and AXFR queries)
                 else if (request.Question.QuestionType != QueryType.ANY
                    && request.Question.QuestionType != QueryType.AXFR
+                   && !((request.Question.QuestionType == QueryType.A || request.Question.QuestionType == QueryType.AAAA)
+                        && result.Answers.OfRecordType(ResourceRecordType.CNAME).Any())
+                   && !(request.Question.QuestionType == QueryType.NS && result.Authorities.Any())
                    && !result.Answers.OfRecordType((ResourceRecordType)request.Question.QuestionType).Any())
                 {
                     handleError = HandleError.RetryNextServer;
