@@ -73,7 +73,7 @@ namespace DigApp
             _runSync = SyncArg.HasValue();
 
             _settings = GetLookupSettings();
-            _settings.EnableAuditTrail = true;
+            _settings.EnableAuditTrail = false;
             _settings.ThrowDnsErrors = false;
             _settings.ContinueOnDnsError = false;
             _lookup = GetDnsLookup(_settings);

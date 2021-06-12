@@ -2,7 +2,7 @@
 {
     internal static class TaskExtensions
     {
-        public static async Task<T> WithCancellation<T>(this Task<T> task, Action onCancel, CancellationToken cancellationToken)
+        public static async Task<T> WithCancellation<T>(this Task<T> task, CancellationToken cancellationToken)
         {
             var tcs = new TaskCompletionSource<bool>();
 
@@ -10,11 +10,9 @@
             {
                 if (task != await Task.WhenAny(task, tcs.Task).ConfigureAwait(false))
                 {
-                    try
-                    {
-                        onCancel();
-                    }
-                    catch { }
+                    // observe the exception to avoid "System.AggregateException: A Task's exception(s) were
+                    // not observed either by Waiting on the Task or accessing its Exception property."
+                    _ = task.ContinueWith(t => t.Exception);
                     throw new OperationCanceledException(cancellationToken);
                 }
             }

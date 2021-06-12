@@ -23,7 +23,6 @@ namespace DnsClient
         public abstract Task<DnsResponseMessage> QueryAsync(
             IPEndPoint endpoint,
             DnsRequestMessage request,
-            Action<Action> cancelationCallback,
             CancellationToken cancellationToken);
 
         // Transient errors will be retried on the same NameServer before the resolver moves on
