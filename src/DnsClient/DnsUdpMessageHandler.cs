@@ -128,7 +128,6 @@ namespace DnsClient
             }
             catch (SocketException se) when (se.SocketErrorCode == SocketError.OperationAborted)
             {
-                // we disposed it in case of a timeout request, lets indicate it actually timed out...
                 throw new TimeoutException();
             }
             catch (ObjectDisposedException)
