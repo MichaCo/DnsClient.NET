@@ -1097,15 +1097,6 @@ namespace DnsClient
                         audit?.StartTimer();
 
                         DnsResponseMessage response;
-                        Action onCancel = () => { };
-                        Task<DnsResponseMessage> resultTask = handler.QueryAsync(
-                            serverInfo.IPEndPoint,
-                            request,
-                            (cancel) =>
-                            {
-                                onCancel = cancel;
-                            },
-                            cancellationToken);
 
                         if (settings.Timeout != System.Threading.Timeout.InfiniteTimeSpan
                             || (cancellationToken != CancellationToken.None && cancellationToken.CanBeCanceled))
@@ -1119,12 +1110,27 @@ namespace DnsClient
                             using (cts)
                             using (linkedCts)
                             {
-                                response = await resultTask.WithCancellation(onCancel, (linkedCts ?? cts).Token).ConfigureAwait(false);
+                                Action onCancel = () => { };
+                                response = await handler.QueryAsync(
+                                    serverInfo.IPEndPoint,
+                                    request,
+                                    (cancel) =>
+                                    {
+                                        onCancel = cancel;
+                                    },
+                                    (linkedCts ?? cts).Token)
+                                .WithCancellation(onCancel, (linkedCts ?? cts).Token)
+                                .ConfigureAwait(false);
                             }
                         }
                         else
                         {
-                            response = await resultTask.ConfigureAwait(false);
+                            response = await handler.QueryAsync(
+                                    serverInfo.IPEndPoint,
+                                    request,
+                                    _ => { },
+                                    cancellationToken)
+                                .ConfigureAwait(false);
                         }
 
                         lastQueryResponse = ProcessResponseMessage(
