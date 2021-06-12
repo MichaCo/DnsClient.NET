@@ -166,7 +166,6 @@ namespace Benchmarks
         public override Task<DnsResponseMessage> QueryAsync(
             IPEndPoint server,
             DnsRequestMessage request,
-            Action<Action> cancelationCallback,
             CancellationToken cancellationToken)
         {
             return Task.FromResult(Query(server, request, Timeout.InfiniteTimeSpan));

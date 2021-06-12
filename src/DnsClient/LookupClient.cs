@@ -1110,16 +1110,11 @@ namespace DnsClient
                             using (cts)
                             using (linkedCts)
                             {
-                                Action onCancel = () => { };
                                 response = await handler.QueryAsync(
                                     serverInfo.IPEndPoint,
                                     request,
-                                    (cancel) =>
-                                    {
-                                        onCancel = cancel;
-                                    },
                                     (linkedCts ?? cts).Token)
-                                .WithCancellation(onCancel, (linkedCts ?? cts).Token)
+                                .WithCancellation((linkedCts ?? cts).Token)
                                 .ConfigureAwait(false);
                             }
                         }
@@ -1128,7 +1123,6 @@ namespace DnsClient
                             response = await handler.QueryAsync(
                                     serverInfo.IPEndPoint,
                                     request,
-                                    _ => { },
                                     cancellationToken)
                                 .ConfigureAwait(false);
                         }

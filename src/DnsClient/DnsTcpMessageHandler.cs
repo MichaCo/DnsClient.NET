@@ -23,20 +23,18 @@ namespace DnsClient
             {
                 using (var cts = new CancellationTokenSource(timeout))
                 {
-                    Action onCancel = () => { };
-                    return QueryAsync(endpoint, request, (s) => onCancel = s, cts.Token)
-                        .WithCancellation(onCancel, cts.Token)
+                    return QueryAsync(endpoint, request, cts.Token)
+                        .WithCancellation(cts.Token)
                         .ConfigureAwait(false).GetAwaiter().GetResult();
                 }
             }
 
-            return QueryAsync(endpoint, request, (s) => { }, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
+            return QueryAsync(endpoint, request, CancellationToken.None).ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         public override async Task<DnsResponseMessage> QueryAsync(
             IPEndPoint server,
             DnsRequestMessage request,
-            Action<Action> cancelationCallback,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -48,7 +46,7 @@ namespace DnsClient
                 _pools.TryAdd(server, new ClientPool(true, server));
             }
 
-            cancelationCallback(() =>
+            using var cancelCallback = cancellationToken.Register(() =>
             {
                 if (entry == null)
                 {

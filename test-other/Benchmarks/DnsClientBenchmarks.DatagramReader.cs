@@ -138,7 +138,6 @@ namespace Benchmarks
                 public override Task<DnsResponseMessage> QueryAsync(
                     IPEndPoint server,
                     DnsRequestMessage request,
-                    Action<Action> cancelationCallback,
                     CancellationToken cancellationToken)
                 {
                     // no need to run async here as we don't do any IO

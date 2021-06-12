@@ -82,26 +82,24 @@ namespace DnsClient
         public override async Task<DnsResponseMessage> QueryAsync(
             IPEndPoint endpoint,
             DnsRequestMessage request,
-            Action<Action> cancelationCallback,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             UdpClient udpClient = GetNextUdpClient(endpoint.AddressFamily);
 
+            using var callback = cancellationToken.Register(() =>
+            {
+#if !NET45
+                udpClient.Dispose();
+#else
+                udpClient.Close();
+#endif
+            });
+
             bool mustDispose = false;
             try
             {
-                // setup timeout cancellation, dispose socket (the only way to actually cancel the request in async...
-                cancelationCallback(() =>
-                {
-#if !NET45
-                    udpClient.Dispose();
-#else
-                    udpClient.Close();
-#endif
-                });
-
                 using (var writer = new DnsDatagramWriter())
                 {
                     GetRequestData(request, writer);
@@ -127,6 +125,11 @@ namespace DnsClient
 
                     return response;
                 }
+            }
+            catch (SocketException se) when (se.SocketErrorCode == SocketError.OperationAborted)
+            {
+                // we disposed it in case of a timeout request, lets indicate it actually timed out...
+                throw new TimeoutException();
             }
             catch (ObjectDisposedException)
             {

@@ -1039,7 +1039,6 @@ namespace DnsClient.Tests
             public override Task<DnsResponseMessage> QueryAsync(
                 IPEndPoint server,
                 DnsRequestMessage request,
-                Action<Action> cancelationCallback,
                 CancellationToken cancellationToken)
             {
                 LastServer = server;
