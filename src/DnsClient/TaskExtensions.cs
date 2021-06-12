@@ -15,6 +15,10 @@
                         onCancel();
                     }
                     catch { }
+                    
+                    // observe the exception to avoid "System.AggregateException: A Task's exception(s) were
+                    // not observed either by Waiting on the Task or accessing its Exception property."
+                    task.ContinueWith(t => t.Exception);
                     throw new OperationCanceledException(cancellationToken);
                 }
             }
