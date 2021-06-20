@@ -4,7 +4,7 @@
     /// A <see cref="DnsResourceRecord"/> not representing any specific resource record.
     /// Used if unsupported <see cref="ResourceRecordType"/>s are found in the result.
     /// </summary>
-    /// <seealso cref="DnsClient.Protocol.DnsResourceRecord" />
+    /// <seealso cref="DnsResourceRecord" />
     public class EmptyRecord : DnsResourceRecord
     {
         /// <summary>

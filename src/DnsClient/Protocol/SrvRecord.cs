@@ -152,7 +152,7 @@ namespace DnsClient.Protocol
         /// <param name="weight">The weight.</param>
         /// <param name="port">The port.</param>
         /// <param name="target">The target.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="target"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="info"/> or <paramref name="target"/> is null.</exception>
         public SrvRecord(ResourceRecordInfo info, ushort priority, ushort weight, ushort port, DnsString target)
             : base(info)
         {

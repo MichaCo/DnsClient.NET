@@ -58,7 +58,7 @@ namespace DnsClient.Protocol
         /// <param name="info">The information.</param>
         /// <param name="values">The values.</param>
         /// <param name="utf8Values">The UTF8 values.</param>
-        /// <exception cref="System.ArgumentNullException">
+        /// <exception cref="ArgumentNullException">
         /// If <paramref name="info"/> or <paramref name="utf8Values"/> or <paramref name="values"/> is null.
         /// </exception>
         public TxtRecord(ResourceRecordInfo info, string[] values, string[] utf8Values)

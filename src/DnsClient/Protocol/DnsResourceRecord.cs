@@ -5,7 +5,7 @@ namespace DnsClient.Protocol
     /// <summary>
     /// Base class for all resource records.
     /// </summary>
-    /// <seealso cref="DnsClient.Protocol.ResourceRecordInfo" />
+    /// <seealso cref="ResourceRecordInfo" />
     public abstract class DnsResourceRecord : ResourceRecordInfo
     {
         /// <summary>
@@ -128,7 +128,7 @@ namespace DnsClient.Protocol
         /// <param name="recordClass">The record class.</param>
         /// <param name="timeToLive">The time to live.</param>
         /// <param name="rawDataLength">Length of the raw data.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="domainName" /> is null or empty.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="domainName" /> is null or empty.</exception>
         public ResourceRecordInfo(DnsString domainName, ResourceRecordType recordType, QueryClass recordClass, int timeToLive, int rawDataLength)
         {
             DomainName = domainName ?? throw new ArgumentNullException(nameof(domainName));

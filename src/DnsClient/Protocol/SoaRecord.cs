@@ -148,7 +148,7 @@ namespace DnsClient.Protocol
         /// <param name="retry">The retry time.</param>
         /// <param name="expire">The expire time.</param>
         /// <param name="minimum">The minimum TTL.</param>
-        /// <exception cref="System.ArgumentNullException">
+        /// <exception cref="ArgumentNullException">
         /// If <paramref name="info"/> or <paramref name="mName"/> or <paramref name="rName"/> is null.
         /// </exception>
         public SoaRecord(ResourceRecordInfo info, DnsString mName, DnsString rName, uint serial, uint refresh, uint retry, uint expire, uint minimum)

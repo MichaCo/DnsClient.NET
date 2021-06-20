@@ -53,7 +53,7 @@ namespace DnsClient.Protocol
         /// <param name="info">The information.</param>
         /// <param name="preference">The preference.</param>
         /// <param name="domainName">Name of the domain.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="domainName"/> or <paramref name="info"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="domainName"/> or <paramref name="info"/> is null.</exception>
         public MxRecord(ResourceRecordInfo info, ushort preference, DnsString domainName)
             : base(info)
         {

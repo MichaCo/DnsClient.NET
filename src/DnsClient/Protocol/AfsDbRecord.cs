@@ -52,7 +52,7 @@ namespace DnsClient.Protocol
         /// <param name="info">The information.</param>
         /// <param name="type">The type.</param>
         /// <param name="name">The name.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="name"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="info"/> or <paramref name="name"/> is null.</exception>
         public AfsDbRecord(ResourceRecordInfo info, AfsType type, DnsString name) : base(info)
         {
             SubType = type;

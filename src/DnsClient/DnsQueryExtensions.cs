@@ -738,9 +738,9 @@ namespace DnsClient
     }
 
     /// <summary>
-    /// Extends <see cref="IPHostEntry"/> by the <see cref="ServiceHostEntry.Port"/> property.
+    /// Extends <see cref="IPHostEntry"/> by the <see cref="Port"/> property.
     /// </summary>
-    /// <seealso cref="System.Net.IPHostEntry" />
+    /// <seealso cref="IPHostEntry" />
     public class ServiceHostEntry : IPHostEntry
     {
         /// <summary>

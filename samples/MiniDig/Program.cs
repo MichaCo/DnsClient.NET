@@ -9,7 +9,7 @@ namespace DigApp
     {
         public static async Task<int> Main(string[] args)
         {
-            DnsClient.Tracing.Source.Switch.Level = SourceLevels.Information;
+            DnsClient.Tracing.Source.Switch.Level = SourceLevels.Warning;
             DnsClient.Tracing.Source.Listeners.Add(new ConsoleTraceListener());
 
             var app = new CommandLineApplication(throwOnUnexpectedArg: true);

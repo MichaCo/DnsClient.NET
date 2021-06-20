@@ -143,7 +143,7 @@ namespace DnsClient
         /// <summary>
         /// Gets or sets the request timeout in milliseconds. <see cref="Timeout"/> is used for limiting the connection and request time for one operation.
         /// Timeout must be greater than zero and less than <see cref="int.MaxValue"/>.
-        /// If <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> (or -1) is used, no timeout will be applied.
+        /// If <see cref="Timeout.InfiniteTimeSpan"/> (or -1) is used, no timeout will be applied.
         /// Default is 5 seconds.
         /// </summary>
         /// <remarks>
@@ -579,7 +579,7 @@ namespace DnsClient
         /// <summary>
         /// Gets the request timeout in milliseconds. <see cref="Timeout"/> is used for limiting the connection and request time for one operation.
         /// Timeout must be greater than zero and less than <see cref="int.MaxValue"/>.
-        /// If <see cref="System.Threading.Timeout.InfiniteTimeSpan"/> (or -1) is used, no timeout will be applied.
+        /// If <see cref="Timeout.InfiniteTimeSpan"/> (or -1) is used, no timeout will be applied.
         /// Default is 5 seconds.
         /// </summary>
         /// <remarks>

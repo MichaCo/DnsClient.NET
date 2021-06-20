@@ -39,7 +39,7 @@ namespace DnsClient.Protocol
         /// </summary>
         /// <param name="info">The information.</param>
         /// <param name="domainName">The domain name.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="domainName"/> or <paramref name="info"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="domainName"/> or <paramref name="info"/> is null.</exception>
         public MgRecord(ResourceRecordInfo info, DnsString domainName)
             : base(info)
         {

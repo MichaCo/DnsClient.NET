@@ -90,7 +90,7 @@ namespace DnsClient.Protocol
         /// <param name="info">The information.</param>
         /// <param name="mailbox">The mailbox domain.</param>
         /// <param name="textName">The text domain.</param>
-        /// <exception cref="System.ArgumentNullException">
+        /// <exception cref="ArgumentNullException">
         /// If <paramref name="info"/> or <paramref name="mailbox"/> or <paramref name="textName"/> is null.
         /// </exception>
         public RpRecord(ResourceRecordInfo info, DnsString mailbox, DnsString textName)

@@ -67,7 +67,7 @@ namespace DnsClient.Protocol
         /// <param name="priority">The priority.</param>
         /// <param name="weight">The weight.</param>
         /// <param name="target">The target.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="target"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="info"/> or <paramref name="target"/> is null.</exception>
         public UriRecord(ResourceRecordInfo info, int priority, int weight, string target)
             : base(info)
         {

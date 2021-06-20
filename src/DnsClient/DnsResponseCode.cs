@@ -273,7 +273,7 @@ namespace DnsClient
     /// <summary>
     /// A DnsClient specific exception transporting additional information about the query causing this exception.
     /// </summary>
-    /// <seealso cref="System.Exception" />
+    /// <seealso cref="Exception" />
 #if !NETSTANDARD1_3
     [Serializable]
 #endif

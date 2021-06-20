@@ -40,7 +40,7 @@ namespace DnsClient.Protocol
         /// </summary>
         /// <param name="info">The information.</param>
         /// <param name="name">The domain name.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="name"/> or <paramref name="info"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="name"/> or <paramref name="info"/> is null.</exception>
         public MrRecord(ResourceRecordInfo info, DnsString name)
             : base(info)
         {

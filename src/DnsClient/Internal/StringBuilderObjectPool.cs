@@ -170,7 +170,7 @@ namespace DnsClient.Internal
     {
         public ObjectPool<T> Create<T>() where T : class, new()
         {
-            return Create<T>(new DefaultPooledObjectPolicy<T>());
+            return Create(new DefaultPooledObjectPolicy<T>());
         }
 
         public abstract ObjectPool<T> Create<T>(IPooledObjectPolicy<T> policy) where T : class;
@@ -210,7 +210,7 @@ namespace DnsClient.Internal
     {
         public static ObjectPool<StringBuilder> CreateStringBuilderPool(this ObjectPoolProvider provider)
         {
-            return provider.Create<StringBuilder>(new StringBuilderPooledObjectPolicy());
+            return provider.Create(new StringBuilderPooledObjectPolicy());
         }
 
         public static ObjectPool<StringBuilder> CreateStringBuilderPool(
@@ -224,7 +224,7 @@ namespace DnsClient.Internal
                 MaximumRetainedCapacity = maximumRetainedCapacity,
             };
 
-            return provider.Create<StringBuilder>(policy);
+            return provider.Create(policy);
         }
     }
 }

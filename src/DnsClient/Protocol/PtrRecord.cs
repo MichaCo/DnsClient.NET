@@ -26,7 +26,7 @@ namespace DnsClient.Protocol
     /// A <see cref="DnsResourceRecord"/> representing a pointer. These RRs are used
     /// in special domains to point to some other location in the domain space.
     /// </summary>
-    /// <seealso cref="DnsClient.Protocol.DnsResourceRecord" />
+    /// <seealso cref="DnsResourceRecord" />
     /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.12">RFC 1035</seealso>
     public class PtrRecord : DnsResourceRecord
     {
@@ -43,7 +43,7 @@ namespace DnsClient.Protocol
         /// </summary>
         /// <param name="info">The information.</param>
         /// <param name="ptrDomainName">The domain name.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="ptrDomainName"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="info"/> or <paramref name="ptrDomainName"/> is null.</exception>
         public PtrRecord(ResourceRecordInfo info, DnsString ptrDomainName)
             : base(info)
         {

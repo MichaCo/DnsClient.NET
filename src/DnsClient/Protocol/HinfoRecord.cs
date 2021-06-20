@@ -48,7 +48,7 @@ namespace DnsClient.Protocol
         /// <param name="info">The information.</param>
         /// <param name="cpu">The CPU.</param>
         /// <param name="os">The OS.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="info"/> is null.</exception>
         public HInfoRecord(ResourceRecordInfo info, string cpu, string os)
             : base(info)
         {

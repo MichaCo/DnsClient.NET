@@ -115,7 +115,7 @@ namespace DnsClient.Protocol
         /// <param name="flags">The flags.</param>
         /// <param name="tag">The tag.</param>
         /// <param name="value">The value.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="info"/> or <paramref name="tag"/> or <paramref name="value"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="info"/> or <paramref name="tag"/> or <paramref name="value"/> is null.</exception>
         public CaaRecord(ResourceRecordInfo info, byte flags, string tag, string value) : base(info)
         {
             Flags = flags;

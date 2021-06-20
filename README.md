@@ -9,7 +9,7 @@ DnsClient.NET is a simple yet very powerful and high performance open source lib
 
 ## Usage
 
-See http://dnsclient.michaco.net for more details and documentation.
+See [the DnsClient site][dnsclient] for more details and documentation.
 
 The following example instantiates a new `LookupClient` to query some IP address.
 
@@ -57,6 +57,7 @@ Just clone the repository and open the solution in Visual Studio 2019.
 ## Examples
 
 * See [MiniDig](https://github.com/MichaCo/DnsClient.NET/tree/dev/samples/MiniDig)'s readme for what this example command line tool can do.
-* More documentation and a simple query window on http://dnsclient.michaco.net
+* [More documentation and examples][dnsclient]
 * The [Samples](https://github.com/MichaCo/DnsClient.NET.Samples) repository (there might be more in the future).
 
+[dnsclient]:https://dnsclient.michaco.net

@@ -47,7 +47,7 @@ namespace DnsClient.Protocol
         /// </summary>
         /// <param name="info">The information.</param>
         /// <param name="name">The name.</param>
-        /// <exception cref="System.ArgumentNullException">If <paramref name="name"/> or <paramref name="info"/> is null.</exception>
+        /// <exception cref="ArgumentNullException">If <paramref name="name"/> or <paramref name="info"/> is null.</exception>
         public NsRecord(ResourceRecordInfo info, DnsString name)
             : base(info)
         {
