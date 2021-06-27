@@ -198,18 +198,17 @@ dotnet_diagnostic.IDE0055.severity = warning
 dotnet_diagnostic.IDE0060.severity = warning
 dotnet_diagnostic.IDE0082.severity = warning
 dotnet_diagnostic.IDE1006.severity = warning
-#dotnet_analyzer_diagnostic.category-Style.severity = warning
-
-
 
 # Xml project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
 indent_size = 2
 
-
-
 [*.{csproj,vbproj,proj,nativeproj,locproj}]
 charset = utf-8
+
+# JSON files
+[*.json]
+indent_size = 2
 
 # Xml build files
 [*.builds]

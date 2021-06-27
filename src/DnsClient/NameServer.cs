@@ -418,6 +418,12 @@ namespace DnsClient
             {
                 var properties = networkInterface.GetIPProperties();
 
+                // Can be null under mono for whatever reason...
+                if (properties == null)
+                {
+                    continue;
+                }
+
                 foreach (var ip in properties.DnsAddresses)
                 {
                     result.Add(new NameServer(ip, DefaultPort, properties.DnsSuffix));

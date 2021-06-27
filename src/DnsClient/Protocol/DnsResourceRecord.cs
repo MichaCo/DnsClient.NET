@@ -136,7 +136,7 @@ namespace DnsClient.Protocol
             RecordClass = recordClass;
             RawDataLength = rawDataLength;
             InitialTimeToLive = timeToLive;
-            _ticks = (int)(Environment.TickCount / 1000d);
+            _ticks = (int)((Environment.TickCount & int.MaxValue) / 1000d);
         }
     }
 }
