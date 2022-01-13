@@ -5,7 +5,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 
-#if !NET45
+#if !NET452
 
 namespace DnsClient.Windows.IpHlpApi
 {

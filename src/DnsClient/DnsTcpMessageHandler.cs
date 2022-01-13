@@ -303,7 +303,7 @@ namespace DnsClient
                 {
                     try
                     {
-#if !NET45
+#if !NET452
                         Client.Dispose();
 #else
                         Client.Close();

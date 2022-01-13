@@ -258,7 +258,7 @@ namespace DnsClient
                 exceptions.Add(ex);
             }
 
-#if !NET45
+#if !NET452
             if (exceptions.Count > 0)
             {
                 logger?.LogDebug("Using native path to resolve servers.");
@@ -338,7 +338,7 @@ namespace DnsClient
             return filtered;
         }
 
-#if !NET45
+#if !NET452
 
         /// <summary>
         /// Using my custom native implementation to support UWP apps and such until <see cref="NetworkInterface.GetAllNetworkInterfaces"/>

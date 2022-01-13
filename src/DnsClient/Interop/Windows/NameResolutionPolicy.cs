@@ -19,7 +19,7 @@ namespace DnsClient.Windows
         internal static IReadOnlyCollection<NameServer> Resolve(bool includeGenericServers = true, bool includeDirectAccessServers = true)
         {
             var nameServers = new HashSet<NameServer>();
-#if !NET45
+#if !NET452
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
                 return nameServers;

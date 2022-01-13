@@ -12,12 +12,13 @@ namespace DigApp
             DnsClient.Tracing.Source.Switch.Level = SourceLevels.Warning;
             DnsClient.Tracing.Source.Listeners.Add(new ConsoleTraceListener());
 
-            var app = new CommandLineApplication(throwOnUnexpectedArg: true);
+            var app = new CommandLineApplication();
+            app.UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.Throw;
 
             try
             {
-                _ = app.Command("perf", (perfApp) => _ = new PerfCommand(perfApp, args), throwOnUnexpectedArg: true);
-                _ = app.Command("random", (randApp) => _ = new RandomCommand(randApp, args), throwOnUnexpectedArg: true);
+                _ = app.Command("perf", (perfApp) => { _ = new PerfCommand(perfApp, args); perfApp.UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.Throw; });
+                _ = app.Command("random", (randApp) => { _ = new RandomCommand(randApp, args); randApp.UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.Throw; });
 
                 // Command must initialize so that it adds the configuration.
                 _ = new DigCommand(app, args);
