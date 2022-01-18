@@ -80,6 +80,8 @@ namespace DnsClient
                 }
             }
 
+            ValidateResponse(request, response);
+
             return response;
         }
 

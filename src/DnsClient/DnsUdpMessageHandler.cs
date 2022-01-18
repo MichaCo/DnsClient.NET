@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Linq;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -51,6 +51,8 @@ namespace DnsClient
                     var received = udpClient.Client.Receive(memory.Buffer, 0, readSize, SocketFlags.None);
 
                     var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
+
+                    ValidateResponse(request, response);
 
                     Enqueue(server.AddressFamily, udpClient);
 
@@ -120,6 +122,8 @@ namespace DnsClient
 
                     var response = GetResponseMessage(new ArraySegment<byte>(result.Buffer, 0, result.Buffer.Length));
 #endif
+
+                    ValidateResponse(request, response);
 
                     Enqueue(endpoint.AddressFamily, udpClient);
 
