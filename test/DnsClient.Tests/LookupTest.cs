@@ -1117,11 +1117,9 @@ namespace DnsClient.Tests
         [InlineData(0, true)]
         [InlineData(1, true)]
         [InlineData(3, true)]
-        [InlineData(10, true)]
         [InlineData(0, false)]
         [InlineData(1, false)]
         [InlineData(3, false)]
-        [InlineData(10, false)]
         public async Task Lookup_XidMismatch(int mismatchResponses, bool sync)
         {
             var serverEndpoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 54321);

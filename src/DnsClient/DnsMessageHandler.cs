@@ -50,7 +50,7 @@ namespace DnsClient
 
         protected static void ValidateResponse(DnsRequestMessage request, DnsResponseMessage response)
         {
-            if (request.Header.Id != response.Header.Id)
+            if (request != null && response != null && request.Header.Id != response.Header.Id)
             {
                 throw new DnsXidMismatchException(request.Header.Id, response.Header.Id);
             }
