@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
@@ -1112,6 +1111,72 @@ namespace DnsClient.Tests
 
             Assert.NotEqual(client.Settings, settings);
             Assert.NotEqual(client.NameServers, settings.NameServers);
+        }
+
+        [Theory]
+        [InlineData(0, true)]
+        [InlineData(1, true)]
+        [InlineData(3, true)]
+        [InlineData(0, false)]
+        [InlineData(1, false)]
+        [InlineData(3, false)]
+        public async Task Lookup_XidMismatch(int mismatchResponses, bool sync)
+        {
+            var serverEndpoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 54321);
+            var options = new LookupClientOptions(new NameServer(serverEndpoint))
+            {
+                Retries = 20,
+                UseCache = false
+            };
+
+            using var server = new UdpServerMistmatchXid(serverEndpoint, mismatchResponses);
+            var client = new LookupClient(options);
+
+            var dnsQuestion = new DnsQuestion("someservice", QueryType.TXT, QueryClass.IN);
+            var response = sync ? client.Query(dnsQuestion) : await client.QueryAsync(dnsQuestion);
+
+            Assert.Equal(2, response.Answers.TxtRecords().Count());
+            Assert.Equal("example.com.", response.Answers.TxtRecords().First().DomainName.Value);
+            Assert.Equal(mismatchResponses, server.MistmatchedResponsesCount);
+            Assert.Equal(mismatchResponses + 1, server.RequestsCount);
+        }
+
+        [Theory]
+        [InlineData(0, true)]
+        [InlineData(1, true)]
+        [InlineData(3, true)]
+        [InlineData(5, true)]
+        [InlineData(0, false)]
+        [InlineData(1, false)]
+        [InlineData(3, false)]
+        [InlineData(5, false)]
+        public async Task Lookup_DuplicateUDPResponses(int duplicatesCount, bool sync)
+        {
+            var serverEndpoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 54321);
+            var options = new LookupClientOptions(new NameServer(serverEndpoint))
+            {
+                Retries = 20,
+                UseCache = false,
+                Timeout = TimeSpan.FromSeconds(5)
+            };
+
+            using var server = new UdpServerDuplicateResponses(serverEndpoint, duplicatesCount);
+            var client = new LookupClient(options);
+
+            var dnsQuestion = new DnsQuestion("someservice", QueryType.TXT, QueryClass.IN);
+            var response1 = sync ? client.Query(dnsQuestion) : await client.QueryAsync(dnsQuestion);
+            var response2 = sync ? client.Query(dnsQuestion) : await client.QueryAsync(dnsQuestion);
+
+            Assert.Equal(2, response1.Answers.TxtRecords().Count());
+            Assert.Equal("example.com.", response1.Answers.TxtRecords().First().DomainName.Value);
+
+            Assert.Equal(2, response2.Answers.TxtRecords().Count());
+            Assert.Equal("example.com.", response2.Answers.TxtRecords().First().DomainName.Value);
+
+            Assert.True(server.RequestsCount >= 2, "At least 2 requests are expected");
+
+            // Validate that duplicate response was not picked up
+            Assert.NotEqual(response1.Header.Id, response2.Header.Id);
         }
     }
 }

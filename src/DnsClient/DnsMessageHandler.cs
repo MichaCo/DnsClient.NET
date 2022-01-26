@@ -48,6 +48,14 @@ namespace DnsClient
             return false;
         }
 
+        protected static void ValidateResponse(DnsRequestMessage request, DnsResponseMessage response)
+        {
+            if (request != null && response != null && request.Header.Id != response.Header.Id)
+            {
+                throw new DnsXidMismatchException(request.Header.Id, response.Header.Id);
+            }
+        }
+
         public virtual void GetRequestData(DnsRequestMessage request, DnsDatagramWriter writer)
         {
             var question = request.Question;
