@@ -738,7 +738,7 @@ namespace DnsClient.Tests
                 // A result which didn't fit into 512 bytes and which was not marked via TC as truncated.
                 // The server returned 512 bytes because the response was truncated by a firewall or so.
                 // This should retry the full request via TCP
-                var handle = new DnsUdpMessageHandler(true);
+                var handle = new DnsUdpMessageHandler();
                 return handle.GetResponseMessage(new ArraySegment<byte>(s_issue52data));
             });
 
@@ -793,7 +793,7 @@ namespace DnsClient.Tests
                 // A result which didn't fit into 512 bytes and which was not marked via TC as truncated.
                 // The server returned 512 bytes because the response was truncated by a firewall or so.
                 // This should retry the full request via TCP
-                var handle = new DnsUdpMessageHandler(true);
+                var handle = new DnsUdpMessageHandler();
                 return handle.GetResponseMessage(new ArraySegment<byte>(s_issue52data));
             });
 
@@ -941,7 +941,7 @@ namespace DnsClient.Tests
             {
                 calledIps.Add(ip.Address);
 
-                var handle = new DnsUdpMessageHandler(true);
+                var handle = new DnsUdpMessageHandler();
                 return handle.GetResponseMessage(new ArraySegment<byte>(s_issue52data));
             });
 
@@ -974,7 +974,7 @@ namespace DnsClient.Tests
             {
                 calledIps.Add(ip.Address);
 
-                var handle = new DnsUdpMessageHandler(true);
+                var handle = new DnsUdpMessageHandler();
                 return handle.GetResponseMessage(new ArraySegment<byte>(s_issue52data));
             });
 

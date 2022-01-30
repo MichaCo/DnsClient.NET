@@ -12,15 +12,11 @@ namespace DnsClient
     internal class DnsUdpMessageHandler : DnsMessageHandler
     {
         private const int MaxSize = 4096;
-        private static readonly ConcurrentQueue<UdpClient> s_clients = new ConcurrentQueue<UdpClient>();
-        private static readonly ConcurrentQueue<UdpClient> s_clientsIPv6 = new ConcurrentQueue<UdpClient>();
-        private readonly bool _enableClientQueue;
 
         public override DnsMessageHandleType Type { get; } = DnsMessageHandleType.UDP;
 
-        public DnsUdpMessageHandler(bool enableClientQueue)
+        public DnsUdpMessageHandler()
         {
-            _enableClientQueue = enableClientQueue;
         }
 
         public override DnsResponseMessage Query(
@@ -28,16 +24,15 @@ namespace DnsClient
             DnsRequestMessage request,
             TimeSpan timeout)
         {
-            UdpClient udpClient = GetNextUdpClient(server.AddressFamily);
+            var udpClient = new UdpClient(server.AddressFamily);
 
-            // -1 indicates infinite
-            int timeoutInMillis = timeout.TotalMilliseconds >= int.MaxValue ? -1 : (int)timeout.TotalMilliseconds;
-            udpClient.Client.ReceiveTimeout = timeoutInMillis;
-            udpClient.Client.SendTimeout = timeoutInMillis;
-
-            bool mustDispose = false;
             try
             {
+                // -1 indicates infinite
+                int timeoutInMillis = timeout.TotalMilliseconds >= int.MaxValue ? -1 : (int)timeout.TotalMilliseconds;
+                udpClient.Client.ReceiveTimeout = timeoutInMillis;
+                udpClient.Client.SendTimeout = timeoutInMillis;
+
                 using (var writer = new DnsDatagramWriter())
                 {
                     GetRequestData(request, writer);
@@ -52,30 +47,20 @@ namespace DnsClient
 
                     var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
 
-                    Enqueue(server.AddressFamily, udpClient);
-
                     return response;
                 }
             }
-            catch
-            {
-                mustDispose = true;
-                throw;
-            }
             finally
             {
-                if (!_enableClientQueue || mustDispose)
+                try
                 {
-                    try
-                    {
 #if !NET45
-                        udpClient.Dispose();
+                    udpClient.Dispose();
 #else
-                        udpClient.Close();
+                    udpClient.Close();
 #endif
-                    }
-                    catch { }
                 }
+                catch { }
             }
         }
 
@@ -86,20 +71,19 @@ namespace DnsClient
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            UdpClient udpClient = GetNextUdpClient(endpoint.AddressFamily);
+            var udpClient = new UdpClient(endpoint.AddressFamily);
 
-            using var callback = cancellationToken.Register(() =>
-            {
-#if !NET45
-                udpClient.Dispose();
-#else
-                udpClient.Close();
-#endif
-            });
-
-            bool mustDispose = false;
             try
             {
+                using var callback = cancellationToken.Register(() =>
+                {
+#if !NET45
+                    udpClient.Dispose();
+#else
+                    udpClient.Close();
+#endif
+                });
+
                 using (var writer = new DnsDatagramWriter())
                 {
                     GetRequestData(request, writer);
@@ -121,8 +105,6 @@ namespace DnsClient
                     var response = GetResponseMessage(new ArraySegment<byte>(result.Buffer, 0, result.Buffer.Length));
 #endif
 
-                    Enqueue(endpoint.AddressFamily, udpClient);
-
                     return response;
                 }
             }
@@ -135,70 +117,18 @@ namespace DnsClient
                 // we disposed it in case of a timeout request, lets indicate it actually timed out...
                 throw new TimeoutException();
             }
-            catch
-            {
-                mustDispose = true;
-
-                throw;
-            }
             finally
             {
-                if (!_enableClientQueue || mustDispose)
+                try
                 {
-                    try
-                    {
 #if !NET45
-                        udpClient.Dispose();
+                    udpClient.Dispose();
 #else
-                        udpClient.Close();
+                    udpClient.Close();
 #endif
-                    }
-                    catch { }
                 }
+                catch { }
             }
-        }
-
-        private UdpClient GetNextUdpClient(AddressFamily family)
-        {
-            UdpClient udpClient = null;
-            if (_enableClientQueue)
-            {
-                while (udpClient == null && !TryDequeue(family, out udpClient))
-                {
-                    udpClient = new UdpClient(family);
-                }
-            }
-            else
-            {
-                udpClient = new UdpClient(family);
-            }
-
-            return udpClient;
-        }
-
-        private void Enqueue(AddressFamily family, UdpClient client)
-        {
-            if (_enableClientQueue)
-            {
-                if (family == AddressFamily.InterNetwork)
-                {
-                    s_clients.Enqueue(client);
-                }
-                else
-                {
-                    s_clientsIPv6.Enqueue(client);
-                }
-            }
-        }
-
-        private static bool TryDequeue(AddressFamily family, out UdpClient client)
-        {
-            if (family == AddressFamily.InterNetwork)
-            {
-                return s_clients.TryDequeue(out client);
-            }
-
-            return s_clientsIPv6.TryDequeue(out client);
         }
     }
 }

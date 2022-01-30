@@ -6,6 +6,8 @@ namespace DnsClient.Tests
 {
 #pragma warning disable CS0618 // Type or member is obsolete
 
+#if ENABLE_REMOTE_DNS
+
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class ApiCompatibilityTest
     {
@@ -86,6 +88,6 @@ namespace DnsClient.Tests
             test.TestOtherTypes();
         }
     }
-
+#endif
 #pragma warning restore CS0618 // Type or member is obsolete
 }

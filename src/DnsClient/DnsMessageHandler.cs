@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -27,8 +28,13 @@ namespace DnsClient
 
         // Transient errors will be retried on the same NameServer before the resolver moves on
         // to the next configured NameServer (if any).
-        public static bool IsTransientException<T>(T exception) where T : Exception
+        public static bool IsTransientException(Exception exception)
         {
+            if (exception is IOException)
+            {
+                exception = exception?.InnerException ?? exception;
+            }
+
             if (exception is SocketException socketException)
             {
                 // I think those are reasonable socket errors which can be retried

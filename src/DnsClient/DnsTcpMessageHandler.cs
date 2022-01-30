@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -40,11 +39,12 @@ namespace DnsClient
             cancellationToken.ThrowIfCancellationRequested();
 
             ClientPool pool;
-            ClientPool.ClientEntry entry = null;
             while (!_pools.TryGetValue(server, out pool))
             {
                 _pools.TryAdd(server, new ClientPool(true, server));
             }
+
+            var entry = await pool.GetNextClient().ConfigureAwait(false);
 
             using var cancelCallback = cancellationToken.Register(() =>
             {
@@ -56,31 +56,18 @@ namespace DnsClient
                 entry.DisposeClient();
             });
 
-            DnsResponseMessage response = null;
-
-            // Simple retry in case the pooled clients are
-            var tries = 0;
-            while (response == null && tries < 3)
+            try
             {
-                tries++;
-                entry = await pool.GetNextClient().ConfigureAwait(false);
+                var response = await QueryAsyncInternal(entry.Client, request, cancellationToken).ConfigureAwait(false);
+                pool.Enqueue(entry);
 
-                cancellationToken.ThrowIfCancellationRequested();
-
-                response = await QueryAsyncInternal(entry.Client, request, cancellationToken)
-                    .ConfigureAwait(false);
-
-                if (response != null)
-                {
-                    pool.Enqueue(entry);
-                }
-                else
-                {
-                    entry.DisposeClient();
-                }
+                return response;
             }
-
-            return response;
+            catch
+            {
+                entry.DisposeClient();
+                throw;
+            }
         }
 
         private async Task<DnsResponseMessage> QueryAsyncInternal(TcpClient client, DnsRequestMessage request, CancellationToken cancellationToken)
@@ -105,7 +92,8 @@ namespace DnsClient
 
             if (!stream.CanRead)
             {
-                return null;
+                // might retry
+                throw new TimeoutException();
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -115,33 +103,25 @@ namespace DnsClient
             do
             {
                 int length;
-                try
+                using (var lengthBuffer = new PooledBytes(2))
                 {
-                    //length = stream.ReadByte() << 8 | stream.ReadByte();
-                    using (var lengthBuffer = new PooledBytes(2))
+                    int bytesReceived = 0, read;
+                    while ((bytesReceived += (read = await stream.ReadAsync(lengthBuffer.Buffer, bytesReceived, 2, cancellationToken).ConfigureAwait(false))) < 2)
                     {
-                        int bytesReceived = 0, read;
-                        while ((bytesReceived += (read = await stream.ReadAsync(lengthBuffer.Buffer, bytesReceived, 2, cancellationToken).ConfigureAwait(false))) < 2)
+                        if (read <= 0)
                         {
-                            if (read <= 0)
-                            {
-                                // disconnected, might retry
-                                return null;
-                            }
+                            // disconnected, might retry
+                            throw new TimeoutException();
                         }
-
-                        length = lengthBuffer.Buffer[0] << 8 | lengthBuffer.Buffer[1];
                     }
-                }
-                catch (Exception ex) when (ex is IOException || ex is SocketException)
-                {
-                    return null;
+
+                    length = lengthBuffer.Buffer[0] << 8 | lengthBuffer.Buffer[1];
                 }
 
                 if (length <= 0)
                 {
-                    // server signals close/disconnecting
-                    return null;
+                    // server signals close/disconnecting, might retry
+                    throw new TimeoutException();
                 }
 
                 using (var memory = new PooledBytes(length))
@@ -155,7 +135,7 @@ namespace DnsClient
                         if (read <= 0)
                         {
                             // disconnected
-                            return null;
+                            throw new TimeoutException();
                         }
                         if (bytesReceived + readSize > length)
                         {
