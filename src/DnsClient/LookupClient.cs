@@ -356,7 +356,7 @@ namespace DnsClient
 
             _originalOptions = options;
             _logger = Logging.LoggerFactory.CreateLogger(GetType().FullName);
-            _messageHandler = udpHandler ?? new DnsUdpMessageHandler(true);
+            _messageHandler = udpHandler ?? new DnsUdpMessageHandler();
             _tcpFallbackHandler = tcpHandler ?? new DnsTcpMessageHandler();
 
             if (_messageHandler.Type != DnsMessageHandleType.UDP)
@@ -1583,6 +1583,11 @@ namespace DnsClient
             bool isLastServer,
             out HandleError handleError)
         {
+            if (response is null)
+            {
+                throw new ArgumentNullException(nameof(response));
+            }
+
             handleError = HandleError.None;
 
             if (response.Header.ResultTruncated)

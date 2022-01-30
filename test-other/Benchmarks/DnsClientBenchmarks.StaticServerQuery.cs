@@ -43,7 +43,7 @@ namespace Benchmarks
             [Benchmark()]
             public async Task RequestAsync()
             {
-                var result = await _client.QueryAsync("doesnotmatter.com", QueryType.A);
+                var result = await _client.QueryAsync("doesnotmatter.com", QueryType.A).ConfigureAwait(false);
                 if (result.HasError || result.Answers.Count == 0)
                 {
                     throw new Exception("Expected 1 result.");

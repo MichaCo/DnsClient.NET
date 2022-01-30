@@ -26,13 +26,13 @@ namespace Benchmarks
             [Benchmark(Baseline = true)]
             public async Task Async()
             {
-                _ = await _lookup.QueryAsync("localhost", QueryType.A);
+                _ = await _lookup.QueryAsync("localhost", QueryType.A).ConfigureAwait(false);
             }
 
             [Benchmark]
             public async Task AsyncNoTtl()
             {
-                _ = await _lookup.QueryAsync("localhost", QueryType.A);
+                _ = await _lookup.QueryAsync("localhost", QueryType.A).ConfigureAwait(false);
             }
 
             [Benchmark]
@@ -57,7 +57,7 @@ namespace Benchmarks
             [Benchmark(Baseline = true)]
             public async Task Async()
             {
-                _ = await _lookup.QueryAsync("localhost", QueryType.A);
+                _ = await _lookup.QueryAsync("localhost", QueryType.A).ConfigureAwait(false);
             }
 
             [Benchmark]

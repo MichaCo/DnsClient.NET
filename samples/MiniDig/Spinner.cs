@@ -86,7 +86,7 @@ namespace DigApp
                 Console.SetCursorPosition(0, Console.CursorTop);
                 Console.ForegroundColor = _oldColor;
                 Console.CursorVisible = true;
-                await Task.Delay(100, _token);
+                await Task.Delay(100, _token).ConfigureAwait(false);
             }
         }
     }
