@@ -94,7 +94,7 @@ namespace DigApp
 
             tasks.Add(CollectPrint());
 
-            await Task.WhenAny(tasks.ToArray());
+            await Task.WhenAny(tasks.ToArray()).ConfigureAwait(false);
 
             double elapsedSeconds = sw.ElapsedMilliseconds / 1000d;
 
@@ -120,7 +120,7 @@ namespace DigApp
             while (waitCount < _runtime)
             {
                 waitCount++;
-                await Task.Delay(1000);
+                await Task.Delay(1000).ConfigureAwait(false);
 
                 _spinner.Message = $"Requests per sec: {_reportExcecutions:N2}.";
                 Interlocked.Exchange(ref _reportExcecutions, 0);
@@ -143,7 +143,7 @@ namespace DigApp
                     tasks.Add(Job());
                 }
 
-                await Task.WhenAll(tasks);
+                await Task.WhenAll(tasks).ConfigureAwait(false);
             }
 
             async Task Job()
@@ -153,12 +153,12 @@ namespace DigApp
                     IDnsQueryResponse response;
                     if (!_runSync)
                     {
-                        response = await lookup.QueryAsync(_query, QueryType.A);
+                        response = await lookup.QueryAsync(_query, QueryType.A).ConfigureAwait(false);
                     }
                     else
                     {
-                        response = await Task.Run(() => lookup.Query(_query, QueryType.A));
-                        await Task.Delay(0);
+                        response = await Task.Run(() => lookup.Query(_query, QueryType.A)).ConfigureAwait(false);
+                        await Task.Delay(0).ConfigureAwait(false);
                     }
 
                     Interlocked.Increment(ref _allExcecutions);

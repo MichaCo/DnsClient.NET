@@ -104,7 +104,7 @@ namespace DigApp
             tasks.Add(CollectPrint());
             try
             {
-                await Task.WhenAny(tasks.ToArray());
+                await Task.WhenAny(tasks.ToArray()).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -141,7 +141,7 @@ namespace DigApp
             while (_running && waitCount < _runtime)
             {
                 waitCount++;
-                await Task.Delay(1000);
+                await Task.Delay(1000).ConfigureAwait(false);
 
                 var serverUpdate = from good in _successByServer
                                    join fail in _failByServer on good.Key equals fail.Key into all
@@ -175,11 +175,11 @@ namespace DigApp
 
                     if (!_runSync)
                     {
-                        response = await _lookup.QueryAsync(query, QueryType.A);
+                        response = await _lookup.QueryAsync(query, QueryType.A).ConfigureAwait(false);
                     }
                     else
                     {
-                        response = await Task.Run(() => _lookup.Query(query, QueryType.A));
+                        response = await Task.Run(() => _lookup.Query(query, QueryType.A)).ConfigureAwait(false);
                     }
 
                     Interlocked.Increment(ref _allExcecutions);

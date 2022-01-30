@@ -50,7 +50,7 @@ namespace Benchmarks
             [Benchmark]
             public async Task QueryAsync()
             {
-                var result = await s_lookup.QueryAsync(s_question);
+                var result = await s_lookup.QueryAsync(s_question).ConfigureAwait(false);
                 if (result.Answers.Count != 11)
                 {
                     throw new InvalidOperationException();
