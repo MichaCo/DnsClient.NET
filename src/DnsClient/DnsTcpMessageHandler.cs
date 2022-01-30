@@ -59,6 +59,9 @@ namespace DnsClient
             try
             {
                 var response = await QueryAsyncInternal(entry.Client, request, cancellationToken).ConfigureAwait(false);
+
+                ValidateResponse(request, response);
+
                 pool.Enqueue(entry);
 
                 return response;

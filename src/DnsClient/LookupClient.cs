@@ -907,6 +907,21 @@ namespace DnsClient
 
                         return lastQueryResponse;
                     }
+                    catch (DnsXidMismatchException ex)
+                    {
+                        var handle = HandleDnsXidMismatchException(ex, request, settings, handler.Type, isLastServer, isLastTry, tries);
+
+                        if (handle == HandleError.RetryCurrentServer)
+                        {
+                            continue;
+                        }
+                        else if (handle == HandleError.RetryNextServer)
+                        {
+                            break;
+                        }
+
+                        throw;
+                    }
                     catch (DnsResponseParseException ex)
                     {
                         var handle = HandleDnsResponeParseException(ex, request, handler.Type, isLastServer: isLastServer);
@@ -1167,6 +1182,21 @@ namespace DnsClient
 
                         return lastQueryResponse;
                     }
+                    catch (DnsXidMismatchException ex)
+                    {
+                        var handle = HandleDnsXidMismatchException(ex, request, settings, handler.Type, isLastServer: isLastServer, isLastTry: isLastTry, currentTry: tries);
+
+                        if (handle == HandleError.RetryCurrentServer)
+                        {
+                            continue;
+                        }
+                        else if (handle == HandleError.RetryNextServer)
+                        {
+                            break;
+                        }
+
+                        throw;
+                    }
                     catch (DnsResponseParseException ex)
                     {
                         var handle = HandleDnsResponeParseException(ex, request, handler.Type, isLastServer: isLastServer);
@@ -1371,6 +1401,53 @@ namespace DnsClient
             }
 
             return handle;
+        }
+
+        private HandleError HandleDnsXidMismatchException(DnsXidMismatchException ex, DnsRequestMessage request, DnsQuerySettings settings, DnsMessageHandleType handleType, bool isLastServer, bool isLastTry, int currentTry)
+        {
+            // No more retries
+            if (isLastServer && isLastTry)
+            {
+                _logger.LogError(
+                    LogEventQueryFail,
+                    ex,
+                    "Query {0} via {1} => {2} xid mismatch {3}. Throwing the error.",
+                    ex.RequestXid,
+                    handleType,
+                    request.Question,
+                    ex.ResponseXid);
+
+                return HandleError.Throw;
+            }
+
+            // Last try on the current server, try the nextServer
+            if (isLastTry)
+            {
+                _logger.LogError(
+                    LogEventQueryRetryErrorNextServer,
+                    ex,
+                    "Query {0} via {1} => {2} xid mismatch {3}. Trying next server.",
+                    ex.RequestXid,
+                    handleType,
+                    request.Question,
+                    ex.ResponseXid);
+
+                return HandleError.RetryNextServer;
+            }
+
+            // Next try
+            _logger.LogWarning(
+                LogEventQueryRetryErrorNextServer,
+                ex,
+                "Query {0} via {1} => {2} xid mismatch {3}. Re-trying {4}/{5}...",
+                    ex.RequestXid,
+                    handleType,
+                    request.Question,
+                    ex.ResponseXid,
+                    currentTry,
+                    settings.Retries + 1);
+
+            return HandleError.RetryCurrentServer;
         }
 
         private HandleError HandleDnsResponeParseException(DnsResponseParseException ex, DnsRequestMessage request, DnsMessageHandleType handleType, bool isLastServer)

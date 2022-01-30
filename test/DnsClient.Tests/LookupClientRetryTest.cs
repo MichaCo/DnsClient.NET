@@ -1083,6 +1083,88 @@ namespace DnsClient.Tests
             Assert.Equal(3, calledIps.Count);
         }
 
+        [Theory]
+        [InlineData(1, 1)]
+        [InlineData(1, 3)]
+        [InlineData(2, 1)]
+        [InlineData(3, 1)]
+        [InlineData(4, 4)]
+        public void DnsDnsXidMismatchException_ShouldRetry_ThenThrow(int serversCount, int retriesCount)
+        {
+            var nameServers = Enumerable.Range(1, serversCount)
+                .Select(i => new NameServer(IPAddress.Parse($"127.0.10.{i}")))
+                .ToArray();
+
+            var options = new LookupClientOptions(nameServers)
+            {
+                EnableAuditTrail = true,
+                ContinueOnDnsError = false,
+                ThrowDnsErrors = false,
+                UseCache = true,
+                Retries = retriesCount,
+                UseRandomNameServer = false,
+                UseTcpFallback = false
+            };
+
+            var calledIps = new List<IPAddress>();
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+
+                throw new DnsXidMismatchException(req.Header.Id, req.Header.Id + 1);
+            });
+
+            var lookup = new LookupClient(options, udpHandler: udpMessageHandler);
+            var result = Assert.ThrowsAny<DnsXidMismatchException>(() => lookup.Query(new DnsQuestion("test.com", QueryType.SRV, QueryClass.IN)));
+
+            var expectedIps = nameServers
+                .SelectMany(ns => Enumerable.Repeat(ns.IPEndPoint.Address, retriesCount + 1))
+                .ToArray();
+
+            Assert.Equal(expectedIps, calledIps);
+        }
+
+        [Theory]
+        [InlineData(1, 1)]
+        [InlineData(1, 3)]
+        [InlineData(2, 1)]
+        [InlineData(3, 1)]
+        [InlineData(4, 4)]
+        public async Task DnsDnsXidMismatchException_ShouldRetry_ThenThrow_Async(int serversCount, int retriesCount)
+        {
+            var nameServers = Enumerable.Range(1, serversCount)
+                .Select(i => new NameServer(IPAddress.Parse($"127.0.10.{i}")))
+                .ToArray();
+
+            var options = new LookupClientOptions(nameServers)
+            {
+                EnableAuditTrail = true,
+                ContinueOnDnsError = false,
+                ThrowDnsErrors = false,
+                UseCache = true,
+                Retries = retriesCount,
+                UseRandomNameServer = false,
+                UseTcpFallback = false
+            };
+
+            var calledIps = new List<IPAddress>();
+            var udpMessageHandler = new TestMessageHandler(DnsMessageHandleType.UDP, (ip, req) =>
+            {
+                calledIps.Add(ip.Address);
+
+                throw new DnsXidMismatchException(req.Header.Id, req.Header.Id + 1);
+            });
+
+            var lookup = new LookupClient(options, udpHandler: udpMessageHandler);
+            var result = await Assert.ThrowsAnyAsync<DnsXidMismatchException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.SRV, QueryClass.IN)));
+
+            var expectedIps = nameServers
+                .SelectMany(ns => Enumerable.Repeat(ns.IPEndPoint.Address, retriesCount + 1))
+                .ToArray();
+
+            Assert.Equal(expectedIps, calledIps);
+        }
+
         /* Normal truncated response (TC flag) */
 
         [Fact]
