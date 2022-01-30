@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -78,7 +79,7 @@ namespace DnsClient
 
                 if (b < 32 || b > 126)
                 {
-                    builder.Append("\\" + b.ToString("000"));
+                    builder.Append("\\" + b.ToString("000", CultureInfo.InvariantCulture));
                 }
                 else if (c == ';')
                 {

@@ -3,7 +3,7 @@
     <VersionPrefix>1.6.0</VersionPrefix>
     <VersionSuffix Condition="'$(VersionSuffix)'!='' AND '$(BuildNumber)' != ''">$(VersionSuffix)-$(BuildNumber)</VersionSuffix>
 
-    <TargetFrameworks>netstandard1.3;netstandard2.0;netstandard2.1;net50;net45;net471</TargetFrameworks>
+    <TargetFrameworks>net5.0;netstandard1.3;netstandard2.0;netstandard2.1;net45;net471</TargetFrameworks>
     <DebugType>full</DebugType>
 
     <Product>DnsClient.NET</Product>
@@ -35,6 +35,7 @@
     <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
     <EnableNETAnalyzers>true</EnableNETAnalyzers>
     <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <AnalysisMode>Default</AnalysisMode>
   </PropertyGroup>
 
   <ItemGroup>
@@ -64,10 +65,4 @@
     <PackageReference Include="System.Diagnostics.TraceSource" Version="4.3.0" />
   </ItemGroup>
 
-  <!--<ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="5.0.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>-->
 </Project>

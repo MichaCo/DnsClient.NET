@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>
-      net471;netcoreapp3.1;net50
+      net471;netcoreapp3.1;net5.0
     </TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -34,7 +34,7 @@
     <PackageReference Include="MongoDB.Driver" Version="2.10.0" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net50' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net5.0' ">
     <PackageReference Include="MongoDB.Driver" Version="2.12.3" />
   </ItemGroup>
   
