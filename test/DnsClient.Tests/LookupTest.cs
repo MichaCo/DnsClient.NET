@@ -566,8 +566,6 @@ namespace DnsClient.Tests
             Assert.Equal("localhost.", result.Answers.PtrRecords().First().PtrDomainName.Value);
         }
 
-#endif
-
         [Fact]
         public async Task Lookup_Query_AAAA()
         {
@@ -737,8 +735,6 @@ namespace DnsClient.Tests
             Assert.Contains("dns.google", queryResult.Answers.PtrRecords().First().PtrDomainName);
         }
 
-#if ENABLE_REMOTE_DNS
-
         [Fact]
         public void Ip_Arpa_v6_Valid()
         {
@@ -769,7 +765,6 @@ namespace DnsClient.Tests
             Assert.NotNull(host.HostName);
         }
 
-#endif
 
         [Fact]
         public async Task GetHostEntry_ExampleSub()
@@ -921,8 +916,6 @@ namespace DnsClient.Tests
             Assert.Equal("dnsclient.michaco.net", result.HostName);
         }
 
-#if ENABLE_REMOTE_DNS
-
         [Fact]
         public async Task GetHostEntryAsync_ByName_OneIp_NoAlias()
         {
@@ -949,7 +942,6 @@ namespace DnsClient.Tests
             Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
         }
 
-#endif
 
         [Fact]
         public async Task GetHostEntryAsync_ByName_EmptyString()
@@ -1179,4 +1171,7 @@ namespace DnsClient.Tests
             Assert.NotEqual(response1.Header.Id, response2.Header.Id);
         }
     }
+
+#endif
+
 }
