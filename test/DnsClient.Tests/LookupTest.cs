@@ -1170,8 +1170,7 @@ namespace DnsClient.Tests
             // Validate that duplicate response was not picked up
             Assert.NotEqual(response1.Header.Id, response2.Header.Id);
         }
-    }
 
 #endif
-
+    }
 }
