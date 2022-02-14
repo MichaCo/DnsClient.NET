@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
+using DnsClient.Internal;
 using Microsoft.Win32;
 
 namespace DnsClient.Windows
@@ -25,6 +26,8 @@ namespace DnsClient.Windows
                 return nameServers;
             }
 #endif
+            var logger = Logging.LoggerFactory?.CreateLogger(typeof(NameResolutionPolicy).FullName);
+
             // [MS-GPNRPT] dictates that the NRPT is stored in two separate registry keys.
             //
             //  - The Policy key is pushed down through Group Policy.
@@ -33,8 +36,23 @@ namespace DnsClient.Windows
             // Each key will contain one or more NRP rules where the key name is a unique GUID.
             // If the key exists in both Policy and Parameters, then Policy will take precedence.
 
-            var policyRoot = Registry.LocalMachine.OpenSubKey(@"Software\Policies\Microsoft\Windows NT\DNSClient\DnsPolicyConfig\");
-            var parametersRoot = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\Dnscache\Parameters\DnsPolicyConfig\");
+            RegistryKey policyRoot;
+            RegistryKey parametersRoot;
+
+            try
+            {
+                policyRoot = Registry.LocalMachine.OpenSubKey(@"Software\Policies\Microsoft\Windows NT\DNSClient\DnsPolicyConfig\");
+                parametersRoot = Registry.LocalMachine.OpenSubKey(@"SYSTEM\CurrentControlSet\Services\Dnscache\Parameters\DnsPolicyConfig\");
+            }
+            catch (DllNotFoundException ex)
+            {
+                logger?.LogInformation(ex, "Accessing Windows registry failed.");
+#if !NET45
+                return nameServers;
+#else
+                return nameServers.ToArray();
+#endif
+            }
 
             try
             {
