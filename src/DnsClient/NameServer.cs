@@ -296,17 +296,14 @@ namespace DnsClient
                     nameServers = servers;
                 }
             }
-            catch (PlatformNotSupportedException ex)
+            catch (Exception ex)
             {
                 // Ignore the exception.
                 // Turns out this can happen in Azure Functions. See #133
+                // Turns out it can cause more errors, See #162, #149
                 logger?.LogInformation(ex, "Resolving name servers from NRPT failed.");
             }
-            catch (Exception ex)
-            {
-                logger?.LogInformation(ex, "Resolving name servers from NRPT failed.");
-                exceptions.Add(ex);
-            }
+
 #endif
             if (!fallbackToGooglePublicDns && exceptions.Count > 0)
             {
