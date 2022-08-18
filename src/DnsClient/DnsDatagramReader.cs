@@ -19,12 +19,13 @@ namespace DnsClient
         private readonly byte[] _ipV6Buffer = new byte[16];
         private readonly ArraySegment<byte> _data;
         private readonly int _count;
+        private readonly int _maxRecursion;
 
         public int Index { get; private set; }
 
         public bool DataAvailable => _count - _data.Offset > 0 && Index < _count;
 
-        public DnsDatagramReader(ArraySegment<byte> data, int startIndex = 0)
+        public DnsDatagramReader(ArraySegment<byte> data, int startIndex = 0, int maxRecursion = 1000)
         {
             if (startIndex < 0 || startIndex > data.Count)
             {
@@ -33,6 +34,7 @@ namespace DnsClient
 
             _data = data;
             _count = data.Count;
+            _maxRecursion = maxRecursion;
             Index = startIndex;
         }
 
@@ -197,7 +199,8 @@ namespace DnsClient
         {
             var builder = StringBuilderObjectPool.Default.Get();
             var original = StringBuilderObjectPool.Default.Get();
-            foreach (var labelArray in ReadLabels())
+            var recursion = 0;
+            foreach (var labelArray in ReadLabels(ref recursion))
             {
                 foreach (var b in labelArray)
                 {
@@ -263,7 +266,8 @@ namespace DnsClient
         public DnsString ReadQuestionQueryString()
         {
             var result = StringBuilderObjectPool.Default.Get();
-            foreach (var labelArray in ReadLabels())
+            var recursion = 0;
+            foreach (var labelArray in ReadLabels(ref recursion))
             {
                 var label = Encoding.UTF8.GetString(labelArray.Array, labelArray.Offset, labelArray.Count);
                 result.Append(label);
@@ -275,8 +279,13 @@ namespace DnsClient
             return DnsString.FromResponseQueryString(value);
         }
 
-        public ICollection<ArraySegment<byte>> ReadLabels()
+        public ICollection<ArraySegment<byte>> ReadLabels(ref int recursion)
         {
+            if (++recursion >= _maxRecursion)
+            {
+                throw new DnsResponseParseException("Max recursion reached.", _data.ToArray(), Index, 0);
+            }
+            
             var result = new List<ArraySegment<byte>>(10);
 
             // read the length byte for the label, then get the content from offset+1 to length
@@ -300,7 +309,8 @@ namespace DnsClient
                     }
 
                     var subReader = new DnsDatagramReader(_data.SubArrayFromOriginal(subIndex));
-                    var newLabels = subReader.ReadLabels();
+                    var subRecursion = 0;
+                    var newLabels = subReader.ReadLabels(ref subRecursion);
                     result.AddRange(newLabels); // add range actually much faster than concat and equal to or faster than for-each.. (array copy would work maybe)
                     return result;
                 }

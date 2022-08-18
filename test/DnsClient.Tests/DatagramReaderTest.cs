@@ -54,9 +54,22 @@ namespace DnsClient.Tests
             var bytes = new byte[] { 5, 90, 90, 92, 46, 90, 2, 56, 56, 0 };
 
             var reader = new DnsDatagramReader(new ArraySegment<byte>(bytes));
-
-            var labels = reader.ReadLabels();
+            var recursion = 0;
+            var labels = reader.ReadLabels(ref recursion);
             Assert.Equal(2, labels.Count);
+        }
+
+        [Fact]
+        public void DatagramReader_Labels_FromBytesRecursionMax()
+        {
+            var bytes = new byte[] { 5, 90, 90, 92, 46, 90, 2, 56, 56, 0 };
+
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(bytes), maxRecursion: 1);
+            Assert.Throws<DnsResponseParseException>(() =>
+            {
+                var recursion = 0;
+                var _ = reader.ReadLabels(ref recursion);
+            });
         }
 
         [Fact]
