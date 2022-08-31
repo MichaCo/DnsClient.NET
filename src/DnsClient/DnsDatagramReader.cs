@@ -14,6 +14,7 @@ namespace DnsClient
         public const int IPv4Length = 4;
         private const byte ReferenceByte = 0xc0;
         private const string ACEPrefix = "xn--";
+        private const int MaxRecursion = 100;
 
         private readonly byte[] _ipV4Buffer = new byte[4];
         private readonly byte[] _ipV6Buffer = new byte[16];
@@ -275,8 +276,13 @@ namespace DnsClient
             return DnsString.FromResponseQueryString(value);
         }
 
-        public ICollection<ArraySegment<byte>> ReadLabels()
+        public ICollection<ArraySegment<byte>> ReadLabels(int recursion = 0)
         {
+            if (recursion++ >= MaxRecursion)
+            {
+                throw new DnsResponseParseException("Max recursion reached.", _data.ToArray(), Index, 0);
+            }
+
             var result = new List<ArraySegment<byte>>(10);
 
             // read the length byte for the label, then get the content from offset+1 to length
@@ -300,7 +306,7 @@ namespace DnsClient
                     }
 
                     var subReader = new DnsDatagramReader(_data.SubArrayFromOriginal(subIndex));
-                    var newLabels = subReader.ReadLabels();
+                    var newLabels = subReader.ReadLabels(recursion);
                     result.AddRange(newLabels); // add range actually much faster than concat and equal to or faster than for-each.. (array copy would work maybe)
                     return result;
                 }

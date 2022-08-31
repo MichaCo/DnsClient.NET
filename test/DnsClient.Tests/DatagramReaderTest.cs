@@ -48,6 +48,31 @@ namespace DnsClient.Tests
             Assert.Equal("eeeee.dd.c.aa.com.", name.Value);
         }
 
+        // see #166
+        [Fact]
+        public void DatagramReader_Labels_RecursionRefDoesNotStackoverflow()
+        {
+            var bytes = new byte[]
+            {
+                2, 97, 97, 3, 99, 111, 109, 0, // aa.com.       0-8
+                2, 98, 192, 0,                 // b.ref to 0    8-11
+                1, 99, 192, 17, 0,             // c.ref to 17   12-16  <- recurse
+                2, 100, 100, 192, 12, 0,       // dd.ref to 12  17-22  <- recurse
+                5, 101, 101, 101, 101, 101, 192, 17, 0, 0, 0,     // eeeee.ref to 17 23-33
+                0, // 34
+                0, // 35
+                192, 17
+            };
+
+            var reader = new DnsDatagramReader(new ArraySegment<byte>(bytes));
+            Assert.Throws<DnsResponseParseException>(() =>
+            {
+                reader.Advance(36);
+
+                var _ = reader.ReadDnsName();
+            });
+        }
+
         [Fact]
         public void DatagramReader_Labels_FromBytesValid()
         {
