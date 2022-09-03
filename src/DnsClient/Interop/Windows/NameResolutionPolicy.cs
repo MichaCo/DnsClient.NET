@@ -8,6 +8,8 @@ using Microsoft.Win32;
 
 namespace DnsClient.Windows
 {
+#if !NET45
+
     internal static class NameResolutionPolicy
     {
         private static readonly char[] s_splitOn = new char[] { ';' };
@@ -19,12 +21,16 @@ namespace DnsClient.Windows
         internal static IReadOnlyCollection<NameServer> Resolve(bool includeGenericServers = true, bool includeDirectAccessServers = true)
         {
             var nameServers = new HashSet<NameServer>();
-#if !NET45
+
+#if NET5_0_OR_GREATER
+            if (!OperatingSystem.IsWindows())
+#else
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+#endif
             {
                 return nameServers;
             }
-#endif
+
             // [MS-GPNRPT] dictates that the NRPT is stored in two separate registry keys.
             //
             //  - The Policy key is pushed down through Group Policy.
@@ -123,4 +129,5 @@ namespace DnsClient.Windows
             }
         }
     }
+#endif
 }
