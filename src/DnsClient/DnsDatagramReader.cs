@@ -8,8 +8,8 @@ using DnsClient.Internal;
 
 namespace DnsClient
 {
-
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable CS3002 // Return type is not CLS-compliant
 
     /// <summary>
     /// Helper to read from DNS datagrams.
@@ -382,5 +382,7 @@ namespace DnsClient
             return new ArraySegment<T>(array.Array, startIndex, array.Array.Length - startIndex);
         }
     }
+
+#pragma warning restore CS3002 // Return type is not CLS-compliant
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }
