@@ -8,7 +8,16 @@ using DnsClient.Internal;
 
 namespace DnsClient
 {
-    internal class DnsDatagramReader
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
+    /// <summary>
+    /// Helper to read from DNS datagrams.
+    /// </summary>
+    /// <remarks>
+    /// The API of this class might change over time and receive breaking changes. Use at own risk.
+    /// </remarks>
+    public class DnsDatagramReader
     {
         public const int IPv6Length = 16;
         public const int IPv4Length = 4;
@@ -182,18 +191,6 @@ namespace DnsClient
             Index += length;
         }
 
-        public void SanitizeResult(int expectedIndex, int dataLength)
-        {
-            if (Index != expectedIndex)
-            {
-                throw new DnsResponseParseException(
-                    message: $"Record reader index out of sync. Expected to read till {expectedIndex} but tried to read till index {Index}.",
-                    data: _data.ToArray(),
-                    index: Index,
-                    length: dataLength);
-            }
-        }
-
         public DnsString ReadDnsName()
         {
             var builder = StringBuilderObjectPool.Default.Get();
@@ -276,7 +273,7 @@ namespace DnsClient
             return DnsString.FromResponseQueryString(value);
         }
 
-        public ICollection<ArraySegment<byte>> ReadLabels(int recursion = 0)
+        public IReadOnlyList<ArraySegment<byte>> ReadLabels(int recursion = 0)
         {
             if (recursion++ >= MaxRecursion)
             {
@@ -359,6 +356,18 @@ namespace DnsClient
 
             return (uint)(ReadUInt16NetworkOrder() << 16 | ReadUInt16NetworkOrder());
         }
+
+        internal void SanitizeResult(int expectedIndex, int dataLength)
+        {
+            if (Index != expectedIndex)
+            {
+                throw new DnsResponseParseException(
+                    message: $"Record reader index out of sync. Expected to read till {expectedIndex} but tried to read till index {Index}.",
+                    data: _data.ToArray(),
+                    index: Index,
+                    length: dataLength);
+            }
+        }
     }
 
     internal static class ArraySegmentExtensions
@@ -373,4 +382,5 @@ namespace DnsClient
             return new ArraySegment<T>(array.Array, startIndex, array.Array.Length - startIndex);
         }
     }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }
