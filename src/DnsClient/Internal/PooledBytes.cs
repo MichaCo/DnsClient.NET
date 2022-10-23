@@ -70,7 +70,7 @@ namespace DnsClient.Internal
             if (disposing && !_disposed)
             {
                 _disposed = true;
-                s_pool.Return(_buffer.Array);
+                s_pool.Return(_buffer.Array, clearArray: true);
             }
         }
     }

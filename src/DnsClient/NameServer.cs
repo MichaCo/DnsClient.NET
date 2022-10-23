@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
@@ -254,7 +255,7 @@ namespace DnsClient
             }
             catch (Exception ex)
             {
-                logger?.LogInformation(ex, "Resolving name servers using .NET framework failed.");
+                logger?.LogWarning(ex, "Resolving name servers using .NET framework failed.");
                 exceptions.Add(ex);
             }
 
@@ -270,7 +271,7 @@ namespace DnsClient
                 }
                 catch (Exception ex)
                 {
-                    logger?.LogInformation(ex, "Resolving name servers using native implementation failed.");
+                    logger?.LogWarning(ex, "Resolving name servers using native implementation failed.");
                     exceptions.Add(ex);
                 }
             }
@@ -305,36 +306,39 @@ namespace DnsClient
             }
 
 #endif
-            if (!fallbackToGooglePublicDns && exceptions.Count > 0)
-            {
-                if (exceptions.Count > 1)
-                {
-                    throw new AggregateException("Error resolving name servers", exceptions);
-                }
-                else
-                {
-                    throw new InvalidOperationException("Error resolving name servers", exceptions.First());
-                }
-            }
-
             IReadOnlyCollection<NameServer> filtered = nameServers
                 .Where(p => (p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetwork
                             || p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetworkV6)
                     && (!p.IPEndPoint.Address.IsIPv6SiteLocal || !skipIPv6SiteLocal))
                 .ToArray();
 
-            filtered = ValidateNameServers(filtered, logger);
-
-            if (filtered.Count == 0 && fallbackToGooglePublicDns)
+            try
             {
-                logger?.LogWarning("Could not resolve any NameServers, falling back to Google public servers.");
-                return new NameServer[]
+                filtered = ValidateNameServers(filtered, logger);
+            }
+            catch (Exception ex)
+            {
+                logger?.LogWarning(ex, "NameServer validation failed.");
+                exceptions.Add(ex);
+            }
+
+            if (filtered.Count == 0)
+            {
+                if (!fallbackToGooglePublicDns && exceptions.Count > 0)
                 {
-                    GooglePublicDnsIPv6,
-                    GooglePublicDns2IPv6,
-                    GooglePublicDns,
-                    GooglePublicDns2,
-                };
+                    throw new InvalidOperationException("Could not resolve any NameServers.", exceptions.First());
+                }
+                else if (fallbackToGooglePublicDns)
+                {
+                    logger?.LogWarning("Could not resolve any NameServers, falling back to Google public servers.");
+                    return new NameServer[]
+                    {
+                        GooglePublicDns,
+                        GooglePublicDns2,
+                        GooglePublicDnsIPv6,
+                        GooglePublicDns2IPv6
+                    };
+                }
             }
 
             logger?.LogDebug("Resolved {0} name servers: [{1}].", filtered.Count, string.Join(",", filtered.AsEnumerable()));
@@ -357,18 +361,37 @@ namespace DnsClient
         public static IReadOnlyCollection<NameServer> ResolveNameServersNative()
         {
             List<NameServer> addresses = new List<NameServer>();
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                var fixedInfo = Windows.IpHlpApi.FixedNetworkInformation.GetFixedInformation();
 
-                foreach (var ip in fixedInfo.DnsAddresses)
-                {
-                    addresses.Add(new NameServer(ip, DefaultPort, fixedInfo.DomainName));
-                }
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+#if NET5_0_OR_GREATER
+            if (OperatingSystem.IsWindows())
+#else
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+#endif
             {
-                addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(EtcResolvConfFile);
+                try
+                {
+                    var fixedInfo = Windows.IpHlpApi.FixedNetworkInformation.GetFixedInformation();
+
+                    foreach (var ip in fixedInfo.DnsAddresses)
+                    {
+                        addresses.Add(new NameServer(ip, DefaultPort, fixedInfo.DomainName));
+                    }
+                }
+                catch { }
+            }
+#if NET5_0_OR_GREATER
+            if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
+#else
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+#endif
+            {
+                try
+                {
+                    addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(EtcResolvConfFile);
+                }
+                catch (Exception e) when (e is FileNotFoundException || e is UnauthorizedAccessException)
+                {
+                }
             }
 
             return addresses;
@@ -380,12 +403,7 @@ namespace DnsClient
         /// <returns>Returns a collection of name servers from the policy table</returns>
         public static IReadOnlyCollection<NameServer> ResolveNameResolutionPolicyServers()
         {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                return NameResolutionPolicy.Resolve();
-            }
-
-            return Array.Empty<NameServer>();
+            return NameResolutionPolicy.Resolve();
         }
 
 #endif
@@ -413,16 +431,20 @@ namespace DnsClient
             var result = new HashSet<NameServer>();
 
             var adapters = NetworkInterface.GetAllNetworkInterfaces();
+            if (adapters == null)
+            {
+                return result.ToArray();
+            }
 
             foreach (NetworkInterface networkInterface in
                 adapters
-                    .Where(p => (p.OperationalStatus == OperationalStatus.Up || p.OperationalStatus == OperationalStatus.Unknown)
+                    .Where(p => p != null && (p.OperationalStatus == OperationalStatus.Up || p.OperationalStatus == OperationalStatus.Unknown)
                     && p.NetworkInterfaceType != NetworkInterfaceType.Loopback))
             {
-                var properties = networkInterface.GetIPProperties();
+                var properties = networkInterface?.GetIPProperties();
 
                 // Can be null under mono for whatever reason...
-                if (properties == null)
+                if (properties?.DnsAddresses == null)
                 {
                     continue;
                 }

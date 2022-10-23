@@ -8,12 +8,22 @@ using DnsClient.Internal;
 
 namespace DnsClient
 {
-    internal class DnsDatagramReader
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+#pragma warning disable CS3002 // Return type is not CLS-compliant
+
+    /// <summary>
+    /// Helper to read from DNS datagrams.
+    /// </summary>
+    /// <remarks>
+    /// The API of this class might change over time and receive breaking changes. Use at own risk.
+    /// </remarks>
+    public class DnsDatagramReader
     {
         public const int IPv6Length = 16;
         public const int IPv4Length = 4;
         private const byte ReferenceByte = 0xc0;
         private const string ACEPrefix = "xn--";
+        private const int MaxRecursion = 100;
 
         private readonly byte[] _ipV4Buffer = new byte[4];
         private readonly byte[] _ipV6Buffer = new byte[16];
@@ -181,18 +191,6 @@ namespace DnsClient
             Index += length;
         }
 
-        public void SanitizeResult(int expectedIndex, int dataLength)
-        {
-            if (Index != expectedIndex)
-            {
-                throw new DnsResponseParseException(
-                    message: $"Record reader index out of sync. Expected to read till {expectedIndex} but tried to read till index {Index}.",
-                    data: _data.ToArray(),
-                    index: Index,
-                    length: dataLength);
-            }
-        }
-
         public DnsString ReadDnsName()
         {
             var builder = StringBuilderObjectPool.Default.Get();
@@ -275,8 +273,13 @@ namespace DnsClient
             return DnsString.FromResponseQueryString(value);
         }
 
-        public ICollection<ArraySegment<byte>> ReadLabels()
+        public IReadOnlyList<ArraySegment<byte>> ReadLabels(int recursion = 0)
         {
+            if (recursion++ >= MaxRecursion)
+            {
+                throw new DnsResponseParseException("Max recursion reached.", _data.ToArray(), Index, 0);
+            }
+
             var result = new List<ArraySegment<byte>>(10);
 
             // read the length byte for the label, then get the content from offset+1 to length
@@ -300,7 +303,7 @@ namespace DnsClient
                     }
 
                     var subReader = new DnsDatagramReader(_data.SubArrayFromOriginal(subIndex));
-                    var newLabels = subReader.ReadLabels();
+                    var newLabels = subReader.ReadLabels(recursion);
                     result.AddRange(newLabels); // add range actually much faster than concat and equal to or faster than for-each.. (array copy would work maybe)
                     return result;
                 }
@@ -353,6 +356,18 @@ namespace DnsClient
 
             return (uint)(ReadUInt16NetworkOrder() << 16 | ReadUInt16NetworkOrder());
         }
+
+        internal void SanitizeResult(int expectedIndex, int dataLength)
+        {
+            if (Index != expectedIndex)
+            {
+                throw new DnsResponseParseException(
+                    message: $"Record reader index out of sync. Expected to read till {expectedIndex} but tried to read till index {Index}.",
+                    data: _data.ToArray(),
+                    index: Index,
+                    length: dataLength);
+            }
+        }
     }
 
     internal static class ArraySegmentExtensions
@@ -367,4 +382,7 @@ namespace DnsClient
             return new ArraySegment<T>(array.Array, startIndex, array.Array.Length - startIndex);
         }
     }
+
+#pragma warning restore CS3002 // Return type is not CLS-compliant
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 }
