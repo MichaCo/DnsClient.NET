@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>
-      net471;netcoreapp3.1;net6.0
-    </TargetFrameworks>
+    <TargetFrameworks>net6.0;net471</TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
@@ -28,10 +26,6 @@
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net471' ">
     <PackageReference Include="MongoDB.Driver" Version="2.8.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
-    <PackageReference Include="MongoDB.Driver" Version="2.10.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">

@@ -55,11 +55,7 @@ namespace DnsClient
             {
                 try
                 {
-#if !NET45
                     udpClient.Dispose();
-#else
-                    udpClient.Close();
-#endif
                 }
                 catch { }
             }
@@ -78,11 +74,7 @@ namespace DnsClient
             {
                 using var callback = cancellationToken.Register(() =>
                 {
-#if !NET45
                     udpClient.Dispose();
-#else
-                    udpClient.Close();
-#endif
                 });
 
                 using (var writer = new DnsDatagramWriter())
@@ -103,15 +95,10 @@ namespace DnsClient
                         cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
-#elif !NET45
+#else
                     int received = await udpClient.Client.ReceiveAsync(new ArraySegment<byte>(memory.Buffer), SocketFlags.None).ConfigureAwait(false);
 
                     var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
-
-#else
-                    var result = await udpClient.ReceiveAsync().ConfigureAwait(false);
-
-                    var response = GetResponseMessage(new ArraySegment<byte>(result.Buffer, 0, result.Buffer.Length));
 #endif
 
                     ValidateResponse(request, response);
@@ -132,11 +119,7 @@ namespace DnsClient
             {
                 try
                 {
-#if !NET45
                     udpClient.Dispose();
-#else
-                    udpClient.Close();
-#endif
                 }
                 catch { }
             }

@@ -173,9 +173,6 @@ dotnet_diagnostic.CS1591.severity = warning
 # CA1707: Identifiers should not contain underscores
 dotnet_diagnostic.CA1707.severity = warning
 
-# CA1825: Avoid zero-length array allocations (TODO: until we drop .NET45)
-dotnet_diagnostic.CA1825.severity = silent
-
 # CA1835: Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync' - (TODO: more improvements needed)
 dotnet_diagnostic.CA1835.severity = silent
 

@@ -286,11 +286,7 @@ namespace DnsClient
                 {
                     try
                     {
-#if !NET45
                         Client.Dispose();
-#else
-                        Client.Close();
-#endif
                     }
                     catch { }
                 }
