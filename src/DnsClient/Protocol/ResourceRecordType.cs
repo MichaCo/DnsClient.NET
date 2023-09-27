@@ -224,6 +224,18 @@ namespace DnsClient.Protocol
         TLSA = 52,
 
         /// <summary>
+        /// CDS rfc7344.
+        /// </summary>
+        /// <seealso href="https://https://tools.ietf.org/html/rfc7344">RFC 7344</seealso>
+        CDS = 59,
+
+        /// <summary>
+        /// CDNSKEY rfc7344.
+        /// </summary>
+        /// <seealso href="https://https://tools.ietf.org/html/rfc7344">RFC 7344</seealso>
+        CDNSKEY = 60,
+
+        /// <summary>
         /// SPF records don't officially have a dedicated RR type, <see cref="TXT"/> should be used instead.
         /// The behavior of TXT and SPF are the same.
         /// </summary>

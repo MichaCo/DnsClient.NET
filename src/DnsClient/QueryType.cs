@@ -172,6 +172,18 @@ namespace DnsClient
         DS = ResourceRecordType.DS,
 
         /// <summary>
+        /// CDS rfc7344.
+        /// </summary>
+        /// <seealso href="https://https://tools.ietf.org/html/rfc7344">RFC 7344</seealso>
+        CDS = ResourceRecordType.CDS,
+
+        /// <summary>
+        /// CDNSKEY rfc7344.
+        /// </summary>
+        /// <seealso href="https://https://tools.ietf.org/html/rfc7344">RFC 7344</seealso>
+        CDNSKEY = ResourceRecordType.CDNSKEY,
+
+        /// <summary>
         /// RRSIG rfc3755.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc3755">RFC 3755</seealso>
