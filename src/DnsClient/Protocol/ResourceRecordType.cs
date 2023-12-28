@@ -169,6 +169,16 @@ namespace DnsClient.Protocol
         NAPTR = 35,
 
         /// <summary>
+        /// Cryptographic public keys are frequently published, and their
+        /// authenticity is demonstrated by certificates.  A CERT resource record
+        /// (RR) is defined so that such certificates and related certificate
+        /// revocation lists can be stored in the Domain Name System (DNS).
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4398">RFC 4398</seealso>
+        /// <seealso cref="CertRecord"/>
+        CERT = 37,
+
+        /// <summary>
         /// Option record.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc6891">RFC 6891</seealso>
