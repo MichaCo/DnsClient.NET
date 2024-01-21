@@ -121,7 +121,7 @@ namespace DnsClient.Windows
                     // Name can be a suffix (starts with .) or a prefix
                     // we want to ignore it if it's not a suffix
 
-                    foreach (var name in names.Where(n => n.StartsWith(".")).Distinct())
+                    foreach (var name in names.Distinct())
                     {
                         nameServers.Add(new NameServer(address, name));
                     }

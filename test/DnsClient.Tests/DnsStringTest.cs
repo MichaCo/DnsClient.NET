@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using Xunit;
 
 namespace DnsClient.Tests
@@ -249,6 +248,16 @@ namespace DnsClient.Tests
         {
             DnsString a = DnsString.Parse("hostname.");
             var b = "some.domain.";
+
+            var result = a + b;
+            Assert.Equal("hostname.some.domain.", result.Value);
+        }
+
+        [Fact]
+        public void DnsString_ConcatStringSuffix()
+        {
+            DnsString a = DnsString.Parse("hostname.");
+            string b = ".some.domain";
 
             var result = a + b;
             Assert.Equal("hostname.some.domain.", result.Value);

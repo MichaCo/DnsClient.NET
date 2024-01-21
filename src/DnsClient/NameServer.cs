@@ -205,7 +205,7 @@ namespace DnsClient
         /// </returns>
         public override string ToString()
         {
-            return IPEndPoint.ToString();
+            return $"{IPEndPoint}({DnsSuffix})";
         }
 
         /// <inheritdocs />
@@ -217,14 +217,41 @@ namespace DnsClient
         /// <inheritdocs />
         public bool Equals(NameServer other)
         {
-            return other != null
-                && EqualityComparer<IPEndPoint>.Default.Equals(IPEndPoint, other.IPEndPoint);
+            if (other == null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            if (!IPEndPoint.Equals(other.IPEndPoint))
+            {
+                return false;
+            }
+
+            if (DnsSuffix == null && other.DnsSuffix == null)
+            {
+                return true;
+            }
+            else if (DnsSuffix == null)
+            {
+                return false;
+            }
+            else if (DnsSuffix.Equals(other.DnsSuffix, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         /// <inheritdocs />
         public override int GetHashCode()
         {
-            return EqualityComparer<IPEndPoint>.Default.GetHashCode(IPEndPoint);
+            return IPEndPoint.GetHashCode() ^ (DnsSuffix?.GetHashCode() ?? 0);
         }
 
         /// <summary>
@@ -259,7 +286,6 @@ namespace DnsClient
                 exceptions.Add(ex);
             }
 
-#if !NET45
             if (exceptions.Count > 0)
             {
                 logger?.LogDebug("Using native path to resolve servers.");
@@ -305,7 +331,6 @@ namespace DnsClient
                 logger?.LogInformation(ex, "Resolving name servers from NRPT failed.");
             }
 
-#endif
             IReadOnlyCollection<NameServer> filtered = nameServers
                 .Where(p => (p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetwork
                             || p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetworkV6)

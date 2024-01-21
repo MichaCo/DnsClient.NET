@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -132,6 +133,17 @@ namespace DigApp
                             }
                         }
                     }
+                }
+
+                foreach (var server in lookup.NameServers
+                    .Where(p => p.DnsSuffix != null && parsedDnsString.Contains(p.DnsSuffix)))
+                {
+                    var serverResult = useQClass == 0 ?
+                        await lookup.QueryServerAsync(new[] { server }, useDomain, useQType).ConfigureAwait(false) :
+                        await lookup.QueryServerAsync(new[] { server }, useDomain, useQType, useQClass).ConfigureAwait(false);
+
+                    Console.WriteLine(serverResult.AuditTrail);
+                    return 0;
                 }
 
                 var result = useQClass == 0 ?

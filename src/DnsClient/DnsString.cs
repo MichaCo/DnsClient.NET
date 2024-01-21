@@ -50,6 +50,28 @@ namespace DnsClient
         /// </summary>
         public int? NumberOfLabels { get; }
 
+        /// <summary>
+        /// Returns a value indicating whether a specified substring occurs within this <see cref="DnsString"/>.
+        /// </summary>
+        /// <param name="value">The string to seek.</param>
+        /// <returns>true if the value parameter occurs within this string, or if value is the empty string ("");
+        /// otherwise, false.</returns>
+        public bool Contains(string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return true;
+            }
+
+            value = value.Trim(Dot);
+
+#if NET6_0_OR_GREATER || NETSTANDARD2_1
+            return Original.Contains(value, StringComparison.OrdinalIgnoreCase) || Value.Contains(value, StringComparison.OrdinalIgnoreCase);
+#else
+            return Original.Contains(value) || Value.Contains(value);
+#endif
+        }
+
         internal DnsString(string original, string value, int? numLabels = null)
         {
             Original = original;
@@ -106,7 +128,7 @@ namespace DnsClient
                 throw new ArgumentException($"'{nameof(b)}' cannot be null or empty.", nameof(b));
             }
 
-            b = b[0] == Dot ? b.Substring(1) : b;
+            b = b.Trim(Dot);
 
             var parsed = Parse(b);
             return a + parsed;
