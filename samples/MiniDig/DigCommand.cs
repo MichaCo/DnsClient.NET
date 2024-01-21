@@ -135,6 +135,7 @@ namespace DigApp
                     }
                 }
 
+                // First check if we have matching namespaces and priotize those server(s).
                 foreach (var server in lookup.NameServers
                     .Where(p => p.DnsSuffix != null && parsedDnsString.Contains(p.DnsSuffix)))
                 {
@@ -143,9 +144,31 @@ namespace DigApp
                         await lookup.QueryServerAsync(new[] { server }, useDomain, useQType, useQClass).ConfigureAwait(false);
 
                     Console.WriteLine(serverResult.AuditTrail);
-                    return 0;
+
+                    if (!serverResult.HasError)
+                    {
+                        return 0;
+                    }
                 }
 
+                // Then check if there are servers without suffix/namespace, prioritize those over those with suffix set.
+                // This is usually true for public DNS or enforced DNS entries by a VPN.
+                foreach (var server in lookup.NameServers
+                    .Where(p => p.DnsSuffix == null))
+                {
+                    var serverResult = useQClass == 0 ?
+                        await lookup.QueryServerAsync(new[] { server }, useDomain, useQType).ConfigureAwait(false) :
+                        await lookup.QueryServerAsync(new[] { server }, useDomain, useQType, useQClass).ConfigureAwait(false);
+
+                    Console.WriteLine(serverResult.AuditTrail);
+
+                    if (!serverResult.HasError)
+                    {
+                        return 0;
+                    }
+                }
+
+                // If we haven't found anything yet, try any with normal retry and fallback logic...
                 var result = useQClass == 0 ?
                     await lookup.QueryAsync(useDomain, useQType).ConfigureAwait(false) :
                     await lookup.QueryAsync(useDomain, useQType, useQClass).ConfigureAwait(false);
