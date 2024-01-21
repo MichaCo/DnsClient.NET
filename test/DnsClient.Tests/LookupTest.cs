@@ -21,6 +21,57 @@ namespace DnsClient.Tests
             Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.All;
         }
 
+#if ENABLE_REMOTE_DNS
+
+        // This is for roughly testing that there is no general memory leak in the query path.
+        // This might not 100% work all the time.
+        [Fact]
+        public async Task TestingFor_LeakyMemory()
+        {
+            var client = new LookupClient(
+                new LookupClientOptions()
+                {
+                    UseCache = false
+                });
+
+            var before = GC.GetTotalMemory(true);
+
+            for (int i = 0; i < 100; i++)
+            {
+                _ = await client.QueryAsync("google.com", QueryType.A).ConfigureAwait(false);
+            }
+
+            var after = GC.GetTotalMemory(true);
+            var difChange = ((double)after - before) / before * 100;
+
+            Assert.True(5 > difChange, $"{difChange} should be less then 5%");
+        }
+
+        [Fact]
+        public async Task TestingFor_LeakyMemory_Tcp()
+        {
+            var client = new LookupClient(
+                new LookupClientOptions()
+                {
+                    UseCache = false,
+                    UseTcpOnly = true
+                });
+
+            var before = GC.GetTotalMemory(true);
+
+            for (int i = 0; i < 100; i++)
+            {
+                _ = await client.QueryAsync("google.com", QueryType.A).ConfigureAwait(false);
+            }
+
+            var after = GC.GetTotalMemory(true);
+            var difChange = ((double)after - before) / before * 100;
+
+            Assert.True(5 > difChange, $"{difChange} should be less then 5%");
+        }
+
+#endif
+
         [Fact]
         public async Task ResolveService_WithCnameRef()
         {
@@ -408,7 +459,7 @@ namespace DnsClient.Tests
             public void Lookup_QueryTimesOut_Tcp_Sync()
             {
                 var client = new LookupClient(
-                    new LookupClientOptions(new NameServer(IPAddress.Loopback))
+                    new LookupClientOptions(NameServer.GooglePublicDns)
                     {
                         Timeout = s_timeout,
                         Retries = 0,
@@ -765,7 +816,6 @@ namespace DnsClient.Tests
             Assert.NotNull(host.HostName);
         }
 
-
         [Fact]
         public async Task GetHostEntry_ExampleSub()
         {
@@ -942,7 +992,6 @@ namespace DnsClient.Tests
             Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
         }
 
-
         [Fact]
         public async Task GetHostEntryAsync_ByName_EmptyString()
         {
@@ -1007,8 +1056,6 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        // Tests that if a server gets passed in and the auto resolve flag is set to true
-        // Lookup Client's ctor will auto resolve servers and append them to the specified server(s)
         public void Lookup_Options_UseClientsAndResolvedServers()
         {
             // Specify one and auto resolve
@@ -1019,8 +1066,6 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        // Tests that if a server gets passed in, the AutoResolve option gets set to false
-        // And Lookup Client's ctor will not auto resolve any servers.
         public void Lookup_Options_AutoResolveDisabled_WhenServerIsSpecified1()
         {
             // Specify one and auto resolve
@@ -1114,7 +1159,7 @@ namespace DnsClient.Tests
         [InlineData(3, false)]
         public async Task Lookup_XidMismatch(int mismatchResponses, bool sync)
         {
-            var serverEndpoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 54321);
+            var serverEndpoint = new IPEndPoint(IPAddress.Loopback, 5551);
             var options = new LookupClientOptions(new NameServer(serverEndpoint))
             {
                 Retries = 20,
@@ -1144,7 +1189,7 @@ namespace DnsClient.Tests
         [InlineData(5, false)]
         public async Task Lookup_DuplicateUDPResponses(int duplicatesCount, bool sync)
         {
-            var serverEndpoint = new IPEndPoint(IPAddress.Parse("127.0.0.1"), 54321);
+            var serverEndpoint = new IPEndPoint(IPAddress.Loopback, 5551);
             var options = new LookupClientOptions(new NameServer(serverEndpoint))
             {
                 Retries = 20,

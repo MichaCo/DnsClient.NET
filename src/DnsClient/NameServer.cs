@@ -362,7 +362,7 @@ namespace DnsClient
         {
             List<NameServer> addresses = new List<NameServer>();
 
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
             if (OperatingSystem.IsWindows())
 #else
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -379,7 +379,7 @@ namespace DnsClient
                 }
                 catch { }
             }
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
             if (OperatingSystem.IsLinux() || OperatingSystem.IsMacOS())
 #else
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))

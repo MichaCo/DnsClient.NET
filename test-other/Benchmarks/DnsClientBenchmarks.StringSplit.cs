@@ -31,8 +31,6 @@ namespace Benchmarks
                 return x;
             }
 
-#if NETCOREAPP2_1
-
             [Benchmark]
             public object ManualSplitMemoryT()
             {
@@ -88,8 +86,6 @@ namespace Benchmarks
                 return read;
                 //}
             }
-
-#endif
 
             public static IEnumerable<byte[]> SplitString(string input)
             {

@@ -55,7 +55,7 @@ namespace DnsClient.Tests
             Assert.Equal(3, name.NumberOfLabels);
         }
 
-#if !NET5_0_OR_GREATER // Actually changed behavior in NET50
+#if !NET6_0_OR_GREATER // Actually changed behavior in NET50
         [Fact]
         public void DnsString_ReadPuny_IDNA2003_Invalid()
         {

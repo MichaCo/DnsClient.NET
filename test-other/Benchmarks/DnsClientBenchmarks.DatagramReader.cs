@@ -49,20 +49,6 @@ namespace Benchmarks
                     _ = new IPAddress(_address);
                 }
             }
-
-#if NETCOREAPP2_1
-
-            [Benchmark(OperationsPerInvoke = Ops)]
-            public void FromSpan()
-            {
-                ReadOnlySpan<byte> span = bytes.AsSpan();
-                for (int i = 0; i < Ops; i++)
-                {
-                    _ =  new IPAddress(span);
-                }
-            }
-
-#endif
         }
 
         public class DatagramReader_FullRead

@@ -19,11 +19,11 @@ namespace DnsClient
         }
 
         public override DnsResponseMessage Query(
-            IPEndPoint server,
+            IPEndPoint endpoint,
             DnsRequestMessage request,
             TimeSpan timeout)
         {
-            var udpClient = new UdpClient(server.AddressFamily);
+            var udpClient = new UdpClient(endpoint.AddressFamily);
 
             try
             {
@@ -35,31 +35,19 @@ namespace DnsClient
                 using (var writer = new DnsDatagramWriter())
                 {
                     GetRequestData(request, writer);
-                    udpClient.Client.SendTo(writer.Data.Array, writer.Data.Offset, writer.Data.Count, SocketFlags.None, server);
+                    udpClient.Send(writer.Data.Array, writer.Data.Count, endpoint);
                 }
 
-                var readSize = udpClient.Available > MaxSize ? udpClient.Available : MaxSize;
-
-                using (var memory = new PooledBytes(readSize))
-                {
-                    var received = udpClient.Client.Receive(memory.Buffer, 0, readSize, SocketFlags.None);
-
-                    var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
-
-                    ValidateResponse(request, response);
-
-                    return response;
-                }
+                var result = udpClient.Receive(ref endpoint);
+                var response = GetResponseMessage(new ArraySegment<byte>(result, 0, result.Length));
+                ValidateResponse(request, response);
+                return response;
             }
             finally
             {
                 try
                 {
-#if !NET45
                     udpClient.Dispose();
-#else
-                    udpClient.Close();
-#endif
                 }
                 catch { }
             }
@@ -78,11 +66,7 @@ namespace DnsClient
             {
                 using var callback = cancellationToken.Register(() =>
                 {
-#if !NET45
                     udpClient.Dispose();
-#else
-                    udpClient.Close();
-#endif
                 });
 
                 using (var writer = new DnsDatagramWriter())
@@ -93,31 +77,10 @@ namespace DnsClient
 
                 var readSize = udpClient.Available > MaxSize ? udpClient.Available : MaxSize;
 
-                using (var memory = new PooledBytes(readSize))
-                {
-
-#if NET6_0_OR_GREATER
-                    int received = await udpClient.Client.ReceiveAsync(
-                        new ArraySegment<byte>(memory.Buffer),
-                        SocketFlags.None,
-                        cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                    var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
-#elif !NET45
-                    int received = await udpClient.Client.ReceiveAsync(new ArraySegment<byte>(memory.Buffer), SocketFlags.None).ConfigureAwait(false);
-
-                    var response = GetResponseMessage(new ArraySegment<byte>(memory.Buffer, 0, received));
-
-#else
-                    var result = await udpClient.ReceiveAsync().ConfigureAwait(false);
-
-                    var response = GetResponseMessage(new ArraySegment<byte>(result.Buffer, 0, result.Buffer.Length));
-#endif
-
-                    ValidateResponse(request, response);
-
-                    return response;
-                }
+                var result = await udpClient.ReceiveAsync().ConfigureAwait(false);
+                var response = GetResponseMessage(new ArraySegment<byte>(result.Buffer, 0, result.Buffer.Length));
+                ValidateResponse(request, response);
+                return response;
             }
             catch (SocketException se) when (se.SocketErrorCode == SocketError.OperationAborted)
             {
@@ -132,11 +95,7 @@ namespace DnsClient
             {
                 try
                 {
-#if !NET45
                     udpClient.Dispose();
-#else
-                    udpClient.Close();
-#endif
                 }
                 catch { }
             }
