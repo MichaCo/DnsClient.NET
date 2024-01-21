@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Linq;
 using System.Net;
 using System.Text;
 using DnsClient.Internal;

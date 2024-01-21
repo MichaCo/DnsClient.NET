@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFrameworks>
-      net471;netcoreapp3.1;net6.0
+      net472;net6.0
     </TargetFrameworks>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -26,12 +26,8 @@
     <ProjectReference Include="..\..\src\DnsClient\DnsClient.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net471' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <PackageReference Include="MongoDB.Driver" Version="2.8.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netcoreapp3.1' ">
-    <PackageReference Include="MongoDB.Driver" Version="2.10.0" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0' ">

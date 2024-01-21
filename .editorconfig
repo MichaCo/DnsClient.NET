@@ -10,8 +10,7 @@ indent_size = 4
 trim_trailing_whitespace = true
 
 # License header
-#tbd
-#file_header_template = Copyright 2021 Michael Conrad. Licensed under the Apache License, Version 2.0. See LICENSE file for details.
+file_header_template = Copyright 2024 Michael Conrad.\nLicensed under the Apache License, Version 2.0.\nSee LICENSE file for details.
 
 [*.cs]
 #Formatting - new line options

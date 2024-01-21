@@ -68,37 +68,41 @@ namespace DnsClient
         /// <summary>
         /// As defined in https://tools.ietf.org/html/rfc1035#section-5.1 except '()' or '@' or '.'
         /// </summary>
-        public static string ParseString(ArraySegment<byte> data)
+        public static string ParseString(byte[] data)
         {
-            var result = ParseString(new DnsDatagramReader(data, 0), data.Count);
-            return result;
-        }
-
-        public static string ParseString(DnsDatagramReader reader, int length)
-        {
-            if (reader._count < reader.Index + length)
-            {
-                throw new DnsResponseParseException("Cannot parse string.", reader._data.ToArray(), reader.Index, length);
-            }
-
             var builder = StringBuilderObjectPool.Default.Get();
-            for (var i = 0; i < length; i++)
+
+            //foreach (var b in data)
+            //{
+            //    builder.Append((char)b);
+            //}
+
+            //if ((char)data[0] == '"' && (char)data[data.Length - 1] == '"')
+            //{
+            //    foreach (var b in data)
+            //    {
+            //        builder.Append((char)b);
+            //    }
+            //}
+            //else
+            //{
+            for (var i = 0; i < data.Length; i++)
             {
-                byte b = reader.ReadByte();
+                byte b = data[i];
                 char c = (char)b;
 
                 if (b < 32 || b > 126)
                 {
                     builder.Append("\\" + b.ToString("000", CultureInfo.InvariantCulture));
                 }
-                else if (c == ';')
-                {
-                    builder.Append("\\;");
-                }
-                else if (c == '\\')
-                {
-                    builder.Append("\\\\");
-                }
+                //else if (c == ';')
+                //{
+                //    builder.Append("\\;");
+                //}
+                //else if (c == '\\')
+                //{
+                //    builder.Append("\\\\");
+                //}
                 else if (c == '"')
                 {
                     builder.Append("\\\"");
@@ -108,6 +112,7 @@ namespace DnsClient
                     builder.Append(c);
                 }
             }
+            //}
 
             var value = builder.ToString();
             StringBuilderObjectPool.Default.Return(builder);

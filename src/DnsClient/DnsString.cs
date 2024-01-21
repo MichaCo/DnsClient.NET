@@ -121,7 +121,7 @@ namespace DnsClient
         /// <inheritdoc />
         public override int GetHashCode()
         {
-#if NET5_0_OR_GREATER || NETSTANDARD2_1
+#if NET6_0_OR_GREATER || NETSTANDARD2_1
             return Value.GetHashCode(StringComparison.Ordinal);
 #else
             return Value.GetHashCode();
@@ -254,7 +254,7 @@ namespace DnsClient
                 data += DotStr;
             }
 
-#if NET5_0_OR_GREATER || NETSTANDARD2_1
+#if NET6_0_OR_GREATER || NETSTANDARD2_1
             if (data.Contains(ACEPrefix, StringComparison.Ordinal))
 #else
             if (data.Contains(ACEPrefix))
