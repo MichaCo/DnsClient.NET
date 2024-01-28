@@ -70,7 +70,7 @@ namespace DnsClient.Tests
             test.TestProtocol_1_1();
         }
 
-#if NETCOREAPP3_1
+#if NET6_0
         [Fact]
         public void API_CompatProtocol_1_2()
         {

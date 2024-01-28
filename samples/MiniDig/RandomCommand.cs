@@ -26,7 +26,6 @@ namespace DigApp
         private long _allExcecutions = 0;
         private bool _running;
         private LookupClientOptions _settings;
-        private LookupClient _lookup;
         private int _errors;
         private int _success;
         private Spiner _spinner;
@@ -66,7 +65,7 @@ namespace DigApp
         protected override async Task<int> Execute()
         {
             var lines = File.ReadAllLines("names.txt");
-            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(',', StringComparison.Ordinal) + 1)).OrderBy(x => s_randmom.Next(0, lines.Length * 2)));
+            _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(';') + 1)).OrderBy(x => s_randmom.Next(0, lines.Length * 2)));
 
             _clients = ClientsArg.HasValue() ? int.Parse(ClientsArg.Value()) : 10;
             _runtime = RuntimeArg.HasValue() ? int.Parse(RuntimeArg.Value()) <= 1 ? 5 : int.Parse(RuntimeArg.Value()) : 5;
@@ -76,7 +75,6 @@ namespace DigApp
             _settings.EnableAuditTrail = false;
             _settings.ThrowDnsErrors = false;
             _settings.ContinueOnDnsError = false;
-            _lookup = GetDnsLookup(_settings);
             _running = true;
 
             Console.WriteLine($"; <<>> Starting random run with {_clients} clients running for {_runtime} seconds <<>>");
@@ -161,8 +159,13 @@ namespace DigApp
             _running = false;
         }
 
+        private int _runNumber = 0;
+
         private async Task ExcecuteRun()
         {
+            var number = Interlocked.Increment(ref _runNumber);
+            var lookup = GetDnsLookup(_settings);
+
             //var swatch = Stopwatch.StartNew();
             while (_running)
             {
@@ -171,29 +174,42 @@ namespace DigApp
                 try
                 {
                     IDnsQueryResponse response = null;
-                    _spinner.Message = query;
 
-                    if (!_runSync)
+                    foreach (var type in new[]
                     {
-                        response = await _lookup.QueryAsync(query, QueryType.A).ConfigureAwait(false);
-                    }
-                    else
+                        QueryType.A,
+                        QueryType.AAAA,
+                        QueryType.MX,
+                        QueryType.NS,
+                        QueryType.SOA,
+                        QueryType.TXT,
+                        QueryType.CAA
+                    })
                     {
-                        response = await Task.Run(() => _lookup.Query(query, QueryType.A)).ConfigureAwait(false);
-                    }
+                        _spinner.Message = $"[{number}] {query} {type}";
 
-                    Interlocked.Increment(ref _allExcecutions);
-                    Interlocked.Increment(ref _reportExcecutions);
-                    if (response.HasError)
-                    {
-                        _errorsPerCode.AddOrUpdate(response.Header.ResponseCode.ToString(), 1, (c, v) => v + 1);
-                        _failByServer.AddOrUpdate(response.NameServer, 1, (n, v) => v + 1);
-                        Interlocked.Increment(ref _errors);
-                    }
-                    else
-                    {
-                        _successByServer.AddOrUpdate(response.NameServer, 1, (n, v) => v + 1);
-                        Interlocked.Increment(ref _success);
+                        if (!_runSync)
+                        {
+                            response = await lookup.QueryAsync(query, type).ConfigureAwait(false);
+                        }
+                        else
+                        {
+                            response = await Task.Run(() => lookup.Query(query, type)).ConfigureAwait(false);
+                        }
+
+                        Interlocked.Increment(ref _allExcecutions);
+                        Interlocked.Increment(ref _reportExcecutions);
+                        if (response.HasError)
+                        {
+                            _errorsPerCode.AddOrUpdate(response.Header.ResponseCode.ToString(), 1, (c, v) => v + 1);
+                            _failByServer.AddOrUpdate(response.NameServer, 1, (n, v) => v + 1);
+                            Interlocked.Increment(ref _errors);
+                        }
+                        else
+                        {
+                            _successByServer.AddOrUpdate(response.NameServer, 1, (n, v) => v + 1);
+                            Interlocked.Increment(ref _success);
+                        }
                     }
                 }
                 catch (DnsResponseException ex)

@@ -238,8 +238,8 @@ namespace DnsClient
             {
                 var length = _reader.ReadByte();
                 var bytes = _reader.ReadBytes(length);
-                var escaped = DnsDatagramReader.ParseString(bytes);
                 var utf = DnsDatagramReader.ReadUTF8String(bytes);
+                var escaped = DnsDatagramReader.ParseString(bytes.ToArray());
                 values.Add(escaped);
                 utf8Values.Add(utf);
             }
@@ -385,7 +385,7 @@ namespace DnsClient
         {
             var flag = _reader.ReadByte();
             var tag = _reader.ReadStringWithLengthPrefix();
-            var stringValue = DnsDatagramReader.ParseString(_reader, info.RawDataLength - 2 - tag.Length);
+            var stringValue = DnsDatagramReader.ParseString(_reader.ReadBytes(info.RawDataLength - 2 - tag.Length).ToArray());
             return new CaaRecord(info, flag, tag, stringValue);
         }
     }

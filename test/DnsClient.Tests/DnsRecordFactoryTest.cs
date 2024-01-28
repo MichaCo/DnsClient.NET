@@ -414,6 +414,23 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
         }
 
         [Fact]
+        public void DnsRecordFactory_TXTRecord_DoNotEscape()
+        {
+            var text = "v=DKIM1; k=rsa;";
+            var line = Encoding.ASCII.GetBytes(text);
+            var data = new List<byte>();
+            data.Add((byte)line.Length);
+            data.AddRange(line);
+
+            var factory = GetFactory(data.ToArray());
+            var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.TXT, QueryClass.IN, 0, data.Count);
+
+            var result = factory.GetRecord(info) as TxtRecord;
+
+            Assert.Equal(result.EscapedText.ElementAt(0), text);
+        }
+
+        [Fact]
         public void DnsRecordFactory_TLSARecord()
         {
             var certificateUsage = 0;
@@ -536,7 +553,7 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
 
             Assert.Equal(2, result.EscapedText.Count);
             Assert.Equal(result.Text.ElementAt(0), textA);
-            Assert.Equal("\\\"\\195\\164\\195\\182\\195\\188 \\\\slash/! @bla.com \\\"", result.EscapedText.ElementAt(0));
+            Assert.Equal("\\\"\\195\\164\\195\\182\\195\\188 \\slash/! @bla.com \\\"", result.EscapedText.ElementAt(0));
             Assert.Equal(result.Text.ElementAt(1), textB);
             Assert.Equal(result.EscapedText.ElementAt(1), textB);
         }

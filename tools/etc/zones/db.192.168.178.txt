@@ -34,6 +34,7 @@ srv3			IN		A  		192.168.178.26
 srv4			IN		A  		192.168.178.27
 uber			IN		A		192.168.178.30
 @				IN		TXT		"some long text with some stuff in it {lala:blub}"
+@				IN 		TXT 	"v=DKIM1; k=rsa;"
 @				IN		TXT		(some text "separated by" space
 										with new line stuff too)
 @				IN		TXT		more "(text with)" "\"special\" öäÜ!""§$%\\/" @stuff \;and ";fake comment"

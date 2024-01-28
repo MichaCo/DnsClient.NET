@@ -22,7 +22,7 @@ namespace DnsClient.Windows
         {
             var nameServers = new HashSet<NameServer>();
 
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
             if (!OperatingSystem.IsWindows())
 #else
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))

@@ -11,7 +11,7 @@ namespace DnsClient.ThirdParty.Tests
     {
         private const string TestConnection = "mongodb+srv://doesnotexist.internal.example/?serverSelectionTimeout=2&connectTimeoutMS=2000";
 
-#if NET471
+#if NET472
 
         [Fact]
         public void MongoDriver_Compat_2_8()
@@ -22,7 +22,7 @@ namespace DnsClient.ThirdParty.Tests
 
 #endif
 
-#if NETCOREAPP3_1_OR_GREATER
+#if NET6_0_OR_GREATER
         [Fact]
         public void MongoDriver_Compat_210()
         {

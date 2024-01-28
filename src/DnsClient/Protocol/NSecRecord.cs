@@ -82,7 +82,7 @@ namespace DnsClient.Protocol
         {
             if (data.Length < 2)
             {
-                throw new DnsResponseParseException("Invalid bitmap length, less than 2 bytes available.");
+                yield break;
             }
 
             for (var n = 0; n < data.Length;)
