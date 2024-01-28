@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
@@ -778,7 +779,7 @@ namespace DnsClient.Tests
             Assert.Equal("d1.domain1.dcdt31.healthit.gov.", certRecord.DomainName);
             Assert.Equal(CertificateType.X509, certRecord.CertType);
 
-            var cert = certRecord.Certificate;
+            var cert = new X509Certificate2(Convert.FromBase64String(certRecord.PublicKeyAsString));
             Assert.Equal("sha256RSA", cert.SignatureAlgorithm.FriendlyName);
             Assert.Equal("CN=D1_valA, E=d1@domain1.dcdt31.healthit.gov", cert.Subject);
 
@@ -786,6 +787,7 @@ namespace DnsClient.Tests
             Assert.NotNull(x509Extension);
             var asnData = new AsnEncodedData(x509Extension.Oid, x509Extension.RawData);
             Assert.Equal("RFC822 Name=d1@domain1.dcdt31.healthit.gov", asnData.Format(false));
+            
         }
 
         [Fact]

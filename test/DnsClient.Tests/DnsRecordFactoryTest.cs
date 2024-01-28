@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using DnsClient.Internal;
 using DnsClient.Protocol;
@@ -14,16 +15,9 @@ namespace DnsClient.Tests
     [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public class DnsRecordFactoryTest
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
         static DnsRecordFactoryTest()
         {
             Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.All;
-        }
-
-        public DnsRecordFactoryTest(ITestOutputHelper testOutputHelper)
-        {
-            _testOutputHelper = testOutputHelper;
         }
 
         internal DnsRecordFactory GetFactory(byte[] data)
@@ -360,7 +354,7 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
             Assert.Equal(DnsSecurityAlgorithm.RSASHA256, result.Algorithm);
             Assert.Equal(expectedBytes, result.PublicKey);
 
-            var cert = result.Certificate;
+            var cert = new X509Certificate2(Convert.FromBase64String(result.PublicKeyAsString));
             Assert.Equal("sha256RSA", cert.SignatureAlgorithm.FriendlyName);
             Assert.Equal("CN=D1_valA, E=d1@domain1.dcdt31.healthit.gov", cert.Subject);
 

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace DnsClient.Protocol;
 
@@ -53,9 +53,9 @@ public class CertRecord : DnsResourceRecord
     public IReadOnlyList<byte> PublicKey { get; }
 
     /// <summary>
-    /// Get an X509 Certificate instance from the record
+    /// Gets the base64 string representation of the <see cref="PublicKey"/>.
     /// </summary>
-    public X509Certificate2 Certificate { get; }
+    public string PublicKeyAsString { get; }
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DnsKeyRecord"/> class
@@ -73,14 +73,12 @@ public class CertRecord : DnsResourceRecord
         KeyTag = keyTag;
         Algorithm = (DnsSecurityAlgorithm)algorithm;
         PublicKey = publicKey ?? throw new ArgumentNullException(nameof(publicKey));
-        Certificate = new X509Certificate2(publicKey);
+        PublicKeyAsString = Convert.ToBase64String(publicKey);
     }
 
-    /// <summary>
-    /// Returns a string representation of the record's value only.
-    /// <see cref="ToString(int)"/> uses this to compose the full string value of this instance.
-    /// </summary>
-    /// <returns>A string representing this record.</returns>
-    private protected override string RecordToString() => throw new NotImplementedException();
-
+    
+    private protected override string RecordToString()
+    {
+        return string.Format("{0} {1} {2} {3}", (int)CertType, KeyTag, (int)Algorithm, PublicKeyAsString);
+    }
 }
