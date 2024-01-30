@@ -338,9 +338,9 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
             using var memory = new PooledBytes(expectedBytes.Length);
 
             var writer = new DnsDatagramWriter(new ArraySegment<byte>(memory.Buffer));
-            writer.WriteInt16NetworkOrder((short)CertificateType.X509); // 2
-            writer.WriteInt16NetworkOrder((short)27891); // 2
-            writer.WriteByte((byte)DnsSecurityAlgorithm.RSASHA256);  // 1
+            writer.WriteInt16NetworkOrder((short)CertificateType.PKIX); // 2 bytes
+            writer.WriteInt16NetworkOrder((short)27891); // 2 bytes
+            writer.WriteByte((byte)DnsSecurityAlgorithm.RSASHA256);  // 1 byte
             writer.WriteBytes(expectedBytes, expectedBytes.Length);
 
             var factory = GetFactory(writer.Data);
@@ -350,7 +350,7 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
             var result = factory.GetRecord(info) as CertRecord;
             Assert.NotNull(result);
             Assert.Equal(27891, result.KeyTag);
-            Assert.Equal(CertificateType.X509, result.CertType);
+            Assert.Equal(CertificateType.PKIX, result.CertType);
             Assert.Equal(DnsSecurityAlgorithm.RSASHA256, result.Algorithm);
             Assert.Equal(expectedBytes, result.PublicKey);
 

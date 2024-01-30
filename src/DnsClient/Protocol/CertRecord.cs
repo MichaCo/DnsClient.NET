@@ -79,6 +79,6 @@ public class CertRecord : DnsResourceRecord
     
     private protected override string RecordToString()
     {
-        return string.Format("{0} {1} {2} {3}", (int)CertType, KeyTag, (int)Algorithm, PublicKeyAsString);
+        return string.Format("{0} {1} {2} {3}", CertType, KeyTag, Algorithm, PublicKeyAsString);
     }
 }

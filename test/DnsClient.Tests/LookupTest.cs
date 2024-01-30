@@ -828,7 +828,7 @@ namespace DnsClient.Tests
             var certRecord = result.Answers.CertRecords().First();
             Assert.NotNull(certRecord);
             Assert.Equal("d1.domain1.dcdt31.healthit.gov.", certRecord.DomainName);
-            Assert.Equal(CertificateType.X509, certRecord.CertType);
+            Assert.Equal(CertificateType.PKIX, certRecord.CertType);
 
             var cert = new X509Certificate2(Convert.FromBase64String(certRecord.PublicKeyAsString));
             Assert.Equal("sha256RSA", cert.SignatureAlgorithm.FriendlyName);

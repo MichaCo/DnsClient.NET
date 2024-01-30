@@ -13,17 +13,17 @@ public enum CertificateType
     /// </summary>
     Reserved = 0,
     /// <summary>
-    /// X509 certificate
+    /// X.509 as per PKIX
     /// </summary>
-    X509 = 1,
+    PKIX = 1,
     /// <summary>
     /// SPKI certificate
     /// </summary>
     SPKI,
     /// <summary>
-    /// OpenPGP certificate
+    /// OpenPGP packet
     /// </summary>
-    PGP,        // Open PGP
+    PGP,
     /// <summary>
     /// URL to an X.509 data object 
     /// </summary>
@@ -43,5 +43,13 @@ public enum CertificateType
     /// <summary>
     /// The URL of an Attribute Certificate
     /// </summary>
-    IACPKIK
+    IACPKIK,
+    /// <summary>
+    /// URI private
+    /// </summary>
+    URI = 253,
+    /// <summary>
+    /// OID private
+    /// </summary>
+    OID = 254
 }
