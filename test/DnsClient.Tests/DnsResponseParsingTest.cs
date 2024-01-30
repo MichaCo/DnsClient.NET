@@ -45,7 +45,8 @@ namespace DnsClient.Tests
                 ResourceRecordType.NSEC3PARAM,
                 ResourceRecordType.SPF,
                 ResourceRecordType.DNSKEY,
-                ResourceRecordType.DS
+                ResourceRecordType.DS,
+                ResourceRecordType.CERT
             };
 
             foreach (var t in types)
