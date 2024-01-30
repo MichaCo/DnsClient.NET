@@ -2,10 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using DnsClient.Internal;
 using DnsClient.Protocol;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace DnsClient.Tests
 {
@@ -299,6 +302,66 @@ namespace DnsClient.Tests
             Assert.Equal(NAPtrRecord.SFlag.ToString(), result.Flags);
             Assert.Equal(NAPtrRecord.ServiceKeySipUdp, result.Services);
             Assert.Equal("", result.RegularExpression);
+        }
+
+        [Fact]
+        public void DnsRecordFactory_CertRecord()
+        {
+            var expectedPublicKey = @"-----BEGIN CERTIFICATE-----
+MIIEMzCCAxugAwIBAgIBAzANBgkqhkiG9w0BAQsFADAmMSQwIgYDVQQDDBtkY2R0
+MzEuaGVhbHRoaXQuZ292X2NhX3Jvb3QwHhcNMjIwMjA0MTUzNzUxWhcNMzIwMjA1
+MDE0OTUxWjBBMS0wKwYJKoZIhvcNAQkBFh5kMUBkb21haW4xLmRjZHQzMS5oZWFs
+dGhpdC5nb3YxEDAOBgNVBAMMB0QxX3ZhbEEwggEiMA0GCSqGSIb3DQEBAQUAA4IB
+DwAwggEKAoIBAQDHPWJogAq6zCU1zU6ar4GAvRb6bjCTSzm19E98E3dCCG8ZSgWH
+yZh3w6M/btu7qMDStrpzMGD1H5TiqS/mEFNNcJP2r8C6T8RKV2xEqhsJlwOoguzJ
+4MyePoVYG84/gm5v03BCp91uoz4O1WFrppu439njipv8wUwsvf6ukidhAgP9mEoN
+w1sCB1U9zOtpPmbRczMrYyDBWqFaxiaDD9xYaYqal7Ph7adKohBDZA1P7H/Jkxdf
+uCwULVDn+bcHD3eW9NToeZ7gc0CV75kVnI/7WbJ6mfx72zOIzEm1AFed36yuEpal
+VjCzhJO4ZmmfJxfXr36UICKHQIM/xwSEXqJtAgMBAAGjggFPMIIBSzAfBgNVHSME
+GDAWgBSIM9vz74ArTwMFMk3q5ShNOYQhMjApBgNVHQ4EIgQg1WLu98WJoAtR1X7K
+ZiHWfIcONgrBBtzuLgNWkQklJugwCQYDVR0TBAIwADAOBgNVHQ8BAf8EBAMCBaAw
+KQYDVR0RBCIwIIEeZDFAZG9tYWluMS5kY2R0MzEuaGVhbHRoaXQuZ292MFUGA1Ud
+HwROMEwwSqBIoEaGRGh0dHA6Ly9wa2kuZGNkdDMxLmhlYWx0aGl0LmdvdjoxMDA4
+MC9kY2R0MzEuaGVhbHRoaXQuZ292X2NhX3Jvb3QuY3JsMGAGCCsGAQUFBwEBBFQw
+UjBQBggrBgEFBQcwAoZEaHR0cDovL3BraS5kY2R0MzEuaGVhbHRoaXQuZ292OjEw
+MDgwL2RjZHQzMS5oZWFsdGhpdC5nb3ZfY2Ffcm9vdC5jZXIwDQYJKoZIhvcNAQEL
+BQADggEBAGqMC2kEA6acNgmUueCbPuLj7uePRGaRk6x0rSEY6mTGoBXci+s9EXbx
+a7d/glNFNgQC9KP35esriqSfUn2bsDmtlTs+A79+ldMRH5SWvEmI5f7s9SitLIYR
+uRBLE693R7/1DjyUrEFxpdL16O8Y2kIKO9S8lrscNBOg7hW0RKYb4VBnlsNw3jk2
+rXyGcFZ63D8VsdgUJTh2BKhpiY37gd/+ILUcylpmC5Uf3yWM2wYRMS6IVACllv+U
+PoPWSE2fsrMpfCtDFeUL71gn8g6TYIctVHTn4OeuhHQ6Yt21rgQnlpDFVt0p9sGl
+H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
+-----END CERTIFICATE-----";
+
+            var expectedBytes = Encoding.UTF8.GetBytes(expectedPublicKey);
+            var name = DnsString.Parse("example.com");
+            using var memory = new PooledBytes(expectedBytes.Length);
+
+            var writer = new DnsDatagramWriter(new ArraySegment<byte>(memory.Buffer));
+            writer.WriteInt16NetworkOrder((short)CertificateType.PKIX); // 2 bytes
+            writer.WriteInt16NetworkOrder((short)27891); // 2 bytes
+            writer.WriteByte((byte)DnsSecurityAlgorithm.RSASHA256);  // 1 byte
+            writer.WriteBytes(expectedBytes, expectedBytes.Length);
+
+            var factory = GetFactory(writer.Data);
+
+            var info = new ResourceRecordInfo(name, ResourceRecordType.CERT, QueryClass.IN, 0, writer.Data.Count);
+
+            var result = factory.GetRecord(info) as CertRecord;
+            Assert.NotNull(result);
+            Assert.Equal(27891, result.KeyTag);
+            Assert.Equal(CertificateType.PKIX, result.CertType);
+            Assert.Equal(DnsSecurityAlgorithm.RSASHA256, result.Algorithm);
+            Assert.Equal(expectedBytes, result.PublicKey);
+
+            var cert = new X509Certificate2(Convert.FromBase64String(result.PublicKeyAsString));
+            Assert.Equal("sha256RSA", cert.SignatureAlgorithm.FriendlyName);
+            Assert.Equal("CN=D1_valA, E=d1@domain1.dcdt31.healthit.gov", cert.Subject);
+
+            var x509Extension = cert.Extensions["2.5.29.17"];
+            Assert.NotNull(x509Extension);
+            var asnData = new AsnEncodedData(x509Extension.Oid, x509Extension.RawData);
+            Assert.Equal("RFC822 Name=d1@domain1.dcdt31.healthit.gov", asnData.Format(false));
         }
 
         [Fact]

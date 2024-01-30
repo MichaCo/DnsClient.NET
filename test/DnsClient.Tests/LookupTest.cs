@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
@@ -814,6 +816,29 @@ namespace DnsClient.Tests
             Assert.NotEmpty(hosts);
             var host = hosts.First();
             Assert.NotNull(host.HostName);
+        }
+
+        [Fact]
+        public async Task Lookup_Query_CERT()
+        {
+            var client = new LookupClient(NameServer.Cloudflare);
+            var result = await client.QueryAsync("d1.domain1.dcdt31.healthit.gov", QueryType.CERT).ConfigureAwait(false);
+
+            Assert.NotEmpty(result.Answers.CertRecords());
+            var certRecord = result.Answers.CertRecords().First();
+            Assert.NotNull(certRecord);
+            Assert.Equal("d1.domain1.dcdt31.healthit.gov.", certRecord.DomainName);
+            Assert.Equal(CertificateType.PKIX, certRecord.CertType);
+
+            var cert = new X509Certificate2(Convert.FromBase64String(certRecord.PublicKeyAsString));
+            Assert.Equal("sha256RSA", cert.SignatureAlgorithm.FriendlyName);
+            Assert.Equal("CN=D1_valA, E=d1@domain1.dcdt31.healthit.gov", cert.Subject);
+
+            var x509Extension = cert.Extensions["2.5.29.17"];
+            Assert.NotNull(x509Extension);
+            var asnData = new AsnEncodedData(x509Extension.Oid, x509Extension.RawData);
+            Assert.Equal("RFC822 Name=d1@domain1.dcdt31.healthit.gov", asnData.Format(false));
+            
         }
 
         [Fact]

@@ -206,6 +206,17 @@ namespace System.Linq
         }
 
         /// <summary>
+        /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="CertRecord"/>s only.
+        /// </summary>
+        /// <param name="records">The records.</param>
+        /// <returns>The list of <see cref="CertRecord"/>.</returns>
+        public static IEnumerable<CertRecord> CertRecords(this IEnumerable<DnsResourceRecord> records)
+        {
+            return records.OfType<CertRecord>();
+        }
+
+
+        /// <summary>
         /// Filters the elements of an <see cref="IEnumerable{T}"/> to return <see cref="UriRecord"/>s only.
         /// </summary>
         /// <param name="records">The records.</param>
