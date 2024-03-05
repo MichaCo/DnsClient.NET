@@ -89,22 +89,6 @@ namespace DnsClient.Internal
                 ep,
                 state: socket);
         }
-
-        // Polyfill missing Span-based Read on .NET Framework.
-        public static int Read(this Stream stream, Span<byte> buffer)
-        {
-            byte[] array = ArrayPool<byte>.Shared.Rent(buffer.Length);
-            try
-            {
-                int read = stream.Read(array, 0, buffer.Length);
-                array.AsSpan(0, read).CopyTo(buffer);
-                return read;
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(array);
-            }
-        }
 #endif
     }
 }

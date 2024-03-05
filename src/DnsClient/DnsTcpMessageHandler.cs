@@ -137,12 +137,13 @@ namespace DnsClient
             cancellationToken.ThrowIfCancellationRequested();
 
             var responses = new List<DnsResponseMessage>();
-            Span<byte> buf = memory.Buffer.AsSpan();
+            byte[] buffer = memory.Buffer;
 
             do
             {
                 int bytesReceivedForLen = 0, readForLen;
-                while ((bytesReceivedForLen += readForLen = stream.Read(buf.Slice(bytesReceivedForLen, 2))) < 2)
+
+                while ((bytesReceivedForLen += readForLen = stream.Read(buffer, bytesReceivedForLen, 2)) < 2)
                 {
                     if (readForLen <= 0)
                     {
@@ -151,7 +152,7 @@ namespace DnsClient
                     }
                 }
 
-                int length = buf[0] << 8 | buf[1];
+                int length = buffer[0] << 8 | buffer[1];
 
                 if (length <= 0)
                 {
@@ -159,7 +160,11 @@ namespace DnsClient
                     throw new TimeoutException();
                 }
 
-                var buffer = length <= memory.Buffer.Length ? memory.Buffer : new byte[length];
+                if (length > buffer.Length)
+                {
+                    buffer = new byte[length];
+                }
+
                 int bytesReceived = 0, read;
                 int readSize = length > 4096 ? 4096 : length;
 
