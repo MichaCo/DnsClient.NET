@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Net;
 using System.Text;
 using DnsClient.Internal;
@@ -12,8 +13,7 @@ namespace DnsClient
 
         private const byte DotByte = 46;
 
-        private readonly PooledBytes _pooledBytes;
-
+        private byte[] _array;
         private readonly ArraySegment<byte> _buffer;
 
         public ArraySegment<byte> Data
@@ -28,8 +28,8 @@ namespace DnsClient
 
         public DnsDatagramWriter()
         {
-            _pooledBytes = new PooledBytes(BufferSize);
-            _buffer = new ArraySegment<byte>(_pooledBytes.Buffer, 0, BufferSize);
+            _array = ArrayPool<byte>.Shared.Rent(BufferSize);
+            _buffer = new ArraySegment<byte>(_array, 0, BufferSize);
         }
 
         public DnsDatagramWriter(ArraySegment<byte> useBuffer)
@@ -109,7 +109,10 @@ namespace DnsClient
         {
             if (disposing)
             {
-                _pooledBytes?.Dispose();
+                if (_array != null)
+                {
+                    ArrayPool<byte>.Shared.Return(_array);
+                }
             }
         }
 

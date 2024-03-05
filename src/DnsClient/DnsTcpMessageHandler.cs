@@ -114,7 +114,8 @@ namespace DnsClient
             var stream = client.GetStream();
 
             // use a pooled buffer to writer the data + the length of the data later into the first two bytes
-            using (var memory = new PooledBytes(DnsDatagramWriter.BufferSize + 2))
+            using var memory = new PooledBytes(DnsQueryOptions.MaximumBufferSize);
+
             using (var writer = new DnsDatagramWriter(new ArraySegment<byte>(memory.Buffer, 2, memory.Buffer.Length - 2)))
             {
                 GetRequestData(request, writer);
@@ -136,24 +137,21 @@ namespace DnsClient
             cancellationToken.ThrowIfCancellationRequested();
 
             var responses = new List<DnsResponseMessage>();
+            Span<byte> buf = memory.Buffer.AsSpan();
 
             do
             {
-                int length;
-                using (var lengthBuffer = new PooledBytes(2))
+                int bytesReceivedForLen = 0, readForLen;
+                while ((bytesReceivedForLen += readForLen = stream.Read(buf.Slice(bytesReceivedForLen, 2))) < 2)
                 {
-                    int bytesReceivedForLen = 0, readForLen;
-                    while ((bytesReceivedForLen += readForLen = stream.Read(lengthBuffer.Buffer, bytesReceivedForLen, 2)) < 2)
+                    if (readForLen <= 0)
                     {
-                        if (readForLen <= 0)
-                        {
-                            // disconnected, might retry
-                            throw new TimeoutException();
-                        }
+                        // disconnected, might retry
+                        throw new TimeoutException();
                     }
-
-                    length = lengthBuffer.Buffer[0] << 8 | lengthBuffer.Buffer[1];
                 }
+
+                int length = buf[0] << 8 | buf[1];
 
                 if (length <= 0)
                 {
@@ -161,7 +159,7 @@ namespace DnsClient
                     throw new TimeoutException();
                 }
 
-                var buffer = new byte[length];
+                var buffer = length <= memory.Buffer.Length ? memory.Buffer : new byte[length];
                 int bytesReceived = 0, read;
                 int readSize = length > 4096 ? 4096 : length;
 
@@ -202,7 +200,8 @@ namespace DnsClient
             var stream = client.GetStream();
 
             // use a pooled buffer to writer the data + the length of the data later into the first two bytes
-            using (var memory = new PooledBytes(DnsDatagramWriter.BufferSize + 2))
+            using var memory = new PooledBytes(DnsQueryOptions.MaximumBufferSize);
+
             using (var writer = new DnsDatagramWriter(new ArraySegment<byte>(memory.Buffer, 2, memory.Buffer.Length - 2)))
             {
                 GetRequestData(request, writer);
@@ -210,7 +209,6 @@ namespace DnsClient
                 memory.Buffer[0] = (byte)((dataLength >> 8) & 0xff);
                 memory.Buffer[1] = (byte)(dataLength & 0xff);
 
-                //await client.Client.SendAsync(new ArraySegment<byte>(memory.Buffer, 0, dataLength + 2), SocketFlags.None).ConfigureAwait(false);
                 await stream.WriteAsync(memory.Buffer, 0, dataLength + 2, cancellationToken).ConfigureAwait(false);
                 await stream.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -228,20 +226,18 @@ namespace DnsClient
             do
             {
                 int length;
-                using (var lengthBuffer = new PooledBytes(2))
+                int bytesReceivedForLen = 0, readForLen;
+                while ((bytesReceivedForLen += (readForLen = await stream.ReadAsync(memory.Buffer, bytesReceivedForLen, 2, cancellationToken).ConfigureAwait(false))) < 2)
                 {
-                    int bytesReceivedForLen = 0, readForLen;
-                    while ((bytesReceivedForLen += (readForLen = await stream.ReadAsync(lengthBuffer.Buffer, bytesReceivedForLen, 2, cancellationToken).ConfigureAwait(false))) < 2)
+                    if (readForLen <= 0)
                     {
-                        if (readForLen <= 0)
-                        {
-                            // disconnected, might retry
-                            throw new TimeoutException();
-                        }
+                        // disconnected, might retry
+                        throw new TimeoutException();
                     }
-
-                    length = lengthBuffer.Buffer[0] << 8 | lengthBuffer.Buffer[1];
                 }
+
+                length = memory.Buffer[0] << 8 | memory.Buffer[1];
+
 
                 if (length <= 0)
                 {
@@ -249,7 +245,7 @@ namespace DnsClient
                     throw new TimeoutException();
                 }
 
-                var buffer = new byte[length];
+                byte[] buffer = memory.Buffer.Length <= length ? memory.Buffer : new byte[length];
                 int bytesReceived = 0, read;
                 int readSize = length > 4096 ? 4096 : length;
 
