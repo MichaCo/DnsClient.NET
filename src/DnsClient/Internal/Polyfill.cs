@@ -90,23 +90,7 @@ namespace DnsClient.Internal
                 state: socket);
         }
 
-        // Polyfill missing ReadAsync overload for .NET Framework.
-        public static async Task<int> ReadAsync(this Stream stream, Memory<byte> buffer)
-        {
-            byte[] array = ArrayPool<byte>.Shared.Rent(buffer.Length);
-            try
-            {
-                int read = await stream.ReadAsync(array, 0, buffer.Length);
-                array.AsMemory(0, read).CopyTo(buffer);
-                return read;
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(array);
-            }
-        }
-
-        // Polyfill missing Read overload for .NET Framework.
+        // Polyfill missing Span-based Read on .NET Framework.
         public static int Read(this Stream stream, Span<byte> buffer)
         {
             byte[] array = ArrayPool<byte>.Shared.Rent(buffer.Length);
