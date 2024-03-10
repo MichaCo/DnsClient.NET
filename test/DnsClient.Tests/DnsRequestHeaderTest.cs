@@ -63,7 +63,7 @@ namespace DnsClient.Tests
                 ids.TryAdd(header.Id, 0);
             });
 
-            Assert.True(ids.Count > 900);
+            Assert.True(ids.Count > 950, $"Only {ids.Count} of 1000 ids are unique!");
         }
     }
 }
