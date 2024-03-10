@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace DnsClient.Tests
@@ -48,6 +50,20 @@ namespace DnsClient.Tests
             Assert.Equal(8448, header.RawFlags);
 
             Assert.Equal(DnsOpCode.Notify, header.OpCode);
+        }
+
+        [Fact]
+        public void DnsRequestHeader_IdIsPseudoUnique()
+        {
+            ConcurrentDictionary<int, int> ids = new ConcurrentDictionary<int, int>();
+
+            Parallel.For(0, 1000, i =>
+            {
+                var header = new DnsRequestHeader(DnsOpCode.Query);
+                ids.TryAdd(header.Id, 0);
+            });
+
+            Assert.True(ids.Count > 900);
         }
     }
 }
