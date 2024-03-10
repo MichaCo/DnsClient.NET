@@ -34,7 +34,7 @@ namespace DnsClient.Tests
             var lookup = lookupMock.Object;
 
             // act
-            var result = await lookup.QueryAsync("query", QueryType.A).ConfigureAwait(false);
+            var result = await lookup.QueryAsync("query", QueryType.A);
 
             // assert
             Assert.Equal(1, result.Header.AnswerCount);

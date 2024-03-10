@@ -32,7 +32,7 @@ namespace DnsClient
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var entry = pool.GetNextClient();
+            var entry = pool.GetNextClient(cancellationToken);
 
             using var cancelCallback = cancellationToken.Register(() =>
             {
@@ -77,7 +77,7 @@ namespace DnsClient
                 _pools.TryAdd(server, new ClientPool(true, server));
             }
 
-            var entry = await pool.GetNextClientAsync().ConfigureAwait(false);
+            var entry = await pool.GetNextClientAsync(cancellationToken).ConfigureAwait(false);
 
             using var cancelCallback = cancellationToken.Register(() =>
             {
@@ -170,7 +170,6 @@ namespace DnsClient
                 while (!cancellationToken.IsCancellationRequested
                     && (bytesReceived += read = stream.Read(buffer, bytesReceived, readSize)) < length)
                 {
-
                     if (read <= 0)
                     {
                         // disconnected
@@ -295,7 +294,7 @@ namespace DnsClient
                 _endpoint = endpoint;
             }
 
-            public ClientEntry GetNextClient()
+            public ClientEntry GetNextClient(CancellationToken cancellationToken)
             {
                 if (_disposedValue)
                 {
@@ -307,20 +306,54 @@ namespace DnsClient
                 {
                     while (entry == null && !TryDequeue(out entry))
                     {
-                        entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily) { LingerState = new LingerOption(true, 0) }, _endpoint);
-                        entry.Client.Connect(_endpoint.Address, _endpoint.Port);
+                        entry = ConnectNew();
                     }
                 }
                 else
                 {
-                    entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily), _endpoint);
-                    entry.Client.Connect(_endpoint.Address, _endpoint.Port);
+                    entry = ConnectNew();
                 }
 
                 return entry;
+
+                ClientEntry ConnectNew()
+                {
+                    var newClient = new TcpClient(_endpoint.AddressFamily)
+                    {
+                        LingerState = new LingerOption(true, 0)
+                    };
+
+                    bool gotCanceled = false;
+                    cancellationToken.Register(() =>
+                    {
+                        gotCanceled = true;
+                        newClient.Dispose();
+                    });
+
+                    try
+                    {
+                        newClient.Connect(_endpoint.Address, _endpoint.Port);
+                    }
+                    catch (Exception) when (gotCanceled)
+                    {
+                        throw new TimeoutException("Connection timed out.");
+                    }
+                    catch (Exception)
+                    {
+                        try
+                        {
+                            newClient.Dispose();
+                        }
+                        catch { }
+
+                        throw;
+                    }
+
+                    return new ClientEntry(newClient, _endpoint);
+                }
             }
 
-            public async Task<ClientEntry> GetNextClientAsync()
+            public async Task<ClientEntry> GetNextClientAsync(CancellationToken cancellationToken)
             {
                 if (_disposedValue)
                 {
@@ -332,17 +365,55 @@ namespace DnsClient
                 {
                     while (entry == null && !TryDequeue(out entry))
                     {
-                        entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily) { LingerState = new LingerOption(true, 0) }, _endpoint);
-                        await entry.Client.ConnectAsync(_endpoint.Address, _endpoint.Port).ConfigureAwait(false);
+                        entry = await ConnectNew().ConfigureAwait(false);
                     }
                 }
                 else
                 {
-                    entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily), _endpoint);
-                    await entry.Client.ConnectAsync(_endpoint.Address, _endpoint.Port).ConfigureAwait(false);
+                    entry = await ConnectNew().ConfigureAwait(false);
                 }
 
                 return entry;
+
+                async Task<ClientEntry> ConnectNew()
+                {
+                    var newClient = new TcpClient(_endpoint.AddressFamily)
+                    {
+                        LingerState = new LingerOption(true, 0)
+                    };
+
+#if NET6_0_OR_GREATER
+                    await newClient.ConnectAsync(_endpoint.Address, _endpoint.Port, cancellationToken).ConfigureAwait(false);
+#else
+
+                    bool gotCanceled = false;
+                    cancellationToken.Register(() =>
+                    {
+                        gotCanceled = true;
+                        newClient.Dispose();
+                    });
+
+                    try
+                    {
+                        await newClient.ConnectAsync(_endpoint.Address, _endpoint.Port).ConfigureAwait(false);
+                    }
+                    catch (Exception) when (gotCanceled)
+                    {
+                        throw new TimeoutException("Connection timed out.");
+                    }
+                    catch (Exception)
+                    {
+                        try
+                        {
+                            newClient.Dispose();
+                        }
+                        catch { }
+
+                        throw;
+                    }
+#endif
+                    return new ClientEntry(newClient, _endpoint);
+                }
             }
 
             public void Enqueue(ClientEntry entry)
@@ -433,11 +504,7 @@ namespace DnsClient
                 {
                     try
                     {
-#if !NET45
                         Client.Dispose();
-#else
-                        Client.Close();
-#endif
                     }
                     catch { }
                 }

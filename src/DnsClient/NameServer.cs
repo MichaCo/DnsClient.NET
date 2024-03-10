@@ -370,8 +370,6 @@ namespace DnsClient
             return filtered;
         }
 
-#if !NET45
-
         /// <summary>
         /// Using my custom native implementation to support UWP apps and such until <see cref="NetworkInterface.GetAllNetworkInterfaces"/>
         /// gets an implementation in netstandard2.1.
@@ -430,8 +428,6 @@ namespace DnsClient
         {
             return NameResolutionPolicy.Resolve();
         }
-
-#endif
 
         internal static IReadOnlyCollection<NameServer> ValidateNameServers(IReadOnlyCollection<NameServer> servers, ILogger logger = null)
         {

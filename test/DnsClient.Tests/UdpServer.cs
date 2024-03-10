@@ -63,11 +63,7 @@ namespace DnsClient.Tests
 
         public void Dispose()
         {
-#if !NET45
             _client.Dispose();
-#else
-            _client.Close();
-#endif
 
             _disposed = true;
         }

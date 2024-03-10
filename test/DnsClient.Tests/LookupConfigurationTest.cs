@@ -296,7 +296,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions() { AutoResolveNameServers = false };
 
-            Assert.Equal(0, options.NameServers.Count);
+            Assert.Empty(options.NameServers);
             Assert.False(options.AutoResolveNameServers);
             Assert.True(options.UseCache);
             Assert.False(options.EnableAuditTrail);

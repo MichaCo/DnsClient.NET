@@ -83,7 +83,7 @@ namespace DnsClient.Tests
 
             for (var i = 0; i < 3; i++)
             {
-                var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)).ConfigureAwait(false);
+                var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
                 Assert.False(result.HasError);
             }
 
@@ -161,7 +161,7 @@ namespace DnsClient.Tests
             // different with multiple tasks)
             for (var i = 0; i < 6; i++)
             {
-                var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)).ConfigureAwait(false);
+                var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
                 Assert.True(result.HasError);
             }
 
@@ -256,7 +256,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
-            var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)).ConfigureAwait(false);
+            var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             // no exception but error in the response after calling all 3 endpoints!
             Assert.True(result.HasError);
@@ -356,7 +356,7 @@ namespace DnsClient.Tests
 
             var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
             var request = new DnsQuestion("test.com", QueryType.A, QueryClass.IN);
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(request)).ConfigureAwait(false);
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(request));
 
             // ensure the error is the one from the last call
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Code);
@@ -423,7 +423,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
-            var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)).ConfigureAwait(false);
+            var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             Assert.True(result.HasError);
             Assert.Equal(DnsHeaderResponseCode.NotExistentDomain, result.Header.ResponseCode);
@@ -491,7 +491,7 @@ namespace DnsClient.Tests
 
             var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
             var request = new DnsQuestion("test.com", QueryType.A, QueryClass.IN);
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(request)).ConfigureAwait(false);
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(request));
 
             Assert.Equal(DnsResponseCode.NotExistentDomain, result.Code);
             Assert.Single(calledIps);
@@ -562,7 +562,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
-            var result = await lookup.QueryAsync("test.com", QueryType.A).ConfigureAwait(false);
+            var result = await lookup.QueryAsync("test.com", QueryType.A);
 
             Assert.Equal(3, calledIps.Count);
         }
@@ -634,7 +634,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
-            var result = await lookup.QueryAsync("test.com", QueryType.A).ConfigureAwait(false);
+            var result = await lookup.QueryAsync("test.com", QueryType.A);
 
             Assert.Single(calledIps);
         }
@@ -698,7 +698,7 @@ namespace DnsClient.Tests
             Assert.Equal(2, calledIps.Count);
 
             // Empty result expected
-            Assert.Equal(0, result.Answers.Count);
+            Assert.Empty(result.Answers);
 
             // Response wasn't an error.
             Assert.False(result.HasError);
@@ -805,7 +805,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, udpMessageHandler, tcpMessageHandler);
-            var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)).ConfigureAwait(false);
+            var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             Assert.False(result.HasError);
 
@@ -907,7 +907,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, udpMessageHandler, tcpMessageHandler);
-            var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)).ConfigureAwait(false);
+            var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             Assert.False(result.HasError);
             Assert.True(calledUdp);
@@ -979,7 +979,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, udpMessageHandler, TestMessageHandler.Tcp);
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN))).ConfigureAwait(false);
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
             Assert.Single(calledIps);
             Assert.Contains("truncated and UseTcpFallback is disabled", result.Message);
@@ -1072,7 +1072,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, udpMessageHandler, tcpMessageHandler);
-            var result = await Assert.ThrowsAnyAsync<DnsResponseParseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN))).ConfigureAwait(false);
+            var result = await Assert.ThrowsAnyAsync<DnsResponseParseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
             Assert.Contains("1000 bytes available", result.Message);
 
@@ -1156,7 +1156,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, udpHandler: udpMessageHandler);
-            var result = await Assert.ThrowsAnyAsync<DnsXidMismatchException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.SRV, QueryClass.IN))).ConfigureAwait(false);
+            var result = await Assert.ThrowsAnyAsync<DnsXidMismatchException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.SRV, QueryClass.IN)));
 
             var expectedIps = nameServers
                 .SelectMany(ns => Enumerable.Repeat(ns.IPEndPoint.Address, retriesCount + 1))
@@ -1255,7 +1255,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, udpMessageHandler, tcpMessageHandler);
-            var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)).ConfigureAwait(false);
+            var result = await lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN));
 
             Assert.False(result.HasError);
 
@@ -1333,7 +1333,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, udpMessageHandler, tcpMessageHandler);
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN))).ConfigureAwait(false);
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
             // This should fail right away because there is no need to ask other servers for the same truncated response
             Assert.Single(calledIps);
@@ -1413,7 +1413,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN))).ConfigureAwait(false);
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
             Assert.NotNull(result.InnerException);
             Assert.IsType<OperationCanceledException>(result.InnerException);
@@ -1530,7 +1530,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN))).ConfigureAwait(false);
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
             Assert.Equal(SocketError.TryAgain, ((SocketException)result.InnerException).SocketErrorCode);
 
@@ -1631,7 +1631,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
-            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN))).ConfigureAwait(false);
+            var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
             Assert.Equal(SocketError.SocketError, ((SocketException)result.InnerException).SocketErrorCode);
 
@@ -1677,7 +1677,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
-            var result = await Assert.ThrowsAnyAsync<ArgumentException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN))).ConfigureAwait(false);
+            var result = await Assert.ThrowsAnyAsync<ArgumentException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
             Assert.Single(calledIps);
         }
@@ -1719,7 +1719,7 @@ namespace DnsClient.Tests
             });
 
             var lookup = new LookupClient(options, messageHandler, TestMessageHandler.Tcp);
-            var result = await Assert.ThrowsAnyAsync<InvalidOperationException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN))).ConfigureAwait(false);
+            var result = await Assert.ThrowsAnyAsync<InvalidOperationException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
             Assert.Single(calledIps);
         }

@@ -24,7 +24,7 @@ namespace DnsClient.Tests
         public async Task API_CompatAsync()
         {
             var test = new OldReference.TestLookupClient();
-            var error = await Record.ExceptionAsync(() => test.TestQueryAsync_1_1()).ConfigureAwait(false);
+            var error = await Record.ExceptionAsync(() => test.TestQueryAsync_1_1());
 
             Assert.Null(error);
         }

@@ -46,7 +46,7 @@ namespace DnsClient.Tests
             var handle = new DnsUdpMessageHandler();
             var result = handle.GetResponseMessage(new ArraySegment<byte>(raw)).AsQueryResponse(new NameServer(ip), null);
 
-            Assert.Equal(1, result.Answers.Count);
+            Assert.Single(result.Answers);
             var resultAnswer = result.Answers.OfType<ARecord>().First();
             Assert.Equal(resultAnswer.Address.ToString(), ip.ToString());
             Assert.Equal("query.", resultAnswer.DomainName.Value);

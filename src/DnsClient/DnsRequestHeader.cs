@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Security.Cryptography;
 using DnsClient.Protocol;
 
 namespace DnsClient
 {
     internal class DnsRequestHeader
     {
-        private static readonly Random s_random = new Random();
         public const int HeaderLength = 12;
         private ushort _flags = 0;
 
@@ -102,7 +102,24 @@ namespace DnsClient
 
         private static ushort GetNextUniqueId()
         {
-            return (ushort)s_random.Next(1, ushort.MaxValue);
+#if NET6_0_OR_GREATER
+            return (ushort)Random.Shared.Next(1, ushort.MaxValue);
         }
+
+#else
+
+            return GetRandom();
+        }
+
+        // Full Framework and netstandard 2.x do not have Random.Shared
+        private static readonly RandomNumberGenerator s_generator = RandomNumberGenerator.Create();
+
+        private static ushort GetRandom()
+        {
+            var block = new byte[2];
+            s_generator.GetBytes(block);
+            return BitConverter.ToUInt16(block, 0);
+        }
+#endif
     }
 }
