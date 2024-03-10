@@ -166,6 +166,16 @@ namespace DnsClient
         NAPTR = ResourceRecordType.NAPTR,
 
         /// <summary>
+        /// Cryptographic public keys are frequently published, and their
+        /// authenticity is demonstrated by certificates.  A CERT resource record
+        /// (RR) is defined so that such certificates and related certificate
+        /// revocation lists can be stored in the Domain Name System (DNS).
+        /// </summary>
+        /// <seealso href="https://tools.ietf.org/html/rfc4398">RFC 4398</seealso>
+        /// <seealso cref="CertRecord"/>
+        CERT = ResourceRecordType.CERT,
+
+        /// <summary>
         /// DS rfc4034
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc4034#section-5.1">RFC 4034</seealso>

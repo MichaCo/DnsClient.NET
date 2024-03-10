@@ -135,6 +135,10 @@ namespace DnsClient
                     result = ResolveNaptrRecord(info);
                     break;
 
+                case ResourceRecordType.CERT: // 37
+                    result = ResolveCertRecord(info);
+                    break;
+
                 case ResourceRecordType.OPT: // 41
                     result = ResolveOptRecord(info);
                     break;
@@ -263,6 +267,17 @@ namespace DnsClient
             var replacement = _reader.ReadDnsName();
 
             return new NAPtrRecord(info, order, preference, flags, services, regexp, replacement);
+        }
+
+        private DnsResourceRecord ResolveCertRecord(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            var certType = _reader.ReadUInt16NetworkOrder();
+            var keyTag = _reader.ReadUInt16NetworkOrder();
+            var algorithm = _reader.ReadByte();
+            var publicKey = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
+
+            return new CertRecord(info, certType, keyTag, algorithm, publicKey);
         }
 
         private DnsResourceRecord ResolveOptRecord(ResourceRecordInfo info)

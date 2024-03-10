@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Net;
 using System.Net.Sockets;
@@ -10,7 +11,7 @@ namespace DnsClient
 {
     internal class DnsUdpMessageHandler : DnsMessageHandler
     {
-        private const int MaxSize = 4096;
+        private const int MaxSize = DnsQueryOptions.MaximumBufferSize;
 
         public override DnsMessageHandleType Type { get; } = DnsMessageHandleType.UDP;
 
@@ -23,31 +24,34 @@ namespace DnsClient
             DnsRequestMessage request,
             TimeSpan timeout)
         {
-            var udpClient = new UdpClient(endpoint.AddressFamily);
+            Socket socket = new Socket(endpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(MaxSize);
 
             try
             {
                 // -1 indicates infinite
                 int timeoutInMillis = timeout.TotalMilliseconds >= int.MaxValue ? -1 : (int)timeout.TotalMilliseconds;
-                udpClient.Client.ReceiveTimeout = timeoutInMillis;
-                udpClient.Client.SendTimeout = timeoutInMillis;
+                socket.ReceiveTimeout = timeoutInMillis;
+                socket.SendTimeout = timeoutInMillis;
 
-                using (var writer = new DnsDatagramWriter())
+                using (var writer = new DnsDatagramWriter(new ArraySegment<byte>(buffer)))
                 {
                     GetRequestData(request, writer);
-                    udpClient.Send(writer.Data.Array, writer.Data.Count, endpoint);
+                    socket.SendTo(writer.Data.Array, writer.Data.Count, SocketFlags.None, endpoint);
                 }
 
-                var result = udpClient.Receive(ref endpoint);
-                var response = GetResponseMessage(new ArraySegment<byte>(result, 0, result.Length));
+                EndPoint ep = endpoint;
+                int count = socket.ReceiveFrom(buffer, SocketFlags.None, ref ep);
+                var response = GetResponseMessage(new ArraySegment<byte>(buffer, 0, count));
                 ValidateResponse(request, response);
                 return response;
             }
             finally
             {
+                ArrayPool<byte>.Shared.Return(buffer);
                 try
                 {
-                    udpClient.Dispose();
+                    socket.Dispose();
                 }
                 catch { }
             }
@@ -60,25 +64,23 @@ namespace DnsClient
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var udpClient = new UdpClient(endpoint.AddressFamily);
-
+            Socket socket = new Socket(endpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(MaxSize);
             try
             {
                 using var callback = cancellationToken.Register(() =>
                 {
-                    udpClient.Dispose();
+                    socket.Dispose();
                 });
 
                 using (var writer = new DnsDatagramWriter())
                 {
                     GetRequestData(request, writer);
-                    await udpClient.SendAsync(writer.Data.Array, writer.Data.Count, endpoint).ConfigureAwait(false);
+                    await socket.SendToAsync(writer.Data, endpoint).ConfigureAwait(false);
                 }
 
-                var readSize = udpClient.Available > MaxSize ? udpClient.Available : MaxSize;
-
-                var result = await udpClient.ReceiveAsync().ConfigureAwait(false);
-                var response = GetResponseMessage(new ArraySegment<byte>(result.Buffer, 0, result.Buffer.Length));
+                var result = await socket.ReceiveFromAsync(new ArraySegment<byte>(buffer), endpoint).ConfigureAwait(false);
+                var response = GetResponseMessage(new ArraySegment<byte>(buffer, 0, result.ReceivedBytes));
                 ValidateResponse(request, response);
                 return response;
             }
@@ -93,9 +95,10 @@ namespace DnsClient
             }
             finally
             {
+                ArrayPool<byte>.Shared.Return(buffer);
                 try
                 {
-                    udpClient.Dispose();
+                    socket.Dispose();
                 }
                 catch { }
             }
