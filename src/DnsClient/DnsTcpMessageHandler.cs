@@ -242,14 +242,13 @@ namespace DnsClient
 
                 length = memory.Buffer[0] << 8 | memory.Buffer[1];
 
-
                 if (length <= 0)
                 {
                     // server signals close/disconnecting, might retry
                     throw new TimeoutException();
                 }
 
-                byte[] buffer = memory.Buffer.Length <= length ? memory.Buffer : new byte[length];
+                byte[] buffer = memory.Buffer.Length <= length ? new byte[length] : memory.Buffer;
                 int bytesReceived = 0, read;
                 int readSize = length > 4096 ? 4096 : length;
 
