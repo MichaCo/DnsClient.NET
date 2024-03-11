@@ -5,7 +5,9 @@ namespace DnsClient
 {
     internal class DnsRequestHeader
     {
+#if !NET6_0_OR_GREATER
         private static readonly Random s_random = new Random();
+#endif
         public const int HeaderLength = 12;
         private ushort _flags = 0;
 
@@ -102,7 +104,14 @@ namespace DnsClient
 
         private static ushort GetNextUniqueId()
         {
-            return (ushort)s_random.Next(1, ushort.MaxValue);
+#if NET6_0_OR_GREATER
+            return (ushort)Random.Shared.Next(1, ushort.MaxValue);
+#else
+            lock (s_random)
+            {
+                return (ushort)s_random.Next(1, ushort.MaxValue);
+            }
+#endif
         }
     }
 }
