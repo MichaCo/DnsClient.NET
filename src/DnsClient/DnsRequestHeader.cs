@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Security.Cryptography;
 using DnsClient.Protocol;
 
 namespace DnsClient
 {
     internal class DnsRequestHeader
     {
-        // A cryptographically strong random number generator is preferred. See:
-        // https://msrc.microsoft.com/blog/2008/04/ms08-020-how-predictable-is-the-dns-transaction-id/
-        // https://github.com/miekg/dns/issues/1043
-#if !(NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER)
-        private static readonly RandomNumberGenerator s_random = RandomNumberGenerator.Create();
-        private static readonly byte[] s_randomBytes = new byte[2];
+#if !NET6_0_OR_GREATER
+        private static readonly Random s_random = new Random();
 #endif
         public const int HeaderLength = 12;
         private ushort _flags = 0;
@@ -109,18 +104,12 @@ namespace DnsClient
 
         private static ushort GetNextUniqueId()
         {
-#if NETSTANDARD2_1_OR_GREATER || NET6_0_OR_GREATER
-            return (ushort)RandomNumberGenerator.GetInt32(1, ushort.MaxValue);
+#if NET6_0_OR_GREATER
+            return (ushort)Random.Shared.Next(1, ushort.MaxValue);
 #else
             lock (s_random)
             {
-                ushort result;
-                do
-                {
-                    s_random.GetBytes(s_randomBytes);
-                    result = (ushort)(s_randomBytes[0] << 8 | s_randomBytes[1]);    
-                } while (result == 0);
-                return result;
+                return (ushort)s_random.Next(1, ushort.MaxValue);
             }
 #endif
         }
