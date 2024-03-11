@@ -114,8 +114,13 @@ namespace DnsClient
 #else
             lock (s_random)
             {
-                s_random.GetBytes(s_randomBytes);
-                return (ushort)(s_randomBytes[0] << 8 | s_randomBytes[1]);
+                ushort result;
+                do
+                {
+                    s_random.GetBytes(s_randomBytes);
+                    result = (ushort)(s_randomBytes[0] << 8 | s_randomBytes[1]);    
+                } while (result == 0);
+                return result;
             }
 #endif
         }

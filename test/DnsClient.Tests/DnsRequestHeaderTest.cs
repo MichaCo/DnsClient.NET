@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -60,6 +62,7 @@ namespace DnsClient.Tests
             Parallel.For(0, 1000, i =>
             {
                 var header = new DnsRequestHeader(DnsOpCode.Query);
+                Assert.NotEqual(0, header.Id);
                 ids.TryAdd(header.Id, 0);
             });
 
