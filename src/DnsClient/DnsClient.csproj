@@ -12,6 +12,7 @@
     <Copyright>Copyright (c) 2024 Michael Conrad</Copyright>
     <Authors>MichaCo</Authors>
     <AssemblyName>DnsClient</AssemblyName>
+    <RootNamespace>DnsClient</RootNamespace>
 
     <AssemblyOriginatorKeyFile>../../tools/key.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
@@ -25,10 +26,14 @@
     <PackageProjectUrl>http://dnsclient.michaco.net</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <WebPage>http://dnsclient.michaco.net</WebPage>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/MichaCo/DnsClient.NET</RepositoryUrl>    
-
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <EnablePackageValidation>true</EnablePackageValidation>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
