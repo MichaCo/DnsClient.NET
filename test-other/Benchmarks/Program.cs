@@ -1,6 +1,9 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using BenchmarkDotNet.Analysers;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
