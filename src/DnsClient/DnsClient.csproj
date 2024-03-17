@@ -4,7 +4,6 @@
     <VersionSuffix Condition="'$(VersionSuffix)'!='' AND '$(BuildNumber)' != ''">$(VersionSuffix)-$(BuildNumber)</VersionSuffix>
 
     <TargetFrameworks>net8.0;net6.0;netstandard2.0;netstandard2.1;net472</TargetFrameworks>
-    <DebugType>full</DebugType>
 
     <Product>DnsClient.NET</Product>
     <Description>DnsClient.NET is a simple yet very powerful and high performance open source library for the .NET Framework to do DNS lookups</Description>
