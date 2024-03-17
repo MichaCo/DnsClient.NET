@@ -15,7 +15,7 @@ namespace DnsClient
         TCP
     }
 
-    internal abstract class DnsMessageHandler
+    internal abstract class DnsMessageHandler : IDisposable
     {
         public abstract DnsMessageHandleType Type { get; }
 
@@ -169,6 +169,10 @@ namespace DnsClient
             }
 
             return response;
+        }
+
+        public virtual void Dispose()
+        {
         }
     }
 }

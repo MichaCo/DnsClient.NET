@@ -36,7 +36,7 @@ namespace DnsClient
     /// ]]>
     /// </code>
     /// </example>
-    public class LookupClient : ILookupClient, IDnsQuery
+    public sealed class LookupClient : ILookupClient, IDnsQuery, IDisposable
     {
         private const int LogEventStartQuery = 1;
         private const int LogEventQuery = 2;
@@ -62,6 +62,7 @@ namespace DnsClient
         private readonly SkipWorker _skipper = null;
 
         private IReadOnlyCollection<NameServer> _resolvedNameServers;
+        private bool _disposedValue;
 
         /// <inheritdoc/>
         public IReadOnlyCollection<NameServer> NameServers => Settings.NameServers;
@@ -370,7 +371,7 @@ namespace DnsClient
 
             // Setting up name servers.
             // Using manually configured ones and/or auto resolved ones.
-            IReadOnlyCollection<NameServer> servers = _originalOptions.NameServers?.ToArray() ?? new NameServer[0];
+            IReadOnlyCollection<NameServer> servers = _originalOptions.NameServers?.ToArray() ?? Array.Empty<NameServer>();
 
             if (options.AutoResolveNameServers)
             {
@@ -427,7 +428,9 @@ namespace DnsClient
                 }
 
                 _resolvedNameServers = newServers;
-                var servers = _originalOptions.NameServers.Concat(_resolvedNameServers).ToArray();
+                IReadOnlyCollection<NameServer> servers = _originalOptions.NameServers.Concat(_resolvedNameServers).ToArray();
+                servers = NameServer.ValidateNameServers(servers, _logger);
+
                 Settings = new LookupClientSettings(_originalOptions, servers);
             }
             catch (Exception ex)
@@ -1786,6 +1789,27 @@ namespace DnsClient
                     _worker();
                 }
             }
+        }
+
+        private void Dispose(bool disposing)
+        {
+            if (!_disposedValue)
+            {
+                if (disposing)
+                {
+                    _tcpFallbackHandler?.Dispose();
+                    _messageHandler?.Dispose();
+                }
+
+                _disposedValue = true;
+            }
+        }
+
+        /// <inheritdoc/>
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 
