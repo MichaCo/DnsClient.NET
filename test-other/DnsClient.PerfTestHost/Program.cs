@@ -55,7 +55,7 @@ namespace DnsClient.PerfTestHost
             long execCount = 0;
             long tookOverall = 0;
 
-            Action act = () =>
+            void act()
             {
                 var swatchInner = Stopwatch.StartNew();
                 while (swatch.ElapsedMilliseconds < runTime * 1000)
@@ -71,7 +71,7 @@ namespace DnsClient.PerfTestHost
 
                 var took = swatchInner.ElapsedTicks;
                 Interlocked.Add(ref tookOverall, took);
-            };
+            }
 
             Parallel.Invoke(new ParallelOptions()
             {

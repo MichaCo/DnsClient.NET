@@ -79,7 +79,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsString_ParseNullQueryString()
         {
-            Action act = () => DnsString.Parse(null);
+            static void act() => DnsString.Parse(null);
 
             Assert.ThrowsAny<ArgumentNullException>(act);
         }

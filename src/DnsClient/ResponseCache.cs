@@ -227,11 +227,18 @@ namespace DnsClient
                         _lastCleanup = currentTicks;
 
                         Task.Factory.StartNew(
-                            state => DoCleanup((ResponseCache)state),
-                            this,
-                            CancellationToken.None,
-                            TaskCreationOptions.DenyChildAttach,
-                            TaskScheduler.Default);
+                            action: state => DoCleanup((ResponseCache)state),
+                            state: this,
+                            cancellationToken: CancellationToken.None,
+                            creationOptions: TaskCreationOptions.DenyChildAttach,
+                            scheduler: TaskScheduler.Default)
+                            .ContinueWith(t =>
+                            {
+                                if (t.IsFaulted)
+                                {
+                                    /* Ignoring but handling background errors. */
+                                }
+                            });
                     }
                 }
             }

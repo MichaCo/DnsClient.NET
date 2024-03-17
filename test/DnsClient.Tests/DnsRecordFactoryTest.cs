@@ -37,7 +37,7 @@ namespace DnsClient.Tests
             var factory = GetFactory(data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.PTR, QueryClass.IN, 0, data.Length);
 
-            Action act = () => factory.GetRecord(info);
+            void act() => factory.GetRecord(info);
             var ex = Assert.ThrowsAny<DnsResponseParseException>(act);
             Assert.Equal(0, ex.Index);
         }
@@ -243,11 +243,11 @@ namespace DnsClient.Tests
 
             Assert.Equal(".", result.MName.Value);
             Assert.Equal(".", result.RName.Value);
-            Assert.True(result.Serial == 1);
-            Assert.True(result.Refresh == 2);
-            Assert.True(result.Retry == 3);
-            Assert.True(result.Expire == 4);
-            Assert.True(result.Minimum == 5);
+            Assert.Equal((uint)1, result.Serial);
+            Assert.Equal((uint)2, result.Refresh);
+            Assert.Equal((uint)3, result.Retry);
+            Assert.Equal((uint)4, result.Expire);
+            Assert.Equal((uint)5, result.Minimum);
         }
 
         [Fact]
@@ -274,9 +274,9 @@ namespace DnsClient.Tests
             var result = factory.GetRecord(info) as SrvRecord;
 
             Assert.Equal(result.Target, name);
-            Assert.True(result.Priority == 1);
-            Assert.True(result.Weight == 256);
-            Assert.True(result.Port == 515);
+            Assert.Equal(1, result.Priority);
+            Assert.Equal(256, result.Weight);
+            Assert.Equal(515, result.Port);
         }
 
         [Fact]
@@ -297,8 +297,8 @@ namespace DnsClient.Tests
             var result = factory.GetRecord(info) as NAPtrRecord;
 
             Assert.Equal(name, result.Replacement);
-            Assert.True(result.Order == 0x1e);
-            Assert.True(result.Preference == 0x00);
+            Assert.Equal(0x1e, result.Order);
+            Assert.Equal(0x00, result.Preference);
             Assert.Equal(NAPtrRecord.SFlag.ToString(), result.Flags);
             Assert.Equal(NAPtrRecord.ServiceKeySipUdp, result.Services);
             Assert.Equal("", result.RegularExpression);

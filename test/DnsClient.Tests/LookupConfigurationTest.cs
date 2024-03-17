@@ -208,29 +208,27 @@ namespace DnsClient.Tests
             Assert.ThrowsAny<ArgumentNullException>(() => new DnsQueryAndServerSettings(new DnsQueryAndServerOptions((NameServer[])null)));
         }
 
-        public static IEnumerable<object[]> AllNonDefaultConfigurations
+        public static TheoryData<LookupClientOptions> AllNonDefaultConfigurations
         {
-            get
-            {
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, ContinueOnDnsError = false } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, EnableAuditTrail = true } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, ExtendedDnsBufferSize = 2222 } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, MaximumCacheTimeout = TimeSpan.FromSeconds(5) } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, MinimumCacheTimeout = TimeSpan.FromSeconds(5) } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, Recursion = false } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, RequestDnsSecRecords = true } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, Retries = 3 } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, ThrowDnsErrors = true } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, Timeout = TimeSpan.FromSeconds(1) } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, UseCache = false } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, UseRandomNameServer = false } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, UseTcpFallback = false } };
-                yield return new object[] { new LookupClientOptions { AutoResolveNameServers = false, UseTcpOnly = true } };
-                yield return new object[] { new LookupClientOptions(NameServer.CloudflareIPv6) };
-                yield return new object[] { new LookupClientOptions(IPAddress.Loopback) };
-                yield return new object[] { new LookupClientOptions(new IPEndPoint(IPAddress.Loopback, 1111)) };
-                yield return new object[] { new LookupClientOptions(new[] { NameServer.CloudflareIPv6 }) };
-            }
+            get => new TheoryData<LookupClientOptions>(
+                new LookupClientOptions { AutoResolveNameServers = false, ContinueOnDnsError = false },
+                new LookupClientOptions { AutoResolveNameServers = false, EnableAuditTrail = true },
+                new LookupClientOptions { AutoResolveNameServers = false, ExtendedDnsBufferSize = 2222 },
+                new LookupClientOptions { AutoResolveNameServers = false, MaximumCacheTimeout = TimeSpan.FromSeconds(5) },
+                new LookupClientOptions { AutoResolveNameServers = false, MinimumCacheTimeout = TimeSpan.FromSeconds(5) },
+                new LookupClientOptions { AutoResolveNameServers = false, Recursion = false },
+                new LookupClientOptions { AutoResolveNameServers = false, RequestDnsSecRecords = true },
+                new LookupClientOptions { AutoResolveNameServers = false, Retries = 3 },
+                new LookupClientOptions { AutoResolveNameServers = false, ThrowDnsErrors = true },
+                new LookupClientOptions { AutoResolveNameServers = false, Timeout = TimeSpan.FromSeconds(1) },
+                new LookupClientOptions { AutoResolveNameServers = false, UseCache = false },
+                new LookupClientOptions { AutoResolveNameServers = false, UseRandomNameServer = false },
+                new LookupClientOptions { AutoResolveNameServers = false, UseTcpFallback = false },
+                new LookupClientOptions { AutoResolveNameServers = false, UseTcpOnly = true },
+                new LookupClientOptions(NameServer.CloudflareIPv6),
+                new LookupClientOptions(IPAddress.Loopback),
+                new LookupClientOptions(new IPEndPoint(IPAddress.Loopback, 1111)),
+                new LookupClientOptions(new[] { NameServer.CloudflareIPv6 }));
         }
 
         [Theory]
@@ -438,7 +436,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.Timeout = TimeSpan.FromMilliseconds(0);
+            void act() => options.Timeout = TimeSpan.FromMilliseconds(0);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -448,7 +446,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.Timeout = TimeSpan.FromMilliseconds(-23);
+            void act() => options.Timeout = TimeSpan.FromMilliseconds(-23);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -458,7 +456,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.Timeout = TimeSpan.FromDays(25);
+            void act() => options.Timeout = TimeSpan.FromDays(25);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -504,7 +502,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.MinimumCacheTimeout = TimeSpan.FromMilliseconds(-23);
+            void act() => options.MinimumCacheTimeout = TimeSpan.FromMilliseconds(-23);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -514,7 +512,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.MinimumCacheTimeout = TimeSpan.FromDays(25);
+            void act() => options.MinimumCacheTimeout = TimeSpan.FromDays(25);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -557,7 +555,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.MaximumCacheTimeout = TimeSpan.FromMilliseconds(-23);
+            void act() => options.MaximumCacheTimeout = TimeSpan.FromMilliseconds(-23);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -567,7 +565,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.MaximumCacheTimeout = TimeSpan.FromDays(25);
+            void act() => options.MaximumCacheTimeout = TimeSpan.FromDays(25);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -577,7 +575,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.FailedResultsCacheDuration = TimeSpan.FromMilliseconds(0);
+            void act() => options.FailedResultsCacheDuration = TimeSpan.FromMilliseconds(0);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -587,7 +585,7 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.FailedResultsCacheDuration = TimeSpan.FromMilliseconds(-23);
+            void act() => options.FailedResultsCacheDuration = TimeSpan.FromMilliseconds(-23);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
@@ -597,53 +595,54 @@ namespace DnsClient.Tests
         {
             var options = new LookupClientOptions();
 
-            Action act = () => options.FailedResultsCacheDuration = TimeSpan.FromDays(25);
+            void act() => options.FailedResultsCacheDuration = TimeSpan.FromDays(25);
 
             Assert.ThrowsAny<ArgumentOutOfRangeException>(act);
         }
 
-        public static IEnumerable<object[]> All
+        public static TheoryData<TestMatrixItem> All
         {
             get
             {
                 // question doesn't matter
                 var question = new DnsQuestion("something.com", QueryType.A);
 
-                // standard
-                yield return new object[] { new TestMatrixItem("Query(q)", (client) => client.Query(question)) };
-                yield return new object[] { new TestMatrixItem("Query(n,t,c)", (client) => client.Query(question.QueryName, question.QuestionType, question.QuestionClass)) };
-                yield return new object[] { new TestMatrixItem("QueryAsync(q)", (client) => client.QueryAsync(question).GetAwaiter().GetResult()) };
-                yield return new object[] { new TestMatrixItem("QueryAsync(n,t,c)", (client) => client.QueryAsync(question.QueryName, question.QuestionType, question.QuestionClass).GetAwaiter().GetResult()) };
-                yield return new object[] { new TestMatrixItem("QueryReverse(ip)", (client) => client.QueryReverse(IPAddress.Any)) };
-                yield return new object[] { new TestMatrixItem("QueryReverseAsync(ip)", (client) => client.QueryReverseAsync(IPAddress.Any).GetAwaiter().GetResult()) };
+                return new(
+                    // standard
+                    new TestMatrixItem("Query(q)", (client) => client.Query(question)),
+                    new TestMatrixItem("Query(n,t,c)", (client) => client.Query(question.QueryName, question.QuestionType, question.QuestionClass)),
+                    new TestMatrixItem("QueryAsync(q)", (client) => client.QueryAsync(question).GetAwaiter().GetResult()),
+                    new TestMatrixItem("QueryAsync(n,t,c)", (client) => client.QueryAsync(question.QueryName, question.QuestionType, question.QuestionClass).GetAwaiter().GetResult()),
+                    new TestMatrixItem("QueryReverse(ip)", (client) => client.QueryReverse(IPAddress.Any)),
+                    new TestMatrixItem("QueryReverseAsync(ip)", (client) => client.QueryReverseAsync(IPAddress.Any).GetAwaiter().GetResult()),
 
-                // by server
-                yield return new object[] { new TestMatrixItem("QueryServer(s,n,t,c)", (client, servers) => client.QueryServer(servers, question.QueryName, question.QuestionType, question.QuestionClass)) };
-                yield return new object[] { new TestMatrixItem("QueryServer(s2,n,t,c)", (client, servers) => client.QueryServer(ToIPAddresses(servers), question.QueryName, question.QuestionType, question.QuestionClass)) };
-                yield return new object[] { new TestMatrixItem("QueryServer(s3,n,t,c)", (client, servers) => client.QueryServer(ToIPEndpoints(servers), question.QueryName, question.QuestionType, question.QuestionClass)) };
-                yield return new object[] { new TestMatrixItem("QueryServer(s,q)", (client, servers) => client.QueryServer(servers, question)) };
-                yield return new object[] { new TestMatrixItem("QueryServerAsync(s,n,t,c)", (client, servers) => client.QueryServerAsync(servers, question.QueryName, question.QuestionType, question.QuestionClass).GetAwaiter().GetResult()) };
-                yield return new object[] { new TestMatrixItem("QueryServerAsync(s2,n,t,c)", (client, servers) => client.QueryServerAsync(ToIPAddresses(servers), question.QueryName, question.QuestionType, question.QuestionClass).GetAwaiter().GetResult()) };
-                yield return new object[] { new TestMatrixItem("QueryServerAsync(s3,n,t,c)", (client, servers) => client.QueryServerAsync(ToIPEndpoints(servers), question.QueryName, question.QuestionType, question.QuestionClass).GetAwaiter().GetResult()) };
-                yield return new object[] { new TestMatrixItem("QueryServerAsync(s,q)", (client, servers) => client.QueryServerAsync(servers, question).GetAwaiter().GetResult()) };
-                yield return new object[] { new TestMatrixItem("QueryServerReverse(s,ip)", (client, servers) => client.QueryServerReverse(servers, IPAddress.Any)) };
-                yield return new object[] { new TestMatrixItem("QueryServerReverse(s2,ip)", (client, servers) => client.QueryServerReverse(ToIPAddresses(servers), IPAddress.Any)) };
-                yield return new object[] { new TestMatrixItem("QueryServerReverse(s3,ip)", (client, servers) => client.QueryServerReverse(ToIPEndpoints(servers), IPAddress.Any)) };
-                yield return new object[] { new TestMatrixItem("QueryServerReverseAsync(s,ip)", (client, servers) => client.QueryServerReverseAsync(servers, IPAddress.Any).GetAwaiter().GetResult()) };
-                yield return new object[] { new TestMatrixItem("QueryServerReverseAsync(s2,ip)", (client, servers) => client.QueryServerReverseAsync(ToIPAddresses(servers), IPAddress.Any).GetAwaiter().GetResult()) };
-                yield return new object[] { new TestMatrixItem("QueryServerReverseAsync(s3,ip)", (client, servers) => client.QueryServerReverseAsync(ToIPEndpoints(servers), IPAddress.Any).GetAwaiter().GetResult()) };
+                    // by server
+                    new TestMatrixItem("QueryServer(s,n,t,c)", (client, servers) => client.QueryServer(servers, question.QueryName, question.QuestionType, question.QuestionClass)),
+                    new TestMatrixItem("QueryServer(s2,n,t,c)", (client, servers) => client.QueryServer(ToIPAddresses(servers), question.QueryName, question.QuestionType, question.QuestionClass)),
+                    new TestMatrixItem("QueryServer(s3,n,t,c)", (client, servers) => client.QueryServer(ToIPEndpoints(servers), question.QueryName, question.QuestionType, question.QuestionClass)),
+                    new TestMatrixItem("QueryServer(s,q)", (client, servers) => client.QueryServer(servers, question)),
+                    new TestMatrixItem("QueryServerAsync(s,n,t,c)", (client, servers) => client.QueryServerAsync(servers, question.QueryName, question.QuestionType, question.QuestionClass).GetAwaiter().GetResult()),
+                    new TestMatrixItem("QueryServerAsync(s2,n,t,c)", (client, servers) => client.QueryServerAsync(ToIPAddresses(servers), question.QueryName, question.QuestionType, question.QuestionClass).GetAwaiter().GetResult()),
+                    new TestMatrixItem("QueryServerAsync(s3,n,t,c)", (client, servers) => client.QueryServerAsync(ToIPEndpoints(servers), question.QueryName, question.QuestionType, question.QuestionClass).GetAwaiter().GetResult()),
+                    new TestMatrixItem("QueryServerAsync(s,q)", (client, servers) => client.QueryServerAsync(servers, question).GetAwaiter().GetResult()),
+                    new TestMatrixItem("QueryServerReverse(s,ip)", (client, servers) => client.QueryServerReverse(servers, IPAddress.Any)),
+                    new TestMatrixItem("QueryServerReverse(s2,ip)", (client, servers) => client.QueryServerReverse(ToIPAddresses(servers), IPAddress.Any)),
+                    new TestMatrixItem("QueryServerReverse(s3,ip)", (client, servers) => client.QueryServerReverse(ToIPEndpoints(servers), IPAddress.Any)),
+                    new TestMatrixItem("QueryServerReverseAsync(s,ip)", (client, servers) => client.QueryServerReverseAsync(servers, IPAddress.Any).GetAwaiter().GetResult()),
+                    new TestMatrixItem("QueryServerReverseAsync(s2,ip)", (client, servers) => client.QueryServerReverseAsync(ToIPAddresses(servers), IPAddress.Any).GetAwaiter().GetResult()),
+                    new TestMatrixItem("QueryServerReverseAsync(s3,ip)", (client, servers) => client.QueryServerReverseAsync(ToIPEndpoints(servers), IPAddress.Any).GetAwaiter().GetResult()),
 
-                // with servers and options
-                yield return new object[] { new TestMatrixItem("Query(q,s,o)", (client, options, servers) => client.QueryServer(servers, question, options)) };
-                yield return new object[] { new TestMatrixItem("QueryAsync(q,s,o)", (client, options, servers) => client.QueryServerAsync(servers, question, options).GetAwaiter().GetResult()) };
-                yield return new object[] { new TestMatrixItem("QueryReverse(ip,s,o)", (client, options, servers) => client.QueryServerReverse(servers, IPAddress.Any, options)) };
-                yield return new object[] { new TestMatrixItem("QueryReverseAsync(ip,s,o)", (client, options, servers) => client.QueryServerReverseAsync(servers, IPAddress.Any, options).GetAwaiter().GetResult()) };
+                    // with servers and options
+                    new TestMatrixItem("Query(q,s,o)", (client, options, servers) => client.QueryServer(servers, question, options)),
+                    new TestMatrixItem("QueryAsync(q,s,o)", (client, options, servers) => client.QueryServerAsync(servers, question, options).GetAwaiter().GetResult()),
+                    new TestMatrixItem("QueryReverse(ip,s,o)", (client, options, servers) => client.QueryServerReverse(servers, IPAddress.Any, options)),
+                    new TestMatrixItem("QueryReverseAsync(ip,s,o)", (client, options, servers) => client.QueryServerReverseAsync(servers, IPAddress.Any, options).GetAwaiter().GetResult()),
 
-                // with query options
-                yield return new object[] { new TestMatrixItem("Query(q,o)", (client, options) => client.Query(question, options)) };
-                yield return new object[] { new TestMatrixItem("QueryAsync(q,o)", (client, options) => client.QueryAsync(question, options).GetAwaiter().GetResult()) };
-                yield return new object[] { new TestMatrixItem("QueryReverse(ip,o)", (client, options) => client.QueryReverse(IPAddress.Any, options)) };
-                yield return new object[] { new TestMatrixItem("QueryReverseAsync(ip,o)", (client, options) => client.QueryReverseAsync(IPAddress.Any, options).GetAwaiter().GetResult()) };
+                    // with query options
+                    new TestMatrixItem("Query(q,o)", (client, options) => client.Query(question, options)),
+                    new TestMatrixItem("QueryAsync(q,o)", (client, options) => client.QueryAsync(question, options).GetAwaiter().GetResult()),
+                    new TestMatrixItem("QueryReverse(ip,o)", (client, options) => client.QueryReverse(IPAddress.Any, options)),
+                    new TestMatrixItem("QueryReverseAsync(ip,o)", (client, options) => client.QueryReverseAsync(IPAddress.Any, options).GetAwaiter().GetResult()));
 
                 IReadOnlyCollection<IPAddress> ToIPAddresses(IReadOnlyCollection<NameServer> nameServers)
                 {
@@ -657,17 +656,17 @@ namespace DnsClient.Tests
             }
         }
 
-        public static IEnumerable<object[]> AllWithoutServerQueries
-            => All.Where(p => !p.Any(a => a is TestMatrixItem m && m.UsesServers));
+        public static TheoryData<TestMatrixItem> AllWithoutServerQueries
+            => new(All.SelectMany(p => p).OfType<TestMatrixItem>().Where(a => !a.UsesServers));
 
-        public static IEnumerable<object[]> AllWithServers
-            => All.Where(p => p.Any(a => a is TestMatrixItem m && m.UsesServers));
+        public static TheoryData<TestMatrixItem> AllWithServers
+            => new(All.SelectMany(p => p).OfType<TestMatrixItem>().Where(a => a.UsesServers));
 
-        public static IEnumerable<object[]> AllWithQueryOptions
-            => All.Where(p => p.Any(a => a is TestMatrixItem m && m.UsesQueryOptions));
+        public static TheoryData<TestMatrixItem> AllWithQueryOptions
+            => new(All.SelectMany(p => p).OfType<TestMatrixItem>().Where(a => a.UsesQueryOptions));
 
-        public static IEnumerable<object[]> AllWithoutQueryOptionsOrServerQueries
-            => All.Where(p => !p.Any(a => a is TestMatrixItem m && (m.UsesQueryOptions || m.UsesServers)));
+        public static TheoryData<TestMatrixItem> AllWithoutQueryOptionsOrServerQueries
+            => new(All.SelectMany(p => p).OfType<TestMatrixItem>().Where(a => (a.UsesQueryOptions || a.UsesServers)));
 
         [Theory]
         [MemberData(nameof(AllWithoutServerQueries))]

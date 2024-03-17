@@ -242,7 +242,7 @@ namespace DnsClient
         public static IReadOnlyCollection<NameServer> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true)
         {
             // TODO: Use Array.Empty after dropping NET45
-            IReadOnlyCollection<NameServer> nameServers = new NameServer[0];
+            IReadOnlyCollection<NameServer> nameServers = Array.Empty<NameServer>();
 
             var exceptions = new List<Exception>();
 
@@ -426,7 +426,7 @@ namespace DnsClient
             return validServers;
         }
 
-        private static IReadOnlyCollection<NameServer> QueryNetworkInterfaces()
+        private static NameServer[] QueryNetworkInterfaces()
         {
             var result = new HashSet<NameServer>();
 

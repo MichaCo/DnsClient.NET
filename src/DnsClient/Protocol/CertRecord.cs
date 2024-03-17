@@ -69,7 +69,7 @@ public class CertRecord : DnsResourceRecord
         PublicKeyAsString = Convert.ToBase64String(publicKey);
     }
 
-    protected private override string RecordToString()
+    private protected override string RecordToString()
     {
         return string.Format("{0} {1} {2} {3}", CertType, KeyTag, Algorithm, PublicKeyAsString);
     }

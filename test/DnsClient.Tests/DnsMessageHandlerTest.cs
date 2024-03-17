@@ -53,9 +53,9 @@ namespace DnsClient.Tests
             Assert.Equal(4, resultAnswer.RawDataLength);
             Assert.Equal(QueryClass.IN, resultAnswer.RecordClass);
             Assert.Equal(ResourceRecordType.A, resultAnswer.RecordType);
-            Assert.True(resultAnswer.InitialTimeToLive == 100);
-            Assert.True(result.Header.Id == 42);
-            Assert.True(result.Header.AnswerCount == 1);
+            Assert.Equal(100, resultAnswer.InitialTimeToLive);
+            Assert.Equal(42, result.Header.Id);
+            Assert.Equal(1, result.Header.AnswerCount);
         }
 
         private static byte[] GetResponseBytes(DnsQueryResponse message, byte[] answerData)
