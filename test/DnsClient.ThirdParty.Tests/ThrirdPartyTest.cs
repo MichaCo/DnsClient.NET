@@ -1,7 +1,4 @@
 using System;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 using MongoDB.Driver;
 using Xunit;
 
@@ -18,6 +15,7 @@ namespace DnsClient.ThirdParty.Tests
         {
             var ex = Record.Exception(() => new MongoClient(TestConnection));
             Assert.IsType<MongoConfigurationException>(ex);
+            Assert.Contains("SRV record for doesnotexist.internal.example", ex.Message);
         }
 
 #endif
