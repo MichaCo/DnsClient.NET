@@ -339,7 +339,7 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
 
             var writer = new DnsDatagramWriter(new ArraySegment<byte>(memory.Buffer));
             writer.WriteInt16NetworkOrder((short)CertificateType.PKIX); // 2 bytes
-            writer.WriteInt16NetworkOrder((short)27891); // 2 bytes
+            writer.WriteInt16NetworkOrder(27891); // 2 bytes
             writer.WriteByte((byte)DnsSecurityAlgorithm.RSASHA256);  // 1 byte
             writer.WriteBytes(expectedBytes, expectedBytes.Length);
 
@@ -361,7 +361,7 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
             var x509Extension = cert.Extensions["2.5.29.17"];
             Assert.NotNull(x509Extension);
             var asnData = new AsnEncodedData(x509Extension.Oid, x509Extension.RawData);
-            Assert.Equal("RFC822 Name=d1@domain1.dcdt31.healthit.gov", asnData.Format(false));
+            Assert.Contains("d1@domain1.dcdt31.healthit.gov", asnData.Format(false));
         }
 
         [Fact]

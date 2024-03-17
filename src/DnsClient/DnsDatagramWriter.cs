@@ -2,7 +2,6 @@
 using System.Buffers;
 using System.Net;
 using System.Text;
-using DnsClient.Internal;
 
 namespace DnsClient
 {
@@ -13,7 +12,7 @@ namespace DnsClient
 
         private const byte DotByte = 46;
 
-        private byte[] _array;
+        private readonly byte[] _array;
         private readonly ArraySegment<byte> _buffer;
 
         public ArraySegment<byte> Data

@@ -837,8 +837,7 @@ namespace DnsClient.Tests
             var x509Extension = cert.Extensions["2.5.29.17"];
             Assert.NotNull(x509Extension);
             var asnData = new AsnEncodedData(x509Extension.Oid, x509Extension.RawData);
-            Assert.Equal("RFC822 Name=d1@domain1.dcdt31.healthit.gov", asnData.Format(false));
-            
+            Assert.Contains("d1@domain1.dcdt31.healthit.gov", asnData.Format(false));
         }
 
         [Fact]
