@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -8,7 +12,6 @@ using System.Text;
 using DnsClient.Internal;
 using DnsClient.Protocol;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace DnsClient.Tests
 {
