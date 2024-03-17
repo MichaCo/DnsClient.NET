@@ -40,7 +40,7 @@ namespace DnsClient.Tests
 
             for (int i = 0; i < 100; i++)
             {
-                _ = await client.QueryAsync("google.com", QueryType.A).ConfigureAwait(false);
+                _ = await client.QueryAsync("google.com", QueryType.A);
             }
 
             var after = GC.GetTotalMemory(true);
@@ -63,7 +63,7 @@ namespace DnsClient.Tests
 
             for (int i = 0; i < 100; i++)
             {
-                _ = await client.QueryAsync("google.com", QueryType.A).ConfigureAwait(false);
+                _ = await client.QueryAsync("google.com", QueryType.A);
             }
 
             var after = GC.GetTotalMemory(true);
@@ -108,7 +108,7 @@ namespace DnsClient.Tests
 
             var mockClient = mock.Object;
 
-            var result = await mockClient.ResolveServiceAsync(baseName, serviceName).ConfigureAwait(false);
+            var result = await mockClient.ResolveServiceAsync(baseName, serviceName);
 
             Assert.Single(result);
             var first = result.First();
@@ -147,7 +147,7 @@ namespace DnsClient.Tests
 
             var mockClient = mock.Object;
 
-            var result = await mockClient.ResolveServiceAsync(baseName, serviceName).ConfigureAwait(false);
+            var result = await mockClient.ResolveServiceAsync(baseName, serviceName);
             Assert.Single(result);
             var first = result.First();
             Assert.Equal(targetHost.ToString(), first.HostName);
@@ -157,32 +157,32 @@ namespace DnsClient.Tests
         }
 
         [Fact]
-        public void Lookup_Query_QuestionCannotBeNull()
+        public async Task Lookup_Query_QuestionCannotBeNull()
         {
             IDnsQuery client = new LookupClient(NameServer.GooglePublicDns);
 
             Assert.Throws<ArgumentNullException>("question", () => client.Query(null));
-            Assert.ThrowsAsync<ArgumentNullException>("question", () => client.QueryAsync(null));
+            await Assert.ThrowsAsync<ArgumentNullException>("question", () => client.QueryAsync(null));
         }
 
         [Fact]
-        public void Lookup_Query_SettingsCannotBeNull()
+        public async Task Lookup_Query_SettingsCannotBeNull()
         {
             IDnsQuery client = new LookupClient(NameServer.GooglePublicDns);
             var question = new DnsQuestion("query", QueryType.A);
             var servers = new NameServer[] { NameServer.GooglePublicDns };
 
             Assert.Throws<ArgumentNullException>("queryOptions", () => client.Query(question, null));
-            Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryAsync(question, null));
+            await Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryAsync(question, null));
 
             Assert.Throws<ArgumentNullException>("queryOptions", () => client.QueryServer(servers, question, null));
-            Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryServerAsync(servers, question, null));
+            await Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryServerAsync(servers, question, null));
 
             Assert.Throws<ArgumentNullException>("queryOptions", () => client.QueryReverse(IPAddress.Loopback, null));
-            Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryReverseAsync(IPAddress.Loopback, null));
+            await Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryReverseAsync(IPAddress.Loopback, null));
 
             Assert.Throws<ArgumentNullException>("queryOptions", () => client.QueryServerReverse(servers, IPAddress.Loopback, null));
-            Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryServerReverseAsync(servers, IPAddress.Loopback, null));
+            await Assert.ThrowsAsync<ArgumentNullException>("queryOptions", () => client.QueryServerReverseAsync(servers, IPAddress.Loopback, null));
         }
 
         [Fact]
@@ -190,7 +190,7 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient();
 
-            var result = await client.QueryAsync("localhost", QueryType.A).ConfigureAwait(false);
+            var result = await client.QueryAsync("localhost", QueryType.A);
 
             var answer = result.Answers.OfType<ARecord>().First();
             Assert.Equal("127.0.0.1", answer.Address.ToString());
@@ -385,7 +385,7 @@ namespace DnsClient.Tests
                     ThrowDnsErrors = true
                 });
 
-            var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lalacom", (QueryType)12345)).ConfigureAwait(false);
+            var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lalacom", (QueryType)12345));
 
             Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
         }
@@ -417,7 +417,7 @@ namespace DnsClient.Tests
                         UseTcpFallback = false
                     });
 
-                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A)).ConfigureAwait(false);
+                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A));
 
                 Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
                 Assert.Contains("timed out", ex.Message);
@@ -451,7 +451,7 @@ namespace DnsClient.Tests
                         UseTcpOnly = true
                     });
 
-                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A)).ConfigureAwait(false);
+                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A));
 
                 Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
                 Assert.Contains("timed out", ex.Message);
@@ -492,7 +492,7 @@ namespace DnsClient.Tests
 
                 var token = tokenSource.Token;
 
-                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token)).ConfigureAwait(false);
+                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token));
                 Assert.NotNull(ex.InnerException);
             }
 
@@ -511,7 +511,7 @@ namespace DnsClient.Tests
 
                 var token = tokenSource.Token;
 
-                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token)).ConfigureAwait(false);
+                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token));
                 Assert.NotNull(ex.InnerException);
             }
 
@@ -530,7 +530,7 @@ namespace DnsClient.Tests
 
                 var token = tokenSource.Token;
 
-                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token)).ConfigureAwait(false);
+                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token));
                 Assert.NotNull(ex.InnerException);
             }
 
@@ -549,7 +549,7 @@ namespace DnsClient.Tests
 
                 var token = tokenSource.Token;
 
-                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token)).ConfigureAwait(false);
+                var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token));
                 Assert.NotNull(ex.InnerException);
             }
         }
@@ -568,7 +568,7 @@ namespace DnsClient.Tests
             Func<Task> act = () => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token);
             tokenSource.Cancel();
 
-            var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(act).ConfigureAwait(false);
+            var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(act);
 
             Assert.NotNull(ex.InnerException);
         }
@@ -587,7 +587,7 @@ namespace DnsClient.Tests
             Func<Task> act = () => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token);
             tokenSource.Cancel();
 
-            var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(act).ConfigureAwait(false);
+            var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(act);
 
             Assert.NotNull(ex.InnerException);
         }
@@ -596,7 +596,7 @@ namespace DnsClient.Tests
         public async Task GetHostName()
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
-            string hostName = await client.GetHostNameAsync(IPAddress.Parse("8.8.8.8")).ConfigureAwait(false);
+            string hostName = await client.GetHostNameAsync(IPAddress.Parse("8.8.8.8"));
 
             Assert.Equal("dns.google", hostName);
         }
@@ -605,7 +605,7 @@ namespace DnsClient.Tests
         public async Task Lookup_Reverse()
         {
             var client = new LookupClient();
-            var result = await client.QueryReverseAsync(IPAddress.Parse("127.0.0.1")).ConfigureAwait(false);
+            var result = await client.QueryReverseAsync(IPAddress.Parse("127.0.0.1"));
 
             Assert.Equal("localhost.", result.Answers.PtrRecords().First().PtrDomainName.Value);
         }
@@ -623,7 +623,7 @@ namespace DnsClient.Tests
         public async Task Lookup_Query_AAAA()
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
-            var result = await client.QueryAsync("google.com", QueryType.AAAA).ConfigureAwait(false);
+            var result = await client.QueryAsync("google.com", QueryType.AAAA);
 
             Assert.NotEmpty(result.Answers.AaaaRecords());
             Assert.NotNull(result.Answers.AaaaRecords().First().Address);
@@ -643,7 +643,7 @@ namespace DnsClient.Tests
         public async Task Lookup_Query_Any()
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
-            var result = await client.QueryAsync("google.com", QueryType.ANY).ConfigureAwait(false);
+            var result = await client.QueryAsync("google.com", QueryType.ANY);
 
             Assert.NotEmpty(result.Answers);
             Assert.NotEmpty(result.Answers.ARecords());
@@ -663,7 +663,7 @@ namespace DnsClient.Tests
         public async Task Lookup_Query_Mx()
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
-            var result = await client.QueryAsync("google.com", QueryType.MX).ConfigureAwait(false);
+            var result = await client.QueryAsync("google.com", QueryType.MX);
 
             Assert.NotEmpty(result.Answers.MxRecords());
             Assert.NotNull(result.Answers.MxRecords().First().Exchange);
@@ -685,7 +685,7 @@ namespace DnsClient.Tests
         public async Task Lookup_Query_NS()
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
-            var result = await client.QueryAsync("google.com", QueryType.NS).ConfigureAwait(false);
+            var result = await client.QueryAsync("google.com", QueryType.NS);
 
             Assert.NotEmpty(result.Answers.NsRecords());
             Assert.NotNull(result.Answers.NsRecords().First().NSDName);
@@ -705,7 +705,7 @@ namespace DnsClient.Tests
         public async Task Lookup_Query_TXT()
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
-            var result = await client.QueryAsync("google.com", QueryType.TXT).ConfigureAwait(false);
+            var result = await client.QueryAsync("google.com", QueryType.TXT);
 
             Assert.NotEmpty(result.Answers.TxtRecords());
             Assert.NotEmpty(result.Answers.TxtRecords().First().EscapedText);
@@ -727,7 +727,7 @@ namespace DnsClient.Tests
         public async Task Lookup_Query_SOA()
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
-            var result = await client.QueryAsync("google.com", QueryType.SOA).ConfigureAwait(false);
+            var result = await client.QueryAsync("google.com", QueryType.SOA);
 
             Assert.NotEmpty(result.Answers.SoaRecords());
             Assert.NotNull(result.Answers.SoaRecords().First().MName);
@@ -749,7 +749,7 @@ namespace DnsClient.Tests
         public async Task Lookup_Query_Puny()
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
-            var result = await client.QueryAsync("müsli.de", QueryType.A).ConfigureAwait(false);
+            var result = await client.QueryAsync("müsli.de", QueryType.A);
 
             Assert.NotEmpty(result.Answers);
             Assert.NotEmpty(result.Answers.ARecords());
@@ -805,7 +805,7 @@ namespace DnsClient.Tests
         public async Task Lookup_Query_NaPtr()
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
-            var result = await client.QueryAsync("tel.t-online.de", QueryType.NAPTR).ConfigureAwait(false);
+            var result = await client.QueryAsync("tel.t-online.de", QueryType.NAPTR);
 
             Assert.NotEmpty(result.Answers.NAPtrRecords());
             var naptrRecord = result.Answers.NAPtrRecords().First();
@@ -822,7 +822,7 @@ namespace DnsClient.Tests
         public async Task Lookup_Query_CERT()
         {
             var client = new LookupClient(NameServer.Cloudflare);
-            var result = await client.QueryAsync("d1.domain1.dcdt31.healthit.gov", QueryType.CERT).ConfigureAwait(false);
+            var result = await client.QueryAsync("d1.domain1.dcdt31.healthit.gov", QueryType.CERT);
 
             Assert.NotEmpty(result.Answers.CertRecords());
             var certRecord = result.Answers.CertRecords().First();
@@ -844,7 +844,7 @@ namespace DnsClient.Tests
         public async Task GetHostEntry_ExampleSub()
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
-            var hostEntry = await client.GetHostEntryAsync("mail.google.com").ConfigureAwait(false);
+            var hostEntry = await client.GetHostEntryAsync("mail.google.com");
             //Assert.EndsWith("google.com", hostEntry.Aliases.First(), StringComparison.OrdinalIgnoreCase);
             Assert.Equal("mail.google.com", hostEntry.HostName);
             Assert.True(hostEntry.AddressList.Length > 0);
@@ -971,7 +971,7 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
 
-            var result = await client.GetHostEntryAsync("google.com").ConfigureAwait(false);
+            var result = await client.GetHostEntryAsync("google.com");
 
             Assert.True(result.AddressList.Length > 1);
             Assert.True(result.Aliases.Length == 0);
@@ -983,7 +983,7 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
 
-            var result = await client.GetHostEntryAsync("dnsclient.michaco.net").ConfigureAwait(false);
+            var result = await client.GetHostEntryAsync("dnsclient.michaco.net");
 
             Assert.True(result.AddressList.Length == 1);
             Assert.True(result.Aliases.Length > 1);
@@ -995,7 +995,7 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient();
 
-            var result = await client.GetHostEntryAsync("localhost").ConfigureAwait(false);
+            var result = await client.GetHostEntryAsync("localhost");
 
             Assert.True(result.AddressList.Length == 1);
             Assert.True(result.Aliases.Length == 0);
@@ -1011,7 +1011,7 @@ namespace DnsClient.Tests
                     ThrowDnsErrors = true
                 });
 
-            var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.GetHostEntryAsync("lolhost")).ConfigureAwait(false);
+            var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.GetHostEntryAsync("lolhost"));
 
             Assert.Equal(DnsResponseCode.NotExistentDomain, ex.Code);
         }
@@ -1021,7 +1021,7 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient(NameServer.GooglePublicDns);
 
-            await Assert.ThrowsAsync<ArgumentNullException>("hostNameOrAddress", () => client.GetHostEntryAsync("")).ConfigureAwait(false);
+            await Assert.ThrowsAsync<ArgumentNullException>("hostNameOrAddress", () => client.GetHostEntryAsync(""));
         }
 
         [Fact]
@@ -1029,7 +1029,7 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient();
 
-            var result = await client.GetHostEntryAsync("lolhost").ConfigureAwait(false);
+            var result = await client.GetHostEntryAsync("lolhost");
 
             Assert.True(result.AddressList.Length == 0);
             Assert.True(result.Aliases.Length == 0);
@@ -1041,7 +1041,7 @@ namespace DnsClient.Tests
         {
             var client = new LookupClient();
 
-            var result = await client.GetHostEntryAsync("1.0.0.0").ConfigureAwait(false);
+            var result = await client.GetHostEntryAsync("1.0.0.0");
 
             Assert.Null(result);
         }
@@ -1056,8 +1056,8 @@ namespace DnsClient.Tests
 
             foreach (var server in nsServers)
             {
-                var ipAddress = (await client.GetHostEntryAsync(server.NSDName).ConfigureAwait(false)).AddressList.First();
-                var result = await client.GetHostEntryAsync(ipAddress).ConfigureAwait(false);
+                var ipAddress = (await client.GetHostEntryAsync(server.NSDName)).AddressList.First();
+                var result = await client.GetHostEntryAsync(ipAddress);
 
                 Assert.NotNull(result);
                 Assert.True(result.AddressList.Length >= 1, "Revers should have found at least one IP");
@@ -1194,7 +1194,7 @@ namespace DnsClient.Tests
             var client = new LookupClient(options);
 
             var dnsQuestion = new DnsQuestion("someservice", QueryType.TXT, QueryClass.IN);
-            var response = sync ? client.Query(dnsQuestion) : await client.QueryAsync(dnsQuestion).ConfigureAwait(false);
+            var response = sync ? client.Query(dnsQuestion) : await client.QueryAsync(dnsQuestion);
 
             Assert.Equal(2, response.Answers.TxtRecords().Count());
             Assert.Equal("example.com.", response.Answers.TxtRecords().First().DomainName.Value);
@@ -1225,8 +1225,8 @@ namespace DnsClient.Tests
             var client = new LookupClient(options);
 
             var dnsQuestion = new DnsQuestion("someservice", QueryType.TXT, QueryClass.IN);
-            var response1 = sync ? client.Query(dnsQuestion) : await client.QueryAsync(dnsQuestion).ConfigureAwait(false);
-            var response2 = sync ? client.Query(dnsQuestion) : await client.QueryAsync(dnsQuestion).ConfigureAwait(false);
+            var response1 = sync ? client.Query(dnsQuestion) : await client.QueryAsync(dnsQuestion);
+            var response2 = sync ? client.Query(dnsQuestion) : await client.QueryAsync(dnsQuestion);
 
             Assert.Equal(2, response1.Answers.TxtRecords().Count());
             Assert.Equal("example.com.", response1.Answers.TxtRecords().First().DomainName.Value);
