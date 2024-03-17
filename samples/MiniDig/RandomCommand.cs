@@ -219,6 +219,8 @@ namespace DigApp
                 }
                 catch (Exception ex)
                 {
+                    await Console.Out.WriteLineAsync($"Error querying " + query + ".").ConfigureAwait(false);
+                    await Console.Out.WriteLineAsync(ex.ToString()).ConfigureAwait(false);
                     _errorsPerCode.AddOrUpdate(ex.GetType().Name, 1, (c, v) => v + 1);
                     Interlocked.Increment(ref _errors);
                 }

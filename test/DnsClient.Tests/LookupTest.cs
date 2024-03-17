@@ -495,17 +495,19 @@ namespace DnsClient.Tests
                 var client = new LookupClient(
                     new LookupClientOptions(s_doesNotExist)
                     {
+                        Retries = 0,
                         Timeout = TimeSpan.FromMilliseconds(1000),
                         UseTcpFallback = false
                     });
 
                 // should hit the cancellation timeout, not the 1sec timeout
-                var tokenSource = new CancellationTokenSource(s_timeout);
+                var tokenSource = new CancellationTokenSource(200);
 
                 var token = tokenSource.Token;
 
                 var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token));
-                Assert.NotNull(ex.InnerException);
+                Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
+                Assert.IsType<OperationCanceledException>(ex.InnerException);
             }
 
             [Fact]
@@ -514,6 +516,7 @@ namespace DnsClient.Tests
                 var client = new LookupClient(
                     new LookupClientOptions(s_doesNotExist)
                     {
+                        Retries = 0,
                         Timeout = TimeSpan.FromMilliseconds(1000),
                         UseTcpOnly = true
                     });
@@ -533,6 +536,7 @@ namespace DnsClient.Tests
                 var client = new LookupClient(
                     new LookupClientOptions(s_doesNotExist)
                     {
+                        Retries = 0,
                         Timeout = Timeout.InfiniteTimeSpan,
                         UseTcpFallback = false
                     });
@@ -552,6 +556,7 @@ namespace DnsClient.Tests
                 var client = new LookupClient(
                     new LookupClientOptions(s_doesNotExist)
                     {
+                        Retries = 0,
                         Timeout = Timeout.InfiniteTimeSpan,
                         UseTcpOnly = true
                     });
