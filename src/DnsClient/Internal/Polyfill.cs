@@ -15,16 +15,18 @@ namespace DnsClient.Internal
     {
         public static Task<SocketReceiveFromResult> ReceiveFromAsync(this Socket socket, ArraySegment<byte> buffer, EndPoint endPoint)
 #if NETFRAMEWORK || NETSTANDARD2_0
-            => ReceiveFromAsyncAPM(socket, buffer, endPoint);      
+            => ReceiveFromAsyncAPM(socket, buffer, endPoint);
 #else
             => socket.ReceiveFromAsync(buffer, SocketFlags.None, endPoint);
+
 #endif
 
         public static Task<int> SendToAsync(this Socket socket, ArraySegment<byte> buffer, EndPoint endPoint)
 #if NETFRAMEWORK || NETSTANDARD2_0
-            => SendToAsyncAPM(socket, buffer, endPoint);      
+            => SendToAsyncAPM(socket, buffer, endPoint);
 #else
             => socket.SendToAsync(buffer, SocketFlags.None, endPoint);
+
 #endif
 
 #if NETFRAMEWORK || NETSTANDARD2_0

@@ -46,16 +46,16 @@ namespace DnsClient.Tests
             var handle = new DnsUdpMessageHandler();
             var result = handle.GetResponseMessage(new ArraySegment<byte>(raw)).AsQueryResponse(new NameServer(ip), null);
 
-            Assert.Equal(1, result.Answers.Count);
+            Assert.Single(result.Answers);
             var resultAnswer = result.Answers.OfType<ARecord>().First();
             Assert.Equal(resultAnswer.Address.ToString(), ip.ToString());
             Assert.Equal("query.", resultAnswer.DomainName.Value);
             Assert.Equal(4, resultAnswer.RawDataLength);
             Assert.Equal(QueryClass.IN, resultAnswer.RecordClass);
             Assert.Equal(ResourceRecordType.A, resultAnswer.RecordType);
-            Assert.True(resultAnswer.InitialTimeToLive == 100);
-            Assert.True(result.Header.Id == 42);
-            Assert.True(result.Header.AnswerCount == 1);
+            Assert.Equal(100, resultAnswer.InitialTimeToLive);
+            Assert.Equal(42, result.Header.Id);
+            Assert.Equal(1, result.Header.AnswerCount);
         }
 
         private static byte[] GetResponseBytes(DnsQueryResponse message, byte[] answerData)

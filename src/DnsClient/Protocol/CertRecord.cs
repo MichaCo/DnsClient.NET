@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace DnsClient.Protocol;
-
 
 /// <summary>A representation of CERT RDATA format.
 /// <remarks>
@@ -22,7 +20,7 @@ namespace DnsClient.Protocol;
 /// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-|
 /// </code>
 /// </remarks>
-/// <see cref="https://datatracker.ietf.org/doc/html/rfc4398#section-2"/>
+/// <see href="https://datatracker.ietf.org/doc/html/rfc4398#section-2"/>
 /// </summary>
 public class CertRecord : DnsResourceRecord
 {
@@ -60,11 +58,6 @@ public class CertRecord : DnsResourceRecord
     /// <summary>
     /// Initializes a new instance of the <see cref="DnsKeyRecord"/> class
     /// </summary>
-    /// <param name="info"></param>
-    /// <param name="flags"></param>
-    /// <param name="protocol"></param>
-    /// <param name="algorithm"></param>
-    /// <param name="publicKey"></param>
     /// <exception cref="ArgumentNullException">If <paramref name="info"/> or <paramref name="publicKey"/> is null.</exception>
     public CertRecord(ResourceRecordInfo info, int certType, int keyTag, byte algorithm, byte[] publicKey)
         : base(info)
@@ -76,7 +69,6 @@ public class CertRecord : DnsResourceRecord
         PublicKeyAsString = Convert.ToBase64String(publicKey);
     }
 
-    
     private protected override string RecordToString()
     {
         return string.Format("{0} {1} {2} {3}", CertType, KeyTag, Algorithm, PublicKeyAsString);
