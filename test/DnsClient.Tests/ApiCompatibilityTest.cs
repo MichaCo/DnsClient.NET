@@ -37,17 +37,6 @@ namespace DnsClient.Tests
             var client = test.SetNonDefaults();
 
             Assert.NotEmpty(client.NameServers);
-            Assert.False(client.UseCache);
-            Assert.True(client.EnableAuditTrail);
-            Assert.Equal(TimeSpan.FromSeconds(11), client.MinimumCacheTimeout);
-            Assert.False(client.Recursion);
-            Assert.True(client.ThrowDnsErrors);
-            Assert.Equal(10, client.Retries);
-            Assert.Equal(TimeSpan.FromMinutes(1), client.Timeout);
-            Assert.False(client.UseTcpFallback);
-            Assert.True(client.UseTcpOnly);
-            Assert.False(client.ContinueOnDnsError);
-            Assert.False(client.UseRandomNameServer);
 
             Assert.False(client.Settings.UseCache);
             Assert.True(client.Settings.EnableAuditTrail);
