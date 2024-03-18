@@ -12,8 +12,6 @@ using Microsoft.Win32;
 
 namespace DnsClient.Windows
 {
-#if !NET45
-
     internal static class NameResolutionPolicy
     {
         private static readonly char[] s_splitOn = new char[] { ';' };
@@ -133,5 +131,4 @@ namespace DnsClient.Windows
             }
         }
     }
-#endif
 }
