@@ -18,7 +18,7 @@
     <PublicSign Condition="'$(OS)' != 'Windows_NT'">true</PublicSign>
 
     <PackageId>DnsClient</PackageId>
-    <PackageTags>dns;client;stub;resolver;name;server;core;service;discovery</PackageTags>
+    <PackageTags>dns;client;resolver;servicediscovery</PackageTags>
 
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>

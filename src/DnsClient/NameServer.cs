@@ -245,7 +245,6 @@ namespace DnsClient
         /// </returns>
         public static IReadOnlyCollection<NameServer> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true)
         {
-            // TODO: Use Array.Empty after dropping NET45
             IReadOnlyCollection<NameServer> nameServers = Array.Empty<NameServer>();
 
             var exceptions = new List<Exception>();
@@ -263,7 +262,6 @@ namespace DnsClient
                 exceptions.Add(ex);
             }
 
-#if !NET45
             if (exceptions.Count > 0)
             {
                 logger?.LogDebug("Using native path to resolve servers.");
@@ -309,7 +307,6 @@ namespace DnsClient
                 logger?.LogInformation(ex, "Resolving name servers from NRPT failed.");
             }
 
-#endif
             IReadOnlyCollection<NameServer> filtered = nameServers
                 .Where(p => (p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetwork
                             || p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetworkV6)
@@ -348,8 +345,6 @@ namespace DnsClient
             logger?.LogDebug("Resolved {0} name servers: [{1}].", filtered.Count, string.Join(",", filtered.AsEnumerable()));
             return filtered;
         }
-
-#if !NET45
 
         /// <summary>
         /// Using my custom native implementation to support UWP apps and such until <see cref="NetworkInterface.GetAllNetworkInterfaces"/>
@@ -409,8 +404,6 @@ namespace DnsClient
         {
             return NameResolutionPolicy.Resolve();
         }
-
-#endif
 
         internal static IReadOnlyCollection<NameServer> ValidateNameServers(IReadOnlyCollection<NameServer> servers, ILogger logger = null)
         {

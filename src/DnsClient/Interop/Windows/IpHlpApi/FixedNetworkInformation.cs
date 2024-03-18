@@ -8,8 +8,6 @@ using System.ComponentModel;
 using System.Net;
 using System.Runtime.InteropServices;
 
-#if !NET45
-
 namespace DnsClient.Windows.IpHlpApi
 {
     internal class FixedNetworkInformation
@@ -82,4 +80,3 @@ namespace DnsClient.Windows.IpHlpApi
         }
     }
 }
-#endif
