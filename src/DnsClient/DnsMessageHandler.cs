@@ -171,8 +171,15 @@ namespace DnsClient
             return response;
         }
 
-        public virtual void Dispose()
+        protected virtual void Dispose(bool disposing)
         {
+            // Nothing to do in base class.
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }

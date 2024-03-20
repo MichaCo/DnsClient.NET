@@ -1791,25 +1791,15 @@ namespace DnsClient
             }
         }
 
-        private void Dispose(bool disposing)
-        {
-            if (!_disposedValue)
-            {
-                if (disposing)
-                {
-                    _tcpFallbackHandler?.Dispose();
-                    _messageHandler?.Dispose();
-                }
-
-                _disposedValue = true;
-            }
-        }
-
         /// <inheritdoc/>
         public void Dispose()
         {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            if (!_disposedValue)
+            {
+                _disposedValue = true;
+                _tcpFallbackHandler?.Dispose();
+                _messageHandler?.Dispose();
+            }
         }
     }
 
