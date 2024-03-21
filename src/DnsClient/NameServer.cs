@@ -249,7 +249,7 @@ namespace DnsClient
 
             var exceptions = new List<Exception>();
 
-            var logger = Logging.LoggerFactory?.CreateLogger(typeof(NameServer).FullName);
+            var logger = Logging.LoggerFactory?.CreateLogger("DnsClient.NameServer");
 
             logger?.LogDebug("Starting to resolve NameServers, skipIPv6SiteLocal:{0}.", skipIPv6SiteLocal);
             try
