@@ -1,5 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -145,13 +148,13 @@ namespace DnsClient.Tests
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any), null));
 
-            await Task.Delay(200).ConfigureAwait(false);
+            await Task.Delay(200);
             var item = cache.Get("key", out double? effectiveTtl);
 
             Assert.NotNull(item);
             Assert.Equal(1 * 1000, effectiveTtl);
 
-            await Task.Delay(1100).ConfigureAwait(false);
+            await Task.Delay(1100);
             var item3 = cache.Get("key", out _);
 
             Assert.Null(item3);
@@ -245,7 +248,7 @@ namespace DnsClient.Tests
 
             cache.Add("key", response.AsQueryResponse(new NameServer(IPAddress.Any), null), true);
 
-            await Task.Delay(10).ConfigureAwait(false);
+            await Task.Delay(10);
 
             var item = cache.Get("key", out _);
 

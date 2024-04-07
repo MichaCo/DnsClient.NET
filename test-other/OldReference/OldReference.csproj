@@ -7,12 +7,6 @@
     <NoWarn>CA1707</NoWarn>
   </PropertyGroup>
 
-  <ItemGroup>
-  </ItemGroup>
-  <!--<ItemGroup Condition=" '$(TargetFramework)' == 'net45' ">
-    <PackageReference Include="DnsClient" Version="1.1.0" />
-  </ItemGroup>-->
-
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <PackageReference Include="DnsClient" Version="1.1.0" />
   </ItemGroup>

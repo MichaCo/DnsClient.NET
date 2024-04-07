@@ -1,5 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using Xunit;
 
 namespace DnsClient.Tests
@@ -79,7 +82,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsString_ParseNullQueryString()
         {
-            Action act = () => DnsString.Parse(null);
+            static void act() => DnsString.Parse(null);
 
             Assert.ThrowsAny<ArgumentNullException>(act);
         }

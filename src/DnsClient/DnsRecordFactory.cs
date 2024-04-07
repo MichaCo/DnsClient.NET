@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using DnsClient.Protocol;
@@ -198,7 +202,7 @@ namespace DnsClient
             return result;
         }
 
-        private DnsResourceRecord ResolveSoaRecord(ResourceRecordInfo info)
+        private SoaRecord ResolveSoaRecord(ResourceRecordInfo info)
         {
             var mName = _reader.ReadDnsName();
             var rName = _reader.ReadDnsName();
@@ -211,7 +215,7 @@ namespace DnsClient
             return new SoaRecord(info, mName, rName, serial, refresh, retry, expire, minimum);
         }
 
-        private DnsResourceRecord ResolveWksRecord(ResourceRecordInfo info)
+        private WksRecord ResolveWksRecord(ResourceRecordInfo info)
         {
             var address = _reader.ReadIPAddress();
             var protocol = _reader.ReadByte();
@@ -220,7 +224,7 @@ namespace DnsClient
             return new WksRecord(info, address, protocol, bitmap.ToArray());
         }
 
-        private DnsResourceRecord ResolveMXRecord(ResourceRecordInfo info)
+        private MxRecord ResolveMXRecord(ResourceRecordInfo info)
         {
             var preference = _reader.ReadUInt16NetworkOrder();
             var domain = _reader.ReadDnsName();
@@ -228,7 +232,7 @@ namespace DnsClient
             return new MxRecord(info, preference, domain);
         }
 
-        private DnsResourceRecord ResolveTxtRecord(ResourceRecordInfo info)
+        private TxtRecord ResolveTxtRecord(ResourceRecordInfo info)
         {
             int pos = _reader.Index;
 
@@ -247,7 +251,7 @@ namespace DnsClient
             return new TxtRecord(info, values.ToArray(), utf8Values.ToArray());
         }
 
-        private DnsResourceRecord ResolveSrvRecord(ResourceRecordInfo info)
+        private SrvRecord ResolveSrvRecord(ResourceRecordInfo info)
         {
             var priority = _reader.ReadUInt16NetworkOrder();
             var weight = _reader.ReadUInt16NetworkOrder();
@@ -257,7 +261,7 @@ namespace DnsClient
             return new SrvRecord(info, priority, weight, port, target);
         }
 
-        private DnsResourceRecord ResolveNaptrRecord(ResourceRecordInfo info)
+        private NAPtrRecord ResolveNaptrRecord(ResourceRecordInfo info)
         {
             var order = _reader.ReadUInt16NetworkOrder();
             var preference = _reader.ReadUInt16NetworkOrder();
@@ -269,7 +273,7 @@ namespace DnsClient
             return new NAPtrRecord(info, order, preference, flags, services, regexp, replacement);
         }
 
-        private DnsResourceRecord ResolveCertRecord(ResourceRecordInfo info)
+        private CertRecord ResolveCertRecord(ResourceRecordInfo info)
         {
             var startIndex = _reader.Index;
             var certType = _reader.ReadUInt16NetworkOrder();
@@ -280,14 +284,14 @@ namespace DnsClient
             return new CertRecord(info, certType, keyTag, algorithm, publicKey);
         }
 
-        private DnsResourceRecord ResolveOptRecord(ResourceRecordInfo info)
+        private OptRecord ResolveOptRecord(ResourceRecordInfo info)
         {
             // Consume bytes in case the OPT record has any.
             var bytes = _reader.ReadBytes(info.RawDataLength).ToArray();
             return new OptRecord((int)info.RecordClass, ttlFlag: info.InitialTimeToLive, length: info.RawDataLength, data: bytes);
         }
 
-        private DnsResourceRecord ResolveDsRecord(ResourceRecordInfo info)
+        private DsRecord ResolveDsRecord(ResourceRecordInfo info)
         {
             var startIndex = _reader.Index;
             var keyTag = _reader.ReadUInt16NetworkOrder();
@@ -297,7 +301,7 @@ namespace DnsClient
             return new DsRecord(info, keyTag, algorithm, digestType, digest);
         }
 
-        private DnsResourceRecord ResolveSshfpRecord(ResourceRecordInfo info)
+        private SshfpRecord ResolveSshfpRecord(ResourceRecordInfo info)
         {
             var algorithm = (SshfpAlgorithm)_reader.ReadByte();
             var fingerprintType = (SshfpFingerprintType)_reader.ReadByte();
@@ -306,7 +310,7 @@ namespace DnsClient
             return new SshfpRecord(info, algorithm, fingerprintType, fingerprintHexString);
         }
 
-        private DnsResourceRecord ResolveRRSigRecord(ResourceRecordInfo info)
+        private RRSigRecord ResolveRRSigRecord(ResourceRecordInfo info)
         {
             var startIndex = _reader.Index;
             var type = _reader.ReadUInt16NetworkOrder();
@@ -321,7 +325,7 @@ namespace DnsClient
             return new RRSigRecord(info, type, algorithmNumber, labels, originalTtl, signatureExpiration, signatureInception, keyTag, signersName, signature);
         }
 
-        private DnsResourceRecord ResolveNSecRecord(ResourceRecordInfo info)
+        private NSecRecord ResolveNSecRecord(ResourceRecordInfo info)
         {
             var startIndex = _reader.Index;
             var nextName = _reader.ReadDnsName();
@@ -329,7 +333,7 @@ namespace DnsClient
             return new NSecRecord(info, nextName, bitMaps);
         }
 
-        private DnsResourceRecord ResolveNSec3Record(ResourceRecordInfo info)
+        private NSec3Record ResolveNSec3Record(ResourceRecordInfo info)
         {
             var startIndex = _reader.Index;
             var hashAlgorithm = _reader.ReadByte();
@@ -343,7 +347,7 @@ namespace DnsClient
             return new NSec3Record(info, hashAlgorithm, flags, iterations, salt, nextOwnersName, bitMaps);
         }
 
-        private DnsResourceRecord ResolveNSec3ParamRecord(ResourceRecordInfo info)
+        private NSec3ParamRecord ResolveNSec3ParamRecord(ResourceRecordInfo info)
         {
             var hashAlgorithm = _reader.ReadByte();
             var flags = _reader.ReadByte();
@@ -353,7 +357,7 @@ namespace DnsClient
             return new NSec3ParamRecord(info, hashAlgorithm, flags, iterations, salt);
         }
 
-        private DnsResourceRecord ResolveDnsKeyRecord(ResourceRecordInfo info)
+        private DnsKeyRecord ResolveDnsKeyRecord(ResourceRecordInfo info)
         {
             var startIndex = _reader.Index;
             int flags = _reader.ReadUInt16NetworkOrder();
@@ -363,7 +367,7 @@ namespace DnsClient
             return new DnsKeyRecord(info, flags, protocol, algorithm, publicKey);
         }
 
-        private DnsResourceRecord ResolveTlsaRecord(ResourceRecordInfo info)
+        private TlsaRecord ResolveTlsaRecord(ResourceRecordInfo info)
         {
             var startIndex = _reader.Index;
             var certificateUsage = _reader.ReadByte();
@@ -373,7 +377,7 @@ namespace DnsClient
             return new TlsaRecord(info, certificateUsage, selector, matchingType, certificateAssociationData);
         }
 
-        private DnsResourceRecord ResolveUriRecord(ResourceRecordInfo info)
+        private UriRecord ResolveUriRecord(ResourceRecordInfo info)
         {
             var prio = _reader.ReadUInt16NetworkOrder();
             var weight = _reader.ReadUInt16NetworkOrder();
@@ -381,7 +385,7 @@ namespace DnsClient
             return new UriRecord(info, prio, weight, target);
         }
 
-        private DnsResourceRecord ResolveCaaRecord(ResourceRecordInfo info)
+        private CaaRecord ResolveCaaRecord(ResourceRecordInfo info)
         {
             var flag = _reader.ReadByte();
             var tag = _reader.ReadStringWithLengthPrefix();

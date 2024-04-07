@@ -181,7 +181,7 @@ dotnet_diagnostic.CA1835.severity = silent
 # All the style rules we want to enforce during build...
 dotnet_diagnostic.CA2211.severity = warning
 dotnet_diagnostic.CA2007.severity = warning
-dotnet_diagnostic.CA1031.severity = suggestion
+dotnet_diagnostic.CA1031.severity = silent
 
 dotnet_diagnostic.IDE0001.severity = warning
 dotnet_diagnostic.IDE0003.severity = warning
@@ -199,6 +199,15 @@ dotnet_diagnostic.IDE0055.severity = warning
 dotnet_diagnostic.IDE0060.severity = warning
 dotnet_diagnostic.IDE0082.severity = warning
 dotnet_diagnostic.IDE1006.severity = warning
+
+# Collection initialization can be simplified
+dotnet_diagnostic.IDE0028.severity = none
+dotnet_diagnostic.IDE0300.severity = none
+dotnet_diagnostic.IDE0301.severity = none
+dotnet_diagnostic.IDE0305.severity = none
+
+# use primary ctor
+dotnet_diagnostic.IDE0290.severity = none
 
 # Xml project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]
@@ -233,3 +242,6 @@ end_of_line = lf
 [*.{cmd,bat}]
 end_of_line = crlf
 
+[{test,test-other}/**/*.cs]
+dotnet_diagnostic.CA2007.severity = none
+dotnet_diagnostic.CA1822.severity = none

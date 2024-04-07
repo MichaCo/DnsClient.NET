@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -34,7 +37,7 @@ namespace DnsClient.Tests
             var lookup = lookupMock.Object;
 
             // act
-            var result = await lookup.QueryAsync("query", QueryType.A).ConfigureAwait(false);
+            var result = await lookup.QueryAsync("query", QueryType.A);
 
             // assert
             Assert.Equal(1, result.Header.AnswerCount);

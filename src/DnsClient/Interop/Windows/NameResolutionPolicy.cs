@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -8,8 +12,6 @@ using Microsoft.Win32;
 
 namespace DnsClient.Windows
 {
-#if !NET45
-
     internal static class NameResolutionPolicy
     {
         private static readonly char[] s_splitOn = new char[] { ';' };
@@ -129,5 +131,4 @@ namespace DnsClient.Windows
             }
         }
     }
-#endif
 }

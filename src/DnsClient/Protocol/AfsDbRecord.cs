@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 namespace DnsClient.Protocol
 {
     /* https://tools.ietf.org/html/rfc1183#section-1, https://tools.ietf.org/html/rfc5864

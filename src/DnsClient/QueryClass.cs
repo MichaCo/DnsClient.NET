@@ -1,5 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
 namespace DnsClient
 {
     /* RFC 1035 (https://tools.ietf.org/html/rfc1035#section-3.2.4)

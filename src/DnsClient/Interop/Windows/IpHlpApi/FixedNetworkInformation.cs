@@ -1,11 +1,12 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
-
-#if !NET45
 
 namespace DnsClient.Windows.IpHlpApi
 {
@@ -79,4 +80,3 @@ namespace DnsClient.Windows.IpHlpApi
         }
     }
 }
-#endif

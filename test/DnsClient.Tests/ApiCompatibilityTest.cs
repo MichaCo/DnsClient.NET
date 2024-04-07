@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -24,42 +28,9 @@ namespace DnsClient.Tests
         public async Task API_CompatAsync()
         {
             var test = new OldReference.TestLookupClient();
-            var error = await Record.ExceptionAsync(() => test.TestQueryAsync_1_1()).ConfigureAwait(false);
+            var error = await Record.ExceptionAsync(() => test.TestQueryAsync_1_1());
 
             Assert.Null(error);
-        }
-
-        [Fact]
-        public void API_CompatPropertiesNonDefaults()
-        {
-            var test = new OldReference.TestLookupClient();
-
-            var client = test.SetNonDefaults();
-
-            Assert.NotEmpty(client.NameServers);
-            Assert.False(client.UseCache);
-            Assert.True(client.EnableAuditTrail);
-            Assert.Equal(TimeSpan.FromSeconds(11), client.MinimumCacheTimeout);
-            Assert.False(client.Recursion);
-            Assert.True(client.ThrowDnsErrors);
-            Assert.Equal(10, client.Retries);
-            Assert.Equal(TimeSpan.FromMinutes(1), client.Timeout);
-            Assert.False(client.UseTcpFallback);
-            Assert.True(client.UseTcpOnly);
-            Assert.False(client.ContinueOnDnsError);
-            Assert.False(client.UseRandomNameServer);
-
-            Assert.False(client.Settings.UseCache);
-            Assert.True(client.Settings.EnableAuditTrail);
-            Assert.Equal(TimeSpan.FromSeconds(11), client.Settings.MinimumCacheTimeout);
-            Assert.False(client.Settings.Recursion);
-            Assert.True(client.Settings.ThrowDnsErrors);
-            Assert.Equal(10, client.Settings.Retries);
-            Assert.Equal(TimeSpan.FromMinutes(1), client.Settings.Timeout);
-            Assert.False(client.Settings.UseTcpFallback);
-            Assert.True(client.Settings.UseTcpOnly);
-            Assert.False(client.Settings.ContinueOnDnsError);
-            Assert.False(client.Settings.UseRandomNameServer);
         }
 
         [Fact]

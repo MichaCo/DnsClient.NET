@@ -41,8 +41,8 @@ jobs:
     inputs:
       command: 'test'
       projects: 'test/**/*.csproj'
-      publishTestResults: false      
-      arguments: '-c Release --no-build --no-restore -f netcoreapp3.1'
+      publishTestResults: true      
+      arguments: '-c Release --no-build --no-restore -f net6.0'
 
 - job: Windows
   displayName: 'Build & Test on Windows'
