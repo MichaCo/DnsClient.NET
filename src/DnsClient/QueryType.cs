@@ -18,6 +18,11 @@ namespace DnsClient
     public enum QueryType
     {
         /// <summary>
+        /// Nothing.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
         /// A host address.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc1035">RFC 1035</seealso>
@@ -99,7 +104,9 @@ namespace DnsClient
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.12">RFC 1035</seealso>
         /// <seealso cref="PtrRecord"/>
+#pragma warning disable CA1720 // Identifier contains type name
         PTR = ResourceRecordType.PTR,
+#pragma warning restore CA1720 // Identifier contains type name
 
         /// <summary>
         /// Host information.

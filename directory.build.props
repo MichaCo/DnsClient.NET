@@ -7,4 +7,8 @@
     <AnalysisMode>all</AnalysisMode>
     <AnalysisLevel>8.0</AnalysisLevel>
   </PropertyGroup>
+  
+  <PropertyGroup>  
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
 </Project>

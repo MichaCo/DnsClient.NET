@@ -11,6 +11,7 @@ using DnsClient.Internal;
 
 namespace DnsClient
 {
+    // TODO: re-name in 2.0, or maybe get rid of?
     public static class Tracing
     {
         public static TraceSource Source { get; } = new TraceSource("DnsClient", SourceLevels.Error);

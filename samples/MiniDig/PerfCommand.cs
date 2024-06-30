@@ -19,8 +19,8 @@ namespace DigApp
         private int _tasks;
         private string _query;
         private int _runtime;
-        private long _reportExcecutions = 0;
-        private long _allExcecutions = 0;
+        private long _reportExcecutions;
+        private long _allExcecutions;
         private bool _running;
         private LookupClientOptions _settings;
         private int _errors;

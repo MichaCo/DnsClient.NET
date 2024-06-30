@@ -37,9 +37,19 @@ namespace DnsClient
         }
 
         public DnsResponseParseException(string message, byte[] data, int index = 0, int length = 0, Exception innerException = null)
-            : this(s_defaultMessage(data.Length, index, length, message, FormatData(data, index, length)), innerException)
+            : this(s_defaultMessage(data?.Length ?? 0, index, length, message, FormatData(data, index, length)), innerException)
         {
-            ResponseData = data ?? throw new ArgumentNullException(nameof(data));
+            if (string.IsNullOrEmpty(message))
+            {
+                throw new ArgumentException($"'{nameof(message)}' cannot be null or empty.", nameof(message));
+            }
+
+            if (innerException is null)
+            {
+                throw new ArgumentNullException(nameof(innerException));
+            }
+
+            ResponseData = data;
             Index = index;
             ReadLength = length;
         }

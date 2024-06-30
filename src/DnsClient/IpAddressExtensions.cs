@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0.
 // See LICENSE file for details.
 
+using System.Globalization;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
@@ -25,6 +26,11 @@ namespace System.Net
         /// <seealso href="https://en.wikipedia.org/wiki/.arpa"/>
         public static string GetArpaName(this IPAddress ip)
         {
+            if (ip is null)
+            {
+                throw new ArgumentNullException(nameof(ip));
+            }
+
             var bytes = ip.GetAddressBytes();
             Array.Reverse(bytes);
 
@@ -34,7 +40,7 @@ namespace System.Net
                 // reversed bytes need to be split into 4 bit parts and separated by '.'
                 var newBytes = bytes
                     .SelectMany(b => new[] { (b >> 0) & 0xf, (b >> 4) & 0xf })
-                    .Aggregate(new StringBuilder(), (s, b) => s.Append(b.ToString("x")).Append(DnsString.Dot)) + "ip6.arpa.";
+                    .Aggregate(new StringBuilder(), (s, b) => s.Append(b.ToString("x", CultureInfo.InvariantCulture)).Append(DnsString.Dot)) + "ip6.arpa.";
 
                 return newBytes;
             }

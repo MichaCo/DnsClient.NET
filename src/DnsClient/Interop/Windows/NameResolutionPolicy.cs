@@ -123,10 +123,12 @@ namespace DnsClient.Windows
                     // Name can be a suffix (starts with .) or a prefix
                     // we want to ignore it if it's not a suffix
 
-                    foreach (var name in names.Where(n => n.StartsWith(".")).Distinct())
+#pragma warning disable CA1867 // Use char overload, does not exist in all targets
+                    foreach (var name in names.Where(n => n.StartsWith(".", StringComparison.OrdinalIgnoreCase)).Distinct())
                     {
                         nameServers.Add(new NameServer(address, name));
                     }
+#pragma warning restore CA1867 // Use char overload
                 }
             }
         }

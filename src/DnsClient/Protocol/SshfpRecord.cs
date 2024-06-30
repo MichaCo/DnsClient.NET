@@ -59,7 +59,9 @@ namespace DnsClient.Protocol
         /// <summary>
         /// Reserved for later use
         /// </summary>
+#pragma warning disable CA1700 // Do not name enum values 'Reserved'
         Reserved = 0,
+#pragma warning restore CA1700 // Do not name enum values 'Reserved'
 
         /// <summary>
         /// RSA
@@ -90,7 +92,9 @@ namespace DnsClient.Protocol
         /// <summary>
         /// Reserved for later use
         /// </summary>
+#pragma warning disable CA1700 // Do not name enum values 'Reserved'
         Reserved = 0,
+#pragma warning restore CA1700 // Do not name enum values 'Reserved'
 
         /// <summary>
         /// SHA-1 fingerprint

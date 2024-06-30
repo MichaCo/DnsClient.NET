@@ -75,7 +75,9 @@ namespace DnsClient.Protocol.Options
         private const uint VersionMask = 0x00ff0000;
         private const int VersionShift = 16;
 
+#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
         public DnsResponseCode ResponseCodeEx
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
         {
             get
             {

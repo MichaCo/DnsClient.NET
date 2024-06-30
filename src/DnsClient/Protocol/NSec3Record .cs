@@ -118,7 +118,7 @@ namespace DnsClient.Protocol
             Salt = salt ?? throw new ArgumentNullException(nameof(salt));
             TypeBitMapsRaw = bitmap ?? throw new ArgumentNullException(nameof(bitmap));
 
-            SaltAsString = Salt.Length == 0 ? "-" : string.Join(string.Empty, Salt.Select(b => b.ToString("X2")));
+            SaltAsString = Salt.Length == 0 ? "-" : string.Join(string.Empty, Salt.Select(b => b.ToString("X2", CultureInfo.InvariantCulture)));
             NextOwnersName = nextOwnersName ?? throw new ArgumentNullException(nameof(nextOwnersName));
 
             try

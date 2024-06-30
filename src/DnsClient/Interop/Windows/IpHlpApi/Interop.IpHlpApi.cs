@@ -21,7 +21,7 @@ internal static partial class Interop
         internal const uint ERROR_IO_PENDING = 997;
         internal const uint ERROR_NOT_FOUND = 1168;
 
-        [DllImport(Libraries.IpHlpApi)]
+        [DllImport(Libraries.IpHlpApi, ExactSpelling = true)]
         internal static extern uint GetAdaptersAddresses(
             AddressFamily family,
             uint flags,

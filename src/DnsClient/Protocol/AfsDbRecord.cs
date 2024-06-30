@@ -75,6 +75,11 @@ namespace DnsClient.Protocol
     public enum AfsType
     {
         /// <summary>
+        /// Does nothing.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
         /// AFS is a registered trademark of Transarc Corporation
         /// </summary>
         Afs = 1,

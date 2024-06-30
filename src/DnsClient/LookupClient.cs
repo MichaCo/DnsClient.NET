@@ -63,7 +63,7 @@ namespace DnsClient
         private readonly DnsMessageHandler _messageHandler;
         private readonly DnsMessageHandler _tcpFallbackHandler;
         private readonly ILogger _logger;
-        private readonly SkipWorker _skipper = null;
+        private readonly SkipWorker _skipper;
 
         private IReadOnlyCollection<NameServer> _resolvedNameServers;
 
@@ -1598,7 +1598,7 @@ namespace DnsClient
         {
             private readonly Action _worker;
             private readonly int _skipFor = 5000;
-            private int _lastRun = 0;
+            private int _lastRun;
 
             public SkipWorker(Action worker, int skip = 5000)
             {
@@ -1633,7 +1633,7 @@ namespace DnsClient
 
     internal class LookupClientAudit
     {
-        private static readonly int s_printOffset = -32;
+        private const int PrintOffset = -32;
         private readonly StringBuilder _auditWriter = new StringBuilder();
         private Stopwatch _swatch;
 
@@ -1684,7 +1684,11 @@ namespace DnsClient
                 return;
             }
 
+#if NET6_0_OR_GREATER
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $"; ({count} server found)");
+#else
             _auditWriter.AppendLine($"; ({count} server found)");
+#endif
         }
 
         public string Build(IDnsQueryResponse response = null)
@@ -1721,7 +1725,11 @@ namespace DnsClient
                 return;
             }
 
+#if NET6_0_OR_GREATER
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; ERROR: {DnsResponseCodeText.GetErrorText((DnsResponseCode)responseCode)}");
+#else
             _auditWriter.AppendLine($";; ERROR: {DnsResponseCodeText.GetErrorText((DnsResponseCode)responseCode)}");
+#endif
         }
 
         public void AuditOptPseudo()
@@ -1756,17 +1764,15 @@ namespace DnsClient
             {
                 return;
             }
-
+#if NET6_0_OR_GREATER
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $"; EDNS: version: {version}, flags:{(doFlag ? " do" : string.Empty)}; UDP: {udpSize}; code: {responseCode}");
+#else
             _auditWriter.AppendLine($"; EDNS: version: {version}, flags:{(doFlag ? " do" : string.Empty)}; UDP: {udpSize}; code: {responseCode}");
+#endif
         }
 
         public void AuditEnd(IDnsQueryResponse queryResponse, NameServer nameServer)
         {
-            if (queryResponse is null)
-            {
-                throw new ArgumentNullException(nameof(queryResponse));
-            }
-
             if (nameServer is null)
             {
                 throw new ArgumentNullException(nameof(nameServer));
@@ -1787,7 +1793,7 @@ namespace DnsClient
                     _auditWriter.AppendLine(";; QUESTION SECTION:");
                     foreach (var question in queryResponse.Questions)
                     {
-                        _auditWriter.AppendLine(question.ToString(s_printOffset));
+                        _auditWriter.AppendLine(question.ToString(PrintOffset));
                     }
                     _auditWriter.AppendLine();
                 }
@@ -1797,7 +1803,7 @@ namespace DnsClient
                     _auditWriter.AppendLine(";; ANSWER SECTION:");
                     foreach (var answer in queryResponse.Answers)
                     {
-                        _auditWriter.AppendLine(answer.ToString(s_printOffset));
+                        _auditWriter.AppendLine(answer.ToString(PrintOffset));
                     }
                     _auditWriter.AppendLine();
                 }
@@ -1807,7 +1813,7 @@ namespace DnsClient
                     _auditWriter.AppendLine(";; AUTHORITIES SECTION:");
                     foreach (var auth in queryResponse.Authorities)
                     {
-                        _auditWriter.AppendLine(auth.ToString(s_printOffset));
+                        _auditWriter.AppendLine(auth.ToString(PrintOffset));
                     }
                     _auditWriter.AppendLine();
                 }
@@ -1818,16 +1824,23 @@ namespace DnsClient
                     _auditWriter.AppendLine(";; ADDITIONALS SECTION:");
                     foreach (var additional in additionals)
                     {
-                        _auditWriter.AppendLine(additional.ToString(s_printOffset));
+                        _auditWriter.AppendLine(additional.ToString(PrintOffset));
                     }
                     _auditWriter.AppendLine();
                 }
             }
 
+#if NET6_0_OR_GREATER
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; Query time: {elapsed} msec");
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; SERVER: {nameServer.Address}#{nameServer.Port}");
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; WHEN: {DateTime.UtcNow.ToString("ddd MMM dd HH:mm:ss K yyyy", CultureInfo.InvariantCulture)}");
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; MSG SIZE  rcvd: {queryResponse.MessageSize}");
+#else
             _auditWriter.AppendLine($";; Query time: {elapsed} msec");
             _auditWriter.AppendLine($";; SERVER: {nameServer.Address}#{nameServer.Port}");
             _auditWriter.AppendLine($";; WHEN: {DateTime.UtcNow.ToString("ddd MMM dd HH:mm:ss K yyyy", CultureInfo.InvariantCulture)}");
             _auditWriter.AppendLine($";; MSG SIZE  rcvd: {queryResponse.MessageSize}");
+#endif
         }
 
         public void AuditException(Exception ex)
@@ -1839,15 +1852,27 @@ namespace DnsClient
 
             if (ex is DnsResponseException dnsEx)
             {
+#if NET6_0_OR_GREATER
+                _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; Error: {DnsResponseCodeText.GetErrorText(dnsEx.Code)} {dnsEx.InnerException?.Message ?? dnsEx.Message}");
+#else
                 _auditWriter.AppendLine($";; Error: {DnsResponseCodeText.GetErrorText(dnsEx.Code)} {dnsEx.InnerException?.Message ?? dnsEx.Message}");
+#endif
             }
             else if (ex is AggregateException aggEx)
             {
+#if NET6_0_OR_GREATER
+                _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; Error: {aggEx.InnerException?.Message ?? aggEx.Message}");
+#else
                 _auditWriter.AppendLine($";; Error: {aggEx.InnerException?.Message ?? aggEx.Message}");
+#endif
             }
             else
             {
+#if NET6_0_OR_GREATER
+                _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; Error: {ex.Message}");
+#else
                 _auditWriter.AppendLine($";; Error: {ex.Message}");
+#endif
             }
 
             if (Debugger.IsAttached)

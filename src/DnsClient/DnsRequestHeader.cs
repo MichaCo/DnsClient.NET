@@ -13,7 +13,7 @@ namespace DnsClient
         private static readonly Random s_random = new Random();
 #endif
         public const int HeaderLength = 12;
-        private ushort _flags = 0;
+        private ushort _flags;
 
         public ushort RawFlags => _flags;
 

@@ -14,7 +14,7 @@ namespace DnsClient.Internal
         private static readonly ArrayPool<byte> s_pool = ArrayPool<byte>.Create(4096 * 4, 100);
         private int _length;
         private ArraySegment<byte> _buffer;
-        private bool _disposed = false;
+        private bool _disposed;
 
         public PooledBytes(int length)
         {

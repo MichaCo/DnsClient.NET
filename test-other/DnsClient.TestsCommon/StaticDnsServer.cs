@@ -30,7 +30,7 @@ namespace DnsClient
         private int[] _workerHitCounter = new int[4];
         private UdpClient _server;
         private CancellationTokenSource _cancelSource;
-        private bool _running = false;
+        private bool _running;
 
         public StaticDnsServer(bool printStats = true, int port = 5053, int workers = 4)
         {

@@ -420,12 +420,12 @@ namespace DnsClient
 
         public static string GetErrorText(DnsResponseCode code)
         {
-            if (!s_errors.ContainsKey(code))
+            if (!s_errors.TryGetValue(code, out var value))
             {
                 return Unassigned;
             }
 
-            return s_errors[code];
+            return value;
         }
     }
 }

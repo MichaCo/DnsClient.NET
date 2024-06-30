@@ -16,8 +16,8 @@ namespace DnsClient.Tests
         [Fact]
         public void NativeDnsServerResolution()
         {
-            var ex = Record.Exception(() => NameServer.ResolveNameServersNative());
-            Assert.Null(ex);
+            var result = NameServer.ResolveNameServersNative();
+            Assert.NotEmpty(result);
         }
 
         [Fact]

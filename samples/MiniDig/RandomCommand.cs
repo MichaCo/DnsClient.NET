@@ -26,8 +26,8 @@ namespace DigApp
         private ConcurrentQueue<string> _domainNames;
         private int _clients;
         private int _runtime;
-        private long _reportExcecutions = 0;
-        private long _allExcecutions = 0;
+        private long _reportExcecutions;
+        private long _allExcecutions;
         private bool _running;
         private LookupClientOptions _settings;
         private int _errors;
@@ -163,7 +163,7 @@ namespace DigApp
             _running = false;
         }
 
-        private int _runNumber = 0;
+        private int _runNumber;
 
         private async Task ExcecuteRun()
         {

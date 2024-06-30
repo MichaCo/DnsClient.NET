@@ -23,8 +23,8 @@ namespace DnsClient
         private static readonly int s_cleanupInterval = (int)TimeSpan.FromMinutes(10).TotalMilliseconds;
         private readonly ConcurrentDictionary<string, ResponseEntry> _cache = new ConcurrentDictionary<string, ResponseEntry>();
         private readonly object _cleanupLock = new object();
-        private bool _cleanupRunning = false;
-        private int _lastCleanup = 0;
+        private bool _cleanupRunning;
+        private int _lastCleanup;
         private TimeSpan? _minimumTimeout;
         private TimeSpan? _maximumTimeout;
         private TimeSpan _failureEntryTimeout = s_defaultFailureTimeout;
@@ -153,8 +153,8 @@ namespace DnsClient
                 }
                 else
                 {
-                    var all = response.AllRecords.Where(p => !(p is Protocol.Options.OptRecord));
-                    if (all.Any())
+                    var all = response.AllRecords.Where(p => !(p is Protocol.Options.OptRecord)).ToList();
+                    if (all.Count != 0)
                     {
                         // in millis
                         double minTtl = all.Min(p => p.InitialTimeToLive) * 1000d;
@@ -242,7 +242,8 @@ namespace DnsClient
                                 {
                                     /* Ignoring but handling background errors. */
                                 }
-                            });
+                            },
+                            scheduler: TaskScheduler.Default);
                     }
                 }
             }

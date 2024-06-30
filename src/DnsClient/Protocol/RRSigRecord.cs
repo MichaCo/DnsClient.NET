@@ -171,8 +171,8 @@ namespace DnsClient.Protocol
                 Algorithm,
                 Labels,
                 OriginalTtl,
-                SignatureExpiration.ToString("yyyyMMddHHmmss"),
-                SignatureInception.ToString("yyyyMMddHHmmss"),
+                SignatureExpiration.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture),
+                SignatureInception.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture),
                 KeyTag,
                 SignersName,
                 SignatureAsString);

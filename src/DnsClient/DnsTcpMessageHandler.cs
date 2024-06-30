@@ -287,7 +287,7 @@ namespace DnsClient
 
         private class ClientPool : IDisposable
         {
-            private bool _disposedValue = false;
+            private bool _disposedValue;
             private readonly bool _enablePool;
             private ConcurrentQueue<ClientEntry> _clients = new ConcurrentQueue<ClientEntry>();
             private readonly IPEndPoint _endpoint;
