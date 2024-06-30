@@ -197,7 +197,7 @@ namespace DnsClient
             }
 
             _originalOptions = options;
-            _logger = Logging.LoggerFactory.CreateLogger(GetType().FullName);
+            _logger = Logging.LoggerFactory.CreateLogger("DnsClient.LookupClient");
             _messageHandler = udpHandler ?? new DnsUdpMessageHandler();
             _tcpFallbackHandler = tcpHandler ?? new DnsTcpMessageHandler();
 
