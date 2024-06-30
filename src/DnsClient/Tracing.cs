@@ -4,6 +4,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Globalization;
 using DnsClient.Internal;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
@@ -41,7 +42,7 @@ namespace DnsClient
                     var result = $"[{_name}] ";
                     if (message != null)
                     {
-                        result += string.Format(message, args);
+                        result += string.Format(CultureInfo.InvariantCulture, message, args);
                     }
 
                     if (exception != null)

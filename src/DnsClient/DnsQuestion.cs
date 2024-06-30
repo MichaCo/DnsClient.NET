@@ -3,6 +3,7 @@
 // See LICENSE file for details.
 
 using System;
+using System.Globalization;
 
 namespace DnsClient
 {
@@ -78,7 +79,15 @@ namespace DnsClient
         public string ToString(int offset = -32)
         {
             var printTab = offset == 0 ? string.Empty : "\t";
-            return string.Format("{0," + offset + "} {1}{2} {1}{3}", QueryName.Original, printTab, QuestionClass, QuestionType);
+
+            var offsetStr = offset.ToString(provider: CultureInfo.InvariantCulture);
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                $"{{0,{offsetStr}}} {{1}}{{2}} {{1}}{{3}}",
+                QueryName.Original,
+                printTab,
+                QuestionClass,
+                QuestionType);
         }
     }
 }
