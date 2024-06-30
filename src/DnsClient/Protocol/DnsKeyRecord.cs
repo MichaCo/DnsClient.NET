@@ -4,6 +4,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 
 namespace DnsClient.Protocol
 {
@@ -97,7 +99,7 @@ namespace DnsClient.Protocol
 
         private protected override string RecordToString()
         {
-            return string.Format("{0} {1} {2} {3}", Flags, Protocol, Algorithm, PublicKeyAsString);
+            return string.Format(CultureInfo.InvariantCulture, "{0} {1} {2} {3}", Flags, Protocol, Algorithm, PublicKeyAsString);
         }
     }
 }

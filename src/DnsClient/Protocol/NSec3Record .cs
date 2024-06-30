@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using DnsClient.Internal;
 
@@ -135,6 +136,7 @@ namespace DnsClient.Protocol
         private protected override string RecordToString()
         {
             return string.Format(
+                CultureInfo.InvariantCulture,
                 "{0} {1} {2} {3} {4} {5}",
                 HashAlgorithm,
                 Flags,

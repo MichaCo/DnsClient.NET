@@ -3,6 +3,7 @@
 // See LICENSE file for details.
 
 using System;
+using System.Globalization;
 
 namespace DnsClient.Protocol
 {
@@ -43,7 +44,9 @@ namespace DnsClient.Protocol
         public virtual string ToString(int offset = 0)
         {
             var printTab = offset == 0 ? string.Empty : "\t";
-            return string.Format("{0," + offset + "} {1}{2} {1}{3} {1}{4} {1}{5}",
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "{0," + offset.ToString(CultureInfo.InvariantCulture) + "} {1}{2} {1}{3} {1}{4} {1}{5}",
                 DomainName,
                 printTab,
                 TimeToLive,

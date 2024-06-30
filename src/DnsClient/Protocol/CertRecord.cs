@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace DnsClient.Protocol;
 
@@ -75,6 +76,6 @@ public class CertRecord : DnsResourceRecord
 
     private protected override string RecordToString()
     {
-        return string.Format("{0} {1} {2} {3}", CertType, KeyTag, Algorithm, PublicKeyAsString);
+        return string.Format(CultureInfo.InvariantCulture, "{0} {1} {2} {3}", CertType, KeyTag, Algorithm, PublicKeyAsString);
     }
 }
