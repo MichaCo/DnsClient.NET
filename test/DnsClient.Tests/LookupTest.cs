@@ -197,7 +197,8 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Lookup_GetHostAddresses_Local()
         {
-            using var client = new LookupClient();
+            var servers = NameServer.ResolveNameServers(true, false);
+            using var client = new LookupClient(servers.ToArray());
 
             var result = await client.QueryAsync("localhost", QueryType.A);
 
