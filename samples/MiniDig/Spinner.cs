@@ -4,13 +4,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace DigApp
 {
+#pragma warning disable CA1001 // Types that own disposable fields should be disposable
     public class Spiner
+#pragma warning restore CA1001 // Types that own disposable fields should be disposable
     {
         private int _msgLength = 4;
         private string _msg = string.Empty;
@@ -54,6 +57,7 @@ namespace DigApp
             _oldColor = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
 
+            _source?.Dispose();
             _source = new CancellationTokenSource();
             _token = _source.Token;
             Task.Run(Spin, _token);
@@ -72,7 +76,7 @@ namespace DigApp
 
         private async Task Spin()
         {
-            var chars = new Queue<string>(new[] { "|", "/", "-", "\\" });
+            var chars = new Queue<string>(["|", "/", "-", "\\"]);
 
             while (true)
             {
@@ -81,7 +85,13 @@ namespace DigApp
                 chars.Enqueue(chr);
                 Console.CursorVisible = false;
                 Console.ForegroundColor = ConsoleColor.Yellow;
-                var msg = string.Format("{{{0}}} {1,-" + _msgLength + "}{2,-" + _statusLength + "}", chr, Message, Status);
+                var msg = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{{{0}}} {1,-" + _msgLength + "}{2,-" + _statusLength + "}",
+                    chr,
+                    Message,
+                    Status);
+
                 if (msg.Length >= Console.BufferWidth)
                 {
                     msg = msg.Substring(0, Console.BufferWidth - 1);

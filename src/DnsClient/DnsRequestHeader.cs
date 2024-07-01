@@ -106,9 +106,12 @@ namespace DnsClient
             Id = GetNextUniqueId();
         }
 
+#pragma warning disable CA5394 // Do not use insecure randomness
+
         private static ushort GetNextUniqueId()
         {
 #if NET6_0_OR_GREATER
+
             return (ushort)Random.Shared.Next(1, ushort.MaxValue);
 #else
             lock (s_random)
@@ -117,5 +120,7 @@ namespace DnsClient
             }
 #endif
         }
+
+#pragma warning restore CA5394 // Do not use insecure randomness
     }
 }

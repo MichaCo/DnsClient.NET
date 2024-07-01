@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -41,7 +42,7 @@ namespace DigApp
 
         public CommandOption NoTcpArg { get; set; }
 
-        public DnsCommand(CommandLineApplication app, string[] originalArgs)
+        protected DnsCommand(CommandLineApplication app, string[] originalArgs)
         {
             App = app ?? throw new ArgumentNullException(nameof(app));
             OriginalArgs = originalArgs;
@@ -64,7 +65,7 @@ namespace DigApp
                 foreach (var serverPair in values)
                 {
                     var server = serverPair[0];
-                    var port = serverPair.Length > 1 ? int.Parse(serverPair[1]) : 53;
+                    var port = serverPair.Length > 1 ? int.Parse(serverPair[1], CultureInfo.InvariantCulture) : 53;
 
                     if (!IPAddress.TryParse(server, out IPAddress ip))
                     {
@@ -110,7 +111,7 @@ namespace DigApp
         {
             if (MinimumTTLArg.HasValue())
             {
-                return TimeSpan.FromMilliseconds(int.Parse(MinimumTTLArg.Value()));
+                return TimeSpan.FromMilliseconds(int.Parse(MinimumTTLArg.Value(), CultureInfo.InvariantCulture));
             }
 
             return null;
@@ -120,20 +121,20 @@ namespace DigApp
         {
             if (MaximumTTLArg.HasValue())
             {
-                return TimeSpan.FromMilliseconds(int.Parse(MaximumTTLArg.Value()));
+                return TimeSpan.FromMilliseconds(int.Parse(MaximumTTLArg.Value(), CultureInfo.InvariantCulture));
             }
 
             return null;
         }
 
         public int GetMaximumBufferSize()
-            => MaximumBufferSizeArg.HasValue() ? int.Parse(MaximumBufferSizeArg.Value()) : DnsQueryOptions.MaximumBufferSize;
+            => MaximumBufferSizeArg.HasValue() ? int.Parse(MaximumBufferSizeArg.Value(), CultureInfo.InvariantCulture) : DnsQueryOptions.MaximumBufferSize;
 
         public bool GetRequestDnsSec() => RequestDnsSecRecordsArg.HasValue();
 
-        public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value()) : 1000;
+        public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value(), CultureInfo.InvariantCulture) : 1000;
 
-        public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value()) : 5;
+        public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value(), CultureInfo.InvariantCulture) : 5;
 
         public bool GetUseCache()
         {

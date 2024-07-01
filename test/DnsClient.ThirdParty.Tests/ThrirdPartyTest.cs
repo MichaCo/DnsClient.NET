@@ -19,7 +19,7 @@ namespace DnsClient.ThirdParty.Tests
         {
             var ex = Record.Exception(() => new MongoClient(TestConnection));
             Assert.IsType<MongoConfigurationException>(ex);
-            Assert.Contains("SRV record for doesnotexist.internal.example", ex.Message);
+            Assert.Contains("SRV record for doesnotexist.internal.example", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
 #endif

@@ -73,11 +73,7 @@ namespace DnsClient.Internal
             {
                 var type = policy.GetType();
 
-#if NETSTANDARD1_3
-                return type.GenericTypeArguments?.Length > 0 && type.GetGenericTypeDefinition() == typeof(DefaultPooledObjectPolicy<>);
-#else
                 return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(DefaultPooledObjectPolicy<>);
-#endif
             }
         }
 

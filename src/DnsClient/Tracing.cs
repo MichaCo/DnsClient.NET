@@ -11,8 +11,10 @@ using DnsClient.Internal;
 
 namespace DnsClient
 {
+#pragma warning disable CA1724
     // TODO: re-name in 2.0, or maybe get rid of?
     public static class Tracing
+#pragma warning restore CA1724
     {
         public static TraceSource Source { get; } = new TraceSource("DnsClient", SourceLevels.Error);
 

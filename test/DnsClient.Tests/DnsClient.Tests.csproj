@@ -1,20 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>
-      net472;
-      net8.0;
-    </TargetFrameworks>
+    <TargetFrameworks>net472;net8.0;</TargetFrameworks>
     <AssemblyName>DnsClient.Tests</AssemblyName>
     <AssemblyOriginatorKeyFile>../../tools/key.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <PackageId>DnsClient.Tests</PackageId>
     <IsPackable>false</IsPackable>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-
-  <PropertyGroup>
-    <NoWarn>CA1822;CA1707;</NoWarn>
+    <NoWarn>$(NoWarn);CA1707;CA5403;CA2201;CA1852;CA1062;CA1034;CA1849</NoWarn>
   </PropertyGroup>
   
   <ItemGroup>

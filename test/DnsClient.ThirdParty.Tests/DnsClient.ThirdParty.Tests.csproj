@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>
-      net472;net8.0
-    </TargetFrameworks>
+    <TargetFrameworks>net472;net8.0</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <NoWarn>CA1707;NU1903;</NoWarn>
   </PropertyGroup>

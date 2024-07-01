@@ -225,6 +225,8 @@ dotnet_diagnostic.CA5392.severity = silent
 
 ## Features not avail in all framework targets
 dotnet_diagnostic.CA1510.severity = silent
+dotnet_diagnostic.CA1512.severity = silent
+dotnet_diagnostic.CA1513.severity = silent
 
 # Xml project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]

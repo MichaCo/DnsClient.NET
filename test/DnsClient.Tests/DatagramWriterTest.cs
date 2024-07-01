@@ -14,7 +14,7 @@ namespace DnsClient.Tests
         [Fact]
         public void WriteStringWithPrefix_TooLong()
         {
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             var value = new string(Enumerable.Repeat('X', 256).ToArray());
             Assert.Throws<ArgumentException>(() => writer.WriteStringWithLengthPrefix(value));
         }
@@ -24,7 +24,7 @@ namespace DnsClient.Tests
         {
             ushort value = ushort.MaxValue / 2 + 10;
 
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             writer.WriteUInt16NetworkOrder(value);
 
             var sourceBytes = BitConverter.GetBytes(value);

@@ -16,12 +16,12 @@ using DnsClient;
 namespace Benchmarks
 {
     [ExcludeFromCodeCoverage]
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
             var port = 5053;
-            var server = new StaticDnsServer(
+            using var server = new StaticDnsServer(
                 printStats: false,
                 port: port,
                 workers: 1);
