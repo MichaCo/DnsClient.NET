@@ -66,5 +66,102 @@ namespace DnsClient.Tests
 
             Assert.Null(ex);
         }
+
+        [Fact]
+        public void EqualityA()
+        {
+            var a = new NameServer(NameServer.GooglePublicDns);
+            var b = new NameServer(NameServer.GooglePublicDns);
+
+            Assert.Equal(a, b);
+            Assert.Equal(a, a);
+        }
+
+        [Fact]
+        public void EqualityB()
+        {
+            var a = new NameServer(IPAddress.Loopback);
+            var b = new NameServer(IPAddress.Loopback);
+
+            Assert.Equal(a, b);
+        }
+
+        [Fact]
+        public void EqualityF()
+        {
+            var a = new NameServer(IPAddress.Loopback);
+            var b = new NameServer(IPAddress.IPv6Any);
+
+            Assert.NotEqual(a, b);
+        }
+
+        [Fact]
+        public void EqualityC()
+        {
+            var a = new NameServer(IPAddress.Loopback);
+            var b = new NameServer(IPAddress.Loopback, 111);
+
+            Assert.NotEqual(a, b);
+            Assert.NotEqual(b, a);
+        }
+
+        [Fact]
+        public void EqualityD()
+        {
+            var a = new NameServer(IPAddress.Loopback, "domain");
+            var b = new NameServer(IPAddress.Loopback, "domain");
+
+            Assert.Equal(a, b);
+        }
+
+        [Fact]
+        public void EqualityE()
+        {
+            var a = new NameServer(IPAddress.Loopback);
+            var b = new NameServer(IPAddress.Loopback, "domain");
+
+            Assert.Equal(a, b);
+            Assert.Equal(b, a);
+        }
+
+        [Fact]
+        public void EqualityG()
+        {
+            var a = new NameServer(IPAddress.IPv6Any);
+            var b = new NameServer(IPAddress.Loopback, "domain");
+
+            Assert.NotEqual(a, b);
+            Assert.NotEqual(b, a);
+        }
+
+        [Fact]
+        public void EqualityH()
+        {
+            var a = new NameServer(IPAddress.IPv6Any, "domain");
+            var b = new NameServer(IPAddress.Loopback, "domain");
+
+            Assert.NotEqual(a, b);
+            Assert.NotEqual(b, a);
+        }
+
+        [Fact]
+        public void EqualityI()
+        {
+            var a = new NameServer(IPAddress.IPv6Any, "domain");
+            var b = new NameServer(IPAddress.Loopback, "domain2");
+
+            Assert.NotEqual(a, b);
+            Assert.NotEqual(b, a);
+        }
+
+        [Fact]
+        public void EqualityJ()
+        {
+            var a = new NameServer(IPAddress.Loopback, "domain");
+            var b = new NameServer(IPAddress.Loopback, "domain2");
+
+            Assert.Equal(a, b);
+            Assert.Equal(b, a);
+        }
     }
 }
