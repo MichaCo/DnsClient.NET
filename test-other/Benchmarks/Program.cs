@@ -62,10 +62,8 @@ namespace Benchmarks
             {
                 Add(DefaultConfig.Instance);
 
-                var coreJob = Job.MediumRun
-                    //.With(CsProjCoreToolchain.NetCoreApp21)
-                    //.With(Runtime.Core)
-                    //.With(Jit.Default)
+                var coreJob = Job
+                    .MediumRun
                     .WithLaunchCount(1)
                     .WithWarmupCount(3)
                     .WithIterationCount(10)

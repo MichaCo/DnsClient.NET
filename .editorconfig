@@ -223,6 +223,10 @@ dotnet_diagnostic.CA2225.severity = silent
 # interop
 dotnet_diagnostic.CA5392.severity = silent
 
+# Enum value Reserved
+dotnet_diagnostic.CA1700.severity = silent
+dotnet_diagnostic.CA1720.severity = silent
+
 ## Features not avail in all framework targets
 dotnet_diagnostic.CA1510.severity = silent
 dotnet_diagnostic.CA1512.severity = silent

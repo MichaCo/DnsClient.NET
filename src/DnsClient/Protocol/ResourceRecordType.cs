@@ -107,9 +107,7 @@ namespace DnsClient.Protocol
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc1035#section-3.3.12">RFC 1035</seealso>
         /// <seealso cref="PtrRecord"/>
-#pragma warning disable CA1720 // Identifier contains type name
         PTR = 12,
-#pragma warning restore CA1720 // Identifier contains type name
 
         /// <summary>
         /// Host information.
