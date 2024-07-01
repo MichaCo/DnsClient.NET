@@ -3,14 +3,12 @@
 // See LICENSE file for details.
 
 using System;
-using System.Diagnostics;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace DnsClient
 {
     [Serializable]
-    [DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
     public class DnsXidMismatchException : Exception
     {
         public int RequestXid { get; }
@@ -34,11 +32,6 @@ namespace DnsClient
 
         public DnsXidMismatchException(string message, Exception innerException) : base(message, innerException)
         {
-        }
-
-        private string GetDebuggerDisplay()
-        {
-            return ToString();
         }
     }
 }

@@ -42,7 +42,7 @@ jobs:
       command: 'test'
       projects: 'test/**/*.csproj'
       publishTestResults: true      
-      arguments: '-c Release --no-build --no-restore -f net6.0'
+      arguments: '-c Release --no-build --no-restore -f net8.0'
 
 - job: Windows
   displayName: 'Build & Test on Windows'

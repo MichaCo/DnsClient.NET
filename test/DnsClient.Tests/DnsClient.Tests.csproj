@@ -7,7 +7,11 @@
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <PackageId>DnsClient.Tests</PackageId>
     <IsPackable>false</IsPackable>
-    <NoWarn>$(NoWarn);CA1707;CA5403;CA2201;CA1852;CA1062;CA1034;CA1849</NoWarn>
+    <NoWarn>$(NoWarn);CA1707;CA5403;CA2201;CA1852;CA1062;CA1034;CA1849;</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <NoWarn>$(NoWarn);CA1707;CA5403;CA2201;CA1852;CA1062;CA1034;CA1849;CA1823;IDE0052;CA1812</NoWarn>
   </PropertyGroup>
   
   <ItemGroup>

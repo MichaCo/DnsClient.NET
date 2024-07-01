@@ -9,6 +9,6 @@
   </PropertyGroup>
   
   <PropertyGroup>  
-    <LangVersion>latest</LangVersion>
+    <LangVersion>12.0</LangVersion>
   </PropertyGroup>
 </Project>
