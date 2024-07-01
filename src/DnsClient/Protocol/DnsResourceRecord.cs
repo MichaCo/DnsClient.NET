@@ -18,7 +18,7 @@ namespace DnsClient.Protocol
         /// </summary>
         /// <param name="info">The information.</param>
         /// <exception cref="ArgumentNullException">If <paramref name="info"/> is null.</exception>
-        public DnsResourceRecord(ResourceRecordInfo info)
+        protected DnsResourceRecord(ResourceRecordInfo info)
             : base(
                   info?.DomainName ?? throw new ArgumentNullException(nameof(info)),
                   info?.RecordType ?? throw new ArgumentNullException(nameof(info)),
@@ -31,7 +31,7 @@ namespace DnsClient.Protocol
         /// <inheritdoc />
         public override string ToString()
         {
-            return ToString(0);
+            return ToString(offset: 0);
         }
 
         /// <summary>

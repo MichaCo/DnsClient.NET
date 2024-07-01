@@ -178,6 +178,9 @@ dotnet_diagnostic.CA1825.severity = silent
 # CA1835: Prefer the 'Memory'-based overloads for 'ReadAsync' and 'WriteAsync' - (TODO: more improvements needed)
 dotnet_diagnostic.CA1835.severity = silent
 
+# CA1819: Do not return arrays.
+dotnet_diagnostic.CA1819.severity = suggestion
+
 # All the style rules we want to enforce during build...
 dotnet_diagnostic.CA2211.severity = warning
 dotnet_diagnostic.CA2007.severity = warning
@@ -208,6 +211,26 @@ dotnet_diagnostic.IDE0305.severity = none
 
 # use primary ctor
 dotnet_diagnostic.IDE0290.severity = none
+
+dotnet_diagnostic.CA1303.severity = silent
+
+# don't use short for enum
+dotnet_diagnostic.CA1028.severity = silent
+
+# Friendly overload for + operator
+dotnet_diagnostic.CA2225.severity = silent
+
+# interop
+dotnet_diagnostic.CA5392.severity = silent
+
+# Enum value Reserved
+dotnet_diagnostic.CA1700.severity = silent
+dotnet_diagnostic.CA1720.severity = silent
+
+## Features not avail in all framework targets
+dotnet_diagnostic.CA1510.severity = silent
+dotnet_diagnostic.CA1512.severity = silent
+dotnet_diagnostic.CA1513.severity = silent
 
 # Xml project files
 [*.{csproj,vbproj,vcxproj,vcxproj.filters,proj,nativeproj,locproj}]

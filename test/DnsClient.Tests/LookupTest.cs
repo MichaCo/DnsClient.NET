@@ -172,7 +172,7 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Lookup_Query_QuestionCannotBeNull()
         {
-            IDnsQuery client = new LookupClient(NameServer.GooglePublicDns);
+            var client = new LookupClient(NameServer.GooglePublicDns);
 
             Assert.Throws<ArgumentNullException>("question", () => client.Query(null));
             await Assert.ThrowsAsync<ArgumentNullException>("question", () => client.QueryAsync(null));
@@ -181,7 +181,7 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Lookup_Query_SettingsCannotBeNull()
         {
-            IDnsQuery client = new LookupClient(NameServer.GooglePublicDns);
+            var client = new LookupClient(NameServer.GooglePublicDns);
             var question = new DnsQuestion("query", QueryType.A);
             var servers = new NameServer[] { NameServer.GooglePublicDns };
 
@@ -433,7 +433,7 @@ namespace DnsClient.Tests
                 var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A));
 
                 Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
-                Assert.Contains("timed out", ex.Message);
+                Assert.Contains("timed out", ex.Message, StringComparison.OrdinalIgnoreCase);
             }
 
             [Fact]
@@ -450,7 +450,7 @@ namespace DnsClient.Tests
                 var ex = Assert.ThrowsAny<DnsResponseException>(() => client.Query("lala.com", QueryType.A));
 
                 Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
-                Assert.Contains("timed out", ex.Message);
+                Assert.Contains("timed out", ex.Message, StringComparison.OrdinalIgnoreCase);
             }
 
             [Fact]
@@ -467,7 +467,7 @@ namespace DnsClient.Tests
                 var ex = await Assert.ThrowsAnyAsync<DnsResponseException>(() => client.QueryAsync("lala.com", QueryType.A));
 
                 Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
-                Assert.Contains("timed out", ex.Message);
+                Assert.Contains("timed out", ex.Message, StringComparison.OrdinalIgnoreCase);
             }
 
             [Fact]
@@ -484,7 +484,7 @@ namespace DnsClient.Tests
                 var ex = Assert.ThrowsAny<DnsResponseException>(() => client.Query("lala.com", QueryType.A));
 
                 Assert.Equal(DnsResponseCode.ConnectionTimeout, ex.Code);
-                Assert.Contains("timed out", ex.Message);
+                Assert.Contains("timed out", ex.Message, StringComparison.OrdinalIgnoreCase);
             }
         }
 
@@ -502,7 +502,7 @@ namespace DnsClient.Tests
                     });
 
                 // should hit the cancellation timeout, not the 1sec timeout
-                var tokenSource = new CancellationTokenSource(200);
+                using var tokenSource = new CancellationTokenSource(200);
 
                 var token = tokenSource.Token;
 
@@ -523,7 +523,7 @@ namespace DnsClient.Tests
                     });
 
                 // should hit the cancellation timeout, not the 1sec timeout
-                var tokenSource = new CancellationTokenSource(s_timeout);
+                using var tokenSource = new CancellationTokenSource(s_timeout);
 
                 var token = tokenSource.Token;
 
@@ -543,7 +543,7 @@ namespace DnsClient.Tests
                     });
 
                 // should hit the cancellation timeout, not the 1sec timeout
-                var tokenSource = new CancellationTokenSource(s_timeout);
+                using var tokenSource = new CancellationTokenSource(s_timeout);
 
                 var token = tokenSource.Token;
 
@@ -563,7 +563,7 @@ namespace DnsClient.Tests
                     });
 
                 // should hit the cancellation timeout, not the 1sec timeout
-                var tokenSource = new CancellationTokenSource(s_timeout);
+                using var tokenSource = new CancellationTokenSource(s_timeout);
 
                 var token = tokenSource.Token;
 
@@ -581,7 +581,7 @@ namespace DnsClient.Tests
                     UseTcpFallback = false
                 });
 
-            var tokenSource = new CancellationTokenSource();
+            using var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
             Task act() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token);
             tokenSource.Cancel();
@@ -600,7 +600,7 @@ namespace DnsClient.Tests
                     UseTcpOnly = true
                 });
 
-            var tokenSource = new CancellationTokenSource();
+            using var tokenSource = new CancellationTokenSource();
             var token = tokenSource.Token;
             Task act() => client.QueryAsync("lala.com", QueryType.A, cancellationToken: token);
             tokenSource.Cancel();
@@ -803,7 +803,7 @@ namespace DnsClient.Tests
             var queryResult = client.QueryReverse(ip);
 
             Assert.Equal("4.4.8.8.in-addr.arpa.", result);
-            Assert.Contains("dns.google", queryResult.Answers.PtrRecords().First().PtrDomainName);
+            Assert.Contains("dns.google", queryResult.Answers.PtrRecords().First().PtrDomainName, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -816,7 +816,7 @@ namespace DnsClient.Tests
             var queryResult = client.QueryReverse(ip);
 
             Assert.Equal("8.8.8.8.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.6.8.4.0.6.8.4.1.0.0.2.ip6.arpa.", result);
-            Assert.Contains("dns.google", queryResult.Answers.PtrRecords().First().PtrDomainName);
+            Assert.Contains("dns.google", queryResult.Answers.PtrRecords().First().PtrDomainName, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -848,14 +848,14 @@ namespace DnsClient.Tests
             Assert.Equal("d1.domain1.dcdt31.healthit.gov.", certRecord.DomainName);
             Assert.Equal(CertificateType.PKIX, certRecord.CertType);
 
-            var cert = new X509Certificate2(Convert.FromBase64String(certRecord.PublicKeyAsString));
+            using var cert = new X509Certificate2(Convert.FromBase64String(certRecord.PublicKeyAsString));
             Assert.Equal("sha256RSA", cert.SignatureAlgorithm.FriendlyName);
             Assert.Equal("CN=D1_valA, E=d1@domain1.dcdt31.healthit.gov", cert.Subject);
 
             var x509Extension = cert.Extensions["2.5.29.17"];
             Assert.NotNull(x509Extension);
             var asnData = new AsnEncodedData(x509Extension.Oid, x509Extension.RawData);
-            Assert.Contains("d1@domain1.dcdt31.healthit.gov", asnData.Format(false));
+            Assert.Contains("d1@domain1.dcdt31.healthit.gov", asnData.Format(false), StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]

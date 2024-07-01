@@ -12,12 +12,12 @@ using System.Threading.Tasks;
 
 namespace DnsClient.PerfTestHost
 {
-    internal class Program
+    internal static class Program
     {
         private static async Task Main()
         {
             var port = 5053;
-            var server = new StaticDnsServer(
+            using var server = new StaticDnsServer(
                 printStats: false,
                 port: port,
                 workers: 2);

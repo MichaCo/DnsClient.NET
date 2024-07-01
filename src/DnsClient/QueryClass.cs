@@ -27,6 +27,11 @@ namespace DnsClient
     public enum QueryClass : short
     {
         /// <summary>
+        /// Nothing.
+        /// </summary>
+        Node = 0,
+
+        /// <summary>
         /// The Internet.
         /// </summary>
         IN = 1,

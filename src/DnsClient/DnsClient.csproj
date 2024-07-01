@@ -33,17 +33,9 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <DebugType>portable</DebugType>
-    
-    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
-  <PropertyGroup>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <AnalysisMode>Default</AnalysisMode>
-  </PropertyGroup>
-
+  
   <ItemGroup>
     <None Include="..\..\icon.png" Pack="true" PackagePath="" />
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />

@@ -93,6 +93,11 @@ namespace Benchmarks
 
             public static IEnumerable<byte[]> SplitString(string input)
             {
+                if (input is null)
+                {
+                    throw new ArgumentNullException(nameof(input));
+                }
+
                 foreach (var label in input.Split(new char[] { '.' }, StringSplitOptions.None))
                 {
                     yield return Encoding.UTF8.GetBytes(label);
@@ -104,6 +109,11 @@ namespace Benchmarks
 
             public static IEnumerable<ArraySegment<byte>> ManualSplitBytes(string input)
             {
+                if (input is null)
+                {
+                    throw new ArgumentNullException(nameof(input));
+                }
+
                 var bytes = Encoding.UTF8.GetBytes(input);
 
                 int lastStop = 0;

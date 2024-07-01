@@ -129,11 +129,13 @@ namespace DnsClient.Tests
         {
             var opt = new LookupClientSettings(new LookupClientOptions() { AutoResolveNameServers = false });
 
+#pragma warning disable CA1508 // Avoid dead conditional code, testing custom Equals impl
             // typed overload
             Assert.False(opt.Equals(null));
 
             // object overload
             Assert.False(opt.Equals((object)null));
+#pragma warning restore CA1508 // Avoid dead conditional code
         }
 
         [Fact]
@@ -1000,7 +1002,7 @@ namespace DnsClient.Tests
                 LastServer = server;
                 LastRequest = request;
 
-                var writer = new DnsDatagramWriter(new ArraySegment<byte>(s_zoneData.ToArray()));
+                using var writer = new DnsDatagramWriter(new ArraySegment<byte>(s_zoneData.ToArray()));
                 writer.Index = 0;
                 writer.WriteInt16NetworkOrder((short)request.Header.Id);
                 writer.Index = s_zoneData.Length;

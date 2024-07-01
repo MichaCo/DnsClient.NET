@@ -13,24 +13,24 @@ namespace Benchmarks
     {
         public class ListConcat
         {
-            public static ArraySegment<byte>[] _sourceData;
-            public static List<ArraySegment<byte>> _source;
+            private static ArraySegment<byte>[] s_sourceData;
+            private static List<ArraySegment<byte>> s_source;
 
             public ListConcat()
             {
                 byte[] bytes = Enumerable.Repeat((byte)192, 200).ToArray();
-                _sourceData = Enumerable.Repeat(new ArraySegment<byte>(bytes), 10).ToArray();
-                _source = new List<ArraySegment<byte>>(_sourceData);
+                s_sourceData = Enumerable.Repeat(new ArraySegment<byte>(bytes), 10).ToArray();
+                s_source = new List<ArraySegment<byte>>(s_sourceData);
             }
 
             [Benchmark]
             public List<ArraySegment<byte>> List_Concat()
             {
-                var start = new List<ArraySegment<byte>>(_source);
-                var concat = start.Concat(_source);
+                var start = new List<ArraySegment<byte>>(s_source);
+                var concat = start.Concat(s_source);
 
                 var result = concat.ToList();
-                if (result.Count != _source.Count * 2)
+                if (result.Count != s_source.Count * 2)
                 {
                     throw new Exception();
                 }
@@ -40,13 +40,13 @@ namespace Benchmarks
             [Benchmark]
             public List<ArraySegment<byte>> List_AddForEach()
             {
-                var start = new List<ArraySegment<byte>>(_source);
-                foreach (var str in _source)
+                var start = new List<ArraySegment<byte>>(s_source);
+                foreach (var str in s_source)
                 {
                     start.Add(str);
                 }
 
-                if (start.Count != _source.Count * 2)
+                if (start.Count != s_source.Count * 2)
                 {
                     throw new Exception();
                 }
@@ -56,10 +56,10 @@ namespace Benchmarks
             [Benchmark(Baseline = true)]
             public List<ArraySegment<byte>> List_AddRange()
             {
-                var start = new List<ArraySegment<byte>>(_source);
-                start.AddRange(_source);
+                var start = new List<ArraySegment<byte>>(s_source);
+                start.AddRange(s_source);
 
-                if (start.Count != _source.Count * 2)
+                if (start.Count != s_source.Count * 2)
                 {
                     throw new Exception();
                 }
@@ -69,12 +69,12 @@ namespace Benchmarks
             [Benchmark]
             public List<ArraySegment<byte>> List_ArrayCopy()
             {
-                ArraySegment<byte>[] a = new ArraySegment<byte>[_source.Count * 2];
-                Array.Copy(_sourceData, a, _source.Count);
-                Array.Copy(_sourceData, a, _source.Count);
+                ArraySegment<byte>[] a = new ArraySegment<byte>[s_source.Count * 2];
+                Array.Copy(s_sourceData, a, s_source.Count);
+                Array.Copy(s_sourceData, a, s_source.Count);
 
                 var result = new List<ArraySegment<byte>>(a);
-                if (result.Count != _source.Count * 2)
+                if (result.Count != s_source.Count * 2)
                 {
                     throw new Exception();
                 }

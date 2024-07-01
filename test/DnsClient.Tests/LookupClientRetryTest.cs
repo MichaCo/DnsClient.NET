@@ -953,7 +953,7 @@ namespace DnsClient.Tests
             var result = Assert.ThrowsAny<DnsResponseException>(() => lookup.Query(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
             Assert.Single(calledIps);
-            Assert.Contains("truncated and UseTcpFallback is disabled", result.Message);
+            Assert.Contains("truncated and UseTcpFallback is disabled", result.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -986,7 +986,7 @@ namespace DnsClient.Tests
             var result = await Assert.ThrowsAnyAsync<DnsResponseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
             Assert.Single(calledIps);
-            Assert.Contains("truncated and UseTcpFallback is disabled", result.Message);
+            Assert.Contains("truncated and UseTcpFallback is disabled", result.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -1029,7 +1029,7 @@ namespace DnsClient.Tests
             var lookup = new LookupClient(options, udpMessageHandler, tcpMessageHandler);
             var result = Assert.ThrowsAny<DnsResponseParseException>(() => lookup.Query(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
-            Assert.Contains("1000 bytes available", result.Message);
+            Assert.Contains("1000 bytes available", result.Message, StringComparison.OrdinalIgnoreCase);
 
             Assert.True(calledUdp);
             Assert.False(calledTcp);
@@ -1078,7 +1078,7 @@ namespace DnsClient.Tests
             var lookup = new LookupClient(options, udpMessageHandler, tcpMessageHandler);
             var result = await Assert.ThrowsAnyAsync<DnsResponseParseException>(() => lookup.QueryAsync(new DnsQuestion("test.com", QueryType.A, QueryClass.IN)));
 
-            Assert.Contains("1000 bytes available", result.Message);
+            Assert.Contains("1000 bytes available", result.Message, StringComparison.OrdinalIgnoreCase);
 
             Assert.True(calledUdp);
             Assert.False(calledTcp);
@@ -1304,7 +1304,7 @@ namespace DnsClient.Tests
 
             // This should fail right away because there is no need to ask other servers for the same truncated response
             Assert.Single(calledIps);
-            Assert.Contains("Response was truncated and UseTcpFallback is disabled", result.Message);
+            Assert.Contains("Response was truncated and UseTcpFallback is disabled", result.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -1341,7 +1341,7 @@ namespace DnsClient.Tests
 
             // This should fail right away because there is no need to ask other servers for the same truncated response
             Assert.Single(calledIps);
-            Assert.Contains("Response was truncated and UseTcpFallback is disabled", result.Message);
+            Assert.Contains("Response was truncated and UseTcpFallback is disabled", result.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         /* transient timeout errors */

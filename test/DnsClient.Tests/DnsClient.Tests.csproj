@@ -1,20 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>
-      net472;
-      net6.0;
-    </TargetFrameworks>
+    <TargetFrameworks>net472;net8.0;</TargetFrameworks>
     <AssemblyName>DnsClient.Tests</AssemblyName>
     <AssemblyOriginatorKeyFile>../../tools/key.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
     <PackageId>DnsClient.Tests</PackageId>
     <IsPackable>false</IsPackable>
-    <LangVersion>latest</LangVersion>
+    <NoWarn>$(NoWarn);CA1707;CA5403;CA2201;CA1852;CA1062;CA1034;CA1849</NoWarn>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <NoWarn>CA1822;CA1707;</NoWarn>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <NoWarn>$(NoWarn);CA1707;CA5403;CA2201;CA1852;CA1062;CA1034;CA1849;CA1823;IDE0052;CA1812;IDE0055</NoWarn>
   </PropertyGroup>
   
   <ItemGroup>
@@ -30,12 +27,12 @@
   <ItemGroup>
     <ProjectReference Include="..\..\test-other\OldReference\OldReference.csproj" />
     <PackageReference Include="Moq" Version="4.20.70" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.9.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit" Version="2.8.1" />
   </ItemGroup>
   
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">

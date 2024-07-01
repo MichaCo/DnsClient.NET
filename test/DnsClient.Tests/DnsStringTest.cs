@@ -101,7 +101,7 @@ namespace DnsClient.Tests
             var ex = Record.Exception(() => DnsString.Parse("www.goo0000000000000000000000000000000000000000000000000000000000001.com"));
 
             Assert.NotNull(ex);
-            Assert.Contains("is longer than " + DnsString.LabelMaxLength, ex.Message);
+            Assert.Contains("is longer than " + DnsString.LabelMaxLength, ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -110,7 +110,7 @@ namespace DnsClient.Tests
             var ex = Record.Exception(() => DnsString.Parse("www.goo000000000000000000000000000000000000000000000000000000000000.goo000000000000000000000000000000000000000000000000000000000000.goo000000000000000000000000000000000000000000000000000000000000.goo000000000000000000000000000000000000000000000000000.com"));
 
             Assert.NotNull(ex);
-            Assert.Contains("maximum of " + DnsString.QueryMaxLength, ex.Message);
+            Assert.Contains("maximum of " + DnsString.QueryMaxLength, ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         //// relaxed puny code rules
@@ -129,7 +129,7 @@ namespace DnsClient.Tests
             var ex = Record.Exception(() => DnsString.Parse(".www.google.com"));
 
             Assert.NotNull(ex);
-            Assert.Contains("found leading root", ex.Message);
+            Assert.Contains("found leading root", ex.Message, StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]

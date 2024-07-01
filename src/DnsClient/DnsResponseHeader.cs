@@ -13,7 +13,7 @@ namespace DnsClient
     /// </summary>
     public class DnsResponseHeader
     {
-        private readonly ushort _flags = 0;
+        private readonly ushort _flags;
 
         /// <summary>
         /// Gets the number of additional records in the <see cref="IDnsQueryResponse"/>.
@@ -178,7 +178,7 @@ namespace DnsClient
                         IsAuthenticData ? "ad" : ""
                     };
 
-            var flagsString = string.Join(" ", flags.Where(p => p != ""));
+            var flagsString = string.Join(" ", flags.Where(p => !string.IsNullOrEmpty(p)));
             return $"{head}\r\n;; flags: {flagsString}; QUERY: {QuestionCount}, " +
                 $"ANSWER: {AnswerCount}, AUTHORITY: {NameServerCount}, ADDITIONAL: {AdditionalCount}";
         }

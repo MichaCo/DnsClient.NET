@@ -16,12 +16,12 @@ using DnsClient;
 namespace Benchmarks
 {
     [ExcludeFromCodeCoverage]
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
             var port = 5053;
-            var server = new StaticDnsServer(
+            using var server = new StaticDnsServer(
                 printStats: false,
                 port: port,
                 workers: 1);
@@ -62,10 +62,8 @@ namespace Benchmarks
             {
                 Add(DefaultConfig.Instance);
 
-                var coreJob = Job.MediumRun
-                    //.With(CsProjCoreToolchain.NetCoreApp21)
-                    //.With(Runtime.Core)
-                    //.With(Jit.Default)
+                var coreJob = Job
+                    .MediumRun
                     .WithLaunchCount(1)
                     .WithWarmupCount(3)
                     .WithIterationCount(10)

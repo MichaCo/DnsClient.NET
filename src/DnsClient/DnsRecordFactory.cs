@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using DnsClient.Protocol;
 using DnsClient.Protocol.Options;
@@ -306,7 +307,7 @@ namespace DnsClient
             var algorithm = (SshfpAlgorithm)_reader.ReadByte();
             var fingerprintType = (SshfpFingerprintType)_reader.ReadByte();
             var fingerprint = _reader.ReadBytes(info.RawDataLength - 2).ToArray();
-            var fingerprintHexString = string.Join(string.Empty, fingerprint.Select(b => b.ToString("X2")));
+            var fingerprintHexString = string.Join(string.Empty, fingerprint.Select(b => b.ToString("X2", CultureInfo.InvariantCulture)));
             return new SshfpRecord(info, algorithm, fingerprintType, fingerprintHexString);
         }
 

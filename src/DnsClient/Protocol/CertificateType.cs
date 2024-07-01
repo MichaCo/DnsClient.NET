@@ -15,7 +15,7 @@ public enum CertificateType
     /// <summary>
     /// Reserved certificate type.
     /// </summary>
-    Reserved = 0,
+    None = 0,
     /// <summary>
     /// X.509 as per PKIX
     /// </summary>

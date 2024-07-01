@@ -89,7 +89,7 @@ namespace DnsClient.Protocol
             Flags = flags;
             Iterations = iterations;
             Salt = salt ?? throw new ArgumentNullException(nameof(salt));
-            SaltAsString = Salt.Length == 0 ? "-" : string.Join(string.Empty, Salt.Select(b => b.ToString("X2")));
+            SaltAsString = Salt.Length == 0 ? "-" : string.Join(string.Empty, Salt.Select(b => b.ToString("X2", CultureInfo.InvariantCulture)));
         }
 
         private protected override string RecordToString()

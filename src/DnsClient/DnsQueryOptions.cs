@@ -38,7 +38,7 @@ namespace DnsClient
         /// Default is <c>False</c>.
         /// </summary>
         /// <seealso cref="IDnsQueryResponse.AuditTrail"/>
-        public bool EnableAuditTrail { get; set; } = false;
+        public bool EnableAuditTrail { get; set; }
 
         /// <summary>
         /// Gets or sets a flag indicating whether DNS queries should use response caching or not.
@@ -91,7 +91,7 @@ namespace DnsClient
         /// </remarks>
         /// <seealso cref="DnsResponseCode"/>
         /// <seealso cref="ContinueOnDnsError"/>
-        public bool ThrowDnsErrors { get; set; } = false;
+        public bool ThrowDnsErrors { get; set; }
 
         /// <summary>
         /// Gets or sets a flag indicating whether the <see cref="ILookupClient"/> can cycle through all
@@ -188,7 +188,7 @@ namespace DnsClient
         /// Also, zone transfers (see <see cref="QueryType.AXFR"/>) must use TCP only.
         /// </para>
         /// </summary>
-        public bool UseTcpOnly { get; set; } = false;
+        public bool UseTcpOnly { get; set; }
 
         /// <summary>
         /// Gets or sets the maximum buffer used for UDP requests.
@@ -215,14 +215,14 @@ namespace DnsClient
         /// Gets or sets a flag indicating whether EDNS should be enabled and the <c>DO</c> flag should be set.
         /// Defaults to <c>False</c>.
         /// </summary>
-        public bool RequestDnsSecRecords { get; set; } = false;
+        public bool RequestDnsSecRecords { get; set; }
 
         /// <summary>
         /// Gets or sets a flag indicating whether the DNS failures are being cached. The purpose of caching 
         /// failures is to reduce repeated lookup attempts within a short space of time.
         /// Defaults to <c>False</c>.
         /// </summary>
-        public bool CacheFailedResults { get; set; } = false;
+        public bool CacheFailedResults { get; set; }
 
         /// <summary>
         /// Gets or sets the duration to cache failed lookups. Does not apply if failed lookups are not being cached.
@@ -795,7 +795,9 @@ namespace DnsClient
 
                 for (var i = servers.Length; i > 0; i--)
                 {
+#pragma warning disable CA5394 // Do not use insecure randomness
                     var j = _rnd.Next(0, i);
+#pragma warning restore CA5394 // Do not use insecure randomness
                     var temp = servers[j];
                     servers[j] = servers[i - 1];
                     servers[i - 1] = temp;
@@ -819,6 +821,11 @@ namespace DnsClient
         public LookupClientSettings(LookupClientOptions options)
             : base(options)
         {
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             MinimumCacheTimeout = options.MinimumCacheTimeout;
             MaximumCacheTimeout = options.MaximumCacheTimeout;
         }

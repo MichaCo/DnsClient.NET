@@ -117,7 +117,7 @@ namespace DigApp
                 Console.WriteLine($"; Servers: {string.Join(", ", lookup.NameServers)}");
 
                 var parsedDnsString = DnsString.Parse(useDomain);
-                if (parsedDnsString.NumberOfLabels == 1 && !parsedDnsString.Original.EndsWith("."))
+                if (parsedDnsString.NumberOfLabels == 1 && !parsedDnsString.Original.EndsWith(".", StringComparison.Ordinal))
                 {
                     foreach (var server in lookup.NameServers)
                     {

@@ -278,10 +278,8 @@ namespace DnsClient
     /// A DnsClient specific exception transporting additional information about the query causing this exception.
     /// </summary>
     /// <seealso cref="Exception" />
-#if !NETSTANDARD1_3
-    [Serializable]
-#endif
 
+    [Serializable]
     public class DnsResponseException : Exception
     {
         /// <summary>
@@ -420,12 +418,12 @@ namespace DnsClient
 
         public static string GetErrorText(DnsResponseCode code)
         {
-            if (!s_errors.ContainsKey(code))
+            if (!s_errors.TryGetValue(code, out var value))
             {
                 return Unassigned;
             }
 
-            return s_errors[code];
+            return value;
         }
     }
 }

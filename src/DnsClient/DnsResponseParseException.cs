@@ -9,12 +9,8 @@ using System.Linq;
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 namespace DnsClient
 {
-#if !NETSTANDARD1_3
     [Serializable]
-#endif
-
     public class DnsResponseParseException : Exception
-
     {
         public byte[] ResponseData { get; }
 
@@ -37,9 +33,9 @@ namespace DnsClient
         }
 
         public DnsResponseParseException(string message, byte[] data, int index = 0, int length = 0, Exception innerException = null)
-            : this(s_defaultMessage(data.Length, index, length, message, FormatData(data, index, length)), innerException)
+            : this(s_defaultMessage(data?.Length ?? 0, index, length, message, FormatData(data, index, length)), innerException)
         {
-            ResponseData = data ?? throw new ArgumentNullException(nameof(data));
+            ResponseData = data;
             Index = index;
             ReadLength = length;
         }

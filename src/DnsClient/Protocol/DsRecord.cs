@@ -67,7 +67,7 @@ namespace DnsClient.Protocol
             Algorithm = (DnsSecurityAlgorithm)algorithm;
             DigestType = digestType;
             Digest = digest ?? throw new ArgumentNullException(nameof(digest));
-            DigestAsString = string.Join(string.Empty, digest.Select(b => b.ToString("X2")));
+            DigestAsString = string.Join(string.Empty, digest.Select(b => b.ToString("X2", CultureInfo.InvariantCulture)));
         }
 
         private protected override string RecordToString()

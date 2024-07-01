@@ -12,7 +12,7 @@ using DnsClient.Internal;
 
 namespace DnsClient
 {
-    public class StaticDnsServer
+    public sealed class StaticDnsServer : IDisposable
     {
         public const int AnyPort = IPEndPoint.MinPort;
         public static readonly IPEndPoint AnyIPEndPoint = new IPEndPoint(IPAddress.Any, AnyPort);
@@ -30,7 +30,7 @@ namespace DnsClient
         private int[] _workerHitCounter = new int[4];
         private UdpClient _server;
         private CancellationTokenSource _cancelSource;
-        private bool _running = false;
+        private bool _running;
 
         public StaticDnsServer(bool printStats = true, int port = 5053, int workers = 4)
         {
@@ -97,6 +97,16 @@ namespace DnsClient
             catch { }
         }
 
+        public void Dispose()
+        {
+            _cancelSource.Dispose();
+            try
+            {
+                _server.Dispose();
+            }
+            catch { }
+        }
+
         private void HandleRequest(int id)
         {
             while (!_cancelSource.IsCancellationRequested)
@@ -118,27 +128,6 @@ namespace DnsClient
             }
         }
 
-        ////private async Task HandleRequestAsync(int id)
-        ////{
-        ////    while (!_cancelSource.IsCancellationRequested)
-        ////    {
-        ////        try
-        ////        {
-        ////            using (var memory = new PooledBytes(512))
-        ////            {
-        ////                var segment = new ArraySegment<byte>(memory.Buffer, 0, memory.Buffer.Length);
-        ////                var result = await _server.Client.ReceiveFromAsync(segment, SocketFlags.None, AnyIPEndPoint);
-        ////                Interlocked.Increment(ref _workerHitCounter[id]);
-        ////                await HandleResponseSocketPooledAsync(_server.Client, result.RemoteEndPoint, segment);
-        ////            }
-        ////        }
-        ////        catch
-        ////        {
-        ////            break;
-        ////        }
-        ////    }
-        ////}
-
         private void HandleResponseSocketPooled(Socket server, EndPoint remoteEndpoint, byte[] receiveBuffer)
         {
             using (var memory = new PooledBytes(s_response.Length))
@@ -154,21 +143,5 @@ namespace DnsClient
                 server.SendTo(memory.Buffer, 0, memory.Buffer.Length, SocketFlags.None, remoteEndpoint);
             }
         }
-
-        ////private async Task HandleResponseSocketPooledAsync(Socket server, EndPoint remoteEndpoint, ArraySegment<byte> receiveBuffer)
-        ////{
-        ////    using (var memory = new PooledBytes(s_response.Length))
-        ////    {
-        ////        //Buffer.BlockCopy(Response, 0, memory.Buffer, 0, Response.Length);
-        ////        memory.Buffer[0] = receiveBuffer.Array[0];
-        ////        memory.Buffer[1] = receiveBuffer.Array[1];
-        ////        for (var i = 2; i < s_response.Length; i++)
-        ////        {
-        ////            memory.Buffer[i] = s_response[i];
-        ////        }
-
-        ////        await server.SendToAsync(new ArraySegment<byte>(memory.Buffer, 0, memory.Buffer.Length), SocketFlags.None, remoteEndpoint);
-        ////    }
-        ////}
     }
 }

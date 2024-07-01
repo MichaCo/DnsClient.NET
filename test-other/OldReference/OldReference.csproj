@@ -1,17 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net472;net60</TargetFrameworks>
+    <TargetFrameworks>net472;net8.0</TargetFrameworks>
     <AssemblyOriginatorKeyFile>../../tools/key.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
-    <NoWarn>CA1707</NoWarn>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1034;CA2211;CA1707;CA2201;CA1711;CA1002;CA1861</NoWarn>
   </PropertyGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
     <PackageReference Include="DnsClient" Version="1.1.0" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net60' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net8.0' ">
     <PackageReference Include="DnsClient" Version="1.2.0" />
   </ItemGroup>
+
 </Project>

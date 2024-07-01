@@ -71,7 +71,7 @@ namespace Benchmarks
             [Benchmark(OperationsPerInvoke = OpsPerMultiRun)]
             public void QuerySyncMulti()
             {
-                Parallel.Invoke(Enumerable.Repeat<Action>(() => Query(), OpsPerMultiRun).ToArray());
+                Parallel.Invoke(Enumerable.Repeat(() => Query(), OpsPerMultiRun).ToArray());
 
                 void Query()
                 {

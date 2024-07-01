@@ -2,11 +2,14 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1034;CA2211;CA1707;CA2201;CA1711;CA1002;CA1861</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DnsClient\DnsClient.csproj" />
     <ProjectReference Include="..\DnsClient.TestsCommon\DnsClient.TestsCommon.csproj" />
   </ItemGroup>
+
 </Project>

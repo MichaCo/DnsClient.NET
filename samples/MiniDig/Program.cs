@@ -9,14 +9,14 @@ using McMaster.Extensions.CommandLineUtils;
 
 namespace DigApp
 {
-    public class Program
+    public static class Program
     {
         public static async Task<int> Main(string[] args)
         {
             DnsClient.Tracing.Source.Switch.Level = SourceLevels.Warning;
             DnsClient.Tracing.Source.Listeners.Add(new ConsoleTraceListener());
 
-            var app = new CommandLineApplication();
+            using var app = new CommandLineApplication();
             app.UnrecognizedArgumentHandling = UnrecognizedArgumentHandling.Throw;
 
             try

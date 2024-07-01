@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29806.167
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{3D3BE1AD-F551-420A-A81D-4CB88286C8CD}"
 EndProject
@@ -11,6 +11,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.gitignore = .gitignore
 		.runsettings = .runsettings
 		azure-pipelines-ci.yml = azure-pipelines-ci.yml
+		directory.build.props = directory.build.props
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -22,8 +23,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MiniDig", "samples\MiniDig\MiniDig.csproj", "{CEC9D7AD-8000-4FC6-8EB3-AC1417B9808A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnsClient.Tests", "test\DnsClient.Tests\DnsClient.Tests.csproj", "{01902674-53A3-4E81-B08F-CFAA7CA62F56}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ApiDesign", "test-other\ApiDesign\ApiDesign.csproj", "{2F789CAA-31E5-4394-96B9-1B06A1AA5EA0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DnsClient", "src\DnsClient\DnsClient.csproj", "{493E6161-7F71-4A59-AB28-B4A5E45A5E27}"
 EndProject
@@ -62,10 +61,6 @@ Global
 		{01902674-53A3-4E81-B08F-CFAA7CA62F56}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{01902674-53A3-4E81-B08F-CFAA7CA62F56}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{01902674-53A3-4E81-B08F-CFAA7CA62F56}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2F789CAA-31E5-4394-96B9-1B06A1AA5EA0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2F789CAA-31E5-4394-96B9-1B06A1AA5EA0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2F789CAA-31E5-4394-96B9-1B06A1AA5EA0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2F789CAA-31E5-4394-96B9-1B06A1AA5EA0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{493E6161-7F71-4A59-AB28-B4A5E45A5E27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{493E6161-7F71-4A59-AB28-B4A5E45A5E27}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{493E6161-7F71-4A59-AB28-B4A5E45A5E27}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -97,7 +92,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{CEC9D7AD-8000-4FC6-8EB3-AC1417B9808A} = {A1BE93CF-0106-495B-9720-008046657391}
 		{01902674-53A3-4E81-B08F-CFAA7CA62F56} = {34E43CED-3DF4-49CE-8556-69225ABD84E6}
-		{2F789CAA-31E5-4394-96B9-1B06A1AA5EA0} = {28CFF2BF-88D0-481F-829E-43B51DE7FB1F}
 		{493E6161-7F71-4A59-AB28-B4A5E45A5E27} = {3D3BE1AD-F551-420A-A81D-4CB88286C8CD}
 		{7461E2C7-008E-4E61-ABC3-AF85DE37084B} = {28CFF2BF-88D0-481F-829E-43B51DE7FB1F}
 		{8422A76D-CC40-4B4B-AA03-C17C3D86A073} = {28CFF2BF-88D0-481F-829E-43B51DE7FB1F}

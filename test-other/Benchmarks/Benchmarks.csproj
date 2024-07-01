@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 
     <AssemblyName>Benchmarks</AssemblyName>
@@ -10,23 +10,22 @@
     <SignAssembly>true</SignAssembly>
 
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <LangVersion>7.2</LangVersion>
+    <IsPackable>false</IsPackable>
+
+    <NoWarn>$(NoWarn);CA1034;CA2211;CA1707;CA2201;CA1711;CA1002;CA1861;CA1852</NoWarn>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <Optimize>True</Optimize>
   </PropertyGroup>
   
-  <PropertyGroup>
-    <NoWarn>1701;1702;CA1707;CA1822;CA2211</NoWarn>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\DnsClient\DnsClient.csproj" />
     <ProjectReference Include="..\DnsClient.TestsCommon\DnsClient.TestsCommon.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="BenchmarkDotNet" Version="0.12.1" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
   </ItemGroup>
+
 </Project>

@@ -135,7 +135,7 @@ namespace Benchmarks
                 for (int i = 0; i < Ops; i++)
                 {
                     var netInt = IPAddress.HostToNetworkOrder(i);
-                    MemoryMarshal.TryWrite(_forMemoryBuffer, ref netInt);
+                    MemoryMarshal.TryWrite(_forMemoryBuffer, in netInt);
                 }
             }
 
@@ -145,7 +145,7 @@ namespace Benchmarks
                 for (int i = 0; i < Ops; i++)
                 {
                     var netInt = IPAddress.HostToNetworkOrder(i);
-                    MemoryMarshal.Write(_forMemoryBuffer, ref netInt);
+                    MemoryMarshal.Write(_forMemoryBuffer, in netInt);
                 }
             }
 
@@ -455,6 +455,8 @@ namespace Benchmarks
 
             protected override void Dispose(bool disposing)
             {
+                base.Dispose(disposing);
+
                 if (disposing)
                 {
                     _ownedMemory?.Dispose();

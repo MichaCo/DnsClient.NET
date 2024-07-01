@@ -18,6 +18,11 @@ namespace DnsClient
     public enum QueryType
     {
         /// <summary>
+        /// Nothing.
+        /// </summary>
+        None = 0,
+
+        /// <summary>
         /// A host address.
         /// </summary>
         /// <seealso href="https://tools.ietf.org/html/rfc1035">RFC 1035</seealso>

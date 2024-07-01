@@ -5,13 +5,10 @@
     <AssemblyName>MiniDig</AssemblyName>
     <OutputType>Exe</OutputType>
     <PackageId>MiniDig</PackageId>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA2214;CA2008;CA5394;CA1865;CA1849;CA1307;</NoWarn>
   </PropertyGroup>
-  <PropertyGroup>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-  </PropertyGroup>
+
   <ItemGroup>
     <None Update="names.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -24,6 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.0" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.1.1" />
   </ItemGroup>
 </Project>

@@ -139,6 +139,20 @@ namespace DnsClient
         /// </summary>
         /// <param name="endPoint">The endpoint.</param>
         public static implicit operator NameServer(IPEndPoint endPoint)
+            => ToNameServer(endPoint);
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NameServer"/> class from a <see cref="IPAddress"/>.
+        /// </summary>
+        /// <param name="address">The address.</param>
+        public static implicit operator NameServer(IPAddress address)
+            => ToNameServer(address);
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NameServer"/> class from a <see cref="IPEndPoint"/>.
+        /// </summary>
+        /// <param name="endPoint">The endpoint.</param>
+        public static NameServer ToNameServer(IPEndPoint endPoint)
         {
             if (endPoint == null)
             {
@@ -151,15 +165,15 @@ namespace DnsClient
         /// <summary>
         /// Initializes a new instance of the <see cref="NameServer"/> class from a <see cref="IPAddress"/>.
         /// </summary>
-        /// <param name="address">The address.</param>
-        public static implicit operator NameServer(IPAddress address)
+        /// <param name="endPoint">The address.</param>
+        public static NameServer ToNameServer(IPAddress endPoint)
         {
-            if (address == null)
+            if (endPoint == null)
             {
                 return null;
             }
 
-            return new NameServer(address);
+            return new NameServer(endPoint);
         }
 
         /// <summary>
