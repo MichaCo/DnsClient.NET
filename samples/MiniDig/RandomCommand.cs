@@ -198,13 +198,14 @@ namespace DigApp
                     {
                         _spinner.Message = $"[{number}] {query} {type}";
 
+                        var useServer = _settings.NameServers.OrderBy(x => s_randmom.Next()).Take(s_randmom.Next(1, _settings.NameServers.Count)).ToArray();
                         if (!_runSync)
                         {
-                            response = await lookup.QueryAsync(query, type).ConfigureAwait(false);
+                            response = await lookup.QueryServerAsync(useServer, query, type).ConfigureAwait(false);
                         }
                         else
                         {
-                            response = await Task.Run(() => lookup.Query(query, type)).ConfigureAwait(false);
+                            response = await Task.Run(() => lookup.QueryServer(useServer, query, type)).ConfigureAwait(false);
                         }
 
                         Interlocked.Increment(ref _allExcecutions);

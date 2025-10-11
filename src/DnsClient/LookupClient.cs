@@ -543,7 +543,7 @@ namespace DnsClient
             }
 
             var head = new DnsRequestHeader(queryOptions.Recursion, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, question, queryOptions);
+            using var request = new DnsRequestMessage(head, question, queryOptions);
             var handler = queryOptions.UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
             var audit = queryOptions.EnableAuditTrail ? new LookupClientAudit(queryOptions) : null;
 
@@ -599,7 +599,7 @@ namespace DnsClient
             }
 
             var head = new DnsRequestHeader(queryOptions.Recursion, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, question, queryOptions);
+            using var request = new DnsRequestMessage(head, question, queryOptions);
             var handler = queryOptions.UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
             var audit = queryOptions.EnableAuditTrail ? new LookupClientAudit(queryOptions) : null;
 
@@ -636,7 +636,7 @@ namespace DnsClient
         }
 
         private IDnsQueryResponse ResolveQuery(
-            IReadOnlyList<NameServer> servers,
+            List<NameServer> servers,
             DnsQuerySettings settings,
             DnsMessageHandler handler,
             DnsRequestMessage request,
@@ -661,7 +661,7 @@ namespace DnsClient
                     request.Header.RefreshId();
                 }
 
-                if (settings.EnableAuditTrail && !isLastServer)
+                if (settings.EnableAuditTrail && serverIndex > 0 && !isLastServer)
                 {
                     audit?.AuditRetryNextServer();
                 }
@@ -751,7 +751,7 @@ namespace DnsClient
                     }
                     catch (DnsXidMismatchException ex)
                     {
-                        var handle = HandleDnsXidMismatchException(ex, request, settings, handler.Type, isLastServer, isLastTry, tries);
+                        var handle = HandleDnsXidMismatchException(ex, request, settings, handler.Type, isLastServer: isLastServer, isLastTry: isLastTry, currentTry: tries);
 
                         if (handle == HandleError.RetryCurrentServer)
                         {
@@ -818,6 +818,8 @@ namespace DnsClient
                     {
                         var handle = HandleTimeoutException(ex, request, settings, serverInfo, handler.Type, isLastServer: isLastServer, isLastTry: isLastTry, currentTry: tries);
 
+                        audit?.AuditTimeout(request.Header.Id, request.Question, serverInfo);
+
                         if (handle == HandleError.RetryCurrentServer)
                         {
                             continue;
@@ -829,7 +831,7 @@ namespace DnsClient
 
                         throw new DnsResponseException(
                             DnsResponseCode.ConnectionTimeout,
-                            $"Query {request.Header.Id} => {request.Question} on {serverInfo} timed out or is a transient error.",
+                            $"Could not resolve query {request.Header.Id} => {request.Question} on {serverInfo}, query timed out.",
                             ex)
                         {
                             AuditTrail = audit?.Build()
@@ -880,20 +882,21 @@ namespace DnsClient
         }
 
         private async Task<IDnsQueryResponse> ResolveQueryAsync(
-            IReadOnlyList<NameServer> servers,
+            List<NameServer> servers,
             DnsQuerySettings settings,
             DnsMessageHandler handler,
             DnsRequestMessage request,
             LookupClientAudit audit = null,
             CancellationToken cancellationToken = default)
         {
-            if (handler == null)
-            {
-                throw new ArgumentNullException(nameof(handler));
-            }
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
+            }
+
+            if (handler == null)
+            {
+                throw new ArgumentNullException(nameof(handler));
             }
 
             for (var serverIndex = 0; serverIndex < servers.Count; serverIndex++)
@@ -1095,6 +1098,8 @@ namespace DnsClient
                         {
                             var handle = HandleTimeoutException(ex, request, settings, serverInfo, handler.Type, isLastServer: isLastServer, isLastTry: isLastTry, currentTry: tries);
 
+                            audit?.AuditTimeout(request.Header.Id, request.Question, serverInfo);
+
                             if (handle == HandleError.RetryCurrentServer)
                             {
                                 continue;
@@ -1107,7 +1112,7 @@ namespace DnsClient
 
                         throw new DnsResponseException(
                             DnsResponseCode.ConnectionTimeout,
-                            $"Query {request.Header.Id} => {request.Question} on {serverInfo} timed out or is a transient error.",
+                            $"Could not resolve query {request.Header.Id} => {request.Question} on {serverInfo}, query timed out.",
                             ex)
                         {
                             AuditTrail = audit?.Build()
@@ -1167,7 +1172,7 @@ namespace DnsClient
             }
 
             var head = new DnsRequestHeader(false, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, question);
+            using var request = new DnsRequestMessage(head, question);
 
             var cacheKey = ResponseCache.GetCacheKey(request.Question);
 
@@ -1729,6 +1734,22 @@ namespace DnsClient
             _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; ERROR: {DnsResponseCodeText.GetErrorText((DnsResponseCode)responseCode)}");
 #else
             _auditWriter.AppendLine($";; ERROR: {DnsResponseCodeText.GetErrorText((DnsResponseCode)responseCode)}");
+#endif
+        }
+
+        public void AuditTimeout(int headerId, DnsQuestion question, NameServer serverInfo)
+        {
+            if (!Settings.EnableAuditTrail)
+            {
+                return;
+            }
+
+#if NET6_0_OR_GREATER
+            _auditWriter.AppendLine(
+                CultureInfo.InvariantCulture,
+                $";; Error: Query {headerId} => {question} on {serverInfo} timed out or is a transient error.");
+#else
+            _auditWriter.AppendLine($";; Error: Query {headerId} => {question} on {serverInfo} timed out or is a transient error.");
 #endif
         }
 
