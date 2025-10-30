@@ -108,11 +108,6 @@ namespace DnsClient
                     : s_usedIds.FindFirstFalse();
 #pragma warning restore CA5394 // Do not use insecure randomness
 
-                if (tries > 100)
-                {
-                    Console.WriteLine("Warning: More than 100 tries to find a free query id.");
-                }
-
                 if (nextIndex == -1)
                 {
                     // For some reason, the bitmap is full, reset it.
