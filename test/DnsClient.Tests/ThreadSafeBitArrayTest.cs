@@ -29,22 +29,6 @@ namespace DnsClient.Tests
             }
         }
 
-        ////[Fact(Skip = "not necessairy, there should never be an error, we'll reset instead")]
-        ////public void QueryId_NewId_RunningOut()
-        ////{
-        ////    // This test is not disposing the ids, so it will run out of ids.
-        ////    for (var i = 0; i < ushort.MaxValue; i++)
-        ////    {
-        ////        var id = QueryId.NewId();
-        ////        Assert.InRange(id.Id, 1, ushort.MaxValue);
-        ////    }
-
-        ////    Assert.Throws<InvalidOperationException>(() => QueryId.NewId());
-
-        ////    // Need reset to allow other tests to run.
-        ////    QueryId.Reset();
-        ////}
-
         [Fact]
         public void ThreadSafeBitArrayTest_TrySet_IndexOutOfRange()
         {
