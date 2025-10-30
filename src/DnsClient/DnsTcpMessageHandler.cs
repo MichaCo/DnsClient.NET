@@ -349,7 +349,7 @@ namespace DnsClient
                     throw new ArgumentNullException(nameof(entry));
                 }
 
-                if (!entry.Client.Client.RemoteEndPoint.Equals(_endpoint))
+                if (entry.Client.Client?.RemoteEndPoint?.Equals(_endpoint) != true)
                 {
                     throw new ArgumentException("Invalid endpoint.");
                 }

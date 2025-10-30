@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DnsClient.Internal;
 
 namespace DnsClient
 {
@@ -30,6 +31,8 @@ namespace DnsClient
         private TimeSpan _failureEntryTimeout = s_defaultFailureTimeout;
 
         public int Count => _cache.Count;
+
+        public ILogger Logger { get; }
 
         public bool Enabled { get; set; } = true;
 
@@ -77,8 +80,9 @@ namespace DnsClient
             }
         }
 
-        public ResponseCache(bool enabled = true, TimeSpan? minimumTimout = null, TimeSpan? maximumTimeout = null, TimeSpan? failureEntryTimeout = null)
+        public ResponseCache(ILogger logger, bool enabled = true, TimeSpan? minimumTimout = null, TimeSpan? maximumTimeout = null, TimeSpan? failureEntryTimeout = null)
         {
+            Logger = logger;
             Enabled = enabled;
             MinimumTimout = minimumTimout;
             MaximumTimeout = maximumTimeout;
@@ -109,7 +113,7 @@ namespace DnsClient
             effectiveTtl = null;
             if (key == null)
             {
-                throw new ArgumentNullException(key);
+                throw new ArgumentNullException(nameof(key));
             }
 
             if (!Enabled)
@@ -138,7 +142,7 @@ namespace DnsClient
         {
             if (key == null)
             {
-                throw new ArgumentNullException(key);
+                throw new ArgumentNullException(nameof(key));
             }
 
             if (Enabled && response != null && (cacheFailures || (!response.HasError && response.Answers.Count > 0)))
@@ -241,6 +245,10 @@ namespace DnsClient
                                 if (t.IsFaulted)
                                 {
                                     /* Ignoring but handling background errors. */
+                                    Logger?.LogError(
+                                        eventId: 0,
+                                        exception: t.Exception,
+                                        message: "An error occurred during response cache cleanup.");
                                 }
                             },
                             scheduler: TaskScheduler.Default);

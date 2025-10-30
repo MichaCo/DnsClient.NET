@@ -239,7 +239,7 @@ namespace DnsClient
             servers = NameServer.ValidateNameServers(servers, _logger);
 
             Settings = new LookupClientSettings(options, servers);
-            Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout, Settings.FailedResultsCacheDuration);
+            Cache = new ResponseCache(_logger, true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout, Settings.FailedResultsCacheDuration);
         }
 
         private void CheckResolvedNameservers()
