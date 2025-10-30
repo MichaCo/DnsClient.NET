@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Runtime;
 using System.Threading.Tasks;
 using DnsClient;
 using DnsClient.Protocol;
@@ -103,7 +104,11 @@ namespace DigApp
                 UseTcpFallback = !GetNoTcp(),
                 MaximumCacheTimeout = GetMaximumTTL(),
                 ExtendedDnsBufferSize = GetMaximumBufferSize(),
-                RequestDnsSecRecords = GetRequestDnsSec()
+                RequestDnsSecRecords = GetRequestDnsSec(),
+                UseRandomNameServer = false,
+                EnableAuditTrail = false,
+                ThrowDnsErrors = false,
+                ContinueOnDnsError = false
             };
         }
 
@@ -132,9 +137,9 @@ namespace DigApp
 
         public bool GetRequestDnsSec() => RequestDnsSecRecordsArg.HasValue();
 
-        public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value(), CultureInfo.InvariantCulture) : 1000;
+        public int GetTimeoutValue() => ConnectTimeoutArg.HasValue() ? int.Parse(ConnectTimeoutArg.Value(), CultureInfo.InvariantCulture) : 2000;
 
-        public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value(), CultureInfo.InvariantCulture) : 5;
+        public int GetTriesValue() => TriesArg.HasValue() ? int.Parse(TriesArg.Value(), CultureInfo.InvariantCulture) : 1;
 
         public bool GetUseCache()
         {

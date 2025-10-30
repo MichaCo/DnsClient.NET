@@ -639,16 +639,16 @@ namespace DnsClient.Tests
         }
 
         public static TheoryData<TestMatrixItem> AllWithoutServerQueries
-            => new(All.SelectMany(p => p).OfType<TestMatrixItem>().Where(a => !a.UsesServers));
+            => new(All.OfType<object[]>().Select(p => p.First()).OfType<TestMatrixItem>().Where(a => !a.UsesServers));
 
         public static TheoryData<TestMatrixItem> AllWithServers
-            => new(All.SelectMany(p => p).OfType<TestMatrixItem>().Where(a => a.UsesServers));
+            => new(All.OfType<object[]>().Select(p => p.First()).OfType<TestMatrixItem>().Where(a => a.UsesServers));
 
         public static TheoryData<TestMatrixItem> AllWithQueryOptions
-            => new(All.SelectMany(p => p).OfType<TestMatrixItem>().Where(a => a.UsesQueryOptions));
+            => new(All.OfType<object[]>().Select(p => p.First()).OfType<TestMatrixItem>().Where(a => a.UsesQueryOptions));
 
         public static TheoryData<TestMatrixItem> AllWithoutQueryOptionsOrServerQueries
-            => new(All.SelectMany(p => p).OfType<TestMatrixItem>().Where(a => (a.UsesQueryOptions || a.UsesServers)));
+            => new(All.OfType<object[]>().Select(p => p.First()).OfType<TestMatrixItem>().Where(a => (a.UsesQueryOptions || a.UsesServers)));
 
         [Theory]
         [MemberData(nameof(AllWithoutServerQueries))]

@@ -109,6 +109,7 @@ namespace DnsClient
         /// disabled and might not being used for some time if it errors out, e.g. no connection can be established.
         /// </para>
         /// </remarks>
+        // TODO: Might need to change the default here in favor or prio and dns suffix logic...
         public bool UseRandomNameServer { get; set; } = true;
 
         /// <summary>

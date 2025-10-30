@@ -50,12 +50,18 @@ namespace DnsClient
 
             try
             {
+                entry.Connect();
+
                 var response = QueryInternal(entry.Client, request, cancellationToken);
                 ValidateResponse(request, response);
 
                 pool.Enqueue(entry);
 
                 return response;
+            }
+            catch (SocketException ex) when (ex.SocketErrorCode == SocketError.NotSocket)
+            {
+                throw new OperationCanceledException(cancellationToken);
             }
             catch (ObjectDisposedException)
             {
@@ -81,7 +87,7 @@ namespace DnsClient
                 _pools.TryAdd(server, new ClientPool(true, server));
             }
 
-            var entry = await pool.GetNextClientAsync().ConfigureAwait(false);
+            var entry = pool.GetNextClient();
 
             using var cancelCallback = cancellationToken.Register(() =>
             {
@@ -95,6 +101,8 @@ namespace DnsClient
 
             try
             {
+                await entry.ConnectAsync(cancellationToken).ConfigureAwait(false);
+
                 var response = await QueryAsyncInternal(entry.Client, request, cancellationToken).ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -103,6 +111,14 @@ namespace DnsClient
                 pool.Enqueue(entry);
 
                 return response;
+            }
+            catch (SocketException ex) when (ex.SocketErrorCode == SocketError.NotSocket)
+            {
+                throw new OperationCanceledException(cancellationToken);
+            }
+            catch (ObjectDisposedException)
+            {
+                throw new OperationCanceledException(cancellationToken);
             }
             catch
             {
@@ -311,38 +327,11 @@ namespace DnsClient
                     while (entry == null && !TryDequeue(out entry))
                     {
                         entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily) { LingerState = new LingerOption(true, 0) }, _endpoint);
-                        entry.Client.Connect(_endpoint.Address, _endpoint.Port);
                     }
                 }
                 else
                 {
                     entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily), _endpoint);
-                    entry.Client.Connect(_endpoint.Address, _endpoint.Port);
-                }
-
-                return entry;
-            }
-
-            public async Task<ClientEntry> GetNextClientAsync()
-            {
-                if (_disposedValue)
-                {
-                    throw new ObjectDisposedException(nameof(ClientPool));
-                }
-
-                ClientEntry entry = null;
-                if (_enablePool)
-                {
-                    while (entry == null && !TryDequeue(out entry))
-                    {
-                        entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily) { LingerState = new LingerOption(true, 0) }, _endpoint);
-                        await entry.Client.ConnectAsync(_endpoint.Address, _endpoint.Port).ConfigureAwait(false);
-                    }
-                }
-                else
-                {
-                    entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily), _endpoint);
-                    await entry.Client.ConnectAsync(_endpoint.Address, _endpoint.Port).ConfigureAwait(false);
                 }
 
                 return entry;
@@ -360,7 +349,7 @@ namespace DnsClient
                     throw new ArgumentNullException(nameof(entry));
                 }
 
-                if (!entry.Client.Client.RemoteEndPoint.Equals(_endpoint))
+                if (entry.Client.Client?.RemoteEndPoint?.Equals(_endpoint) != true)
                 {
                     throw new ArgumentException("Invalid endpoint.");
                 }
@@ -430,6 +419,28 @@ namespace DnsClient
                 {
                     Client = client;
                     Endpoint = endpoint;
+                }
+
+                public void Connect()
+                {
+                    if (!Client.Connected)
+                    {
+                        Client.Connect(Endpoint);
+                    }
+                }
+
+                public Task ConnectAsync(CancellationToken cancellationToken)
+                {
+                    if (!Client.Connected)
+                    {
+#if NET6_0_OR_GREATER
+                        return Client.ConnectAsync(Endpoint, cancellationToken).AsTask();
+#else
+                        return Client.ConnectAsync(Endpoint.Address, Endpoint.Port);
+#endif
+                    }
+
+                    return Task.CompletedTask;
                 }
 
                 public void DisposeClient()

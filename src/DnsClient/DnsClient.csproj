@@ -1,6 +1,6 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <VersionPrefix>1.8.0</VersionPrefix>
+    <VersionPrefix>1.8.1</VersionPrefix>
     <VersionSuffix Condition="'$(VersionSuffix)'!='' AND '$(BuildNumber)' != ''">$(VersionSuffix)-$(BuildNumber)</VersionSuffix>
 
     <TargetFrameworks>net8.0;net6.0;netstandard2.0;netstandard2.1;net472</TargetFrameworks>
@@ -42,10 +42,10 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
-    <PackageReference Include="System.Buffers" Version="4.5.1" />
+    <PackageReference Include="System.Buffers" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="System.Buffers" Version="4.5.1" />
+    <PackageReference Include="System.Buffers" Version="4.6.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">

@@ -199,7 +199,7 @@ namespace DnsClient.Tests
             reader.ReadUInt16();
             var result = reader.ReadBytes(4);
 
-            Assert.Equal(result, new byte[] { 4, 5, 6, 7 });
+            Assert.Equal(result.ToArray(), new byte[] { 4, 5, 6, 7 });
         }
 
         [Fact]
