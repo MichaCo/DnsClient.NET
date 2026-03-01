@@ -636,7 +636,7 @@ namespace DnsClient
         }
 
         private IDnsQueryResponse ResolveQuery(
-            IReadOnlyList<NameServer> servers,
+            List<NameServer> servers,
             DnsQuerySettings settings,
             DnsMessageHandler handler,
             DnsRequestMessage request,
@@ -880,7 +880,7 @@ namespace DnsClient
         }
 
         private async Task<IDnsQueryResponse> ResolveQueryAsync(
-            IReadOnlyList<NameServer> servers,
+            List<NameServer> servers,
             DnsQuerySettings settings,
             DnsMessageHandler handler,
             DnsRequestMessage request,

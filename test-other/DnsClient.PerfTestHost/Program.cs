@@ -113,7 +113,7 @@ namespace DnsClient.PerfTestHost
 
                 var took = swatchInner.ElapsedTicks;
                 Interlocked.Add(ref tookOverall, took);
-            };
+            }
 
             var tasks = new List<Task>();
             for (var i = 0; i < tasksCount; i++)

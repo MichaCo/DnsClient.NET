@@ -84,14 +84,39 @@ namespace DigApp
 
                 return result.ToArray();
             }
-            else
-            {
-                return NameServer.ResolveNameServers().ToArray();
-            }
+            //else
+            //{
+            //    return NameServer.ResolveNameServers().ToArray();
+            //}
+
+            return Array.Empty<NameServer>();
         }
 
         public LookupClientOptions GetLookupSettings()
         {
+            var endpoints = GetEndpointsValue();
+
+            if (endpoints is null || endpoints.Length == 0)
+            {
+                return new LookupClientOptions()
+                {
+                    Recursion = GetUseRecursionValue(),
+                    Retries = GetTriesValue(),
+                    Timeout = TimeSpan.FromMilliseconds(GetTimeoutValue()),
+                    MinimumCacheTimeout = GetMinimumTTL(),
+                    UseCache = GetUseCache(),
+                    UseTcpOnly = GetUseTcp(),
+                    UseTcpFallback = !GetNoTcp(),
+                    MaximumCacheTimeout = GetMaximumTTL(),
+                    ExtendedDnsBufferSize = GetMaximumBufferSize(),
+                    RequestDnsSecRecords = GetRequestDnsSec(),
+                    UseRandomNameServer = false,
+                    EnableAuditTrail = false,
+                    ThrowDnsErrors = false,
+                    ContinueOnDnsError = false
+                };
+            }
+
             return new LookupClientOptions(GetEndpointsValue())
             {
                 Recursion = GetUseRecursionValue(),
