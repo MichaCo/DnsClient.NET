@@ -15,18 +15,22 @@ namespace DnsClient
 {
     internal class DnsTcpMessageHandler : DnsMessageHandler
     {
+        private bool _disposedValue = false;
         private readonly ConcurrentDictionary<IPEndPoint, ClientPool> _pools = new ConcurrentDictionary<IPEndPoint, ClientPool>();
 
         public override DnsMessageHandleType Type { get; } = DnsMessageHandleType.TCP;
 
         public override DnsResponseMessage Query(IPEndPoint server, DnsRequestMessage request, TimeSpan timeout)
         {
-            CancellationToken cancellationToken = default;
+            if (_disposedValue)
+            {
+                throw new ObjectDisposedException(nameof(DnsTcpMessageHandler));
+            }
 
             using var cts = timeout.TotalMilliseconds != Timeout.Infinite && timeout.TotalMilliseconds < int.MaxValue ?
                 new CancellationTokenSource(timeout) : null;
 
-            cancellationToken = cts?.Token ?? default;
+            var cancellationToken = cts?.Token ?? default;
 
             ClientPool pool;
             while (!_pools.TryGetValue(server, out pool))
@@ -36,7 +40,7 @@ namespace DnsClient
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var entry = pool.GetNextClient();
+            var entry = pool.GetNextClient(cancellationToken);
 
             using var cancelCallback = cancellationToken.Register(() =>
             {
@@ -79,6 +83,11 @@ namespace DnsClient
             DnsRequestMessage request,
             CancellationToken cancellationToken)
         {
+            if (_disposedValue)
+            {
+                throw new ObjectDisposedException(nameof(DnsTcpMessageHandler));
+            }
+
             cancellationToken.ThrowIfCancellationRequested();
 
             ClientPool pool;
@@ -87,7 +96,7 @@ namespace DnsClient
                 _pools.TryAdd(server, new ClientPool(true, server));
             }
 
-            var entry = pool.GetNextClient();
+            var entry = await pool.GetNextClientAsync(cancellationToken).ConfigureAwait(false);
 
             using var cancelCallback = cancellationToken.Register(() =>
             {
@@ -301,9 +310,24 @@ namespace DnsClient
             return DnsResponseMessage.Combine(responses);
         }
 
-        private class ClientPool : IDisposable
+        protected override void Dispose(bool disposing)
         {
-            private bool _disposedValue;
+            if (disposing && !_disposedValue)
+            {
+                _disposedValue = true;
+
+                foreach (var entry in _pools)
+                {
+                    entry.Value.Dispose();
+                }
+            }
+
+            base.Dispose(disposing);
+        }
+
+        private sealed class ClientPool : IDisposable
+        {
+            private bool _disposedValue = false;
             private readonly bool _enablePool;
             private ConcurrentQueue<ClientEntry> _clients = new ConcurrentQueue<ClientEntry>();
             private readonly IPEndPoint _endpoint;
@@ -314,7 +338,7 @@ namespace DnsClient
                 _endpoint = endpoint;
             }
 
-            public ClientEntry GetNextClient()
+            public ClientEntry GetNextClient(CancellationToken cancellationToken)
             {
                 if (_disposedValue)
                 {
@@ -326,15 +350,114 @@ namespace DnsClient
                 {
                     while (entry == null && !TryDequeue(out entry))
                     {
-                        entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily) { LingerState = new LingerOption(true, 0) }, _endpoint);
+                        entry = ConnectNew(cancellationToken);
                     }
                 }
                 else
                 {
-                    entry = new ClientEntry(new TcpClient(_endpoint.AddressFamily), _endpoint);
+                    entry = ConnectNew(cancellationToken);
                 }
 
                 return entry;
+            }
+
+            private ClientEntry ConnectNew(CancellationToken cancellationToken)
+            {
+                var newClient = new TcpClient(_endpoint.AddressFamily)
+                {
+                    LingerState = new LingerOption(true, 0)
+                };
+
+                bool gotCanceled = false;
+                cancellationToken.Register(() =>
+                {
+                    gotCanceled = true;
+                    newClient.Dispose();
+                });
+
+                try
+                {
+                    newClient.Connect(_endpoint.Address, _endpoint.Port);
+                }
+                catch (Exception) when (gotCanceled)
+                {
+                    throw new OperationCanceledException("Connection timed out.", cancellationToken);
+                }
+                catch (Exception)
+                {
+                    try
+                    {
+                        newClient.Dispose();
+                    }
+                    catch { }
+
+                    throw;
+                }
+
+                return new ClientEntry(newClient, _endpoint);
+            }
+
+            public async Task<ClientEntry> GetNextClientAsync(CancellationToken cancellationToken)
+            {
+                if (_disposedValue)
+                {
+                    throw new ObjectDisposedException(nameof(ClientPool));
+                }
+
+                ClientEntry entry = null;
+                if (_enablePool)
+                {
+                    while (entry == null && !TryDequeue(out entry))
+                    {
+                        entry = await ConnectNewAsync(cancellationToken).ConfigureAwait(false);
+                    }
+                }
+                else
+                {
+                    entry = await ConnectNewAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                return entry;
+            }
+
+            private async Task<ClientEntry> ConnectNewAsync(CancellationToken cancellationToken)
+            {
+                var newClient = new TcpClient(_endpoint.AddressFamily)
+                {
+                    LingerState = new LingerOption(true, 0)
+                };
+
+#if NET6_0_OR_GREATER
+                await newClient.ConnectAsync(_endpoint.Address, _endpoint.Port, cancellationToken).ConfigureAwait(false);
+#else
+
+                bool gotCanceled = false;
+                cancellationToken.Register(() =>
+                {
+                    gotCanceled = true;
+                    newClient.Dispose();
+                });
+
+                try
+                {
+                    await newClient.ConnectAsync(_endpoint.Address, _endpoint.Port).ConfigureAwait(false);
+                }
+                catch (Exception) when (gotCanceled)
+                {
+                    throw new OperationCanceledException("Connection timed out.", cancellationToken);
+                }
+                catch (Exception)
+                {
+                    try
+                    {
+                        newClient.Dispose();
+                    }
+                    catch { }
+
+                    throw;
+                }
+#endif
+                return new ClientEntry(newClient, _endpoint);
             }
 
             public void Enqueue(ClientEntry entry)
@@ -390,27 +513,18 @@ namespace DnsClient
                 return result;
             }
 
-            protected virtual void Dispose(bool disposing)
+            public void Dispose()
             {
                 if (!_disposedValue)
                 {
-                    if (disposing)
+                    _disposedValue = true;
+                    foreach (var entry in _clients)
                     {
-                        foreach (var entry in _clients)
-                        {
-                            entry.DisposeClient();
-                        }
-
-                        _clients = new ConcurrentQueue<ClientEntry>();
+                        entry.DisposeClient();
                     }
 
-                    _disposedValue = true;
+                    _clients = new ConcurrentQueue<ClientEntry>();
                 }
-            }
-
-            public void Dispose()
-            {
-                Dispose(true);
             }
 
             public class ClientEntry
