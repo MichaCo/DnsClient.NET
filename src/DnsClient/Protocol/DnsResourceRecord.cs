@@ -1,4 +1,9 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
+using System.Globalization;
 
 namespace DnsClient.Protocol
 {
@@ -13,7 +18,7 @@ namespace DnsClient.Protocol
         /// </summary>
         /// <param name="info">The information.</param>
         /// <exception cref="ArgumentNullException">If <paramref name="info"/> is null.</exception>
-        public DnsResourceRecord(ResourceRecordInfo info)
+        protected DnsResourceRecord(ResourceRecordInfo info)
             : base(
                   info?.DomainName ?? throw new ArgumentNullException(nameof(info)),
                   info?.RecordType ?? throw new ArgumentNullException(nameof(info)),
@@ -26,7 +31,7 @@ namespace DnsClient.Protocol
         /// <inheritdoc />
         public override string ToString()
         {
-            return ToString(0);
+            return ToString(offset: 0);
         }
 
         /// <summary>
@@ -39,7 +44,9 @@ namespace DnsClient.Protocol
         public virtual string ToString(int offset = 0)
         {
             var printTab = offset == 0 ? string.Empty : "\t";
-            return string.Format("{0," + offset + "} {1}{2} {1}{3} {1}{4} {1}{5}",
+            return string.Format(
+                CultureInfo.InvariantCulture,
+                "{0," + offset.ToString(CultureInfo.InvariantCulture) + "} {1}{2} {1}{3} {1}{4} {1}{5}",
                 DomainName,
                 printTab,
                 TimeToLive,

@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -8,7 +12,6 @@ using System.Text;
 using DnsClient.Internal;
 using DnsClient.Protocol;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace DnsClient.Tests
 {
@@ -58,7 +61,7 @@ namespace DnsClient.Tests
         public void DnsRecordFactory_PTRRecord()
         {
             var name = DnsString.Parse("result.example.com");
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             writer.WriteHostName(name.Value);
             var factory = GetFactory(writer.Data);
             var info = new ResourceRecordInfo("query.example.com", ResourceRecordType.PTR, QueryClass.IN, 0, writer.Data.Count);
@@ -72,7 +75,7 @@ namespace DnsClient.Tests
         public void DnsRecordFactory_MBRecord()
         {
             var name = DnsString.Parse("Müsli.de");
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             writer.WriteHostName(name.Value);
             var factory = GetFactory(writer.Data);
             var info = new ResourceRecordInfo("Müsli.de", ResourceRecordType.MB, QueryClass.IN, 0, writer.Data.Count);
@@ -91,7 +94,7 @@ namespace DnsClient.Tests
             var info = new ResourceRecordInfo("example.com", ResourceRecordType.A, QueryClass.IN, 0, data.Length);
 
             var ex = Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
-            Assert.Contains("IPv4", ex.Message);
+            Assert.Contains("IPv4", ex.Message, StringComparison.OrdinalIgnoreCase);
             Assert.Equal(0, ex.Index);
             Assert.Equal(4, ex.ReadLength);
         }
@@ -116,7 +119,7 @@ namespace DnsClient.Tests
             var info = new ResourceRecordInfo("example.com", ResourceRecordType.AAAA, QueryClass.IN, 0, data.Length);
 
             var ex = Assert.ThrowsAny<DnsResponseParseException>(() => factory.GetRecord(info));
-            Assert.Contains("IPv6", ex.Message);
+            Assert.Contains("IPv6", ex.Message, StringComparison.OrdinalIgnoreCase);
             Assert.Equal(0, ex.Index);
             Assert.Equal(16, ex.ReadLength);
         }
@@ -160,7 +163,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRecordFactory_NSRecord()
         {
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             var name = DnsString.Parse("result.example.com");
             writer.WriteHostName(name.Value);
             var factory = GetFactory(writer.Data);
@@ -208,7 +211,7 @@ namespace DnsClient.Tests
         public void DnsRecordFactory_MXRecord()
         {
             var name = DnsString.Parse("result.example.com");
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             writer.WriteByte(0);
             writer.WriteByte(1);
             writer.WriteHostName(name.Value);
@@ -264,7 +267,7 @@ namespace DnsClient.Tests
         public void DnsRecordFactory_SRVRecord()
         {
             var name = DnsString.Parse("result.example.com");
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             writer.WriteBytes(new byte[] { 0, 1, 1, 0, 2, 3 }, 6);
             writer.WriteHostName(name.Value);
             var factory = GetFactory(writer.Data);
@@ -283,7 +286,7 @@ namespace DnsClient.Tests
         public void DnsRecordFactory_NAPTRRecord()
         {
             var name = DnsString.Parse("result.example.com");
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             writer.WriteUInt16NetworkOrder(0x1e);
             writer.WriteUInt16NetworkOrder(0x00);
             writer.WriteStringWithLengthPrefix(NAPtrRecord.SFlag.ToString());
@@ -337,7 +340,7 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
             var name = DnsString.Parse("example.com");
             using var memory = new PooledBytes(expectedBytes.Length);
 
-            var writer = new DnsDatagramWriter(new ArraySegment<byte>(memory.Buffer));
+            using var writer = new DnsDatagramWriter(new ArraySegment<byte>(memory.Buffer));
             writer.WriteInt16NetworkOrder((short)CertificateType.PKIX); // 2 bytes
             writer.WriteInt16NetworkOrder(27891); // 2 bytes
             writer.WriteByte((byte)DnsSecurityAlgorithm.RSASHA256);  // 1 byte
@@ -354,14 +357,14 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
             Assert.Equal(DnsSecurityAlgorithm.RSASHA256, result.Algorithm);
             Assert.Equal(expectedBytes, result.PublicKey);
 
-            var cert = new X509Certificate2(Convert.FromBase64String(result.PublicKeyAsString));
+            using var cert = new X509Certificate2(Convert.FromBase64String(result.PublicKeyAsString));
             Assert.Equal("sha256RSA", cert.SignatureAlgorithm.FriendlyName);
             Assert.Equal("CN=D1_valA, E=d1@domain1.dcdt31.healthit.gov", cert.Subject);
 
             var x509Extension = cert.Extensions["2.5.29.17"];
             Assert.NotNull(x509Extension);
             var asnData = new AsnEncodedData(x509Extension.Oid, x509Extension.RawData);
-            Assert.Contains("d1@domain1.dcdt31.healthit.gov", asnData.Format(false));
+            Assert.Contains("d1@domain1.dcdt31.healthit.gov", asnData.Format(false), StringComparison.OrdinalIgnoreCase);
         }
 
         [Fact]
@@ -478,7 +481,7 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
             var signatureString = "kfyyKQoPZJFyOFSDqav7wj5XNRPqZssV2K2k8MJun28QSsCMHyWOjw9Hk4KofnEIUWNui3mMgAEFYbwoeRKkMf5uDAh6ryJ4veQNj86mgYJrpJppUplqlqJE8o1bx0I1VfwheL+M23bL5MnqSGiI5igmMDyeVUraVOO4RQyfGN0=";
             var signature = Convert.FromBase64String(signatureString);
 
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
 
             writer.WriteInt16NetworkOrder((short)type);
             writer.WriteByte((byte)algorithmNumber);
@@ -564,7 +567,7 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
             var expectedPublicKey = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             var expectedBytes = Encoding.UTF8.GetBytes(expectedPublicKey);
             var name = DnsString.Parse("example.com");
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             writer.WriteInt16NetworkOrder(256);
             writer.WriteByte(3);
             writer.WriteByte((byte)DnsSecurityAlgorithm.RSASHA256);
@@ -591,7 +594,7 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
                      .ToArray();
 
             var name = DnsString.Parse("example.com");
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             writer.WriteInt16NetworkOrder(31589);
             writer.WriteByte(8); // algorithm
             writer.WriteByte(1); // type
@@ -629,7 +632,7 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
             var bitmap = NSecRecord.WriteBitmap(expectedTypes.Select(p => (ushort)p).ToArray()).ToArray();
 
             var name = DnsString.Parse("example.com");
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             writer.WriteHostName(name);
             writer.WriteBytes(bitmap, bitmap.Length);
 
@@ -666,7 +669,7 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
             var nameEncoded = Base32Hex.ToBase32HexString(nextName);
             var name = DnsString.Parse("example.com");
 
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             writer.WriteByte(1); // Algorithm
             writer.WriteByte(2); // Flags
             writer.WriteUInt16NetworkOrder(100); // Iterations
@@ -697,7 +700,7 @@ H+L10KwE7wqqmkxwfib5kwgNyrlXtx0=
             var salt = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
             var name = DnsString.Parse("example.com");
 
-            var writer = new DnsDatagramWriter();
+            using var writer = new DnsDatagramWriter();
             writer.WriteByte(1); // Algorithm
             writer.WriteByte(2); // Flags
             writer.WriteUInt16NetworkOrder(100); // Iterations

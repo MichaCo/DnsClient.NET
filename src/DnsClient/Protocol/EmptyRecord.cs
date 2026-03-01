@@ -1,4 +1,8 @@
-﻿namespace DnsClient.Protocol
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+namespace DnsClient.Protocol
 {
     /// <summary>
     /// A <see cref="DnsResourceRecord"/> not representing any specific resource record.

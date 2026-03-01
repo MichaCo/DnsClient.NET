@@ -1,12 +1,20 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Diagnostics;
+using System.Globalization;
 using DnsClient.Internal;
 
 #pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 namespace DnsClient
 {
+#pragma warning disable CA1724
+    // TODO: re-name in 2.0, or maybe get rid of?
     public static class Tracing
+#pragma warning restore CA1724
     {
         public static TraceSource Source { get; } = new TraceSource("DnsClient", SourceLevels.Error);
 
@@ -37,7 +45,7 @@ namespace DnsClient
                     var result = $"[{_name}] ";
                     if (message != null)
                     {
-                        result += string.Format(message, args);
+                        result += string.Format(CultureInfo.InvariantCulture, message, args);
                     }
 
                     if (exception != null)

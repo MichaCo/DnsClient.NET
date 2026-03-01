@@ -1,5 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
@@ -68,7 +71,7 @@ namespace Benchmarks
             [Benchmark(OperationsPerInvoke = OpsPerMultiRun)]
             public void QuerySyncMulti()
             {
-                Parallel.Invoke(Enumerable.Repeat<Action>(() => Query(), OpsPerMultiRun).ToArray());
+                Parallel.Invoke(Enumerable.Repeat(() => Query(), OpsPerMultiRun).ToArray());
 
                 void Query()
                 {

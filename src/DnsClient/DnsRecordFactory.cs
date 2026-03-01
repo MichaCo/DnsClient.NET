@@ -1,5 +1,10 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using DnsClient.Protocol;
 using DnsClient.Protocol.Options;
@@ -175,6 +180,14 @@ namespace DnsClient
                     result = ResolveTlsaRecord(info);
                     break;
 
+                case ResourceRecordType.CDS: //59
+                    result = ResolveCdsRecord(info);
+                    break;
+
+                case ResourceRecordType.CDNS: //60
+                    result = ResolveCdnsKeyRecord(info);
+                    break;
+
                 case ResourceRecordType.SPF: // 99
                     result = ResolveTxtRecord(info);
                     break;
@@ -302,7 +315,7 @@ namespace DnsClient
             var algorithm = (SshfpAlgorithm)_reader.ReadByte();
             var fingerprintType = (SshfpFingerprintType)_reader.ReadByte();
             var fingerprint = _reader.ReadBytes(info.RawDataLength - 2).ToArray();
-            var fingerprintHexString = string.Join(string.Empty, fingerprint.Select(b => b.ToString("X2")));
+            var fingerprintHexString = string.Join(string.Empty, fingerprint.Select(b => b.ToString("X2", CultureInfo.InvariantCulture)));
             return new SshfpRecord(info, algorithm, fingerprintType, fingerprintHexString);
         }
 
@@ -371,6 +384,26 @@ namespace DnsClient
             var matchingType = _reader.ReadByte();
             var certificateAssociationData = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
             return new TlsaRecord(info, certificateUsage, selector, matchingType, certificateAssociationData);
+        }
+
+        private CdsRecord ResolveCdsRecord(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            var keyTag = _reader.ReadUInt16NetworkOrder();
+            var algorithm = _reader.ReadByte();
+            var digestType = _reader.ReadByte();
+            var digest = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
+            return new CdsRecord(info, keyTag, algorithm, digestType, digest);
+        }
+
+        private CdnsKeyRecord ResolveCdnsKeyRecord(ResourceRecordInfo info)
+        {
+            var startIndex = _reader.Index;
+            int flags = _reader.ReadUInt16NetworkOrder();
+            var protocol = _reader.ReadByte();
+            var algorithm = _reader.ReadByte();
+            var publicKey = _reader.ReadBytesToEnd(startIndex, info.RawDataLength).ToArray();
+            return new CdnsKeyRecord(info, flags, protocol, algorithm, publicKey);
         }
 
         private UriRecord ResolveUriRecord(ResourceRecordInfo info)

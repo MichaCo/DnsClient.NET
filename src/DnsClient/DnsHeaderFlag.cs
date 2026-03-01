@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 
 namespace DnsClient.Protocol
 {
@@ -41,8 +45,10 @@ namespace DnsClient.Protocol
 
     internal static class DnsHeader
     {
+#pragma warning disable CA1802 // Use literals where appropriate, does not work as ushort for whatever reason.
         public static readonly ushort OPCodeMask = 0x7800;
         public static readonly ushort OPCodeShift = 11;
         public static readonly ushort RCodeMask = 0x000F;
+#pragma warning restore CA1802 // Use literals where appropriate
     }
 }

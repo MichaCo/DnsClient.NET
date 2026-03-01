@@ -1,6 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
 using System.Net;
 
@@ -13,22 +15,20 @@ namespace DnsClient.Linux
 {
     internal static partial class StringParsingHelpers
     {
-        internal static string ParseDnsSuffixFromResolvConfFile(string filePath)
+        internal static string ParseDnsSuffixFromResolvConfFile(string data)
         {
-            string data = File.ReadAllText(filePath);
             RowConfigReader rcr = new RowConfigReader(data);
 
             return rcr.TryGetNextValue("search", out var dnsSuffix) ? dnsSuffix : string.Empty;
         }
 
-        internal static List<NameServer> ParseDnsAddressesFromResolvConfFile(string filePath)
+        internal static List<NameServer> ParseDnsAddressesFromResolvConfFile(string data, string search)
         {
             // Parse /etc/resolv.conf for all of the "nameserver" entries.
             // These are the DNS servers the machine is configured to use.
             // On OSX, this file is not directly used by most processes for DNS
             // queries/routing, but it is automatically generated instead, with
             // the machine's DNS servers listed in it.
-            string data = File.ReadAllText(filePath);
             RowConfigReader rcr = new RowConfigReader(data);
             List<NameServer> addresses = new List<NameServer>();
 
@@ -36,7 +36,7 @@ namespace DnsClient.Linux
             {
                 if (IPAddress.TryParse(addressString, out IPAddress parsedAddress))
                 {
-                    addresses.Add(parsedAddress);
+                    addresses.Add(new NameServer(parsedAddress, search));
                 }
             }
 

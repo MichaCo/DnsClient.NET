@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -121,7 +125,7 @@ namespace DnsClient
                 writer.WriteHostName("");
                 writer.WriteUInt16NetworkOrder((ushort)opt.RecordType);
                 writer.WriteUInt16NetworkOrder((ushort)opt.RecordClass);
-                writer.WriteUInt32NetworkOrder((ushort)opt.InitialTimeToLive);
+                writer.WriteUInt32NetworkOrder((uint)opt.InitialTimeToLive);
                 writer.WriteUInt16NetworkOrder(0);
             }
         }

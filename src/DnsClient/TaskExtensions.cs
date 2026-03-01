@@ -1,4 +1,8 @@
-﻿namespace System.Threading.Tasks
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+namespace System.Threading.Tasks
 {
     internal static class TaskExtensions
     {
@@ -12,7 +16,7 @@
                 {
                     // observe the exception to avoid "System.AggregateException: A Task's exception(s) were
                     // not observed either by Waiting on the Task or accessing its Exception property."
-                    _ = task.ContinueWith(t => t.Exception);
+                    _ = task.ContinueWith(t => t.Exception, TaskScheduler.Default);
                     throw new OperationCanceledException(cancellationToken);
                 }
             }

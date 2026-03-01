@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Net;
@@ -50,12 +54,18 @@ namespace DnsClient
 
             try
             {
+                entry.Connect();
+
                 var response = QueryInternal(entry.Client, request, cancellationToken);
                 ValidateResponse(request, response);
 
                 pool.Enqueue(entry);
 
                 return response;
+            }
+            catch (SocketException ex) when (ex.SocketErrorCode == SocketError.NotSocket)
+            {
+                throw new OperationCanceledException(cancellationToken);
             }
             catch (ObjectDisposedException)
             {
@@ -100,6 +110,8 @@ namespace DnsClient
 
             try
             {
+                await entry.ConnectAsync(cancellationToken).ConfigureAwait(false);
+
                 var response = await QueryAsyncInternal(entry.Client, request, cancellationToken).ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
@@ -108,6 +120,14 @@ namespace DnsClient
                 pool.Enqueue(entry);
 
                 return response;
+            }
+            catch (SocketException ex) when (ex.SocketErrorCode == SocketError.NotSocket)
+            {
+                throw new OperationCanceledException(cancellationToken);
+            }
+            catch (ObjectDisposedException)
+            {
+                throw new OperationCanceledException(cancellationToken);
             }
             catch
             {
@@ -452,7 +472,7 @@ namespace DnsClient
                     throw new ArgumentNullException(nameof(entry));
                 }
 
-                if (!entry.Client.Client.RemoteEndPoint.Equals(_endpoint))
+                if (entry.Client.Client?.RemoteEndPoint?.Equals(_endpoint) != true)
                 {
                     throw new ArgumentException("Invalid endpoint.");
                 }
@@ -513,6 +533,28 @@ namespace DnsClient
                 {
                     Client = client;
                     Endpoint = endpoint;
+                }
+
+                public void Connect()
+                {
+                    if (!Client.Connected)
+                    {
+                        Client.Connect(Endpoint);
+                    }
+                }
+
+                public Task ConnectAsync(CancellationToken cancellationToken)
+                {
+                    if (!Client.Connected)
+                    {
+#if NET6_0_OR_GREATER
+                        return Client.ConnectAsync(Endpoint, cancellationToken).AsTask();
+#else
+                        return Client.ConnectAsync(Endpoint.Address, Endpoint.Port);
+#endif
+                    }
+
+                    return Task.CompletedTask;
                 }
 
                 public void DisposeClient()

@@ -1,4 +1,8 @@
-﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
 using System;
 using System.Diagnostics;
@@ -69,11 +73,7 @@ namespace DnsClient.Internal
             {
                 var type = policy.GetType();
 
-#if NETSTANDARD1_3
-                return type.GenericTypeArguments?.Length > 0 && type.GetGenericTypeDefinition() == typeof(DefaultPooledObjectPolicy<>);
-#else
                 return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(DefaultPooledObjectPolicy<>);
-#endif
             }
         }
 

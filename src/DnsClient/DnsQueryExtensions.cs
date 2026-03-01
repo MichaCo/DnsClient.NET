@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -353,9 +357,11 @@ namespace DnsClient
 
             await Task.WhenAll(ipv4Result, ipv6Result).ConfigureAwait(false);
 
+#pragma warning disable CA1849 // We did.
             var allRecords = ipv4Result.Result
                 .Answers.Concat(ipv6Result.Result.Answers)
                 .ToArray();
+#pragma warning restore CA1849 // Call async methods when in an async method
 
             return GetHostEntryProcessResult(hostString, allRecords);
         }
@@ -363,13 +369,13 @@ namespace DnsClient
         private static IPHostEntry GetHostEntryProcessResult(DnsString hostString, DnsResourceRecord[] allRecords)
         {
             var addressRecords = allRecords
-                            .OfType<AddressRecord>()
-                            .Select(p => new
-                            {
-                                Address = p.Address,
-                                Alias = DnsString.FromResponseQueryString(p.DomainName)
-                            })
-                            .ToArray();
+                .OfType<AddressRecord>()
+                .Select(p => new
+                {
+                    p.Address,
+                    Alias = DnsString.FromResponseQueryString(p.DomainName)
+                })
+                .ToArray();
 
             var hostEntry = new IPHostEntry()
             {

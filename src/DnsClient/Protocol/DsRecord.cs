@@ -1,5 +1,10 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace DnsClient.Protocol
@@ -62,12 +67,12 @@ namespace DnsClient.Protocol
             Algorithm = (DnsSecurityAlgorithm)algorithm;
             DigestType = digestType;
             Digest = digest ?? throw new ArgumentNullException(nameof(digest));
-            DigestAsString = string.Join(string.Empty, digest.Select(b => b.ToString("X2")));
+            DigestAsString = string.Join(string.Empty, digest.Select(b => b.ToString("X2", CultureInfo.InvariantCulture)));
         }
 
         private protected override string RecordToString()
         {
-            return string.Format("{0} {1} {2} {3}", KeyTag, Algorithm, DigestType, DigestAsString);
+            return string.Format(CultureInfo.InvariantCulture, "{0} {1} {2} {3}", KeyTag, Algorithm, DigestType, DigestAsString);
         }
     }
 }

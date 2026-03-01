@@ -1,5 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 
 namespace DnsClient
 {
@@ -7,7 +10,7 @@ namespace DnsClient
     /// Represents a simple request message which can be send through <see cref="DnsMessageHandler"/>.
     /// </summary>
     [System.Diagnostics.DebuggerDisplay("Request:{Header} => {Question}")]
-    internal class DnsRequestMessage
+    internal class DnsRequestMessage : IDisposable
     {
         public DnsRequestHeader Header { get; }
 
@@ -25,6 +28,11 @@ namespace DnsClient
         public override string ToString()
         {
             return $"{Header} => {Question}";
+        }
+
+        public void Dispose()
+        {
+            Header.Dispose();
         }
     }
 }

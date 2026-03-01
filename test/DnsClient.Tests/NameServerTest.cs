@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Net;
 using System.Threading.Tasks;
 using DnsClient.Windows;
@@ -12,8 +16,8 @@ namespace DnsClient.Tests
         [Fact]
         public void NativeDnsServerResolution()
         {
-            var ex = Record.Exception(() => NameServer.ResolveNameServersNative());
-            Assert.Null(ex);
+            var result = NameServer.ResolveNameServersNative();
+            Assert.NotEmpty(result);
         }
 
         [Fact]

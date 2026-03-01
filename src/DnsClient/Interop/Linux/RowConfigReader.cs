@@ -1,8 +1,9 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
-// See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 
 namespace System.IO
 {
@@ -19,8 +20,8 @@ namespace System.IO
 
         /// <summary>
         /// Constructs a new RowConfigReader which reads from the given string.
-        /// <param name="buffer">The string to parse through.</param>
         /// </summary>
+        /// <param name="buffer">The string to parse through.</param>
         public RowConfigReader(string buffer)
         {
             _buffer = buffer;
@@ -30,9 +31,9 @@ namespace System.IO
 
         /// <summary>
         /// Constructs a new RowConfigReader which reads from the given string.
+        /// </summary>
         /// <param name="buffer">The string to parse through.</param>
         /// <param name="comparisonKind">The comparison kind to use.</param>
-        /// </summary>
         public RowConfigReader(string buffer, StringComparison comparisonKind)
         {
             _buffer = buffer;
@@ -46,7 +47,7 @@ namespace System.IO
         /// </summary>
         public string GetNextValue(string key)
         {
-            if (!TryGetNextValue(key, out var value))
+            if (!TryGetNextValue(key, out string value))
             {
                 throw new InvalidOperationException("Couldn't get next value with key " + key);
             }
@@ -162,13 +163,36 @@ namespace System.IO
         {
             // PERF: We don't need to allocate a new string here, we can parse an Int32 "in-place" in the existing string.
             string value = GetNextValue(key);
-            if (int.TryParse(value, out var result))
+            if (int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
             {
                 return result;
             }
             else
             {
                 throw new InvalidOperationException("Unable to parse value " + value + " of key " + key + " as an Int32.");
+            }
+        }
+
+        /// <summary>
+        /// Gets the next occurrence of the key in the string, and parses it as an Int64.
+        /// Throws if the key is not found in the remainder of the string, or if the key
+        /// cannot be successfully parsed into an Int64.
+        /// </summary>
+        /// <remarks>
+        /// This is mainly provided as a helper because most Linux config/info files
+        /// store integral data.
+        /// </remarks>
+        public long GetNextValueAsInt64(string key)
+        {
+            // PERF: We don't need to allocate a new string here, we can parse an Int64 "in-place" in the existing string.
+            string value = GetNextValue(key);
+            if (long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var result))
+            {
+                return result;
+            }
+            else
+            {
+                throw new InvalidOperationException("Unable to parse value " + value + " of key " + key + " as an Int64.");
             }
         }
 

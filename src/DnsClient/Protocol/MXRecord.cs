@@ -1,4 +1,9 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
+using System.Globalization;
 
 namespace DnsClient.Protocol
 {
@@ -63,7 +68,7 @@ namespace DnsClient.Protocol
 
         private protected override string RecordToString()
         {
-            return string.Format("{0} {1}", Preference, Exchange);
+            return string.Format(CultureInfo.InvariantCulture, "{0} {1}", Preference, Exchange);
         }
     }
 }

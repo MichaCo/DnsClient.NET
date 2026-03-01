@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -135,6 +139,20 @@ namespace DnsClient
         /// </summary>
         /// <param name="endPoint">The endpoint.</param>
         public static implicit operator NameServer(IPEndPoint endPoint)
+            => ToNameServer(endPoint);
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NameServer"/> class from a <see cref="IPAddress"/>.
+        /// </summary>
+        /// <param name="address">The address.</param>
+        public static implicit operator NameServer(IPAddress address)
+            => ToNameServer(address);
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="NameServer"/> class from a <see cref="IPEndPoint"/>.
+        /// </summary>
+        /// <param name="endPoint">The endpoint.</param>
+        public static NameServer ToNameServer(IPEndPoint endPoint)
         {
             if (endPoint == null)
             {
@@ -147,15 +165,15 @@ namespace DnsClient
         /// <summary>
         /// Initializes a new instance of the <see cref="NameServer"/> class from a <see cref="IPAddress"/>.
         /// </summary>
-        /// <param name="address">The address.</param>
-        public static implicit operator NameServer(IPAddress address)
+        /// <param name="endPoint">The address.</param>
+        public static NameServer ToNameServer(IPAddress endPoint)
         {
-            if (address == null)
+            if (endPoint == null)
             {
                 return null;
             }
 
-            return new NameServer(address);
+            return new NameServer(endPoint);
         }
 
         /// <summary>
@@ -205,7 +223,7 @@ namespace DnsClient
         /// </returns>
         public override string ToString()
         {
-            return IPEndPoint.ToString();
+            return DnsSuffix is null ? IPEndPoint.ToString() : $"{IPEndPoint} ({DnsSuffix})";
         }
 
         /// <inheritdocs />
@@ -241,12 +259,11 @@ namespace DnsClient
         /// </returns>
         public static IReadOnlyCollection<NameServer> ResolveNameServers(bool skipIPv6SiteLocal = true, bool fallbackToGooglePublicDns = true)
         {
-            // TODO: Use Array.Empty after dropping NET45
             IReadOnlyCollection<NameServer> nameServers = Array.Empty<NameServer>();
 
             var exceptions = new List<Exception>();
 
-            var logger = Logging.LoggerFactory?.CreateLogger(typeof(NameServer).FullName);
+            var logger = Logging.LoggerFactory?.CreateLogger("DnsClient.NameServer");
 
             logger?.LogDebug("Starting to resolve NameServers, skipIPv6SiteLocal:{0}.", skipIPv6SiteLocal);
             try
@@ -259,7 +276,6 @@ namespace DnsClient
                 exceptions.Add(ex);
             }
 
-#if !NET45
             if (exceptions.Count > 0)
             {
                 logger?.LogDebug("Using native path to resolve servers.");
@@ -305,7 +321,6 @@ namespace DnsClient
                 logger?.LogInformation(ex, "Resolving name servers from NRPT failed.");
             }
 
-#endif
             IReadOnlyCollection<NameServer> filtered = nameServers
                 .Where(p => (p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetwork
                             || p.IPEndPoint.Address.AddressFamily == AddressFamily.InterNetworkV6)
@@ -344,8 +359,6 @@ namespace DnsClient
             logger?.LogDebug("Resolved {0} name servers: [{1}].", filtered.Count, string.Join(",", filtered.AsEnumerable()));
             return filtered;
         }
-
-#if !NET45
 
         /// <summary>
         /// Using my custom native implementation to support UWP apps and such until <see cref="NetworkInterface.GetAllNetworkInterfaces"/>
@@ -387,7 +400,9 @@ namespace DnsClient
             {
                 try
                 {
-                    addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(EtcResolvConfFile);
+                    string data = File.ReadAllText(EtcResolvConfFile);
+                    var search = Linux.StringParsingHelpers.ParseDnsSuffixFromResolvConfFile(data);
+                    addresses = Linux.StringParsingHelpers.ParseDnsAddressesFromResolvConfFile(data, search);
                 }
                 catch (Exception e) when (e is FileNotFoundException || e is UnauthorizedAccessException)
                 {
@@ -405,8 +420,6 @@ namespace DnsClient
         {
             return NameResolutionPolicy.Resolve();
         }
-
-#endif
 
         internal static IReadOnlyCollection<NameServer> ValidateNameServers(IReadOnlyCollection<NameServer> servers, ILogger logger = null)
         {
@@ -438,10 +451,17 @@ namespace DnsClient
 
             foreach (NetworkInterface networkInterface in
                 adapters
-                    .Where(p => p != null && (p.OperationalStatus == OperationalStatus.Up || p.OperationalStatus == OperationalStatus.Unknown)
-                    && p.NetworkInterfaceType != NetworkInterfaceType.Loopback))
+                    // some VPN DNS servers have type > 6, e.g. 53
+                    // the "normal" case would type = 6 (Ethernet)
+                    // try to prio Ethernet over other adapters via ordering... (this might get ignored by the lookup client settings)
+                    .OrderBy(p => p?.NetworkInterfaceType)
+                    .Where(
+                        p => p != null
+                        && (p.OperationalStatus == OperationalStatus.Up || p.OperationalStatus == OperationalStatus.Unknown)
+                        && p.NetworkInterfaceType != NetworkInterfaceType.Loopback
+                        && p.NetworkInterfaceType != NetworkInterfaceType.Unknown))
             {
-                var properties = networkInterface?.GetIPProperties();
+                var properties = networkInterface.GetIPProperties();
 
                 // Can be null under mono for whatever reason...
                 if (properties?.DnsAddresses == null)

@@ -1,5 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using DnsClient.Protocol;
 
 namespace DnsClient
@@ -14,6 +17,11 @@ namespace DnsClient
     /// </summary>
     public enum QueryType
     {
+        /// <summary>
+        /// Nothing.
+        /// </summary>
+        None = 0,
+
         /// <summary>
         /// A host address.
         /// </summary>
@@ -216,6 +224,19 @@ namespace DnsClient
         /// </summary>
         /// <seealso href="https://https://tools.ietf.org/html/rfc6698">RFC 6698</seealso>
         TLSA = ResourceRecordType.TLSA,
+
+        /// <summary>
+        /// TLSA rfc7344.
+        /// </summary>
+        /// <seealso href="https://https://tools.ietf.org/html/rfc7344">RFC 7344</seealso>
+        CDS = ResourceRecordType.CDS,
+
+        /// <summary>
+        /// TLSA rfc7344.
+        /// </summary>
+        /// <seealso href="https://https://tools.ietf.org/html/rfc7344">RFC 7344</seealso>
+        CDNS = ResourceRecordType.CDNS,
+
 
         /// <summary>
         /// SPF records don't officially have a dedicated RR type, <see cref="ResourceRecordType.TXT"/> should be used instead.

@@ -1,10 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <VersionPrefix>1.8.0</VersionPrefix>
+    <VersionPrefix>1.8.1</VersionPrefix>
     <VersionSuffix Condition="'$(VersionSuffix)'!='' AND '$(BuildNumber)' != ''">$(VersionSuffix)-$(BuildNumber)</VersionSuffix>
 
-    <TargetFrameworks>net6.0;netstandard2.0;netstandard2.1;net472</TargetFrameworks>
-    <DebugType>full</DebugType>
+    <TargetFrameworks>net8.0;net6.0;netstandard2.0;netstandard2.1;net472</TargetFrameworks>
 
     <Product>DnsClient.NET</Product>
     <Description>DnsClient.NET is a simple yet very powerful and high performance open source library for the .NET Framework to do DNS lookups</Description>
@@ -12,43 +11,41 @@
     <Copyright>Copyright (c) 2024 Michael Conrad</Copyright>
     <Authors>MichaCo</Authors>
     <AssemblyName>DnsClient</AssemblyName>
+    <RootNamespace>DnsClient</RootNamespace>
 
     <AssemblyOriginatorKeyFile>../../tools/key.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition="'$(OS)' != 'Windows_NT'">true</PublicSign>
 
     <PackageId>DnsClient</PackageId>
-    <PackageTags>dns;client;stub;resolver;name;server;core;service;discovery</PackageTags>
+    <PackageTags>dns;client;resolver;servicediscovery</PackageTags>
 
     <PackageIcon>icon.png</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>http://dnsclient.michaco.net</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <WebPage>http://dnsclient.michaco.net</WebPage>
-    <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/MichaCo/DnsClient.NET</RepositoryUrl>    
-
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <EnablePackageValidation>true</EnablePackageValidation>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <LangVersion>latest</LangVersion>
-  </PropertyGroup>
-  <PropertyGroup>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
-    <EnableNETAnalyzers>true</EnableNETAnalyzers>
-    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-    <AnalysisMode>Default</AnalysisMode>
-  </PropertyGroup>
 
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <DebugType>portable</DebugType>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  
   <ItemGroup>
     <None Include="..\..\icon.png" Pack="true" PackagePath="" />
-    <None Include="..\..\README.md" Pack="true" PackagePath="\"/>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net472' ">
-    <PackageReference Include="System.Buffers" Version="4.5.1" />
+    <PackageReference Include="System.Buffers" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <PackageReference Include="System.Buffers" Version="4.5.1" />
+    <PackageReference Include="System.Buffers" Version="4.6.0" />
     <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard2.1' ">

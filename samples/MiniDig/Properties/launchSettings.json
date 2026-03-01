@@ -2,7 +2,11 @@
   "profiles": {
     "MiniDig": {
       "commandName": "Project",
-      "commandLineArgs": "-s localhost mcnet.com txt"
+      "commandLineArgs": "microsoft.com txt"
+    },
+    "Random": {
+      "commandName": "Project",
+      "commandLineArgs": "random -r 60 -c 10 -s 1.1.1.1 -s 8.8.8.8 -s 1.0.0.1 -s 9.9.9.9 -s 208.67.222.222 -s 77.88.8.8"
     }
   }
 }

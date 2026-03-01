@@ -5,6 +5,8 @@
     <AssemblyOriginatorKeyFile>../../tools/key.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
+    <IsPackable>false</IsPackable>
+    <NoWarn>$(NoWarn);CA1034;CA2211;CA1707;CA2201;CA1711;CA1002;CA1861</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

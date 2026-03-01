@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
@@ -59,7 +63,7 @@ namespace DnsClient
         private readonly DnsMessageHandler _messageHandler;
         private readonly DnsMessageHandler _tcpFallbackHandler;
         private readonly ILogger _logger;
-        private readonly SkipWorker _skipper = null;
+        private readonly SkipWorker _skipper;
 
         private IReadOnlyCollection<NameServer> _resolvedNameServers;
         private bool _disposedValue;
@@ -69,168 +73,6 @@ namespace DnsClient
 
         /// <inheritdoc/>
         public LookupClientSettings Settings { get; private set; }
-
-        #region obsolete properties
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
-
-        [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
-        public TimeSpan? MinimumCacheTimeout
-        {
-            get => Settings.MinimumCacheTimeout;
-            set
-            {
-                if (Settings.MinimumCacheTimeout != value)
-                {
-                    _originalOptions.MinimumCacheTimeout = value;
-                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
-                }
-            }
-        }
-
-        [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
-        public bool UseTcpFallback
-        {
-            get => Settings.UseTcpFallback;
-            set
-            {
-                if (Settings.UseTcpFallback != value)
-                {
-                    _originalOptions.UseTcpFallback = value;
-                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
-                }
-            }
-        }
-
-        [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
-        public bool UseTcpOnly
-        {
-            get => Settings.UseTcpOnly;
-            set
-            {
-                if (Settings.UseTcpOnly != value)
-                {
-                    _originalOptions.UseTcpOnly = value;
-                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
-                }
-            }
-        }
-
-        [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
-        public bool EnableAuditTrail
-        {
-            get => Settings.EnableAuditTrail;
-            set
-            {
-                if (Settings.EnableAuditTrail != value)
-                {
-                    _originalOptions.EnableAuditTrail = value;
-                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
-                }
-            }
-        }
-
-        [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
-        public bool Recursion
-        {
-            get => Settings.Recursion;
-            set
-            {
-                if (Settings.Recursion != value)
-                {
-                    _originalOptions.Recursion = value;
-                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
-                }
-            }
-        }
-
-        [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
-        public int Retries
-        {
-            get => Settings.Retries;
-            set
-            {
-                if (Settings.Retries != value)
-                {
-                    _originalOptions.Retries = value;
-                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
-                }
-            }
-        }
-
-        [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
-        public bool ThrowDnsErrors
-        {
-            get => Settings.ThrowDnsErrors;
-            set
-            {
-                if (Settings.ThrowDnsErrors != value)
-                {
-                    _originalOptions.ThrowDnsErrors = value;
-                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
-                }
-            }
-        }
-
-        [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
-        public TimeSpan Timeout
-        {
-            get => Settings.Timeout;
-            set
-            {
-                if (Settings.Timeout != value)
-                {
-                    _originalOptions.Timeout = value;
-                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
-                }
-            }
-        }
-
-        [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
-        public bool UseCache
-        {
-            //TODO: change logic with options/settings - UseCache is just a setting, cache can still be enabled
-            get => Settings.UseCache;
-            set
-            {
-                if (Settings.UseCache != value)
-                {
-                    _originalOptions.UseCache = value;
-                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
-                }
-            }
-        }
-
-        [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
-        public bool UseRandomNameServer
-        {
-            get => Settings.UseRandomNameServer;
-            set
-            {
-                if (Settings.UseRandomNameServer != value)
-                {
-                    _originalOptions.UseRandomNameServer = value;
-                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
-                }
-            }
-        }
-
-        [Obsolete("This property will be removed from LookupClient in the next version. Use LookupClientOptions to initialize LookupClient instead.")]
-        public bool ContinueOnDnsError
-        {
-            get => Settings.ContinueOnDnsError;
-            set
-            {
-                if (Settings.ContinueOnDnsError != value)
-                {
-                    _originalOptions.ContinueOnDnsError = value;
-                    Settings = new LookupClientSettings(_originalOptions, Settings.NameServers);
-                }
-            }
-        }
-
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
-
-        #endregion
 
         internal ResponseCache Cache { get; }
 
@@ -356,7 +198,7 @@ namespace DnsClient
             }
 
             _originalOptions = options;
-            _logger = Logging.LoggerFactory.CreateLogger(GetType().FullName);
+            _logger = Logging.LoggerFactory.CreateLogger("DnsClient.LookupClient");
             _messageHandler = udpHandler ?? new DnsUdpMessageHandler();
             _tcpFallbackHandler = tcpHandler ?? new DnsTcpMessageHandler();
 
@@ -398,7 +240,7 @@ namespace DnsClient
             servers = NameServer.ValidateNameServers(servers, _logger);
 
             Settings = new LookupClientSettings(options, servers);
-            Cache = new ResponseCache(true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout, Settings.FailedResultsCacheDuration);
+            Cache = new ResponseCache(_logger, true, Settings.MinimumCacheTimeout, Settings.MaximumCacheTimeout, Settings.FailedResultsCacheDuration);
         }
 
         private void CheckResolvedNameservers()
@@ -704,7 +546,7 @@ namespace DnsClient
             }
 
             var head = new DnsRequestHeader(queryOptions.Recursion, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, question, queryOptions);
+            using var request = new DnsRequestMessage(head, question, queryOptions);
             var handler = queryOptions.UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
             var audit = queryOptions.EnableAuditTrail ? new LookupClientAudit(queryOptions) : null;
 
@@ -760,7 +602,7 @@ namespace DnsClient
             }
 
             var head = new DnsRequestHeader(queryOptions.Recursion, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, question, queryOptions);
+            using var request = new DnsRequestMessage(head, question, queryOptions);
             var handler = queryOptions.UseTcpOnly ? _tcpFallbackHandler : _messageHandler;
             var audit = queryOptions.EnableAuditTrail ? new LookupClientAudit(queryOptions) : null;
 
@@ -797,7 +639,7 @@ namespace DnsClient
         }
 
         private IDnsQueryResponse ResolveQuery(
-            IReadOnlyList<NameServer> servers,
+            List<NameServer> servers,
             DnsQuerySettings settings,
             DnsMessageHandler handler,
             DnsRequestMessage request,
@@ -822,7 +664,7 @@ namespace DnsClient
                     request.Header.RefreshId();
                 }
 
-                if (settings.EnableAuditTrail && !isLastServer)
+                if (settings.EnableAuditTrail && serverIndex > 0 && !isLastServer)
                 {
                     audit?.AuditRetryNextServer();
                 }
@@ -912,7 +754,7 @@ namespace DnsClient
                     }
                     catch (DnsXidMismatchException ex)
                     {
-                        var handle = HandleDnsXidMismatchException(ex, request, settings, handler.Type, isLastServer, isLastTry, tries);
+                        var handle = HandleDnsXidMismatchException(ex, request, settings, handler.Type, isLastServer: isLastServer, isLastTry: isLastTry, currentTry: tries);
 
                         if (handle == HandleError.RetryCurrentServer)
                         {
@@ -979,6 +821,8 @@ namespace DnsClient
                     {
                         var handle = HandleTimeoutException(ex, request, settings, serverInfo, handler.Type, isLastServer: isLastServer, isLastTry: isLastTry, currentTry: tries);
 
+                        audit?.AuditTimeout(request.Header.Id, request.Question, serverInfo);
+
                         if (handle == HandleError.RetryCurrentServer)
                         {
                             continue;
@@ -990,7 +834,7 @@ namespace DnsClient
 
                         throw new DnsResponseException(
                             DnsResponseCode.ConnectionTimeout,
-                            $"Query {request.Header.Id} => {request.Question} on {serverInfo} timed out or is a transient error.",
+                            $"Could not resolve query {request.Header.Id} => {request.Question} on {serverInfo}, query timed out.",
                             ex)
                         {
                             AuditTrail = audit?.Build()
@@ -1041,20 +885,21 @@ namespace DnsClient
         }
 
         private async Task<IDnsQueryResponse> ResolveQueryAsync(
-            IReadOnlyList<NameServer> servers,
+            List<NameServer> servers,
             DnsQuerySettings settings,
             DnsMessageHandler handler,
             DnsRequestMessage request,
             LookupClientAudit audit = null,
             CancellationToken cancellationToken = default)
         {
-            if (handler == null)
-            {
-                throw new ArgumentNullException(nameof(handler));
-            }
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
+            }
+
+            if (handler == null)
+            {
+                throw new ArgumentNullException(nameof(handler));
             }
 
             for (var serverIndex = 0; serverIndex < servers.Count; serverIndex++)
@@ -1256,6 +1101,8 @@ namespace DnsClient
                         {
                             var handle = HandleTimeoutException(ex, request, settings, serverInfo, handler.Type, isLastServer: isLastServer, isLastTry: isLastTry, currentTry: tries);
 
+                            audit?.AuditTimeout(request.Header.Id, request.Question, serverInfo);
+
                             if (handle == HandleError.RetryCurrentServer)
                             {
                                 continue;
@@ -1268,7 +1115,7 @@ namespace DnsClient
 
                         throw new DnsResponseException(
                             DnsResponseCode.ConnectionTimeout,
-                            $"Query {request.Header.Id} => {request.Question} on {serverInfo} timed out or is a transient error.",
+                            $"Could not resolve query {request.Header.Id} => {request.Question} on {serverInfo}, query timed out.",
                             ex)
                         {
                             AuditTrail = audit?.Build()
@@ -1328,7 +1175,7 @@ namespace DnsClient
             }
 
             var head = new DnsRequestHeader(false, DnsOpCode.Query);
-            var request = new DnsRequestMessage(head, question);
+            using var request = new DnsRequestMessage(head, question);
 
             var cacheKey = ResponseCache.GetCacheKey(request.Question);
 
@@ -1759,7 +1606,7 @@ namespace DnsClient
         {
             private readonly Action _worker;
             private readonly int _skipFor = 5000;
-            private int _lastRun = 0;
+            private int _lastRun;
 
             public SkipWorker(Action worker, int skip = 5000)
             {
@@ -1805,7 +1652,7 @@ namespace DnsClient
 
     internal class LookupClientAudit
     {
-        private static readonly int s_printOffset = -32;
+        private const int PrintOffset = -32;
         private readonly StringBuilder _auditWriter = new StringBuilder();
         private Stopwatch _swatch;
 
@@ -1856,7 +1703,11 @@ namespace DnsClient
                 return;
             }
 
+#if NET6_0_OR_GREATER
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $"; ({count} server found)");
+#else
             _auditWriter.AppendLine($"; ({count} server found)");
+#endif
         }
 
         public string Build(IDnsQueryResponse response = null)
@@ -1893,7 +1744,27 @@ namespace DnsClient
                 return;
             }
 
+#if NET6_0_OR_GREATER
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; ERROR: {DnsResponseCodeText.GetErrorText((DnsResponseCode)responseCode)}");
+#else
             _auditWriter.AppendLine($";; ERROR: {DnsResponseCodeText.GetErrorText((DnsResponseCode)responseCode)}");
+#endif
+        }
+
+        public void AuditTimeout(int headerId, DnsQuestion question, NameServer serverInfo)
+        {
+            if (!Settings.EnableAuditTrail)
+            {
+                return;
+            }
+
+#if NET6_0_OR_GREATER
+            _auditWriter.AppendLine(
+                CultureInfo.InvariantCulture,
+                $";; Error: Query {headerId} => {question} on {serverInfo} timed out or is a transient error.");
+#else
+            _auditWriter.AppendLine($";; Error: Query {headerId} => {question} on {serverInfo} timed out or is a transient error.");
+#endif
         }
 
         public void AuditOptPseudo()
@@ -1928,17 +1799,15 @@ namespace DnsClient
             {
                 return;
             }
-
+#if NET6_0_OR_GREATER
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $"; EDNS: version: {version}, flags:{(doFlag ? " do" : string.Empty)}; UDP: {udpSize}; code: {responseCode}");
+#else
             _auditWriter.AppendLine($"; EDNS: version: {version}, flags:{(doFlag ? " do" : string.Empty)}; UDP: {udpSize}; code: {responseCode}");
+#endif
         }
 
         public void AuditEnd(IDnsQueryResponse queryResponse, NameServer nameServer)
         {
-            if (queryResponse is null)
-            {
-                throw new ArgumentNullException(nameof(queryResponse));
-            }
-
             if (nameServer is null)
             {
                 throw new ArgumentNullException(nameof(nameServer));
@@ -1959,7 +1828,7 @@ namespace DnsClient
                     _auditWriter.AppendLine(";; QUESTION SECTION:");
                     foreach (var question in queryResponse.Questions)
                     {
-                        _auditWriter.AppendLine(question.ToString(s_printOffset));
+                        _auditWriter.AppendLine(question.ToString(PrintOffset));
                     }
                     _auditWriter.AppendLine();
                 }
@@ -1969,7 +1838,7 @@ namespace DnsClient
                     _auditWriter.AppendLine(";; ANSWER SECTION:");
                     foreach (var answer in queryResponse.Answers)
                     {
-                        _auditWriter.AppendLine(answer.ToString(s_printOffset));
+                        _auditWriter.AppendLine(answer.ToString(PrintOffset));
                     }
                     _auditWriter.AppendLine();
                 }
@@ -1979,7 +1848,7 @@ namespace DnsClient
                     _auditWriter.AppendLine(";; AUTHORITIES SECTION:");
                     foreach (var auth in queryResponse.Authorities)
                     {
-                        _auditWriter.AppendLine(auth.ToString(s_printOffset));
+                        _auditWriter.AppendLine(auth.ToString(PrintOffset));
                     }
                     _auditWriter.AppendLine();
                 }
@@ -1990,16 +1859,23 @@ namespace DnsClient
                     _auditWriter.AppendLine(";; ADDITIONALS SECTION:");
                     foreach (var additional in additionals)
                     {
-                        _auditWriter.AppendLine(additional.ToString(s_printOffset));
+                        _auditWriter.AppendLine(additional.ToString(PrintOffset));
                     }
                     _auditWriter.AppendLine();
                 }
             }
 
+#if NET6_0_OR_GREATER
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; Query time: {elapsed} msec");
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; SERVER: {nameServer.Address}#{nameServer.Port}");
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; WHEN: {DateTime.UtcNow.ToString("ddd MMM dd HH:mm:ss K yyyy", CultureInfo.InvariantCulture)}");
+            _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; MSG SIZE  rcvd: {queryResponse.MessageSize}");
+#else
             _auditWriter.AppendLine($";; Query time: {elapsed} msec");
             _auditWriter.AppendLine($";; SERVER: {nameServer.Address}#{nameServer.Port}");
             _auditWriter.AppendLine($";; WHEN: {DateTime.UtcNow.ToString("ddd MMM dd HH:mm:ss K yyyy", CultureInfo.InvariantCulture)}");
             _auditWriter.AppendLine($";; MSG SIZE  rcvd: {queryResponse.MessageSize}");
+#endif
         }
 
         public void AuditException(Exception ex)
@@ -2011,15 +1887,27 @@ namespace DnsClient
 
             if (ex is DnsResponseException dnsEx)
             {
+#if NET6_0_OR_GREATER
+                _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; Error: {DnsResponseCodeText.GetErrorText(dnsEx.Code)} {dnsEx.InnerException?.Message ?? dnsEx.Message}");
+#else
                 _auditWriter.AppendLine($";; Error: {DnsResponseCodeText.GetErrorText(dnsEx.Code)} {dnsEx.InnerException?.Message ?? dnsEx.Message}");
+#endif
             }
             else if (ex is AggregateException aggEx)
             {
+#if NET6_0_OR_GREATER
+                _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; Error: {aggEx.InnerException?.Message ?? aggEx.Message}");
+#else
                 _auditWriter.AppendLine($";; Error: {aggEx.InnerException?.Message ?? aggEx.Message}");
+#endif
             }
             else
             {
+#if NET6_0_OR_GREATER
+                _auditWriter.AppendLine(CultureInfo.InvariantCulture, $";; Error: {ex.Message}");
+#else
                 _auditWriter.AppendLine($";; Error: {ex.Message}");
+#endif
             }
 
             if (Debugger.IsAttached)

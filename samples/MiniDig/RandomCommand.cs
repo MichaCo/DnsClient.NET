@@ -1,7 +1,12 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -22,8 +27,8 @@ namespace DigApp
         private ConcurrentQueue<string> _domainNames;
         private int _clients;
         private int _runtime;
-        private long _reportExcecutions = 0;
-        private long _allExcecutions = 0;
+        private long _reportExcecutions;
+        private long _allExcecutions;
         private bool _running;
         private LookupClientOptions _settings;
         private int _errors;
@@ -67,8 +72,12 @@ namespace DigApp
             var lines = File.ReadAllLines("names.txt");
             _domainNames = new ConcurrentQueue<string>(lines.Select(p => p.Substring(p.IndexOf(';') + 1)).OrderBy(x => s_randmom.Next(0, lines.Length * 2)));
 
-            _clients = ClientsArg.HasValue() ? int.Parse(ClientsArg.Value()) : 10;
-            _runtime = RuntimeArg.HasValue() ? int.Parse(RuntimeArg.Value()) <= 1 ? 5 : int.Parse(RuntimeArg.Value()) : 5;
+            _clients = ClientsArg.HasValue() ? int.Parse(ClientsArg.Value(), CultureInfo.InvariantCulture) : 10;
+            _runtime = RuntimeArg.HasValue()
+                ? int.Parse(RuntimeArg.Value(), CultureInfo.InvariantCulture) <= 1
+                ? 5 : int.Parse(RuntimeArg.Value(), CultureInfo.InvariantCulture)
+                : 5;
+
             _runSync = SyncArg.HasValue();
 
             _settings = GetLookupSettings();
@@ -141,15 +150,16 @@ namespace DigApp
                 waitCount++;
                 await Task.Delay(1000).ConfigureAwait(false);
 
-                var serverUpdate = from good in _successByServer
-                                   join fail in _failByServer on good.Key equals fail.Key into all
-                                   from row in all.DefaultIfEmpty()
-                                   select new
-                                   {
-                                       good.Key,
-                                       Fails = row.Value,
-                                       Success = good.Value
-                                   };
+                var serverUpdate =
+                    from good in _successByServer
+                    join fail in _failByServer on good.Key equals fail.Key into all
+                    from row in all.DefaultIfEmpty()
+                    select new
+                    {
+                        good.Key,
+                        Fails = row.Value,
+                        Success = good.Value
+                    };
 
                 var updateString = string.Join(" | ", serverUpdate.Select((p, i) => $"Server{i}: +{p.Success} -{p.Fails}"));
 
@@ -159,7 +169,7 @@ namespace DigApp
             _running = false;
         }
 
-        private int _runNumber = 0;
+        private int _runNumber;
 
         private async Task ExcecuteRun()
         {
@@ -188,13 +198,14 @@ namespace DigApp
                     {
                         _spinner.Message = $"[{number}] {query} {type}";
 
+                        var useServer = _settings.NameServers.OrderBy(x => s_randmom.Next()).Take(s_randmom.Next(1, _settings.NameServers.Count)).ToArray();
                         if (!_runSync)
                         {
-                            response = await lookup.QueryAsync(query, type).ConfigureAwait(false);
+                            response = await lookup.QueryServerAsync(useServer, query, type).ConfigureAwait(false);
                         }
                         else
                         {
-                            response = await Task.Run(() => lookup.Query(query, type)).ConfigureAwait(false);
+                            response = await Task.Run(() => lookup.QueryServer(useServer, query, type)).ConfigureAwait(false);
                         }
 
                         Interlocked.Increment(ref _allExcecutions);

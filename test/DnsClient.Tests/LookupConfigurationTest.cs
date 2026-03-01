@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -15,30 +19,6 @@ namespace DnsClient.Tests
         {
             Tracing.Source.Switch.Level = System.Diagnostics.SourceLevels.All;
         }
-
-#pragma warning disable CS0618 // Type or member is obsolete
-
-        [Fact]
-        public void ObsoleteLookupClient_Setters_Defaults()
-        {
-            var client = new LookupClient(new LookupClientOptions(NameServer.Cloudflare));
-
-            Assert.Single(client.NameServers);
-
-            Assert.True(client.UseCache);
-            Assert.False(client.EnableAuditTrail);
-            Assert.Null(client.MinimumCacheTimeout);
-            Assert.True(client.Recursion);
-            Assert.False(client.ThrowDnsErrors);
-            Assert.Equal(2, client.Retries);
-            Assert.Equal(TimeSpan.FromSeconds(5), client.Timeout);
-            Assert.True(client.UseTcpFallback);
-            Assert.False(client.UseTcpOnly);
-            Assert.True(client.ContinueOnDnsError);
-            Assert.True(client.UseRandomNameServer);
-        }
-
-#pragma warning restore CS0618 // Type or member is obsolete
 
         [Fact]
         public void DnsQueryOptions_Implicit_Null()
@@ -149,11 +129,13 @@ namespace DnsClient.Tests
         {
             var opt = new LookupClientSettings(new LookupClientOptions() { AutoResolveNameServers = false });
 
+#pragma warning disable CA1508 // Avoid dead conditional code, testing custom Equals impl
             // typed overload
             Assert.False(opt.Equals(null));
 
             // object overload
             Assert.False(opt.Equals((object)null));
+#pragma warning restore CA1508 // Avoid dead conditional code
         }
 
         [Fact]
@@ -657,16 +639,16 @@ namespace DnsClient.Tests
         }
 
         public static TheoryData<TestMatrixItem> AllWithoutServerQueries
-            => new(All.SelectMany(p => p).OfType<TestMatrixItem>().Where(a => !a.UsesServers));
+            => new(All.OfType<object[]>().Select(p => p.First()).OfType<TestMatrixItem>().Where(a => !a.UsesServers));
 
         public static TheoryData<TestMatrixItem> AllWithServers
-            => new(All.SelectMany(p => p).OfType<TestMatrixItem>().Where(a => a.UsesServers));
+            => new(All.OfType<object[]>().Select(p => p.First()).OfType<TestMatrixItem>().Where(a => a.UsesServers));
 
         public static TheoryData<TestMatrixItem> AllWithQueryOptions
-            => new(All.SelectMany(p => p).OfType<TestMatrixItem>().Where(a => a.UsesQueryOptions));
+            => new(All.OfType<object[]>().Select(p => p.First()).OfType<TestMatrixItem>().Where(a => a.UsesQueryOptions));
 
         public static TheoryData<TestMatrixItem> AllWithoutQueryOptionsOrServerQueries
-            => new(All.SelectMany(p => p).OfType<TestMatrixItem>().Where(a => (a.UsesQueryOptions || a.UsesServers)));
+            => new(All.OfType<object[]>().Select(p => p.First()).OfType<TestMatrixItem>().Where(a => (a.UsesQueryOptions || a.UsesServers)));
 
         [Theory]
         [MemberData(nameof(AllWithoutServerQueries))]
@@ -1020,7 +1002,7 @@ namespace DnsClient.Tests
                 LastServer = server;
                 LastRequest = request;
 
-                var writer = new DnsDatagramWriter(new ArraySegment<byte>(s_zoneData.ToArray()));
+                using var writer = new DnsDatagramWriter(new ArraySegment<byte>(s_zoneData.ToArray()));
                 writer.Index = 0;
                 writer.WriteInt16NetworkOrder((short)request.Header.Id);
                 writer.Index = s_zoneData.Length;

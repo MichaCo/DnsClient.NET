@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using DnsClient.Internal;
@@ -195,7 +199,7 @@ namespace DnsClient.Tests
             reader.ReadUInt16();
             var result = reader.ReadBytes(4);
 
-            Assert.Equal(result, new byte[] { 4, 5, 6, 7 });
+            Assert.Equal(result.ToArray(), new byte[] { 4, 5, 6, 7 });
         }
 
         [Fact]

@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Globalization;
 
 namespace DnsClient
@@ -248,6 +252,11 @@ namespace DnsClient
         /// <returns>The <see cref="DnsString"/> representation.</returns>
         public static DnsString FromResponseQueryString(string query)
         {
+            if (query is null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
             var data = query;
             if (query.Length == 0 || query[query.Length - 1] != Dot)
             {

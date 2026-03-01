@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
@@ -23,7 +27,9 @@ namespace DnsClient
             DnsRequestMessage request,
             TimeSpan timeout)
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope
             Socket socket = new Socket(endpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             byte[] buffer = ArrayPool<byte>.Shared.Rent(MaxSize);
 
             try
@@ -63,7 +69,9 @@ namespace DnsClient
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
             Socket socket = new Socket(endpoint.AddressFamily, SocketType.Dgram, ProtocolType.Udp);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             byte[] buffer = ArrayPool<byte>.Shared.Rent(MaxSize);
             try
             {

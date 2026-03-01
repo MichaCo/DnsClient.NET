@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -8,12 +12,12 @@ using System.Threading.Tasks;
 
 namespace DnsClient.PerfTestHost
 {
-    internal class Program
+    internal static class Program
     {
         private static async Task Main()
         {
             var port = 5053;
-            var server = new StaticDnsServer(
+            using var server = new StaticDnsServer(
                 printStats: false,
                 port: port,
                 workers: 2);
@@ -109,7 +113,7 @@ namespace DnsClient.PerfTestHost
 
                 var took = swatchInner.ElapsedTicks;
                 Interlocked.Add(ref tookOverall, took);
-            };
+            }
 
             var tasks = new List<Task>();
             for (var i = 0; i < tasksCount; i++)

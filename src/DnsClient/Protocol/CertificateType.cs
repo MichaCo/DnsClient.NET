@@ -1,4 +1,8 @@
-﻿namespace DnsClient.Protocol;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+namespace DnsClient.Protocol;
 
 /// <summary>
 /// Certificate type values
@@ -11,7 +15,7 @@ public enum CertificateType
     /// <summary>
     /// Reserved certificate type.
     /// </summary>
-    Reserved = 0,
+    None = 0,
     /// <summary>
     /// X.509 as per PKIX
     /// </summary>

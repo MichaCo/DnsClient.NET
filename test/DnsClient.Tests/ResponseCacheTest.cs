@@ -1,5 +1,8 @@
-﻿using System;
-using System.Linq;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,20 +23,20 @@ namespace DnsClient.Tests
         public void Cache_InvalidLessThanZero()
         {
             var ex = Assert.ThrowsAny<ArgumentOutOfRangeException>(
-                () => new ResponseCache(true, TimeSpan.FromMilliseconds(-2)));
+                () => new ResponseCache(null, true, TimeSpan.FromMilliseconds(-2)));
         }
 
         [Fact]
         public void Cache_InvalidMAx()
         {
             var ex = Assert.ThrowsAny<ArgumentOutOfRangeException>(
-                () => new ResponseCache(true, TimeSpan.MaxValue));
+                () => new ResponseCache(null, true, TimeSpan.MaxValue));
         }
 
         [Fact]
         public void Cache_SupportsInfinite()
         {
-            var cache = new ResponseCache(true, Timeout.InfiniteTimeSpan);
+            var cache = new ResponseCache(null, true, Timeout.InfiniteTimeSpan);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
@@ -50,7 +53,7 @@ namespace DnsClient.Tests
         public void Cache_DoesCacheWithMinimumDefined()
         {
             var minTtl = 2000;
-            var cache = new ResponseCache(true, TimeSpan.FromMilliseconds(minTtl));
+            var cache = new ResponseCache(null, true, TimeSpan.FromMilliseconds(minTtl));
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
@@ -68,7 +71,7 @@ namespace DnsClient.Tests
         public void Cache_RespectsMaximumTtl()
         {
             var maxTtl = 2000;
-            var cache = new ResponseCache(true, maximumTimeout: TimeSpan.FromMilliseconds(maxTtl));
+            var cache = new ResponseCache(null, true, maximumTimeout: TimeSpan.FromMilliseconds(maxTtl));
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 60 * 60 * 24, 100));
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
@@ -86,7 +89,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Cache_DoesNotCacheIfDisabled()
         {
-            var cache = new ResponseCache(false);
+            var cache = new ResponseCache(null, false);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 100, 100));
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
@@ -102,7 +105,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Cache_DoesNotCacheIfZeroTTL()
         {
-            var cache = new ResponseCache(true);
+            var cache = new ResponseCache(null, true);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
@@ -118,7 +121,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Cache_DoesNotCacheIfZeroTTLWithZeroMinTtl()
         {
-            var cache = new ResponseCache(true, TimeSpan.Zero);
+            var cache = new ResponseCache(null, true, TimeSpan.Zero);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
@@ -134,7 +137,7 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Cache_EntriesLowestTT_Expires()
         {
-            var cache = new ResponseCache(true);
+            var cache = new ResponseCache(null, true);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 1000, 100));
             var recordB = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 100, 100));
             var recordC = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 1, 100));
@@ -160,7 +163,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Cache_EntriesLowestTTLWins()
         {
-            var cache = new ResponseCache(true);
+            var cache = new ResponseCache(null, true);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 1000, 100));
             var recordB = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 100, 100));
             var recordC = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 0, 100));
@@ -180,7 +183,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Cache_GetOrAdd()
         {
-            var cache = new ResponseCache(true);
+            var cache = new ResponseCache(null, true);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 100, 100));
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
@@ -195,7 +198,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Cache_GetOrAddExists()
         {
-            var cache = new ResponseCache(true);
+            var cache = new ResponseCache(null, true);
             var record = new EmptyRecord(new ResourceRecordInfo("a", ResourceRecordType.A, QueryClass.IN, 100, 100));
             var response = new DnsResponseMessage(new DnsResponseHeader(1, 256, 1, 1, 0, 0), 0);
             response.AddAnswer(record);
@@ -212,7 +215,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Cache_DoesNotCacheFailureIfDisabled()
         {
-            var cache = new ResponseCache(true);
+            var cache = new ResponseCache(null, true);
             var failureStatus = DnsResponseCode.NotExistentDomain;
             var response = new DnsResponseMessage(new DnsResponseHeader(1, (ushort)failureStatus, 0, 0, 0, 0), 0);
 
@@ -226,7 +229,7 @@ namespace DnsClient.Tests
         [Fact]
         public void Cache_DoesCacheFailureIfEnabled()
         {
-            var cache = new ResponseCache(true);
+            var cache = new ResponseCache(null, true);
             var failureStatus = DnsResponseCode.NotExistentDomain;
             var response = new DnsResponseMessage(new DnsResponseHeader(1, (ushort)failureStatus, 0, 0, 0, 0), 0);
 
@@ -239,7 +242,7 @@ namespace DnsClient.Tests
         [Fact]
         public async Task Cache_DoesCacheFailureExpire()
         {
-            var cache = new ResponseCache(true, null, null, TimeSpan.FromMilliseconds(1));
+            var cache = new ResponseCache(null, true, null, null, TimeSpan.FromMilliseconds(1));
             var failureStatus = DnsResponseCode.NotExistentDomain;
             var response = new DnsResponseMessage(new DnsResponseHeader(1, (ushort)failureStatus, 0, 0, 0, 0), 0);
 

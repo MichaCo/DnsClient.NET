@@ -1,6 +1,9 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using BenchmarkDotNet.Analysers;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
@@ -13,12 +16,12 @@ using DnsClient;
 namespace Benchmarks
 {
     [ExcludeFromCodeCoverage]
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
             var port = 5053;
-            var server = new StaticDnsServer(
+            using var server = new StaticDnsServer(
                 printStats: false,
                 port: port,
                 workers: 1);
@@ -59,10 +62,8 @@ namespace Benchmarks
             {
                 Add(DefaultConfig.Instance);
 
-                var coreJob = Job.MediumRun
-                    //.With(CsProjCoreToolchain.NetCoreApp21)
-                    //.With(Runtime.Core)
-                    //.With(Jit.Default)
+                var coreJob = Job
+                    .MediumRun
                     .WithLaunchCount(1)
                     .WithWarmupCount(3)
                     .WithIterationCount(10)

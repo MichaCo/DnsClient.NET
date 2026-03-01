@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -70,6 +74,11 @@ namespace DnsClient
         /// </summary>
         public static string ParseString(byte[] data)
         {
+            if (data is null)
+            {
+                throw new ArgumentNullException(nameof(data));
+            }
+
             var builder = StringBuilderObjectPool.Default.Get();
 
             //foreach (var b in data)
@@ -208,7 +217,7 @@ namespace DnsClient
 
                     if (b < 32 || b > 126)
                     {
-                        builder.Append("\\" + b.ToString("000"));
+                        builder.Append("\\" + b.ToString("000", CultureInfo.InvariantCulture));
                     }
                     else if (c == ';')
                     {

@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Net;
 using System.Threading.Tasks;
 using DnsClient;
@@ -29,25 +33,26 @@ namespace OldReference
             //// changed return type to IReadonlyCollection at some point...
         }
 
-        public LookupClient SetNonDefaults()
-        {
-            var client = new LookupClient
-            {
-                ContinueOnDnsError = false,
-                EnableAuditTrail = true,
-                MinimumCacheTimeout = TimeSpan.FromSeconds(11),
-                Recursion = false,
-                Retries = 10,
-                ThrowDnsErrors = true,
-                Timeout = TimeSpan.FromMinutes(1),
-                UseCache = false,
-                UseRandomNameServer = false,
-                UseTcpFallback = false,
-                UseTcpOnly = true
-            };
+        // This was obsolete for a long time now. Those options are gone now.
+        ////public LookupClient SetNonDefaults()
+        ////{
+        ////    var client = new LookupClient
+        ////    {
+        ////        ContinueOnDnsError = false,
+        ////        EnableAuditTrail = true,
+        ////        MinimumCacheTimeout = TimeSpan.FromSeconds(11),
+        ////        Recursion = false,
+        ////        Retries = 10,
+        ////        ThrowDnsErrors = true,
+        ////        Timeout = TimeSpan.FromMinutes(1),
+        ////        UseCache = false,
+        ////        UseRandomNameServer = false,
+        ////        UseTcpFallback = false,
+        ////        UseTcpOnly = true
+        ////    };
 
-            return client;
-        }
+        ////    return client;
+        ////}
 
         public void TestQuery_1_1()
         {

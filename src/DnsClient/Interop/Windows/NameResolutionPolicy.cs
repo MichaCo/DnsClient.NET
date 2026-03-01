@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -8,8 +12,6 @@ using Microsoft.Win32;
 
 namespace DnsClient.Windows
 {
-#if !NET45
-
     internal static class NameResolutionPolicy
     {
         private static readonly char[] s_splitOn = new char[] { ';' };
@@ -121,13 +123,14 @@ namespace DnsClient.Windows
                     // Name can be a suffix (starts with .) or a prefix
                     // we want to ignore it if it's not a suffix
 
-                    foreach (var name in names.Where(n => n.StartsWith(".")).Distinct())
+#pragma warning disable CA1867 // Use char overload, does not exist in all targets
+                    foreach (var name in names.Where(n => n.StartsWith(".", StringComparison.OrdinalIgnoreCase)).Distinct())
                     {
                         nameServers.Add(new NameServer(address, name));
                     }
+#pragma warning restore CA1867 // Use char overload
                 }
             }
         }
     }
-#endif
 }

@@ -1,4 +1,8 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -33,6 +37,7 @@ namespace DnsClient.Tests
 
             var ignore = new ResourceRecordType[]
             {
+                ResourceRecordType.None,
 #pragma warning disable CS0618 // Type or member is obsolete
                 ResourceRecordType.MD,
                 ResourceRecordType.MF,
@@ -46,7 +51,9 @@ namespace DnsClient.Tests
                 ResourceRecordType.SPF,
                 ResourceRecordType.DNSKEY,
                 ResourceRecordType.DS,
-                ResourceRecordType.CERT
+                ResourceRecordType.CERT,
+                ResourceRecordType.CDS,
+                ResourceRecordType.CDNS
             };
 
             foreach (var t in types)
@@ -122,7 +129,7 @@ namespace DnsClient.Tests
             var records = GetTypedRecords<CaaRecord>();
 
             var validateRecord = records.FirstOrDefault(
-                p => p.Tag.Equals("policy"));
+                p => p.Tag.Equals("policy", StringComparison.Ordinal));
 
             Assert.NotNull(validateRecord);
             Assert.Equal(1, validateRecord.Flags);
@@ -146,7 +153,7 @@ namespace DnsClient.Tests
             var records = GetTypedRecords<HInfoRecord>();
 
             var validateRecord = records.FirstOrDefault(
-                p => p.Cpu.Equals("Intel-I7"));
+                p => p.Cpu.Equals("Intel-I7", StringComparison.Ordinal));
 
             Assert.NotNull(validateRecord);
             Assert.Equal("WINDOWS", validateRecord.OS);
@@ -342,7 +349,7 @@ namespace DnsClient.Tests
                 DnsRequestMessage request,
                 TimeSpan timeout)
             {
-                var writer = new DnsDatagramWriter(new ArraySegment<byte>(s_zoneData.ToArray()));
+                using var writer = new DnsDatagramWriter(new ArraySegment<byte>(s_zoneData.ToArray()));
                 writer.Index = 0;
                 writer.WriteInt16NetworkOrder((short)request.Header.Id);
                 writer.Index = s_zoneData.Length;

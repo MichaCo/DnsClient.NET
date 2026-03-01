@@ -1,9 +1,14 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using DnsClient.Internal;
 
 namespace DnsClient
 {
@@ -19,13 +24,15 @@ namespace DnsClient
         private static readonly int s_cleanupInterval = (int)TimeSpan.FromMinutes(10).TotalMilliseconds;
         private readonly ConcurrentDictionary<string, ResponseEntry> _cache = new ConcurrentDictionary<string, ResponseEntry>();
         private readonly object _cleanupLock = new object();
-        private bool _cleanupRunning = false;
-        private int _lastCleanup = 0;
+        private bool _cleanupRunning;
+        private int _lastCleanup;
         private TimeSpan? _minimumTimeout;
         private TimeSpan? _maximumTimeout;
         private TimeSpan _failureEntryTimeout = s_defaultFailureTimeout;
 
         public int Count => _cache.Count;
+
+        public ILogger Logger { get; }
 
         public bool Enabled { get; set; } = true;
 
@@ -73,8 +80,9 @@ namespace DnsClient
             }
         }
 
-        public ResponseCache(bool enabled = true, TimeSpan? minimumTimout = null, TimeSpan? maximumTimeout = null, TimeSpan? failureEntryTimeout = null)
+        public ResponseCache(ILogger logger, bool enabled = true, TimeSpan? minimumTimout = null, TimeSpan? maximumTimeout = null, TimeSpan? failureEntryTimeout = null)
         {
+            Logger = logger;
             Enabled = enabled;
             MinimumTimout = minimumTimout;
             MaximumTimeout = maximumTimeout;
@@ -105,7 +113,7 @@ namespace DnsClient
             effectiveTtl = null;
             if (key == null)
             {
-                throw new ArgumentNullException(key);
+                throw new ArgumentNullException(nameof(key));
             }
 
             if (!Enabled)
@@ -134,7 +142,7 @@ namespace DnsClient
         {
             if (key == null)
             {
-                throw new ArgumentNullException(key);
+                throw new ArgumentNullException(nameof(key));
             }
 
             if (Enabled && response != null && (cacheFailures || (!response.HasError && response.Answers.Count > 0)))
@@ -149,8 +157,8 @@ namespace DnsClient
                 }
                 else
                 {
-                    var all = response.AllRecords.Where(p => !(p is Protocol.Options.OptRecord));
-                    if (all.Any())
+                    var all = response.AllRecords.Where(p => !(p is Protocol.Options.OptRecord)).ToList();
+                    if (all.Count != 0)
                     {
                         // in millis
                         double minTtl = all.Min(p => p.InitialTimeToLive) * 1000d;
@@ -237,8 +245,13 @@ namespace DnsClient
                                 if (t.IsFaulted)
                                 {
                                     /* Ignoring but handling background errors. */
+                                    Logger?.LogError(
+                                        eventId: 0,
+                                        exception: t.Exception,
+                                        message: "An error occurred during response cache cleanup.");
                                 }
-                            });
+                            },
+                            scheduler: TaskScheduler.Default);
                     }
                 }
             }

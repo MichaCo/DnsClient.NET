@@ -1,5 +1,10 @@
-﻿using System;
+﻿// Copyright 2024 Michael Conrad.
+// Licensed under the Apache License, Version 2.0.
+// See LICENSE file for details.
+
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 
 namespace DnsClient.Protocol
 {
@@ -149,8 +154,8 @@ namespace DnsClient.Protocol
             Algorithm = (DnsSecurityAlgorithm)algorithm;
             Labels = labels;
             OriginalTtl = originalTtl;
-            SignatureExpiration = FromUnixTimeSeconds(signatureExpiration);
-            SignatureInception = FromUnixTimeSeconds(signatureInception);
+            SignatureExpiration = DateTimeOffset.FromUnixTimeSeconds(signatureExpiration);
+            SignatureInception = DateTimeOffset.FromUnixTimeSeconds(signatureInception);
             KeyTag = keyTag;
             SignersName = signersName ?? throw new ArgumentNullException(nameof(signersName));
             Signature = signature ?? throw new ArgumentNullException(nameof(signature));
@@ -160,23 +165,17 @@ namespace DnsClient.Protocol
         private protected override string RecordToString()
         {
             return string.Format(
+                CultureInfo.InvariantCulture,
                 "{0} {1} {2} {3} {4} {5} {6} {7} {8}",
                 CoveredType,
                 Algorithm,
                 Labels,
                 OriginalTtl,
-                SignatureExpiration.ToString("yyyyMMddHHmmss"),
-                SignatureInception.ToString("yyyyMMddHHmmss"),
+                SignatureExpiration.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture),
+                SignatureInception.ToString("yyyyMMddHHmmss", CultureInfo.InvariantCulture),
                 KeyTag,
                 SignersName,
                 SignatureAsString);
-        }
-
-        // DateTimeOffset does have that method build in .NET47+ but not .NET45 which we will support. TODO: delete this when we drop support for .NET 4.5
-        private static DateTimeOffset FromUnixTimeSeconds(long seconds)
-        {
-            long ticks = seconds * TimeSpan.TicksPerSecond + new DateTime(1970, 1, 1, 0, 0, 0).Ticks;
-            return new DateTimeOffset(ticks, TimeSpan.Zero);
         }
     }
 }
