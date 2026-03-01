@@ -14,7 +14,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRequestHeader_ValidateCtor1()
         {
-            var header = new DnsRequestHeader(DnsOpCode.Notify);
+            using var header = new DnsRequestHeader(DnsOpCode.Notify);
 
             Assert.True(header.UseRecursion);
             Assert.Equal(DnsOpCode.Notify, header.OpCode);
@@ -23,7 +23,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRequestHeader_ValidateCtor2()
         {
-            var header = new DnsRequestHeader(true, DnsOpCode.Notify);
+            using var header = new DnsRequestHeader(true, DnsOpCode.Notify);
 
             Assert.True(header.UseRecursion);
             Assert.Equal(DnsOpCode.Notify, header.OpCode);
@@ -32,7 +32,7 @@ namespace DnsClient.Tests
         [Fact]
         public void DnsRequestHeader_ChangeRecursion()
         {
-            var header = new DnsRequestHeader(true, DnsOpCode.Notify);
+            using var header = new DnsRequestHeader(true, DnsOpCode.Notify);
 
             Assert.Equal(8448, header.RawFlags);
 

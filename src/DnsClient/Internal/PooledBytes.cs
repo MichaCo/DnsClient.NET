@@ -32,7 +32,7 @@ namespace DnsClient.Internal
             var newBuffer = s_pool.Rent(_length + length);
 
             System.Buffer.BlockCopy(_buffer.Array, 0, newBuffer, 0, _length);
-            s_pool.Return(_buffer.Array);
+            s_pool.Return(_buffer.Array, clearArray: true);
             _length += length;
             _buffer = new ArraySegment<byte>(newBuffer, 0, _length);
         }
