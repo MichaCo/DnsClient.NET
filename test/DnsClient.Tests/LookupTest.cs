@@ -1013,7 +1013,7 @@ namespace DnsClient.Tests
 
             var result = await client.GetHostEntryAsync("localhost");
 
-            Assert.Single(result.AddressList);
+            Assert.Contains(result.AddressList, a => a.Equals(IPAddress.Loopback) || a.Equals(IPAddress.IPv6Loopback));
             Assert.Empty(result.Aliases);
             Assert.Equal("localhost", result.HostName);
         }
