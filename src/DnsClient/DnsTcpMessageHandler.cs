@@ -67,6 +67,11 @@ namespace DnsClient
             {
                 throw new OperationCanceledException(cancellationToken);
             }
+            catch (NullReferenceException ex) when (ex.Source == "System.Net.Sockets")
+            {
+                // Catching NullReferenceException works around https://github.com/dotnet/runtime/issues/136744
+                throw new OperationCanceledException(cancellationToken);
+            }
             catch
             {
                 entry.DisposeClient();
