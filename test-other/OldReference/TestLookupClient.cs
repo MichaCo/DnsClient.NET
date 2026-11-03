@@ -56,7 +56,7 @@ namespace OldReference
 
         public void TestQuery_1_1()
         {
-            var client = new LookupClient();
+            var client = new LookupClient(NameServer.GooglePublicDns.Address);
             client.Query("domain", QueryType.A);
             client.Query("domain", QueryType.A, QueryClass.IN);
             client.QueryReverse(IPAddress.Loopback);
@@ -76,7 +76,7 @@ namespace OldReference
 
         public async Task TestQueryAsync_1_1()
         {
-            var client = new LookupClient();
+            var client = new LookupClient(NameServer.GooglePublicDns.Address);
             await client.QueryAsync("domain", QueryType.A).ConfigureAwait(false);
             await client.QueryAsync("domain", QueryType.A, QueryClass.IN).ConfigureAwait(false);
             await client.QueryAsync("domain", QueryType.A, cancellationToken: default).ConfigureAwait(false);

@@ -19,7 +19,7 @@ namespace DnsClient
         TCP
     }
 
-    internal abstract class DnsMessageHandler
+    internal abstract class DnsMessageHandler : IDisposable
     {
         public abstract DnsMessageHandleType Type { get; }
 
@@ -173,6 +173,17 @@ namespace DnsClient
             }
 
             return response;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            // Nothing to do in base class.
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
         }
     }
 }
