@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading;
 using System.Threading.Tasks;
 using DnsClient.Protocol;
 
@@ -18,7 +19,7 @@ namespace DnsClient
     /// The methods implement common queries which are more complex and have some business logic.
     /// </para>
     /// </summary>
-    public static class DnsQueryExtensions
+    public static partial class DnsQueryExtensions
     {
         /// <summary>
         /// The <c>GetHostEntry</c> method queries a DNS server for the IP addresses and aliases associated with the <paramref name="hostNameOrAddress"/>.
@@ -106,7 +107,7 @@ namespace DnsClient
         /// </para>
         /// </summary>
         /// <example>
-        /// The following code example uses the <see cref="GetHostEntryAsync(IDnsQuery, string)"/> method to resolve an IP address or hostname to an <see cref="IPHostEntry"/> instance.
+        /// The following code example uses the <see cref="GetHostEntryAsync(IDnsQuery, string, CancellationToken)"/> method to resolve an IP address or hostname to an <see cref="IPHostEntry"/> instance.
         /// <code>
         /// <![CDATA[
         /// public static async Task PrintHostEntry(string hostOrIp)
@@ -146,6 +147,7 @@ namespace DnsClient
         /// </remarks>
         /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
         /// <param name="hostNameOrAddress">The <see cref="IPAddress"/> or host name to query for.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
         /// An <see cref="IPHostEntry"/> instance that contains address information about the host specified in <paramref name="hostNameOrAddress"/>.
         /// In case the <paramref name="hostNameOrAddress"/> could not be resolved to a domain name, this method returns <c>null</c>,
@@ -153,7 +155,7 @@ namespace DnsClient
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="hostNameOrAddress"/> is null.</exception>
         /// <exception cref="DnsResponseException">In case <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
-        public static Task<IPHostEntry> GetHostEntryAsync(this IDnsQuery query, string hostNameOrAddress)
+        public static Task<IPHostEntry> GetHostEntryAsync(this IDnsQuery query, string hostNameOrAddress, CancellationToken cancellationToken = default)
         {
             if (query == null)
             {
@@ -166,10 +168,10 @@ namespace DnsClient
 
             if (IPAddress.TryParse(hostNameOrAddress, out IPAddress address))
             {
-                return query.GetHostEntryAsync(address);
+                return query.GetHostEntryAsync(address, cancellationToken);
             }
 
-            return GetHostEntryFromNameAsync(query, hostNameOrAddress);
+            return GetHostEntryFromNameAsync(query, hostNameOrAddress, cancellationToken);
         }
 
         /// <summary>
@@ -259,7 +261,7 @@ namespace DnsClient
         /// </para>
         /// </summary>
         /// <example>
-        /// The following code example uses the <see cref="GetHostEntryAsync(IDnsQuery, IPAddress)"/> method to resolve an IP address to an <see cref="IPHostEntry"/> instance.
+        /// The following code example uses the <see cref="GetHostEntryAsync(IDnsQuery, IPAddress, CancellationToken)"/> method to resolve an IP address to an <see cref="IPHostEntry"/> instance.
         /// <code>
         /// <![CDATA[
         /// public static async Task PrintHostEntry(IPAddress address)
@@ -299,6 +301,7 @@ namespace DnsClient
         /// </remarks>
         /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
         /// <param name="address">The <see cref="IPAddress"/> to query for.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
         /// An <see cref="IPHostEntry"/> instance that contains address information about the host specified in <paramref name="address"/>.
         /// In case the <paramref name="address"/> could not be resolved to a domain name, this method returns <c>null</c>,
@@ -306,7 +309,7 @@ namespace DnsClient
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="address"/> is null.</exception>
         /// <exception cref="DnsResponseException">In case <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to true and a DNS error occurs.</exception>
-        public static async Task<IPHostEntry> GetHostEntryAsync(this IDnsQuery query, IPAddress address)
+        public static async Task<IPHostEntry> GetHostEntryAsync(this IDnsQuery query, IPAddress address, CancellationToken cancellationToken = default)
         {
             if (query == null)
             {
@@ -317,13 +320,13 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(address));
             }
 
-            var hostName = await query.GetHostNameAsync(address).ConfigureAwait(false);
+            var hostName = await query.GetHostNameAsync(address, cancellationToken).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(hostName))
             {
                 return null;
             }
 
-            return await GetHostEntryFromNameAsync(query, hostName).ConfigureAwait(false);
+            return await GetHostEntryFromNameAsync(query, hostName, cancellationToken).ConfigureAwait(false);
         }
 
         private static IPHostEntry GetHostEntryFromName(IDnsQuery query, string hostName)
@@ -344,7 +347,7 @@ namespace DnsClient
             return GetHostEntryProcessResult(hostString, allRecords);
         }
 
-        private static async Task<IPHostEntry> GetHostEntryFromNameAsync(IDnsQuery query, string hostName)
+        private static async Task<IPHostEntry> GetHostEntryFromNameAsync(IDnsQuery query, string hostName, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(hostName))
             {
@@ -352,8 +355,8 @@ namespace DnsClient
             }
 
             var hostString = DnsString.FromResponseQueryString(hostName);
-            var ipv4Result = query.QueryAsync(hostString, QueryType.A);
-            var ipv6Result = query.QueryAsync(hostString, QueryType.AAAA);
+            var ipv4Result = query.QueryAsync(hostString, QueryType.A, QueryClass.IN, cancellationToken);
+            var ipv6Result = query.QueryAsync(hostString, QueryType.AAAA, QueryClass.IN, cancellationToken);
 
             await Task.WhenAll(ipv4Result, ipv6Result).ConfigureAwait(false);
 
@@ -444,13 +447,14 @@ namespace DnsClient
         /// </summary>
         /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
         /// <param name="address">The <see cref="IPAddress"/> to resolve.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>
         /// The hostname if the reverse lookup was successful or <c>null</c>, in case the host was not found.
         /// If <see cref="DnsQueryOptions.ThrowDnsErrors"/> is set to <c>true</c>, this method will throw an <see cref="DnsResponseException"/> instead of returning <c>null</c>!
         /// </returns>
         /// <exception cref="ArgumentNullException">If <paramref name="address"/>is null.</exception>
         /// <exception cref="DnsResponseException">If no host has been found and <see cref="DnsQueryOptions.ThrowDnsErrors"/> is <c>true</c>.</exception>
-        public static async Task<string> GetHostNameAsync(this IDnsQuery query, IPAddress address)
+        public static async Task<string> GetHostNameAsync(this IDnsQuery query, IPAddress address, CancellationToken cancellationToken = default)
         {
             if (query == null)
             {
@@ -461,7 +465,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(address));
             }
 
-            var result = await query.QueryReverseAsync(address).ConfigureAwait(false);
+            var result = await query.QueryReverseAsync(address, cancellationToken).ConfigureAwait(false);
             return GetHostNameAsyncProcessResult(result);
         }
 
@@ -531,17 +535,18 @@ namespace DnsClient
         /// The protocol of the service to query for.
         /// Set it to <see cref="ProtocolType.Unknown"/> or <see cref="ProtocolType.Unspecified"/> to not pass any protocol.
         /// </param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
         /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
-        public static Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, ProtocolType protocol)
+        public static Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, ProtocolType protocol, CancellationToken cancellationToken = default)
         {
             if (protocol == ProtocolType.Unspecified || protocol == ProtocolType.Unknown)
             {
-                return ResolveServiceAsync(query, baseDomain, serviceName, null);
+                return ResolveServiceAsync(query, baseDomain, serviceName, null, cancellationToken);
             }
 
-            return ResolveServiceAsync(query, baseDomain, serviceName, protocol.ToString());
+            return ResolveServiceAsync(query, baseDomain, serviceName, protocol.ToString(), cancellationToken);
         }
 
         /// <summary>
@@ -631,10 +636,11 @@ namespace DnsClient
         /// <param name="baseDomain">The base domain, which will be appended to the end of the query string.</param>
         /// <param name="serviceName">The name of the service to look for. Must not have any <c>_</c> prefix.</param>
         /// <param name="tag">An optional tag. Must not have any <c>_</c> prefix.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="baseDomain"/> or <paramref name="serviceName"/> are null.</exception>
         /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
-        public static async Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, string tag = null)
+        public static async Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string baseDomain, string serviceName, string tag = null, CancellationToken cancellationToken = default)
         {
             if (query == null)
             {
@@ -651,7 +657,7 @@ namespace DnsClient
 
             var queryString = ConcatServiceName(baseDomain, serviceName, tag);
 
-            var result = await query.QueryAsync(queryString, QueryType.SRV).ConfigureAwait(false);
+            var result = await query.QueryAsync(queryString, QueryType.SRV, QueryClass.IN, cancellationToken).ConfigureAwait(false);
 
             return ResolveServiceProcessResult(result);
         }
@@ -670,10 +676,11 @@ namespace DnsClient
         /// </remarks>
         /// <param name="query">The <see cref="IDnsQuery"/> instance.</param>
         /// <param name="service">The name of the service to look for. Must have <c>_</c> prefix and domain and protocol.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A collection of <see cref="ServiceHostEntry"/>s.</returns>
         /// <exception cref="ArgumentNullException">If <paramref name="service"/> are null.</exception>
         /// <seealso href="https://tools.ietf.org/html/rfc2782">RFC 2782</seealso>
-        public static async Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string service)
+        public static async Task<ServiceHostEntry[]> ResolveServiceAsync(this IDnsQuery query, string service, CancellationToken cancellationToken = default)
         {
             if (query == null)
             {
@@ -684,7 +691,7 @@ namespace DnsClient
                 throw new ArgumentNullException(nameof(service));
             }
 
-            var result = await query.QueryAsync(service, QueryType.SRV).ConfigureAwait(false);
+            var result = await query.QueryAsync(service, QueryType.SRV, QueryClass.IN, cancellationToken).ConfigureAwait(false);
 
             return ResolveServiceProcessResult(result);
         }
